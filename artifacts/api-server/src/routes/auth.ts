@@ -58,9 +58,16 @@ router.post("/auth/send-otp", async (req, res) => {
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
     await db.insert(otpCodesTable).values({ phone, code, expiresAt });
-    await sendWhatsAppOtp(phone, code);
 
-    res.json({ message: "تم إرسال رمز التحقق عبر واتساب", phone });
+    const whatsappConfigured = !!(process.env["WHATSAPP_TOKEN"] && process.env["WHATSAPP_PHONE_ID"]);
+
+    if (whatsappConfigured) {
+      await sendWhatsAppOtp(phone, code);
+      res.json({ message: "تم إرسال رمز التحقق عبر واتساب", phone });
+    } else {
+      req.log.info({ phone }, `[DEV] OTP for ${phone}: ${code}`);
+      res.json({ message: "وضع التطوير — الرمز يظهر في التطبيق مباشرة", phone, devCode: code });
+    }
   } catch (err: any) {
     req.log.error(err, "send-otp error");
     res.status(500).json({ error: err.message ?? "خطأ في الخادم" });

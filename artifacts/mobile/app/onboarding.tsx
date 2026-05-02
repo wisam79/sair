@@ -64,6 +64,7 @@ export default function Onboarding() {
   const otpRefs = useRef<(TextInput | null)[]>([null, null, null, null, null, null]);
   const [resendTimer, setResendTimer] = useState(0);
   const resendInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [devCode, setDevCode] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -194,8 +195,9 @@ export default function Onboarding() {
     setLoading(true);
 
     try {
-      await api.post("/auth/send-otp", { phone: trimPhone });
+      const res = await api.post<{ devCode?: string }>("/auth/send-otp", { phone: trimPhone });
       setOtpDigits(["", "", "", "", "", ""]);
+      setDevCode(res.devCode ?? null);
       startResendTimer();
       setScreen("otp");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -265,8 +267,9 @@ export default function Onboarding() {
     setLoading(true);
     setError("");
     try {
-      await api.post("/auth/send-otp", { phone: phone.trim() });
+      const res = await api.post<{ devCode?: string }>("/auth/send-otp", { phone: phone.trim() });
       setOtpDigits(["", "", "", "", "", ""]);
+      setDevCode(res.devCode ?? null);
       startResendTimer();
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       setTimeout(() => otpRefs.current[0]?.focus(), 200);
@@ -498,9 +501,29 @@ export default function Onboarding() {
               <FeatherIcon name="message-circle" size={36} color="#25D366" />
             </View>
             <Text style={[styles.otpHint, { color: colors.mutedForeground }]}>
-              تحقق من واتساب وأدخل الرمز هنا
+              {devCode ? "الرمز يظهر أدناه — اضغط عليه للتعبئة التلقائية" : "تحقق من واتساب وأدخل الرمز هنا"}
             </Text>
           </View>
+
+          {devCode ? (
+            <TouchableOpacity
+              style={styles.devCodeBanner}
+              onPress={() => {
+                const digits = devCode.split("");
+                setOtpDigits(digits);
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                setTimeout(() => handleVerifyOtp(), 100);
+              }}
+              activeOpacity={0.75}
+            >
+              <View style={styles.devCodeTop}>
+                <FeatherIcon name="zap" size={14} color="#92400E" />
+                <Text style={styles.devCodeLabel}>وضع التطوير — اضغط للتعبئة التلقائية</Text>
+              </View>
+              <Text style={styles.devCodeValue}>{devCode}</Text>
+              <Text style={styles.devCodeSub}>سيختفي هذا عند تفعيل واتساب</Text>
+            </TouchableOpacity>
+          ) : null}
 
           {error ? (
             <Animated.View style={[styles.errorBox, { backgroundColor: "#FEE2E2", opacity: errorOpacity, transform: [{ translateY: errorAnim }] }]}>
@@ -788,6 +811,11 @@ const styles = StyleSheet.create({
   otpIllustration: { alignItems: "center", gap: 12, paddingVertical: 8 },
   otpIconCircle: { width: 72, height: 72, borderRadius: 36, alignItems: "center", justifyContent: "center" },
   otpHint: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 22 },
+  devCodeBanner: { backgroundColor: "#FEF3C7", borderColor: "#F59E0B", borderWidth: 1.5, borderRadius: 14, padding: 16, alignItems: "center", gap: 6, marginBottom: 4 },
+  devCodeTop: { flexDirection: "row", alignItems: "center", gap: 6 },
+  devCodeLabel: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#92400E" },
+  devCodeValue: { fontSize: 34, fontFamily: "Inter_700Bold", color: "#78350F", letterSpacing: 8 },
+  devCodeSub: { fontSize: 10, fontFamily: "Inter_400Regular", color: "#B45309" },
   otpRow: { flexDirection: "row", justifyContent: "center", gap: 10 },
   otpInput: { width: 46, height: 58, borderRadius: 14, fontSize: 24, fontFamily: "Inter_700Bold" },
   resendRow: { alignItems: "center", marginTop: 4 },
