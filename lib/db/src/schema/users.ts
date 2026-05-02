@@ -14,6 +14,7 @@ export const usersTable = pgTable("users", {
   rating: numeric("rating", { precision: 3, scale: 1 }).default("5.0").notNull(),
   totalTrips: integer("total_trips").default(0).notNull(),
   isOnline: boolean("is_online").default(false).notNull(),
+  isAdmin: boolean("is_admin").default(false).notNull(),
   balance: numeric("balance", { precision: 12, scale: 0 }).default("0").notNull(),
   basicFare: integer("basic_fare").default(50000).notNull(),
   standardFare: integer("standard_fare").default(80000).notNull(),

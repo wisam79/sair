@@ -6,6 +6,7 @@ import tripsRouter from "./trips";
 import subscriptionsRouter from "./subscriptions";
 import ratingsRouter from "./ratings";
 import cardsRouter from "./cards";
+import adminRouter from "./admin";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(tripsRouter);
 router.use(subscriptionsRouter);
 router.use(ratingsRouter);
 router.use(cardsRouter);
+router.use(adminRouter);
 
 export default router;

@@ -34,7 +34,7 @@ function NativeTabLayout({ role }: { role: "student" | "driver" }) {
   );
 }
 
-function ClassicTabLayout({ role }: { role: "student" | "driver" }) {
+function ClassicTabLayout({ role, isAdmin }: { role: "student" | "driver"; isAdmin: boolean }) {
   const { pendingRequest, notifications, dismissNotification, activeTrip } = useApp();
   const colors = useColors();
   const colorScheme = useColorScheme();
@@ -194,6 +194,18 @@ function ClassicTabLayout({ role }: { role: "student" | "driver" }) {
           },
         }}
       />
+      <Tabs.Screen
+        name="admin"
+        options={{
+          title: "الإدارة",
+          tabBarButton: isAdmin ? undefined : () => null,
+          tabBarIcon: ({ color, focused }) => {
+            const size = focused ? 24 : 22;
+            return <FeatherIcon name="shield" size={size} color={color} />;
+          },
+          tabBarBadge: undefined,
+        }}
+      />
     </Tabs>
     {showFab && (
       <Animated.View
@@ -248,9 +260,10 @@ export default function TabLayout() {
   if (!isAuthenticated) return <Redirect href="/onboarding" />;
 
   const role = user?.role ?? "student";
+  const isAdmin = user?.isAdmin ?? false;
 
   if (isLiquidGlassAvailable()) {
     return <NativeTabLayout role={role} />;
   }
-  return <ClassicTabLayout role={role} />;
+  return <ClassicTabLayout role={role} isAdmin={isAdmin} />;
 }

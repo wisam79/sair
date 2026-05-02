@@ -7,6 +7,11 @@ import { sendWhatsAppOtp } from "../lib/whatsapp";
 import { z } from "zod";
 import crypto from "crypto";
 
+function isAdminPhone(phone: string): boolean {
+  const adminPhones = (process.env["ADMIN_PHONES"] ?? "").split(",").map(p => p.trim()).filter(Boolean);
+  return adminPhones.includes(phone);
+}
+
 const router = Router();
 
 function generateOtp(): string {
@@ -128,7 +133,12 @@ router.post("/auth/verify-otp", async (req, res) => {
       .limit(1);
 
     if (existing) {
-      const token = signToken(existing.id);
+      const adminFlag = isAdminPhone(phone) || existing.isAdmin;
+      if (adminFlag && !existing.isAdmin) {
+        await db.update(usersTable).set({ isAdmin: true }).where(eq(usersTable.id, existing.id));
+        existing.isAdmin = true;
+      }
+      const token = signToken(existing.id, existing.isAdmin);
       res.json({ token, user: existing, isNewUser: false });
       return;
     }
@@ -138,6 +148,7 @@ router.post("/auth/verify-otp", async (req, res) => {
       return;
     }
 
+    const adminFlag = isAdminPhone(phone);
     const [user] = await db
       .insert(usersTable)
       .values({
@@ -151,10 +162,11 @@ router.post("/auth/verify-otp", async (req, res) => {
         basicFare: basicFare ?? 50000,
         standardFare: standardFare ?? 80000,
         premiumFare: premiumFare ?? 120000,
+        isAdmin: adminFlag,
       })
       .returning();
 
-    const token = signToken(user!.id);
+    const token = signToken(user!.id, user!.isAdmin);
     res.status(201).json({ token, user, isNewUser: true });
   } catch (err) {
     req.log.error(err, "verify-otp error");
@@ -199,8 +211,9 @@ router.post("/auth/register", async (req, res) => {
       basicFare: data.basicFare ?? 50000,
       standardFare: data.standardFare ?? 80000,
       premiumFare: data.premiumFare ?? 120000,
+      isAdmin: isAdminPhone(data.phone),
     }).returning();
-    const token = signToken(user!.id);
+    const token = signToken(user!.id, user!.isAdmin);
     res.status(201).json({ token, user });
   } catch (err) {
     req.log.error(err, "register error");
@@ -220,7 +233,7 @@ router.post("/auth/login", async (req, res) => {
       res.status(404).json({ error: "المستخدم غير موجود" });
       return;
     }
-    const token = signToken(user.id);
+    const token = signToken(user.id, user.isAdmin);
     res.json({ token, user });
   } catch (err) {
     req.log.error(err, "login error");

@@ -16,6 +16,7 @@ export interface User {
   rating: string;
   totalTrips: number;
   isOnline: boolean;
+  isAdmin: boolean;
   balance: string;
   basicFare: number;
   standardFare: number;
