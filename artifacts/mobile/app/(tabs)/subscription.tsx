@@ -11,6 +11,7 @@ import {
   Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 
 import { SUBSCRIPTION_PLANS, SubscriptionCard } from "@/components/SubscriptionCard";
 import { EarningsChart } from "@/components/EarningsChart";
@@ -324,6 +325,26 @@ export default function SubscriptionScreen() {
           </View>
         )}
 
+        <TouchableOpacity
+          style={[styles.activateCardBanner, { borderColor: colors.accent + "60", backgroundColor: colors.accent + "10" }]}
+          onPress={() => router.push("/activate-card")}
+          activeOpacity={0.85}
+        >
+          <LinearGradient
+            colors={["#FF6B3508", "#FF6B3520"]}
+            style={styles.activateCardInner}
+          >
+            <View style={[styles.activateCardIconBox, { backgroundColor: colors.accent }]}>
+              <FeatherIcon name="credit-card" size={22} color="#fff" />
+            </View>
+            <View style={styles.activateCardText}>
+              <Text style={[styles.activateCardTitle, { color: colors.accent }]}>لديك بطاقة اشتراك؟</Text>
+              <Text style={[styles.activateCardSub, { color: colors.mutedForeground }]}>أدخل رمز البطاقة لتفعيل اشتراكك فوراً</Text>
+            </View>
+            <FeatherIcon name="arrow-left" size={20} color={colors.accent} />
+          </LinearGradient>
+        </TouchableOpacity>
+
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>مقارنة الخطط</Text>
           <View style={[styles.comparisonCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -450,4 +471,10 @@ const styles = StyleSheet.create({
   separator: { height: 1, marginHorizontal: 16 },
   cancelButton: { marginTop: 8, padding: 16, alignItems: "center" },
   cancelButtonText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  activateCardBanner: { borderRadius: 16, borderWidth: 1.5, marginBottom: 20, overflow: "hidden" },
+  activateCardInner: { flexDirection: "row", alignItems: "center", padding: 16, gap: 12 },
+  activateCardIconBox: { width: 46, height: 46, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  activateCardText: { flex: 1 },
+  activateCardTitle: { fontSize: 15, fontFamily: "Inter_700Bold", textAlign: "right" },
+  activateCardSub: { fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "right", marginTop: 2 },
 });
