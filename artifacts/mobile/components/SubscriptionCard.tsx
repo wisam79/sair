@@ -13,7 +13,10 @@ interface Plan {
   monthlyFare: number;
   tripsPerMonth: number | "unlimited";
   features: string[];
+  negativeFeatures?: string[];
   isPopular?: boolean;
+  savings?: string;
+  usersCount: string;
 }
 
 interface SubscriptionCardProps {
@@ -26,6 +29,7 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
   const colors = useColors();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(0.7)).current;
 
   useEffect(() => {
     Animated.timing(opacityAnim, {
@@ -33,6 +37,23 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
       duration: 500,
       useNativeDriver: true,
     }).start();
+
+    if (plan.id === "premium") {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 0.7,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
   }, []);
 
   function handlePress() {
@@ -73,6 +94,11 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
           <Text style={styles.popularText}>الأكثر طلباً</Text>
         </View>
       )}
+      {plan.id === "premium" && !isActive && (
+        <Animated.View style={[styles.offerBadge, { backgroundColor: "#F59E0B", opacity: pulseAnim }]}>
+          <Text style={styles.offerText}>عرض محدود</Text>
+        </Animated.View>
+      )}
       {isActive && (
         <View style={[styles.activeBadge, { backgroundColor: colors.success }]}>
           <FeatherIcon name="check" size={10} color="#fff" />
@@ -80,7 +106,14 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
         </View>
       )}
 
-      <Text style={[styles.planName, { color: textColor }]}>{plan.nameAr}</Text>
+      <View style={styles.headerRow}>
+        <Text style={[styles.planName, { color: textColor }]}>{plan.nameAr}</Text>
+        {plan.savings && (
+          <View style={styles.savingsBadge}>
+            <Text style={styles.savingsText}>وفّر {plan.savings}</Text>
+          </View>
+        )}
+      </View>
 
       <View style={styles.priceRow}>
         <Text style={[styles.price, { color: isActive || isPremium ? "#fff" : colors.accent }]}>
@@ -100,11 +133,22 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
 
       <View style={styles.features}>
         {plan.features.map((f, i) => (
-          <View key={i} style={styles.featureRow}>
+          <View key={`feat-${i}`} style={styles.featureRow}>
             <FeatherIcon name="check-circle" size={13} color={accentColor} />
             <Text style={[styles.featureText, { color: textColor }]}>{f}</Text>
           </View>
         ))}
+        {plan.negativeFeatures?.map((f, i) => (
+          <View key={`neg-${i}`} style={styles.featureRow}>
+            <FeatherIcon name="x-circle" size={13} color={subTextColor} />
+            <Text style={[styles.featureText, { color: subTextColor }]}>{f}</Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.socialProof}>
+        <FeatherIcon name="users" size={12} color={subTextColor} />
+        <Text style={[styles.socialProofText, { color: subTextColor }]}>{plan.usersCount}</Text>
       </View>
 
       {!isActive && (
@@ -156,6 +200,12 @@ export const SUBSCRIPTION_PLANS: Plan[] = [
       "إشعارات الوصول",
       "دعم فني",
     ],
+    negativeFeatures: [
+      "أولوية الحجز",
+      "دعم 24/7",
+    ],
+    savings: "40%",
+    usersCount: "يستخدمه 847 طالب",
   },
   {
     id: "standard",
@@ -167,8 +217,14 @@ export const SUBSCRIPTION_PLANS: Plan[] = [
       "إشعارات الوصول والمغادرة",
       "أولوية الاستلام",
       "دعم فني متميز",
+      "أولوية الحجز",
+    ],
+    negativeFeatures: [
+      "دعم 24/7",
     ],
     isPopular: true,
+    savings: "55%",
+    usersCount: "الأكثر شيوعاً - 1,234 طالب",
   },
   {
     id: "premium",
@@ -181,7 +237,11 @@ export const SUBSCRIPTION_PLANS: Plan[] = [
       "أولوية قصوى",
       "مشاركة الموقع للعائلة",
       "دعم على مدار الساعة",
+      "أولوية الحجز",
+      "دعم 24/7",
     ],
+    savings: "70%",
+    usersCount: "للطلاب المميزين - 312 طالب",
   },
 ];
 
@@ -204,8 +264,24 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderBottomLeftRadius: 8,
     borderBottomRightRadius: 8,
+    zIndex: 10,
   },
   popularText: {
+    color: "#fff",
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+  },
+  offerBadge: {
+    position: "absolute",
+    top: -1,
+    right: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+    zIndex: 10,
+  },
+  offerText: {
     color: "#fff",
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
@@ -220,16 +296,33 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 10,
     gap: 3,
+    zIndex: 10,
   },
   activeBadgeText: {
     color: "#fff",
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
   },
+  headerRow: {
+    flexDirection: "row-reverse",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
   planName: {
     fontSize: 16,
     fontFamily: "Inter_700Bold",
-    marginBottom: 10,
+  },
+  savingsBadge: {
+    backgroundColor: "#22C55E20",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  savingsText: {
+    color: "#22C55E",
+    fontSize: 12,
+    fontFamily: "Inter_600SemiBold",
   },
   priceRow: {
     flexDirection: "row",
@@ -264,12 +357,24 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   featureRow: {
-    flexDirection: "row",
+    flexDirection: "row-reverse",
     alignItems: "center",
     gap: 7,
   },
   featureText: {
     fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    textAlign: "right",
+    flex: 1,
+  },
+  socialProof: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 4,
+    marginBottom: 14,
+  },
+  socialProofText: {
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
   },
   selectBtn: {

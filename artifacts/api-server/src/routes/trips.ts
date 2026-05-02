@@ -15,8 +15,58 @@ const createTripSchema = z.object({
   destLat: z.number(),
   destLng: z.number(),
   destAddress: z.string(),
-  fare: z.number().default(75000),
+  fare: z.number(),
   notes: z.string().optional(),
+});
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+router.get("/trips/fare-estimate", async (req, res) => {
+  const { originLat, originLng, destLat, destLng } = req.query;
+  
+  if (!originLat || !originLng || !destLat || !destLng) {
+    res.status(400).json({ error: "الإحداثيات مطلوبة" });
+    return;
+  }
+
+  const lat1 = Number(originLat);
+  const lng1 = Number(originLng);
+  const lat2 = Number(destLat);
+  const lng2 = Number(destLng);
+
+  if (isNaN(lat1) || isNaN(lng1) || isNaN(lat2) || isNaN(lng2)) {
+    res.status(400).json({ error: "إحداثيات غير صالحة" });
+    return;
+  }
+
+  const distanceKm = haversineKm(lat1, lng1, lat2, lng2);
+  const baseFare = 15000;
+  const perKmRate = 3000;
+  const distanceFare = distanceKm * perKmRate;
+  
+  let estimatedFare = baseFare + distanceFare;
+  
+  // Min 20000, Max 200000
+  estimatedFare = Math.max(20000, Math.min(200000, estimatedFare));
+  
+  // Round to nearest 5000
+  estimatedFare = Math.round(estimatedFare / 5000) * 5000;
+
+  res.json({
+    estimatedFare,
+    distanceKm,
+    breakdown: {
+      baseFare,
+      perKmRate,
+      distanceFare
+    }
+  });
 });
 
 router.post("/trips", requireAuth, async (req: AuthRequest, res) => {

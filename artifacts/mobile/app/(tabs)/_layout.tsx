@@ -1,11 +1,12 @@
 import FeatherIcon from "@/components/FeatherIcon";
+import { NotificationBanner } from "@/components/NotificationBanner";
 import { BlurView } from "expo-blur";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Redirect, Tabs } from "expo-router";
+import { Redirect, Tabs, useRouter, usePathname } from "expo-router";
 import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { SymbolView } from "expo-symbols";
-import React from "react";
-import { Platform, StyleSheet, View, useColorScheme } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Platform, StyleSheet, View, useColorScheme, Animated, TouchableOpacity } from "react-native";
 
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
@@ -34,16 +35,46 @@ function NativeTabLayout({ role }: { role: "student" | "driver" }) {
 }
 
 function ClassicTabLayout({ role }: { role: "student" | "driver" }) {
-  const { pendingRequest } = useApp();
+  const { pendingRequest, notifications, dismissNotification, activeTrip } = useApp();
   const colors = useColors();
   const colorScheme = useColorScheme();
+  const router = useRouter();
+  const pathname = usePathname();
   const isDark = colorScheme === "dark";
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
   const isAndroid = Platform.OS === "android";
 
+  const fabScale = useRef(new Animated.Value(0)).current;
+  const showFab = role === "student" && pathname === "/" && !activeTrip;
+
+  useEffect(() => {
+    if (showFab) {
+      Animated.spring(fabScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 50,
+        friction: 7,
+      }).start();
+    } else {
+      Animated.spring(fabScale, {
+        toValue: 0,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showFab]);
+
   return (
-    <Tabs
+    <View style={{ flex: 1 }}>
+      {notifications.length > 0 && (
+        <NotificationBanner
+          message={notifications[0].message}
+          type={notifications[0].type}
+          visible={true}
+          onDismiss={() => dismissNotification(notifications[0].id)}
+        />
+      )}
+      <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.mutedForeground,
@@ -164,8 +195,52 @@ function ClassicTabLayout({ role }: { role: "student" | "driver" }) {
         }}
       />
     </Tabs>
+    {showFab && (
+      <Animated.View
+        style={[
+          styles.fabContainer,
+          {
+            transform: [{ scale: fabScale }],
+            backgroundColor: colors.accent,
+            bottom: (isWeb ? 84 : 64) + 16,
+          },
+        ]}
+      >
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => router.navigate({ pathname: "/", params: { openBooking: "true" } })}
+          activeOpacity={0.8}
+        >
+          <FeatherIcon name="navigation" size={24} color="white" />
+        </TouchableOpacity>
+      </Animated.View>
+    )}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  fabContainer: {
+    position: "absolute",
+    right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    zIndex: 100,
+  },
+  fab: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
 
 export default function TabLayout() {
   const { isAuthenticated, user } = useApp();

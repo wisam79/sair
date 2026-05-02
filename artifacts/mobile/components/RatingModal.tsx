@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Modal,
   View,
@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Animated,
+  ScrollView,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
@@ -23,6 +25,17 @@ interface RatingModalProps {
   onSubmitted?: () => void;
 }
 
+const QUICK_TAGS = ["نظيف 🧹", "محترف 👔", "منضبط ⏰", "سريع ⚡", "ودود 😊"];
+
+const RATING_INFO = [
+  { label: "", color: "#94A3B8" },
+  { label: "سيئ جداً", color: "#EF4444" },
+  { label: "سيئ", color: "#F97316" },
+  { label: "مقبول", color: "#F59E0B" },
+  { label: "جيد", color: "#84CC16" },
+  { label: "ممتاز! ⭐", color: "#22C55E" },
+];
+
 export default function RatingModal({
   visible,
   onClose,
@@ -33,11 +46,49 @@ export default function RatingModal({
   const colors = useColors();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const starAnimations = [
+    useRef(new Animated.Value(1)).current,
+    useRef(new Animated.Value(1)).current,
+    useRef(new Animated.Value(1)).current,
+    useRef(new Animated.Value(1)).current,
+    useRef(new Animated.Value(1)).current,
+  ];
 
   const handleRating = (value: number) => {
     setRating(value);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    // Animate the selected star
+    const index = value - 1;
+    Animated.sequence([
+      Animated.spring(starAnimations[index], {
+        toValue: 1.3,
+        useNativeDriver: true,
+        speed: 50,
+      }),
+      Animated.spring(starAnimations[index], {
+        toValue: 1.0,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const toggleTag = (tag: string) => {
+    let newTags: string[];
+    if (selectedTags.includes(tag)) {
+      newTags = selectedTags.filter(t => t !== tag);
+    } else {
+      newTags = [...selectedTags, tag];
+    }
+    setSelectedTags(newTags);
+    
+    // Update comment with tags
+    const cleanTag = (t: string) => t.split(" ")[0]; // Remove emoji for text
+    const tagsStr = newTags.map(cleanTag).join("، ");
+    setComment(tagsStr);
   };
 
   const handleSubmit = async () => {
@@ -58,6 +109,13 @@ export default function RatingModal({
     }
   };
 
+  const getSubmitButtonColor = () => {
+    if (rating >= 4) return "#22C55E";
+    if (rating === 3) return "#F59E0B";
+    if (rating > 0) return "#EF4444";
+    return colors.primary;
+  };
+
   return (
     <Modal
       visible={visible}
@@ -69,7 +127,7 @@ export default function RatingModal({
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
       >
-        <View style={[styles.content, { backgroundColor: colors.card }]}>
+        <ScrollView contentContainerStyle={[styles.content, { backgroundColor: colors.card }]}>
           <View style={[styles.handle, { backgroundColor: colors.mutedForeground + "40" }]} />
           
           <View style={styles.header}>
@@ -86,11 +144,43 @@ export default function RatingModal({
                 onPress={() => handleRating(star)}
                 style={styles.starButton}
               >
-                <Text style={[
+                <Animated.Text style={[
                   styles.starText,
-                  { color: star <= rating ? "#FFD700" : colors.border }
+                  { 
+                    color: star <= rating ? "#FFD700" : colors.border,
+                    transform: [{ scale: starAnimations[star - 1] }]
+                  }
                 ]}>
                   {star <= rating ? "★" : "☆"}
+                </Animated.Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {rating > 0 && (
+            <Text style={[styles.ratingLabel, { color: RATING_INFO[rating].color }]}>
+              {RATING_INFO[rating].label}
+            </Text>
+          )}
+
+          <View style={styles.tagsContainer}>
+            {QUICK_TAGS.map((tag) => (
+              <TouchableOpacity
+                key={tag}
+                onPress={() => toggleTag(tag)}
+                style={[
+                  styles.tagChip,
+                  { 
+                    backgroundColor: selectedTags.includes(tag) ? colors.primary : colors.background,
+                    borderColor: selectedTags.includes(tag) ? colors.primary : colors.border 
+                  }
+                ]}
+              >
+                <Text style={[
+                  styles.tagText,
+                  { color: selectedTags.includes(tag) ? colors.primaryForeground : colors.text }
+                ]}>
+                  {tag}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -117,7 +207,7 @@ export default function RatingModal({
           <TouchableOpacity
             style={[
               styles.submitButton,
-              { backgroundColor: colors.primary, opacity: rating === 0 || loading ? 0.6 : 1 },
+              { backgroundColor: getSubmitButtonColor(), opacity: rating === 0 || loading ? 0.6 : 1 },
             ]}
             onPress={handleSubmit}
             disabled={rating === 0 || loading}
@@ -126,7 +216,7 @@ export default function RatingModal({
               <ActivityIndicator color={colors.primaryForeground} />
             ) : (
               <Text style={[styles.submitText, { color: colors.primaryForeground }]}>
-                إرسال التقييم
+                {rating > 0 ? `إرسال تقييم ${"★".repeat(rating)}${"☆".repeat(5 - rating)}` : "إرسال التقييم"}
               </Text>
             )}
           </TouchableOpacity>
@@ -134,7 +224,7 @@ export default function RatingModal({
           <TouchableOpacity onPress={onClose} style={styles.cancelButton} disabled={loading}>
             <Text style={[styles.cancelText, { color: colors.mutedForeground }]}>إلغاء</Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -145,7 +235,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    flex: 1,
     padding: 24,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -160,7 +249,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    marginBottom: 32,
+    marginBottom: 24,
   },
   title: {
     fontFamily: "Inter_700Bold",
@@ -175,20 +264,42 @@ const styles = StyleSheet.create({
     flexDirection: "row-reverse",
     justifyContent: "center",
     gap: 12,
-    marginBottom: 32,
+    marginBottom: 12,
   },
   starButton: {
     padding: 4,
   },
   starText: {
-    fontSize: 40,
+    fontSize: 44,
+  },
+  ratingLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
+    marginBottom: 24,
+  },
+  tagsContainer: {
+    flexDirection: "row-reverse",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 8,
+    marginBottom: 24,
+  },
+  tagChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  tagText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 14,
   },
   input: {
     width: "100%",
     borderRadius: 12,
     borderWidth: 1,
     padding: 16,
-    height: 120,
+    height: 100,
     fontFamily: "Inter_400Regular",
     fontSize: 16,
     marginBottom: 24,

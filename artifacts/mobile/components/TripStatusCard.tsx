@@ -1,7 +1,7 @@
 import FeatherIcon from "@/components/FeatherIcon";
 import * as Haptics from "expo-haptics";
-import React, { useEffect, useRef } from "react";
-import { Animated, Linking, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Alert, Animated, Linking, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { Trip, TripStatus, useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
@@ -40,6 +40,26 @@ export function TripStatusCard({ trip, role, onComplete, onCancel }: TripStatusC
   const currentIdx = getStepIndex(trip.status, role);
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const [timeLeft, setTimeLeft] = useState<string>("");
+  const targetTime = useRef(new Date().getTime() + 5 * 60 * 1000).current;
+
+  useEffect(() => {
+    if (trip.status === "accepted") {
+      const interval = setInterval(() => {
+        const now = new Date().getTime();
+        const diff = targetTime - now;
+        if (diff <= 0) {
+          setTimeLeft("0:00");
+          clearInterval(interval);
+        } else {
+          const minutes = Math.floor(diff / 60000);
+          const seconds = Math.floor((diff % 60000) / 1000);
+          setTimeLeft(`${minutes}:${seconds < 10 ? "0" : ""}${seconds}`);
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [trip.status, targetTime]);
 
   useEffect(() => {
     if (trip.status !== "completed" && trip.status !== "cancelled") {
@@ -62,8 +82,33 @@ export function TripStatusCard({ trip, role, onComplete, onCancel }: TripStatusC
 
   function handleCancel() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    Alert.alert(
+      "إلغاء الرحلة",
+      "يرجى اختيار سبب الإلغاء:",
+      [
+        { text: "السائق تأخر", onPress: () => performCancel() },
+        { text: "غيّرت رأيي", onPress: () => performCancel() },
+        { text: "سبب آخر", onPress: () => performCancel() },
+        { text: "تراجع", style: "cancel" }
+      ]
+    );
+  }
+
+  function performCancel() {
     cancelTrip(trip.id);
     onCancel?.();
+  }
+
+  function handleShareTrip() {
+    const originAddr = trip.origin?.address ?? trip.originAddress;
+    const destAddr = trip.destination?.address ?? trip.destAddress;
+    Share.share({
+      message: `أنا الآن في رحلة يونيرايد 🚗\nمن: ${originAddr}\nإلى: ${destAddr}\nالسائق: ${trip.driverName ?? "غير معروف"}`,
+    });
+  }
+
+  function handleQuickMessage(msg: string) {
+    Alert.alert("تم إرسال الرسالة للسائق", msg);
   }
 
   function handleNextStatus() {
@@ -99,7 +144,7 @@ export function TripStatusCard({ trip, role, onComplete, onCancel }: TripStatusC
   const originAddr = trip.origin?.address ?? trip.originAddress;
   const destAddr = trip.destination?.address ?? trip.destAddress;
 
-  if (trip.status === "completed") {
+  if (trip.status === "completed" as TripStatus) {
     return (
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.success + "40" }]}>
         <View style={[styles.completedBanner, { backgroundColor: colors.success + "15" }]}>
@@ -139,8 +184,13 @@ export function TripStatusCard({ trip, role, onComplete, onCancel }: TripStatusC
           {steps[currentIdx]?.label ?? "جارٍ..."}
         </Text>
         {(trip.status === "accepted" || trip.status === "pickup") && (
-          <Text style={[styles.etaText, { color: colors.mutedForeground }]}>· ~5 دقائق</Text>
+          <Text style={[styles.etaText, { color: colors.mutedForeground }]}>
+            · {trip.status === "accepted" && timeLeft ? `وقت الوصول: ${timeLeft} دق` : "~5 دقائق"}
+          </Text>
         )}
+        <TouchableOpacity onPress={handleShareTrip} style={styles.shareBtnMini}>
+          <FeatherIcon name="share-2" size={14} color={currentColor} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.stepsRow}>
@@ -221,6 +271,29 @@ export function TripStatusCard({ trip, role, onComplete, onCancel }: TripStatusC
         </View>
       )}
 
+      {role === "student" && trip.driverId && (trip.status === "accepted" || trip.status === "pickup") && (
+        <View style={styles.quickMessages}>
+          <TouchableOpacity 
+            style={[styles.msgChip, { borderColor: colors.border }]} 
+            onPress={() => handleQuickMessage("أنا في الموقع ✅")}
+          >
+            <Text style={[styles.msgChipText, { color: colors.mutedForeground }]}>أنا في الموقع ✅</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.msgChip, { borderColor: colors.border }]} 
+            onPress={() => handleQuickMessage("أتأخر قليلاً ⏰")}
+          >
+            <Text style={[styles.msgChipText, { color: colors.mutedForeground }]}>أتأخر قليلاً ⏰</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.msgChip, { borderColor: colors.border }]} 
+            onPress={() => handleQuickMessage("غيّر الموقع 📍")}
+          >
+            <Text style={[styles.msgChipText, { color: colors.mutedForeground }]}>غيّر الموقع 📍</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <View style={[styles.fareRow, { borderColor: colors.border }]}>
         <FeatherIcon name="tag" size={13} color={colors.primary} />
         <Text style={[styles.fareText, { color: colors.foreground }]}>
@@ -247,7 +320,7 @@ export function TripStatusCard({ trip, role, onComplete, onCancel }: TripStatusC
             </Text>
           </TouchableOpacity>
         )}
-        {trip.status !== "completed" && trip.status !== "cancelled" && (
+        {trip.status !== ("completed" as TripStatus) && trip.status !== ("cancelled" as TripStatus) && (
           <TouchableOpacity
             style={[styles.cancelBtn, { borderColor: colors.destructive }]}
             onPress={handleCancel}
@@ -308,6 +381,10 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
+  },
+  shareBtnMini: {
+    marginLeft: "auto",
+    paddingLeft: 8,
   },
   statusText: {
     fontSize: 13,
@@ -400,6 +477,21 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
+  },
+  quickMessages: {
+    flexDirection: "row",
+    gap: 8,
+    paddingTop: 12,
+  },
+  msgChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  msgChipText: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
   },
   fareRow: {
     flexDirection: "row",

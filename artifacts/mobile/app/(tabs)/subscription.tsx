@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SUBSCRIPTION_PLANS, SubscriptionCard } from "@/components/SubscriptionCard";
+import { EarningsChart } from "@/components/EarningsChart";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { api } from "@/lib/api";
@@ -26,6 +27,7 @@ export default function SubscriptionScreen() {
     tripHistory,
     todayEarnings,
     weeklyEarnings,
+    weeklyEarningsData,
     availableDrivers,
     subscribeToPlan,
     refreshUser,
@@ -67,30 +69,34 @@ export default function SubscriptionScreen() {
 
   if (role === "driver") {
     const completedTrips = tripHistory.filter((t) => t.status === "completed");
-    const monthlyEarnings = tripHistory
-      .filter((t) => {
-        const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        return t.status === "completed" && new Date(t.startTime).getTime() > monthAgo;
-      })
-      .reduce((sum, t) => sum + Number(t.driverShare ?? 0), 0);
-
-    const appCommission = tripHistory
-      .filter((t) => t.status === "completed")
-      .reduce((sum, t) => sum + Number(t.appCommission ?? 0), 0);
-
-    // Mock data for last 7 days chart
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - (6 - i));
-      const dayEarnings = tripHistory
-        .filter((t) => {
-          const tDate = new Date(t.startTime);
-          return t.status === "completed" && tDate.toDateString() === date.toDateString();
-        })
-        .reduce((sum, t) => sum + Number(t.driverShare ?? 0), 0);
-      return { day: i, amount: dayEarnings };
+    
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const tripsThisMonth = completedTrips.filter(t => {
+      const d = new Date(t.startTime);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     });
-    const maxDayAmt = Math.max(...last7Days.map((d) => d.amount), 1);
+
+    const weeks = [1, 2, 3, 4].map(w => {
+      const weekTrips = tripsThisMonth.filter(t => {
+        const d = new Date(t.startTime);
+        const day = d.getDate();
+        if (w === 1) return day <= 7;
+        if (w === 2) return day > 7 && day <= 14;
+        if (w === 3) return day > 14 && day <= 21;
+        return day > 21;
+      });
+      return {
+        week: w,
+        count: weekTrips.length,
+        earnings: weekTrips.reduce((sum, t) => sum + Number(t.driverShare ?? 0), 0)
+      };
+    });
+
+    const monthlyEarnings = tripsThisMonth.reduce((sum, t) => sum + Number(t.driverShare ?? 0), 0);
+    const appCommissionTotal = tripsThisMonth.reduce((sum, t) => sum + Number(t.appCommission ?? 0), 0);
+
+    const projectedMonthly = Math.round((weeklyEarnings / 7) * 30);
 
     const acceptanceRate = tripHistory.length > 0 
       ? Math.round((completedTrips.length / tripHistory.length) * 100) 
@@ -139,24 +145,56 @@ export default function SubscriptionScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>أرباح آخر 7 أيام</Text>
-            <View style={[styles.chartContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={styles.chartBars}>
-                {last7Days.map((d, i) => (
-                  <View key={i} style={styles.chartBarCol}>
-                    <View style={styles.chartBarBg}>
-                      <View 
-                        style={[
-                          styles.chartBarFill, 
-                          { 
-                            height: `${(d.amount / maxDayAmt) * 100}%`,
-                            backgroundColor: i === 6 ? colors.accent : colors.primary 
-                          }
-                        ]} 
-                      />
-                    </View>
-                  </View>
-                ))}
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>أداء الأسبوع</Text>
+            <EarningsChart data={weeklyEarningsData} />
+          </View>
+
+          <View style={styles.section}>
+            <View style={[styles.projectedCard, { backgroundColor: colors.success + "15", borderColor: colors.success + "30" }]}>
+              <View style={styles.projectedHeader}>
+                <FeatherIcon name="trending-up" size={20} color={colors.success} />
+                <Text style={[styles.projectedTitle, { color: colors.success }]}>الدخل المتوقع هذا الشهر</Text>
+              </View>
+              <Text style={[styles.projectedValue, { color: colors.success }]}>{(projectedMonthly / 1000).toFixed(0)}k دينار</Text>
+              <Text style={[styles.projectedSub, { color: colors.success }]}>بناءً على متوسط أرباحك الأسبوعية</Text>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>تفصيل أرباح الشهر الحالي</Text>
+            <View style={[styles.tableCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              {weeks.map((w, i) => (
+                <View key={w.week} style={[styles.tableRow, i % 2 !== 0 && { backgroundColor: "rgba(0,0,0,0.02)" }]}>
+                  <Text style={[styles.tableCell, { flex: 1, color: colors.mutedForeground }]}>الأسبوع {w.week}</Text>
+                  <Text style={[styles.tableCell, { flex: 1, color: colors.foreground, textAlign: "center" }]}>{w.count} رحلة</Text>
+                  <Text style={[styles.tableCell, { flex: 1, color: colors.success, textAlign: "right", fontFamily: "Inter_700Bold" }]}>{(w.earnings / 1000).toFixed(0)}k</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>نظام العمولات</Text>
+            <View style={[styles.commissionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={styles.splitContainer}>
+                <View style={[styles.splitBar, { flex: 85, backgroundColor: colors.primary }]}>
+                  <Text style={styles.splitText}>85%</Text>
+                </View>
+                <View style={[styles.splitBar, { flex: 15, backgroundColor: colors.accent }]}>
+                  <Text style={styles.splitText}>15%</Text>
+                </View>
+              </View>
+              
+              <View style={styles.commissionDetailRow}>
+                <View style={styles.commissionItem}>
+                  <Text style={[styles.commissionVal, { color: colors.primary }]}>{(monthlyEarnings / 1000).toFixed(0)}k</Text>
+                  <Text style={[styles.commissionLabel, { color: colors.mutedForeground }]}>للسائق</Text>
+                </View>
+                <View style={[styles.commissionDivider, { backgroundColor: colors.border }]} />
+                <View style={styles.commissionItem}>
+                  <Text style={[styles.commissionVal, { color: colors.accent }]}>{(appCommissionTotal / 1000).toFixed(0)}k</Text>
+                  <Text style={[styles.commissionLabel, { color: colors.mutedForeground }]}>للتطبيق</Text>
+                </View>
               </View>
             </View>
           </View>
@@ -182,60 +220,6 @@ export default function SubscriptionScreen() {
               </View>
             </View>
           </View>
-
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>نظام العمولات</Text>
-            <View style={[styles.commissionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={styles.donutContainer}>
-                <View style={[styles.donutSegment, { flex: 85, backgroundColor: colors.primary }]} />
-                <View style={[styles.donutSegment, { flex: 15, backgroundColor: colors.accent }]} />
-              </View>
-              <View style={styles.commissionRow}>
-                <View style={[styles.commissionBadge, { backgroundColor: colors.primary + "15" }]}>
-                  <Text style={[styles.commissionPct, { color: colors.primary }]}>85%</Text>
-                </View>
-                <View style={styles.commissionInfo}>
-                  <Text style={[styles.commissionTitle, { color: colors.foreground }]}>حصة السائق</Text>
-                  <Text style={[styles.commissionDesc, { color: colors.mutedForeground }]}>من إجمالي قيمة كل رحلة</Text>
-                </View>
-              </View>
-              <View style={[styles.separator, { backgroundColor: colors.border }]} />
-              <View style={styles.commissionRow}>
-                <View style={[styles.commissionBadge, { backgroundColor: colors.accent + "15" }]}>
-                  <Text style={[styles.commissionPct, { color: colors.accent }]}>15%</Text>
-                </View>
-                <View style={styles.commissionInfo}>
-                  <Text style={[styles.commissionTitle, { color: colors.foreground }]}>عمولة التطبيق</Text>
-                  <Text style={[styles.commissionDesc, { color: colors.mutedForeground }]}>رسوم خدمة المنصة</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>آخر 10 رحلات</Text>
-            {tripHistory.slice(0, 10).map((trip) => (
-              <View key={trip.id} style={[styles.earningItem, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <View style={[styles.earningItemIcon, { backgroundColor: colors.primary + "15" }]}>
-                  <Text style={{ color: colors.primary, fontSize: 16, fontFamily: "Inter_600SemiBold" }}>
-                    {trip.studentName?.charAt(0) || "S"}
-                  </Text>
-                </View>
-                <View style={styles.earningItemInfo}>
-                  <Text style={[styles.earningItemStudent, { color: colors.foreground }]}>{trip.studentName}</Text>
-                  <Text style={[styles.earningItemDate, { color: colors.mutedForeground }]}>
-                    {new Date(trip.startTime).toLocaleDateString("ar-IQ")}
-                  </Text>
-                </View>
-                <View style={styles.earningItemRight}>
-                  <Text style={[styles.earningItemAmt, { color: colors.success }]}>
-                    +{(Number(trip.driverShare ?? 0) / 1000).toFixed(0)}k
-                  </Text>
-                  <Text style={[styles.earningItemUnit, { color: colors.mutedForeground }]}>د.ع</Text>
-                </View>
-              </View>
-            ))}
-          </View>
         </ScrollView>
       </View>
     );
@@ -246,6 +230,11 @@ export default function SubscriptionScreen() {
     : 0;
 
   const progress = daysLeft / 30;
+
+  const tripsThisMonthCount = tripHistory.filter(t => {
+    const d = new Date(t.startTime);
+    return d.getMonth() === new Date().getMonth() && t.status === "completed";
+  }).length;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -319,6 +308,19 @@ export default function SubscriptionScreen() {
                 <Text style={styles.savingsText}>وفّرت 35% مقارنة بدفع كل رحلة</Text>
               </View>
             </View>
+            
+            <View style={styles.studentStatsRow}>
+              <View style={[styles.studentStatBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <FeatherIcon name="map" size={18} color={colors.primary} />
+                <Text style={[styles.studentStatVal, { color: colors.foreground }]}>{tripsThisMonthCount}</Text>
+                <Text style={[styles.studentStatLabel, { color: colors.mutedForeground }]}>رحلات هذا الشهر</Text>
+              </View>
+              <View style={[styles.studentStatBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <FeatherIcon name="trending-down" size={18} color={colors.success} />
+                <Text style={[styles.studentStatVal, { color: colors.success }]}>35%</Text>
+                <Text style={[styles.studentStatLabel, { color: colors.mutedForeground }]}>توفير إجمالي</Text>
+              </View>
+            </View>
           </View>
         )}
 
@@ -356,6 +358,7 @@ export default function SubscriptionScreen() {
               key={plan.id}
               plan={plan}
               isActive={subscription?.plan === plan.id && subscription?.isActive}
+              availableDriversCount={availableDrivers.filter(d => d.role === "driver").length}
               onSelect={() => {
                 if (subscription?.driverId) {
                   subscribeToPlan(subscription.driverId, plan.id);
@@ -400,29 +403,27 @@ const styles = StyleSheet.create({
   summaryValue: { fontSize: 22, fontFamily: "Inter_700Bold", marginBottom: 4 },
   summaryLabel: { fontSize: 11, fontFamily: "Inter_400Regular", textAlign: "center" },
   summaryDivider: { width: 1 },
-  chartContainer: { borderRadius: 16, borderWidth: 1, padding: 16, height: 120 },
-  chartBars: { flex: 1, flexDirection: "row", alignItems: "flex-end", gap: 8, justifyContent: "space-around" },
-  chartBarCol: { flex: 1, height: "100%" },
-  chartBarBg: { flex: 1, backgroundColor: "rgba(0,0,0,0.05)", borderRadius: 4, overflow: "hidden", justifyContent: "flex-end" },
-  chartBarFill: { width: "100%", borderRadius: 4 },
+  projectedCard: { borderRadius: 16, borderWidth: 1, padding: 20, alignItems: "center" },
+  projectedHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+  projectedTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  projectedValue: { fontSize: 28, fontFamily: "Inter_800ExtraBold", marginBottom: 4 },
+  projectedSub: { fontSize: 11, fontFamily: "Inter_400Regular", opacity: 0.8 },
+  tableCard: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
+  tableRow: { flexDirection: "row", padding: 16, alignItems: "center" },
+  tableCell: { fontSize: 14, fontFamily: "Inter_500Medium" },
+  splitContainer: { height: 12, flexDirection: "row", borderRadius: 6, overflow: "hidden", margin: 16 },
+  splitBar: { height: "100%", justifyContent: "center", alignItems: "center" },
+  splitText: { fontSize: 8, color: "#fff", fontFamily: "Inter_700Bold" },
   commissionCard: { borderRadius: 14, borderWidth: 1, overflow: "hidden" },
-  donutContainer: { height: 8, flexDirection: "row" },
-  donutSegment: { height: "100%" },
-  commissionRow: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16 },
-  commissionBadge: { width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center" },
-  commissionPct: { fontSize: 18, fontFamily: "Inter_700Bold" },
-  commissionInfo: { flex: 1 },
-  commissionTitle: { fontSize: 15, fontFamily: "Inter_600SemiBold", marginBottom: 2 },
-  commissionDesc: { fontSize: 12, fontFamily: "Inter_400Regular" },
-  separator: { height: 1, marginHorizontal: 16 },
-  earningItem: { flexDirection: "row", alignItems: "center", borderRadius: 12, borderWidth: 1, padding: 12, marginBottom: 8, gap: 12 },
-  earningItemIcon: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
-  earningItemInfo: { flex: 1 },
-  earningItemStudent: { fontSize: 14, fontFamily: "Inter_500Medium", marginBottom: 2 },
-  earningItemDate: { fontSize: 11, fontFamily: "Inter_400Regular" },
-  earningItemRight: { alignItems: "flex-end" },
-  earningItemAmt: { fontSize: 15, fontFamily: "Inter_700Bold" },
-  earningItemUnit: { fontSize: 10, fontFamily: "Inter_400Regular" },
+  commissionDetailRow: { flexDirection: "row", padding: 16 },
+  commissionItem: { flex: 1, alignItems: "center" },
+  commissionVal: { fontSize: 18, fontFamily: "Inter_700Bold", marginBottom: 2 },
+  commissionLabel: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  commissionDivider: { width: 1, height: "100%" },
+  studentStatsRow: { flexDirection: "row", gap: 12, marginTop: 16 },
+  studentStatBox: { flex: 1, borderRadius: 16, borderWidth: 1, padding: 16, alignItems: "center", gap: 4 },
+  studentStatVal: { fontSize: 20, fontFamily: "Inter_700Bold" },
+  studentStatLabel: { fontSize: 11, fontFamily: "Inter_400Regular" },
   activeSubCard: { borderRadius: 16, padding: 20 },
   warningBanner: { flexDirection: "row", alignItems: "center", gap: 6, padding: 8, borderRadius: 8, marginBottom: 12 },
   warningText: { color: "#fff", fontSize: 12, fontFamily: "Inter_600SemiBold" },
@@ -446,6 +447,7 @@ const styles = StyleSheet.create({
   comparisonLabel: { flex: 1, fontSize: 11, fontFamily: "Inter_600SemiBold", textAlign: "center" },
   comparisonRow: { flexDirection: "row", paddingVertical: 12, alignItems: "center" },
   comparisonText: { flex: 1, fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "center" },
+  separator: { height: 1, marginHorizontal: 16 },
   cancelButton: { marginTop: 8, padding: 16, alignItems: "center" },
   cancelButtonText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
 });

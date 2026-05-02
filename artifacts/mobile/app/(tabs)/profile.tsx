@@ -25,7 +25,7 @@ import { useColors } from "@/hooks/useColors";
 export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { user, logout, updateUser, tripHistory } = useApp();
+  const { user, logout, updateUser, tripHistory, refreshUser } = useApp();
   const [editModal, setEditModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editName, setEditName] = useState(user?.name ?? "");
@@ -34,9 +34,30 @@ export default function ProfileScreen() {
   const [editVehicle, setEditVehicle] = useState(user?.vehicleType ?? "");
   const [editPlate, setEditPlate] = useState(user?.vehiclePlate ?? "");
   const [editVehicleColor, setEditVehicleColor] = useState(user?.vehicleColor ?? "");
-  const [editFareBasic, setEditFareBasic] = useState(user?.fareBasic?.toString() ?? "5000");
+  const [editFareBasic, setEditFareBasic] = useState(user?.basicFare?.toString() ?? "5000");
+  const [editFareStandard, setEditFareStandard] = useState(user?.standardFare?.toString() ?? "10000");
+  const [editFarePremium, setEditFarePremium] = useState(user?.premiumFare?.toString() ?? "15000");
   const [notifications, setNotifications] = useState(true);
   const [locationShare, setLocationShare] = useState(true);
+  const [themeLabel, setThemeLabel] = useState("فاتح");
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const stored = await AsyncStorage.getItem("notificationsEnabled");
+        if (stored !== null) setNotifications(stored === "true");
+      } catch { /* ignore */ }
+    };
+    loadSettings();
+  }, []);
+
+  async function handleToggleNotifications(val: boolean) {
+    setNotifications(val);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await AsyncStorage.setItem("notificationsEnabled", String(val));
+    } catch { /* ignore */ }
+  }
 
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
   const bottomPad = Platform.OS === "web" ? 34 : 0;
@@ -54,8 +75,11 @@ export default function ProfileScreen() {
         vehicleType: role === "driver" ? editVehicle.trim() || user?.vehicleType : user?.vehicleType,
         vehiclePlate: role === "driver" ? editPlate.trim() || user?.vehiclePlate : user?.vehiclePlate,
         vehicleColor: role === "driver" ? editVehicleColor.trim() || user?.vehicleColor : undefined,
-        fareBasic: role === "driver" ? parseInt(editFareBasic) || user?.fareBasic : undefined,
+        basicFare: role === "driver" ? parseInt(editFareBasic) || user?.basicFare : undefined,
+        standardFare: role === "driver" ? parseInt(editFareStandard) || user?.standardFare : undefined,
+        premiumFare: role === "driver" ? parseInt(editFarePremium) || user?.premiumFare : undefined,
       } as any);
+      await refreshUser();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setEditModal(false);
     } catch (error) {
@@ -211,15 +235,21 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.statsRow}>
-          <View style={styles.statItem}>
+          <TouchableOpacity 
+            style={styles.statItem}
+            onPress={() => router.navigate("/(tabs)/trips")}
+          >
             <Text style={styles.statValue}>{completedTrips}</Text>
             <Text style={styles.statLabel}>رحلة</Text>
-          </View>
+          </TouchableOpacity>
           <View style={[styles.statDivider, { backgroundColor: "rgba(255,255,255,0.2)" }]} />
-          <View style={styles.statItem}>
+          <TouchableOpacity 
+            style={styles.statItem}
+            onPress={() => role === 'driver' ? router.navigate("/(tabs)/subscription") : undefined}
+          >
             <Text style={styles.statValue}>{Number(user?.rating ?? 5).toFixed(1)}</Text>
             <Text style={styles.statLabel}>التقييم</Text>
-          </View>
+          </TouchableOpacity>
           <View style={[styles.statDivider, { backgroundColor: "rgba(255,255,255,0.2)" }]} />
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{role === "student" ? (user?.university?.split(" ")[1] ?? "—") : (user?.vehicleType?.split(" ")[0] ?? "—")}</Text>
@@ -251,7 +281,9 @@ export default function ProfileScreen() {
                 <MenuItem icon="truck" label={user?.vehicleType ?? "—"} />
                 <MenuItem icon="hash" label={user?.vehiclePlate ?? "—"} />
                 {user?.vehicleColor && <MenuItem icon="palette" label={user.vehicleColor} />}
-                <MenuItem icon="dollar-sign" label={`السعر الأساسي: ${user.fareBasic ?? 5000} د.ع`} isLast />
+                <MenuItem icon="dollar-sign" label={`الأساسي: ${user.basicFare ?? 5000} د.ع`} />
+                <MenuItem icon="dollar-sign" label={`القياسي: ${user.standardFare ?? 10000} د.ع`} />
+                <MenuItem icon="dollar-sign" label={`المميز: ${user.premiumFare ?? 15000} د.ع`} isLast />
               </>
             )}
           </View>
@@ -270,7 +302,13 @@ export default function ProfileScreen() {
               label="الإشعارات"
               toggle
               toggleValue={notifications}
-              onToggle={(v) => { setNotifications(v); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+              onToggle={handleToggleNotifications}
+            />
+            <MenuItem
+              icon="moon"
+              label="المظهر"
+              value={themeLabel}
+              onPress={() => Alert.alert("قريباً", "قريباً: الوضع الداكن")}
             />
             <MenuItem
               icon="map-pin"
@@ -385,13 +423,28 @@ export default function ProfileScreen() {
                 </View>
                 <View style={styles.field}>
                   <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>لون السيارة</Text>
-                  <TextInput
-                    style={[styles.fieldInput, { backgroundColor: colors.card, borderColor: colors.border, color: colors.foreground }]}
-                    value={editVehicleColor}
-                    onChangeText={setEditVehicleColor}
-                    textAlign="right"
-                    placeholder="مثال: أبيض"
-                  />
+                  <View style={styles.colorSelector}>
+                    {['أبيض', 'أسود', 'فضي', 'أحمر', 'أزرق'].map((colorName) => {
+                      const colorMap: Record<string, string> = {
+                        'أبيض': '#FFFFFF',
+                        'أسود': '#000000',
+                        'فضي': '#C0C0C0',
+                        'أحمر': '#FF0000',
+                        'أزرق': '#0000FF'
+                      };
+                      return (
+                        <TouchableOpacity
+                          key={colorName}
+                          onPress={() => setEditVehicleColor(colorName)}
+                          style={[
+                            styles.colorCircle,
+                            { backgroundColor: colorMap[colorName] },
+                            editVehicleColor === colorName && { borderWidth: 3, borderColor: colors.primary }
+                          ]}
+                        />
+                      );
+                    })}
+                  </View>
                 </View>
                 <View style={styles.field}>
                   <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>السعر الأساسي (دينار)</Text>
@@ -399,6 +452,26 @@ export default function ProfileScreen() {
                     style={[styles.fieldInput, { backgroundColor: colors.card, borderColor: colors.border, color: colors.foreground }]}
                     value={editFareBasic}
                     onChangeText={setEditFareBasic}
+                    keyboardType="numeric"
+                    textAlign="right"
+                  />
+                </View>
+                <View style={styles.field}>
+                  <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>السعر القياسي (دينار)</Text>
+                  <TextInput
+                    style={[styles.fieldInput, { backgroundColor: colors.card, borderColor: colors.border, color: colors.foreground }]}
+                    value={editFareStandard}
+                    onChangeText={setEditFareStandard}
+                    keyboardType="numeric"
+                    textAlign="right"
+                  />
+                </View>
+                <View style={styles.field}>
+                  <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>السعر المميز (دينار)</Text>
+                  <TextInput
+                    style={[styles.fieldInput, { backgroundColor: colors.card, borderColor: colors.border, color: colors.foreground }]}
+                    value={editFarePremium}
+                    onChangeText={setEditFarePremium}
                     keyboardType="numeric"
                     textAlign="right"
                   />
@@ -451,4 +524,6 @@ const styles = StyleSheet.create({
   field: { marginBottom: 20 },
   fieldLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold", textAlign: "right", marginBottom: 8 },
   fieldInput: { borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15, fontFamily: "Inter_400Regular" },
+  colorSelector: { flexDirection: 'row-reverse', gap: 12, marginTop: 4 },
+  colorCircle: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: '#ccc' },
 });

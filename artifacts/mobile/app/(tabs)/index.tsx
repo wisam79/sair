@@ -14,6 +14,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  RefreshControl,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -46,12 +47,56 @@ export default function HomeScreen() {
   const [showBookModal, setShowBookModal] = useState(false);
   const [originText, setOriginText] = useState("");
   const [destText, setDestText] = useState("");
+  const [fareEstimate, setFareEstimate] = useState<number | null>(null);
+  const [estimating, setEstimating] = useState(false);
+  const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
   const [greeting, setGreeting] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { useRouter } = require("expo-router");
+  const router = useRouter();
+
+  const { estimateFare, refreshDrivers } = useApp();
 
   const shimmerAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const countdownAnim = useRef(new Animated.Value(1)).current;
   const [timeLeft, setTimeLeft] = useState(60);
+
+  useEffect(() => {
+    if (subscription?.isActive && subscription.driverId) {
+      setSelectedDriverId(subscription.driverId);
+    }
+  }, [subscription]);
+
+  async function onRefreshDrivers() {
+    setRefreshing(true);
+    await refreshDrivers();
+    setRefreshing(false);
+  }
+
+  async function handleEstimateFare() {
+    setEstimating(true);
+    try {
+      // static Baghdad coordinates: origin 33.32+random*0.01, dest 33.315/44.366
+      const origin: TripLocation = {
+        lat: 33.32 + Math.random() * 0.01,
+        lng: 44.37 + Math.random() * 0.01,
+        address: originText.trim() || "موقعي الحالي",
+      };
+      const dest: TripLocation = {
+        lat: 33.315,
+        lng: 44.366,
+        address: destText.trim() || "جامعة بغداد - البوابة الرئيسية",
+      };
+      const result = await estimateFare(origin, dest);
+      setFareEstimate(result.estimatedFare);
+    } catch (e) {
+      Alert.alert("خطأ", "فشل تقدير الأجرة");
+    } finally {
+      setEstimating(false);
+    }
+  }
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -147,7 +192,7 @@ export default function HomeScreen() {
       address: destText.trim() || "جامعة بغداد - البوابة الرئيسية",
     };
     setShowBookModal(false);
-    requestTrip(origin, dest);
+    requestTrip(origin, dest, selectedDriverId || undefined, fareEstimate ?? 75000);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
   }
 
@@ -429,7 +474,7 @@ export default function HomeScreen() {
             </View>
             <Text style={[styles.quickLabel, { color: colors.foreground }]}>سائقي</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickItem}>
+          <TouchableOpacity style={styles.quickItem} onPress={() => router.navigate("/(tabs)/subscription")}>
             <View style={[styles.quickIcon, { backgroundColor: colors.secondary }]}>
               <FeatherIcon name="credit-card" size={20} color={colors.primary} />
             </View>
@@ -494,24 +539,56 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>السائقون المتاحون</Text>
-            <View style={[styles.onlineCounter, { backgroundColor: colors.secondary }]}>
-              <View style={[styles.pulseDot, { backgroundColor: colors.success }]} />
-              <Text style={[styles.onlineCountText, { color: colors.primary }]}>
-                {availableDrivers.filter((d) => d.isOnline).length} متاح الآن
-              </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity 
+                onPress={onRefreshDrivers} 
+                style={{ marginLeft: 10, padding: 5 }}
+                disabled={refreshing}
+              >
+                <FeatherIcon name="refresh-cw" size={16} color={colors.primary} />
+              </TouchableOpacity>
+              <View style={[styles.onlineCounter, { backgroundColor: colors.secondary }]}>
+                <View style={[styles.pulseDot, { backgroundColor: colors.success }]} />
+                <Text style={[styles.onlineCountText, { color: colors.primary }]}>
+                  {availableDrivers.filter((d) => d.isOnline).length} متاح الآن
+                </Text>
+              </View>
             </View>
           </View>
-          {availableDrivers.filter(d => d.isOnline).length > 0 ? (
-            availableDrivers.filter(d => d.isOnline).map((driver) => (
-              <DriverCard key={driver.id} driver={driver} onSubscribe={handleSubscribe} />
-            ))
-          ) : (
-            <EmptyState 
-              icon="users"
-              title="لا يوجد كباتن متاحون"
-              description="جميع الكباتن مشغولون حالياً، حاول مرة أخرى بعد قليل"
-            />
-          )}
+          <ScrollView 
+            horizontal={false} 
+            scrollEnabled={false}
+          >
+            {availableDrivers.filter(d => d.isOnline).length > 0 ? (
+              availableDrivers.filter(d => d.isOnline).map((driver) => (
+                <TouchableOpacity 
+                  key={driver.id} 
+                  onPress={() => setSelectedDriverId(driver.id)}
+                  activeOpacity={0.9}
+                  style={selectedDriverId === driver.id ? { borderWidth: 2, borderColor: colors.accent, borderRadius: 16, marginBottom: 12, overflow: 'hidden' } : { marginBottom: 12 }}
+                >
+                  <DriverCard driver={driver} onSubscribe={handleSubscribe} />
+                  {selectedDriverId === driver.id && (
+                    <View style={{ padding: 8, alignItems: 'center', backgroundColor: colors.accent }}>
+                      <Text style={{ color: '#fff', fontWeight: 'bold' }}>تم الاختيار للرحلة</Text>
+                    </View>
+                  )}
+                  <TouchableOpacity 
+                    style={{ position: 'absolute', top: 12, left: 12, backgroundColor: colors.accent, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}
+                    onPress={() => setSelectedDriverId(driver.id)}
+                  >
+                    <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>اختر</Text>
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <EmptyState 
+                icon="users"
+                title="لا يوجد كباتن متاحون"
+                description="جميع الكباتن مشغولون حالياً، حاول مرة أخرى بعد قليل"
+              />
+            )}
+          </ScrollView>
         </View>
       </ScrollView>
 
@@ -556,6 +633,22 @@ export default function HomeScreen() {
               </View>
             </View>
 
+            <TouchableOpacity 
+              style={[styles.estimateBtn, { backgroundColor: colors.secondary, marginTop: 16, padding: 12, borderRadius: 12, alignItems: 'center' }]}
+              onPress={handleEstimateFare}
+              disabled={estimating}
+            >
+              <Text style={{ color: colors.primary, fontWeight: 'bold' }}>
+                {estimating ? "جاري التقدير..." : "تقدير الأجرة"}
+              </Text>
+            </TouchableOpacity>
+
+            {fareEstimate !== null && (
+              <View style={[styles.fareCard, { backgroundColor: colors.card, borderColor: colors.accent, borderWidth: 1, padding: 16, borderRadius: 12, marginTop: 16, alignItems: 'center' }]}>
+                <Text style={{ color: colors.foreground, fontSize: 16, fontWeight: 'bold' }}>الأجرة المتوقعة: {(fareEstimate / 1000).toFixed(0)}k دينار</Text>
+              </View>
+            )}
+
             <View style={styles.suggestionRow}>
               {quickChips.map((chip, idx) => (
                 <TouchableOpacity 
@@ -569,24 +662,17 @@ export default function HomeScreen() {
               ))}
             </View>
 
-            <View style={[styles.fareCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={styles.fareRow}>
-                <View style={styles.fareInfo}>
-                  <Text style={[styles.fareLabel, { color: colors.mutedForeground }]}>التكلفة التقديرية</Text>
-                  <Text style={[styles.fareValue, { color: colors.foreground }]}>75,000 د.ع</Text>
-                </View>
-                <View style={[styles.fareIcon, { backgroundColor: colors.secondary }]}>
-                  <FeatherIcon name="tag" size={20} color={colors.primary} />
-                </View>
-              </View>
-            </View>
+            <View style={{ flex: 1 }} />
 
             <TouchableOpacity
-              style={[styles.confirmBookBtnPremium, { backgroundColor: colors.primary }]}
+              style={[
+                styles.confirmBookingBtn,
+                { backgroundColor: colors.primary, opacity: (!originText && !destText) ? 0.7 : 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 16, gap: 8 }
+              ]}
               onPress={handleBookRide}
             >
-              <Text style={styles.confirmBookBtnTextLarge}>تأكيد وطلب الرحلة</Text>
-              <FeatherIcon name="check-circle" size={20} color="#fff" />
+              <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>تأكيد الحجز</Text>
+              <FeatherIcon name="arrow-left" size={20} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>

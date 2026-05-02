@@ -97,6 +97,8 @@ export interface Driver {
   premiumFare: number;
 }
 
+export interface AppNotification { id: string; message: string; type: "success" | "error" | "info" | "warning" }
+
 interface AppContextValue {
   user: User | null;
   isAuthenticated: boolean;
@@ -113,12 +115,17 @@ interface AppContextValue {
   pollError: boolean;
   weeklyEarningsData: { day: string; amount: number }[];
   monthlyEarnings: number;
+  notifications: AppNotification[];
+  notify: (message: string, type?: AppNotification["type"]) => void;
+  dismissNotification: (id: string) => void;
+  estimateFare: (origin: TripLocation, destination: TripLocation) => Promise<{ estimatedFare: number; distanceKm: number }>;
+  refreshUser: () => Promise<void>;
   login: (userData: User, token: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
   setActiveTrip: (trip: Trip | null) => void;
   setSubscription: (sub: Subscription | null) => void;
-  requestTrip: (origin: TripLocation, destination: TripLocation, driverId?: string) => Promise<void>;
+  requestTrip: (origin: TripLocation, destination: TripLocation, driverId?: string, fare?: number) => Promise<void>;
   acceptTrip: (tripId: string) => Promise<void>;
   cancelTrip: (tripId: string) => Promise<void>;
   completeTrip: (tripId: string) => Promise<void>;
@@ -152,6 +159,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pollError, setPollError] = useState(false);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const pollErrorCount = useRef(0);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const userRef = useRef<User | null>(null);
@@ -283,7 +291,47 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSubscriptionState(sub);
   }
 
-  async function requestTrip(origin: TripLocation, destination: TripLocation, driverId?: string) {
+  async function refreshUser() {
+    try {
+      const updated = await api.get<User>("/auth/me");
+      setUser(updated);
+      setIsDriverOnline(updated.isOnline);
+    } catch { /* ignore */ }
+  }
+
+  function notify(message: string, type: AppNotification["type"] = "info") {
+    const id = Math.random().toString(36).slice(2);
+    setNotifications(prev => [...prev, { id, message, type }]);
+    setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 4000);
+  }
+
+  function dismissNotification(id: string) {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }
+
+  async function estimateFare(origin: TripLocation, destination: TripLocation): Promise<{ estimatedFare: number; distanceKm: number }> {
+    try {
+      const params = new URLSearchParams({
+        originLat: String(origin.lat),
+        originLng: String(origin.lng),
+        destLat: String(destination.lat),
+        destLng: String(destination.lng),
+      });
+      const result = await api.get<{ estimatedFare: number; distanceKm: number }>(`/trips/fare-estimate?${params}`);
+      return result;
+    } catch {
+      // Fallback: calculate locally
+      const R = 6371;
+      const dLat = (destination.lat - origin.lat) * Math.PI / 180;
+      const dLng = (destination.lng - origin.lng) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(origin.lat*Math.PI/180)*Math.cos(destination.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+      const distanceKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const estimatedFare = Math.max(20000, Math.min(200000, Math.round((15000 + distanceKm * 3000) / 5000) * 5000));
+      return { estimatedFare, distanceKm };
+    }
+  }
+
+  async function requestTrip(origin: TripLocation, destination: TripLocation, driverId?: string, fare?: number) {
     if (!user) return;
     try {
       const trip = await api.post<Trip>("/trips", {
@@ -293,7 +341,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         destLat: destination.lat,
         destLng: destination.lng,
         destAddress: destination.address,
-        fare: 75000,
+        fare: fare ?? 75000,
         driverId,
       });
       setActiveTripState(tripWithAliases(trip));
@@ -307,6 +355,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const trip = await api.patch<Trip>(`/trips/${tripId}/status`, { status: "accepted" });
       setActiveTripState(tripWithAliases(trip));
       setPendingRequest(null);
+      notify("تم قبول الرحلة!", "success");
     } catch { /* ignore */ }
   }
 
@@ -315,6 +364,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       await api.delete(`/trips/${tripId}`);
       setActiveTripState(null);
       await fetchHistory();
+      notify("تم إلغاء الرحلة", "warning");
     } catch { /* ignore */ }
   }
 
@@ -323,6 +373,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const trip = await api.patch<Trip>(`/trips/${tripId}/status`, { status: "completed" });
       setActiveTripState(null);
       setTripHistory((prev) => [tripWithAliases(trip), ...prev]);
+      notify("تم إنهاء الرحلة بنجاح! 🎉", "success");
     } catch { /* ignore */ }
   }
 
@@ -343,6 +394,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         await fetchActiveTrip();
         const pending = await api.get<Trip | null>("/trips/pending").catch(() => null);
         if (pending) setPendingRequest(tripWithAliases(pending));
+        notify("تم تفعيل حالة التوفر", "info");
       } else {
         setPendingRequest(null);
       }
@@ -440,6 +492,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isRefreshing,
         pollError,
+        notifications,
+        notify,
+        dismissNotification,
+        estimateFare,
+        refreshUser,
         login,
         logout,
         updateUser,

@@ -44,19 +44,31 @@ type AuthMode = "login" | "register";
 export default function Onboarding() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { login } = useApp();
+  const { login, isLoading } = useApp();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [role, setRole] = useState<UserRole>("student");
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [university, setUniversity] = useState("");
   const [vehicleType, setVehicleType] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
   const [vehicleColor, setVehicleColor] = useState("white");
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState<{ phone?: string; name?: string; password?: string }>({});
   const [showUniDropdown, setShowUniDropdown] = useState(false);
+
+  // Floating particles animations
+  const particles = useRef([...Array(6)].map(() => ({
+    x: Math.random() * SCREEN_WIDTH,
+    y: Math.random() * 500,
+    anim: new Animated.Value(0),
+    duration: 3000 + Math.random() * 4000
+  }))).current;
 
   // Animations
   const logoAnim = useRef(new Animated.Value(0)).current;
@@ -68,6 +80,25 @@ export default function Onboarding() {
   ]).current;
   const errorAnim = useRef(new Animated.Value(-20)).current;
   const errorOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    particles.forEach(p => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(p.anim, {
+            toValue: 1,
+            duration: p.duration,
+            useNativeDriver: true,
+          }),
+          Animated.timing(p.anim, {
+            toValue: 0,
+            duration: p.duration,
+            useNativeDriver: true,
+          })
+        ])
+      ).start();
+    });
+  }, []);
 
   useEffect(() => {
     if (screen === "welcome") {
@@ -115,30 +146,62 @@ export default function Onboarding() {
   }
 
   async function handleAuth() {
-    if (!phone.trim()) { setError("رقم الهاتف مطلوب"); return; }
-    if (authMode === "register" && !name.trim()) { setError("الاسم مطلوب"); return; }
+    const newErrors: { phone?: string; name?: string; password?: string } = {};
+    if (!phone.trim()) {
+      newErrors.phone = "رقم الهاتف مطلوب";
+    } else if (!/^07\d{9}$/.test(phone.trim())) {
+      newErrors.phone = "رقم الهاتف يجب أن يكون 11 رقماً ويبدأ بـ 07";
+    }
+
+    if (authMode === "register") {
+      if (!name.trim()) {
+        newErrors.name = "الاسم مطلوب";
+      } else if (name.trim().length < 3) {
+        newErrors.name = "الاسم يجب أن يكون 3 أحرف على الأقل";
+      }
+    }
+
+    if (!password || password.length < 6) {
+      newErrors.password = "كلمة المرور يجب أن تكون 6 أحرف على الأقل";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setError("يرجى تصحيح الأخطاء أدناه");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
+    }
+
     setError("");
+    setErrors({});
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     try {
+      let authData;
       if (authMode === "register") {
-        const { token, user } = await api.post<{ token: string; user: any }>("/auth/register", {
+        authData = await api.post<{ token: string; user: any }>("/auth/register", {
           name: name.trim(),
           phone: phone.trim(),
+          password,
           role,
           university: role === "student" ? (university.trim() || "جامعة بغداد") : undefined,
           vehicleType: role === "driver" ? (vehicleType.trim() || undefined) : undefined,
           vehiclePlate: role === "driver" ? (vehiclePlate.trim() || undefined) : undefined,
           vehicleColor: role === "driver" ? (vehicleColor || "أبيض") : undefined,
         });
-        await login(user, token);
       } else {
-        const { token, user } = await api.post<{ token: string; user: any }>("/auth/login", {
+        authData = await api.post<{ token: string; user: any }>("/auth/login", {
           phone: phone.trim(),
+          password,
         });
-        await login(user, token);
       }
-      router.replace("/(tabs)");
+
+      const { token, user } = authData;
+      await login(user, token);
+      setShowSuccess(true);
+      setTimeout(() => {
+        router.replace("/(tabs)");
+      }, 1500);
     } catch (err: any) {
       setError(err.message || "حدث خطأ، حاول مرة أخرى");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -157,12 +220,56 @@ export default function Onboarding() {
     outputRange: [1, 1.1, 1],
   });
 
+  if (isLoading) {
+    return (
+      <LinearGradient colors={["#0D2847", "#1A3C6E"]} style={styles.loadingContainer}>
+        <Animated.View style={[styles.loadingLogo, { transform: [{ rotate: logoRotation }, { scale: logoScale }] }]}>
+          <FeatherIcon name="navigation" size={60} color="#FF6B35" />
+        </Animated.View>
+        <LoadingText label="جاري التحميل" />
+      </LinearGradient>
+    );
+  }
+
+  if (showSuccess) {
+    return (
+      <View style={[styles.successContainer, { backgroundColor: colors.background }]}>
+        <Animated.View style={styles.successIcon}>
+          <FeatherIcon name="check-circle" size={80} color="#22C55E" />
+        </Animated.View>
+        <Text style={[styles.successTitle, { color: colors.foreground }]}>مرحباً بك في يونيرايد! 👋</Text>
+      </View>
+    );
+  }
+
+  const BackgroundParticles = () => (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {particles.map((p, i) => (
+        <Animated.View
+          key={i}
+          style={[
+            styles.particle,
+            {
+              left: p.x,
+              top: p.y,
+              opacity: p.anim.interpolate({ inputRange: [0, 1], outputRange: [0.05, 0.15] }),
+              transform: [
+                { translateY: p.anim.interpolate({ inputRange: [0, 1], outputRange: [-30, 30] }) }
+              ]
+            }
+          ]}
+        />
+      ))}
+    </View>
+  );
+
   if (screen === "welcome") {
     return (
       <LinearGradient
         colors={["#0D2847", "#1A3C6E", "#1A3C6E"]}
         style={[styles.welcomeContainer, { paddingTop: insets.top + 40 }]}
       >
+        <BackgroundParticles />
         <View style={styles.logoArea}>
           <Animated.View style={[
             styles.logoCircle, 
@@ -240,6 +347,7 @@ export default function Onboarding() {
         colors={["#0D2847", "#1A3C6E"]}
         style={[styles.roleContainer, { paddingTop: insets.top + 20 }]}
       >
+        <BackgroundParticles />
         <View style={styles.progressContainer}>
           <View style={[styles.progressDot, styles.progressDotActive]} />
           <View style={styles.progressDot} />
@@ -354,10 +462,14 @@ export default function Onboarding() {
           <View style={styles.field}>
             <Text style={[styles.label, { color: colors.mutedForeground }]}>الاسم الكامل</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.foreground }]}
+              style={[
+                styles.input, 
+                { backgroundColor: colors.card, borderColor: errors.name ? "#EF4444" : colors.border, color: colors.foreground }
+              ]}
               value={name} onChangeText={setName}
               placeholder="أدخل اسمك الكامل" placeholderTextColor={colors.mutedForeground} textAlign="right"
             />
+            {errors.name && <Text style={styles.fieldError}>{errors.name}</Text>}
           </View>
         )}
 
@@ -365,7 +477,11 @@ export default function Onboarding() {
           <Text style={[styles.label, { color: colors.mutedForeground }]}>رقم الهاتف</Text>
           <View style={styles.phoneInputContainer}>
             <TextInput
-              style={[styles.input, styles.phoneInput, { backgroundColor: colors.card, borderColor: colors.border, color: colors.foreground }]}
+              style={[
+                styles.input, 
+                styles.phoneInput, 
+                { backgroundColor: colors.card, borderColor: errors.phone ? "#EF4444" : colors.border, color: colors.foreground }
+              ]}
               value={phone} onChangeText={setPhone}
               placeholder="07XX XXX XXXX" placeholderTextColor={colors.mutedForeground}
               keyboardType="phone-pad" textAlign="right"
@@ -374,6 +490,30 @@ export default function Onboarding() {
               <Text style={styles.phonePrefixText}>+964 🇮🇶</Text>
             </View>
           </View>
+          {errors.phone && <Text style={styles.fieldError}>{errors.phone}</Text>}
+        </View>
+
+        <View style={styles.field}>
+          <Text style={[styles.label, { color: colors.mutedForeground }]}>كلمة المرور</Text>
+          <View style={styles.passwordInputContainer}>
+            <TextInput
+              style={[
+                styles.input, 
+                styles.passwordInput,
+                { backgroundColor: colors.card, borderColor: errors.password ? "#EF4444" : colors.border, color: colors.foreground }
+              ]}
+              value={password} onChangeText={setPassword}
+              placeholder="••••••••" placeholderTextColor={colors.mutedForeground}
+              secureTextEntry={!showPassword} textAlign="right"
+            />
+            <TouchableOpacity 
+              style={styles.passwordToggle} 
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <FeatherIcon name={showPassword ? "eye-off" : "eye"} size={20} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          </View>
+          {errors.password && <Text style={styles.fieldError}>{errors.password}</Text>}
         </View>
 
         {authMode === "register" && role === "student" && (
@@ -464,7 +604,7 @@ export default function Onboarding() {
   );
 }
 
-function LoadingText() {
+function LoadingText({ label = "جارٍ التحقق" }: { label?: string }) {
   const [dots, setDots] = useState("");
   useEffect(() => {
     const interval = setInterval(() => {
@@ -472,12 +612,22 @@ function LoadingText() {
     }, 400);
     return () => clearInterval(interval);
   }, []);
-  return <Text style={styles.authBtnText}>جارٍ التحقق{dots}</Text>;
+  return <Text style={styles.authBtnText}>{label}{dots}</Text>;
 }
 
 const styles = StyleSheet.create({
   welcomeContainer: { flex: 1, paddingHorizontal: 24 },
-  logoArea: { alignItems: "center", marginBottom: 30 },
+  loadingContainer: { flex: 1, alignItems: "center", justifyContent: "center" },
+  loadingLogo: { marginBottom: 24 },
+  successContainer: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
+  successIcon: { marginBottom: 24 },
+  successTitle: { fontSize: 24, fontFamily: "Inter_700Bold", textAlign: "center" },
+  particle: { position: "absolute", width: 40, height: 40, borderRadius: 20, backgroundColor: "#fff" },
+  fieldError: { color: "#EF4444", fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 4, textAlign: "right" },
+  passwordInputContainer: { position: "relative" },
+  passwordInput: { paddingLeft: 44 },
+  passwordToggle: { position: "absolute", left: 12, top: 12 },
+  logoArea: { alignItems: "center", marginBottom: 30, zIndex: 1 },
   logoCircle: { width: 88, height: 88, borderRadius: 44, alignItems: "center", justifyContent: "center", marginBottom: 20 },
   appName: { fontSize: 36, fontFamily: "Inter_700Bold", color: "#FFFFFF", marginBottom: 4 },
   appNameEn: { fontSize: 16, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.5)", marginBottom: 16, letterSpacing: 2 },
