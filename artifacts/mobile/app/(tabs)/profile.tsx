@@ -149,7 +149,7 @@ export default function ProfileScreen() {
           </View>
           <View style={[styles.statDivider, { backgroundColor: "rgba(255,255,255,0.2)" }]} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{user?.rating.toFixed(1)}</Text>
+            <Text style={styles.statValue}>{Number(user?.rating ?? 5).toFixed(1)}</Text>
             <Text style={styles.statLabel}>التقييم</Text>
           </View>
           <View style={[styles.statDivider, { backgroundColor: "rgba(255,255,255,0.2)" }]} />

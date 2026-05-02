@@ -1,18 +1,10 @@
 import FeatherIcon from "@/components/FeatherIcon";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
-import {
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { TripMap } from "@/components/TripMap";
-
 import { TripStatusCard } from "@/components/TripStatusCard";
 import { Trip, useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
@@ -28,26 +20,22 @@ function TripHistoryItem({ trip, role }: { trip: Trip; role: "student" | "driver
     default: colors.mutedForeground,
   };
   const statusLabels: Record<string, string> = {
-    completed: "مكتملة",
-    cancelled: "ملغاة",
-    inprogress: "جارية",
-    waiting: "بانتظار",
-    accepted: "مقبولة",
-    pickup: "في الطريق",
-    arrived: "وصل",
+    completed: "مكتملة", cancelled: "ملغاة", inprogress: "جارية",
+    waiting: "بانتظار", accepted: "مقبولة", pickup: "في الطريق", arrived: "وصل",
   };
 
   const statusColor = statusColors[trip.status] ?? statusColors.default;
-
   const date = new Date(trip.startTime);
   const dateStr = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   const timeStr = date.toLocaleTimeString("ar-IQ", { hour: "2-digit", minute: "2-digit" });
 
+  const originAddr = trip.origin?.address ?? trip.originAddress;
+  const destAddr = trip.destination?.address ?? trip.destAddress;
+
   return (
     <TouchableOpacity
       style={[styles.tripItem, { backgroundColor: colors.card, borderColor: colors.border }]}
-      onPress={() => setExpanded(!expanded)}
-      activeOpacity={0.8}
+      onPress={() => setExpanded(!expanded)} activeOpacity={0.8}
     >
       <View style={styles.tripItemTop}>
         <View style={[styles.tripIcon, { backgroundColor: statusColor + "20" }]}>
@@ -55,16 +43,12 @@ function TripHistoryItem({ trip, role }: { trip: Trip; role: "student" | "driver
         </View>
         <View style={styles.tripMain}>
           <Text style={[styles.tripRoute, { color: colors.foreground }]} numberOfLines={1}>
-            {trip.origin.address.replace("، بغداد", "")} → {trip.destination.address.replace("، بغداد", "")}
+            {originAddr.replace("، بغداد", "")} → {destAddr.replace("، بغداد", "")}
           </Text>
-          <Text style={[styles.tripMeta, { color: colors.mutedForeground }]}>
-            {dateStr} · {timeStr}
-          </Text>
+          <Text style={[styles.tripMeta, { color: colors.mutedForeground }]}>{dateStr} · {timeStr}</Text>
         </View>
         <View style={styles.tripRight}>
-          <Text style={[styles.tripFare, { color: colors.accent }]}>
-            {(trip.fare / 1000).toFixed(0)}k
-          </Text>
+          <Text style={[styles.tripFare, { color: colors.accent }]}>{(Number(trip.fare) / 1000).toFixed(0)}k</Text>
           <Text style={[styles.tripFareUnit, { color: colors.mutedForeground }]}>د.ع</Text>
         </View>
       </View>
@@ -85,26 +69,24 @@ function TripHistoryItem({ trip, role }: { trip: Trip; role: "student" | "driver
           )}
           <View style={styles.detailRow}>
             <FeatherIcon name="map-pin" size={13} color={colors.success} />
-            <Text style={[styles.detailText, { color: colors.foreground }]}>{trip.origin.address}</Text>
+            <Text style={[styles.detailText, { color: colors.foreground }]}>{originAddr}</Text>
           </View>
           <View style={styles.detailRow}>
             <FeatherIcon name="flag" size={13} color={colors.accent} />
-            <Text style={[styles.detailText, { color: colors.foreground }]}>{trip.destination.address}</Text>
+            <Text style={[styles.detailText, { color: colors.foreground }]}>{destAddr}</Text>
           </View>
-          {trip.driverShare !== undefined && (
+          {trip.driverShare != null && (
             <View style={styles.detailRow}>
               <FeatherIcon name="dollar-sign" size={13} color={colors.primary} />
               <Text style={[styles.detailText, { color: colors.foreground }]}>
                 {role === "driver"
-                  ? `حصتك: ${(trip.driverShare / 1000).toFixed(0)}k د.ع`
-                  : `المدفوع: ${(trip.fare / 1000).toFixed(0)}k د.ع`}
+                  ? `حصتك: ${(Number(trip.driverShare) / 1000).toFixed(0)}k د.ع`
+                  : `المدفوع: ${(Number(trip.fare) / 1000).toFixed(0)}k د.ع`}
               </Text>
             </View>
           )}
           <View style={[styles.statusTag, { backgroundColor: statusColor + "20" }]}>
-            <Text style={[styles.statusTagText, { color: statusColor }]}>
-              {statusLabels[trip.status] ?? trip.status}
-            </Text>
+            <Text style={[styles.statusTagText, { color: statusColor }]}>{statusLabels[trip.status] ?? trip.status}</Text>
           </View>
         </View>
       )}
@@ -115,19 +97,17 @@ function TripHistoryItem({ trip, role }: { trip: Trip; role: "student" | "driver
 export default function TripsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { user, activeTrip, tripHistory } = useApp();
+  const { user, activeTrip, tripHistory, refreshHistory } = useApp();
 
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
   const bottomPad = Platform.OS === "web" ? 34 : 0;
   const role = user?.role ?? "student";
 
-  const hasMap = activeTrip && Platform.OS !== "web";
-
-  const showMap =
-    activeTrip &&
-    (activeTrip.status === "accepted" ||
-      activeTrip.status === "pickup" ||
-      activeTrip.status === "inprogress");
+  const showMap = activeTrip && (
+    activeTrip.status === "accepted" ||
+    activeTrip.status === "pickup" ||
+    activeTrip.status === "inprogress"
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -135,7 +115,12 @@ export default function TripsScreen() {
         colors={["#0D2847", "#1A3C6E"]}
         style={[styles.header, { paddingTop: topPad + 16 }]}
       >
-        <Text style={styles.headerTitle}>{role === "student" ? "رحلاتي" : "الرحلات"}</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.headerTitle}>{role === "student" ? "رحلاتي" : "الرحلات"}</Text>
+          <TouchableOpacity onPress={refreshHistory} style={styles.refreshBtn}>
+            <FeatherIcon name="refresh-cw" size={16} color="rgba(255,255,255,0.7)" />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.headerSub}>{tripHistory.length} رحلة في السجل</Text>
       </LinearGradient>
 
@@ -146,29 +131,23 @@ export default function TripsScreen() {
       >
         {activeTrip && (
           <View style={styles.section}>
-            {showMap && (
+            {showMap && Platform.OS !== "web" && (
               <TripMap
-                originLat={activeTrip.origin.lat}
-                originLng={activeTrip.origin.lng}
-                destLat={activeTrip.destination.lat}
-                destLng={activeTrip.destination.lng}
+                originLat={activeTrip.origin?.lat ?? Number(activeTrip.originLat)}
+                originLng={activeTrip.origin?.lng ?? Number(activeTrip.originLng)}
+                destLat={activeTrip.destination?.lat ?? Number(activeTrip.destLat)}
+                destLng={activeTrip.destination?.lng ?? Number(activeTrip.destLng)}
               />
             )}
-
             <View style={{ padding: 16 }}>
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>الرحلة الحالية</Text>
-              <TripStatusCard
-                trip={activeTrip}
-                role={role}
-              />
+              <TripStatusCard trip={activeTrip} role={role} />
             </View>
           </View>
         )}
 
         <View style={[styles.section, { padding: 16 }]}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-            سجل الرحلات
-          </Text>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>سجل الرحلات</Text>
           {tripHistory.length === 0 ? (
             <View style={[styles.emptyState, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <FeatherIcon name="map" size={36} color={colors.mutedForeground} />
@@ -191,14 +170,13 @@ export default function TripsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { paddingHorizontal: 20, paddingBottom: 20 },
+  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   headerTitle: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#fff", marginBottom: 4 },
   headerSub: { fontSize: 13, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.6)" },
+  refreshBtn: { padding: 8 },
   content: { flex: 1 },
   section: { marginBottom: 8 },
   sectionTitle: { fontSize: 16, fontFamily: "Inter_700Bold", marginBottom: 12 },
-  map: { height: 220, width: "100%" },
-  mapPlaceholder: { height: 160, alignItems: "center", justifyContent: "center", gap: 10 },
-  mapPlaceholderText: { fontSize: 13, fontFamily: "Inter_400Regular" },
   tripItem: { borderRadius: 14, borderWidth: 1, padding: 14, marginBottom: 10 },
   tripItemTop: { flexDirection: "row", alignItems: "center", gap: 12 },
   tripIcon: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },

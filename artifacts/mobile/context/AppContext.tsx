@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
+import { api } from "../lib/api";
 
 export type UserRole = "student" | "driver";
 
@@ -8,17 +9,17 @@ export interface User {
   name: string;
   phone: string;
   role: UserRole;
-  university?: string;
-  college?: string;
-  studentId?: string;
-  vehicleType?: string;
-  vehiclePlate?: string;
-  vehicleColor?: string;
-  rating: number;
+  university?: string | null;
+  vehicleType?: string | null;
+  vehiclePlate?: string | null;
+  vehicleColor?: string | null;
+  rating: string;
   totalTrips: number;
-  profileImage?: string;
-  isOnline?: boolean;
-  balance?: number;
+  isOnline: boolean;
+  balance: string;
+  basicFare: number;
+  standardFare: number;
+  premiumFare: number;
 }
 
 export type TripStatus =
@@ -40,34 +41,42 @@ export interface Trip {
   id: string;
   studentId: string;
   studentName: string;
-  driverId?: string;
-  driverName?: string;
-  driverPhone?: string;
-  driverVehicle?: string;
-  driverRating?: number;
-  origin: TripLocation;
-  destination: TripLocation;
+  driverId?: string | null;
+  driverName?: string | null;
+  driverPhone?: string | null;
+  driverVehicle?: string | null;
+  driverRating?: string | null;
+  originLat: string;
+  originLng: string;
+  originAddress: string;
+  destLat: string;
+  destLng: string;
+  destAddress: string;
   status: TripStatus;
   startTime: string;
-  endTime?: string;
-  fare: number;
-  driverShare?: number;
-  appCommission?: number;
-  distance?: number;
-  notes?: string;
+  endTime?: string | null;
+  fare: string;
+  driverShare?: string | null;
+  appCommission?: string | null;
+  distance?: string | null;
+  notes?: string | null;
+  // Computed aliases for UI compatibility
+  origin?: TripLocation;
+  destination?: TripLocation;
 }
 
 export type SubscriptionPlan = "basic" | "standard" | "premium";
 
 export interface Subscription {
   id: string;
+  studentId: string;
+  driverId: string;
+  driverName: string;
   plan: SubscriptionPlan;
   startDate: string;
   endDate: string;
   isActive: boolean;
-  driverId?: string;
-  driverName?: string;
-  monthlyFare: number;
+  monthlyFare: string;
   tripsPerMonth: number;
   tripsUsed: number;
 }
@@ -76,18 +85,16 @@ export interface Driver {
   id: string;
   name: string;
   phone: string;
-  vehicleType: string;
-  vehiclePlate: string;
-  vehicleColor: string;
-  rating: number;
+  vehicleType?: string | null;
+  vehiclePlate?: string | null;
+  vehicleColor?: string | null;
+  rating: string;
   totalTrips: number;
   isOnline: boolean;
-  location: TripLocation;
-  university: string;
-  subscriptionPlans: {
-    plan: SubscriptionPlan;
-    monthlyFare: number;
-  }[];
+  university?: string | null;
+  basicFare: number;
+  standardFare: number;
+  premiumFare: number;
 }
 
 interface AppContextValue {
@@ -101,157 +108,139 @@ interface AppContextValue {
   weeklyEarnings: number;
   pendingRequest: Trip | null;
   isDriverOnline: boolean;
-  login: (userData: User) => Promise<void>;
+  isLoading: boolean;
+  login: (userData: User, token: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
   setActiveTrip: (trip: Trip | null) => void;
   setSubscription: (sub: Subscription | null) => void;
-  requestTrip: (origin: TripLocation, destination: TripLocation) => void;
-  acceptTrip: (tripId: string) => void;
-  cancelTrip: (tripId: string) => void;
-  completeTrip: (tripId: string) => void;
-  updateTripStatus: (tripId: string, status: TripStatus) => void;
-  toggleDriverOnline: () => void;
-  subscribeToPlan: (driverId: string, plan: SubscriptionPlan) => void;
+  requestTrip: (origin: TripLocation, destination: TripLocation, driverId?: string) => Promise<void>;
+  acceptTrip: (tripId: string) => Promise<void>;
+  cancelTrip: (tripId: string) => Promise<void>;
+  completeTrip: (tripId: string) => Promise<void>;
+  updateTripStatus: (tripId: string, status: TripStatus) => Promise<void>;
+  toggleDriverOnline: () => Promise<void>;
+  subscribeToPlan: (driverId: string, plan: SubscriptionPlan) => Promise<void>;
+  refreshDrivers: () => Promise<void>;
+  refreshHistory: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-const MOCK_DRIVERS: Driver[] = [
-  {
-    id: "d1",
-    name: "أحمد محمد الكريمي",
-    phone: "07701234567",
-    vehicleType: "تويوتا كامري",
-    vehiclePlate: "ب 1234 بغداد",
-    vehicleColor: "أبيض",
-    rating: 4.8,
-    totalTrips: 245,
-    isOnline: true,
-    location: { lat: 33.315, lng: 44.366, address: "المنصور، بغداد" },
-    university: "جامعة بغداد",
-    subscriptionPlans: [
-      { plan: "basic", monthlyFare: 50000 },
-      { plan: "standard", monthlyFare: 80000 },
-      { plan: "premium", monthlyFare: 120000 },
-    ],
-  },
-  {
-    id: "d2",
-    name: "علي حسين العبيدي",
-    phone: "07809876543",
-    vehicleType: "كيا سبورتاج",
-    vehiclePlate: "أ 5678 بغداد",
-    vehicleColor: "فضي",
-    rating: 4.9,
-    totalTrips: 189,
-    isOnline: true,
-    location: { lat: 33.325, lng: 44.376, address: "الكرادة، بغداد" },
-    university: "جامعة بغداد",
-    subscriptionPlans: [
-      { plan: "basic", monthlyFare: 55000 },
-      { plan: "standard", monthlyFare: 85000 },
-      { plan: "premium", monthlyFare: 130000 },
-    ],
-  },
-  {
-    id: "d3",
-    name: "محمد صالح الجبوري",
-    phone: "07601112233",
-    vehicleType: "هيونداي سوناتا",
-    vehiclePlate: "ج 9012 بغداد",
-    vehicleColor: "رمادي",
-    rating: 4.7,
-    totalTrips: 312,
-    isOnline: true,
-    location: { lat: 33.305, lng: 44.356, address: "المشتل، بغداد" },
-    university: "الجامعة التكنولوجية",
-    subscriptionPlans: [
-      { plan: "basic", monthlyFare: 45000 },
-      { plan: "standard", monthlyFare: 75000 },
-      { plan: "premium", monthlyFare: 110000 },
-    ],
-  },
-];
-
-const MOCK_TRIP_HISTORY: Trip[] = [
-  {
-    id: "t1",
-    studentId: "s1",
-    studentName: "سارة علي",
-    driverId: "d1",
-    driverName: "أحمد محمد الكريمي",
-    driverPhone: "07701234567",
-    driverVehicle: "تويوتا كامري أبيض",
-    driverRating: 4.8,
-    origin: { lat: 33.32, lng: 44.37, address: "حي الجامعة، بغداد" },
-    destination: { lat: 33.315, lng: 44.366, address: "جامعة بغداد - بوابة 1" },
-    status: "completed",
-    startTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(),
-    fare: 75000,
-    driverShare: 65000,
-    appCommission: 10000,
-    distance: 4.2,
-  },
-  {
-    id: "t2",
-    studentId: "s1",
-    studentName: "سارة علي",
-    driverId: "d2",
-    driverName: "علي حسين العبيدي",
-    driverPhone: "07809876543",
-    driverVehicle: "كيا سبورتاج فضي",
-    driverRating: 4.9,
-    origin: { lat: 33.315, lng: 44.366, address: "جامعة بغداد - بوابة 1" },
-    destination: { lat: 33.32, lng: 44.37, address: "حي الجامعة، بغداد" },
-    status: "completed",
-    startTime: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(Date.now() - 25.5 * 60 * 60 * 1000).toISOString(),
-    fare: 75000,
-    driverShare: 65000,
-    appCommission: 10000,
-    distance: 4.2,
-  },
-];
+function tripWithAliases(trip: Trip): Trip {
+  return {
+    ...trip,
+    origin: { lat: Number(trip.originLat), lng: Number(trip.originLng), address: trip.originAddress },
+    destination: { lat: Number(trip.destLat), lng: Number(trip.destLng), address: trip.destAddress },
+  };
+}
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTrip, setActiveTripState] = useState<Trip | null>(null);
   const [subscription, setSubscriptionState] = useState<Subscription | null>(null);
-  const [tripHistory, setTripHistory] = useState<Trip[]>(MOCK_TRIP_HISTORY);
+  const [tripHistory, setTripHistory] = useState<Trip[]>([]);
+  const [availableDrivers, setAvailableDrivers] = useState<Driver[]>([]);
   const [isDriverOnline, setIsDriverOnline] = useState(false);
   const [pendingRequest, setPendingRequest] = useState<Trip | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const userRef = useRef<User | null>(null);
+  userRef.current = user;
 
   useEffect(() => {
-    loadStoredData();
+    loadStoredSession();
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
 
-  async function loadStoredData() {
+  useEffect(() => {
+    if (isAuthenticated) {
+      startPolling();
+    } else {
+      if (pollRef.current) clearInterval(pollRef.current);
+    }
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [isAuthenticated]);
+
+  function startPolling() {
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = setInterval(() => {
+      pollData();
+    }, 8000);
+  }
+
+  async function pollData() {
     try {
-      const [userData, tripData, subData] = await Promise.all([
-        AsyncStorage.getItem("user"),
-        AsyncStorage.getItem("activeTrip"),
-        AsyncStorage.getItem("subscription"),
+      const [tripData, pendingData] = await Promise.all([
+        api.get<Trip | null>("/trips/active").catch(() => null),
+        userRef.current?.role === "driver" ? api.get<Trip | null>("/trips/pending").catch(() => null) : Promise.resolve(null),
       ]);
-      if (userData) {
-        const parsed: User = JSON.parse(userData);
-        setUser(parsed);
-        setIsAuthenticated(true);
-        setIsDriverOnline(parsed.isOnline ?? false);
-      }
-      if (tripData) setActiveTripState(JSON.parse(tripData));
-      if (subData) setSubscriptionState(JSON.parse(subData));
+      if (tripData) setActiveTripState(tripWithAliases(tripData));
+      else setActiveTripState(null);
+      if (pendingData) setPendingRequest(tripWithAliases(pendingData));
+      else setPendingRequest(null);
     } catch {
-      // ignore
+      // silent
     }
   }
 
-  async function login(userData: User) {
+  async function loadStoredSession() {
+    setIsLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) { setIsLoading(false); return; }
+      const userData = await api.get<User>("/auth/me");
+      setUser(userData);
+      setIsAuthenticated(true);
+      setIsDriverOnline(userData.isOnline);
+      await Promise.all([
+        fetchActiveTrip(),
+        fetchSubscription(),
+        fetchDrivers(),
+        fetchHistory(),
+      ]);
+    } catch {
+      await AsyncStorage.removeItem("token");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function fetchActiveTrip() {
+    try {
+      const trip = await api.get<Trip | null>("/trips/active");
+      setActiveTripState(trip ? tripWithAliases(trip) : null);
+    } catch { /* ignore */ }
+  }
+
+  async function fetchSubscription() {
+    try {
+      const sub = await api.get<Subscription | null>("/subscriptions/me");
+      setSubscriptionState(sub);
+    } catch { /* ignore */ }
+  }
+
+  async function fetchDrivers() {
+    try {
+      const drivers = await api.get<Driver[]>("/drivers/all");
+      setAvailableDrivers(drivers);
+    } catch { /* ignore */ }
+  }
+
+  async function fetchHistory() {
+    try {
+      const history = await api.get<Trip[]>("/trips/history");
+      setTripHistory(history.map(tripWithAliases));
+    } catch { /* ignore */ }
+  }
+
+  async function login(userData: User, token: string) {
+    await AsyncStorage.setItem("token", token);
     setUser(userData);
     setIsAuthenticated(true);
-    await AsyncStorage.setItem("user", JSON.stringify(userData));
+    setIsDriverOnline(userData.isOnline);
+    await Promise.all([fetchActiveTrip(), fetchSubscription(), fetchDrivers(), fetchHistory()]);
   }
 
   async function logout() {
@@ -259,157 +248,106 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setIsAuthenticated(false);
     setActiveTripState(null);
     setSubscriptionState(null);
-    await AsyncStorage.multiRemove(["user", "activeTrip", "subscription"]);
+    setTripHistory([]);
+    setPendingRequest(null);
+    await AsyncStorage.removeItem("token");
   }
 
   async function updateUser(updates: Partial<User>) {
-    if (!user) return;
-    const updated = { ...user, ...updates };
-    setUser(updated);
-    await AsyncStorage.setItem("user", JSON.stringify(updated));
+    try {
+      const updated = await api.patch<User>("/auth/me", updates);
+      setUser(updated);
+      if ("isOnline" in updates) setIsDriverOnline(Boolean(updates.isOnline));
+    } catch { /* ignore */ }
   }
 
   function setActiveTrip(trip: Trip | null) {
-    setActiveTripState(trip);
-    if (trip) {
-      AsyncStorage.setItem("activeTrip", JSON.stringify(trip));
-    } else {
-      AsyncStorage.removeItem("activeTrip");
-    }
+    setActiveTripState(trip ? tripWithAliases(trip) : null);
   }
 
   function setSubscription(sub: Subscription | null) {
     setSubscriptionState(sub);
-    if (sub) {
-      AsyncStorage.setItem("subscription", JSON.stringify(sub));
-    } else {
-      AsyncStorage.removeItem("subscription");
-    }
   }
 
-  function requestTrip(origin: TripLocation, destination: TripLocation) {
+  async function requestTrip(origin: TripLocation, destination: TripLocation, driverId?: string) {
     if (!user) return;
-    const trip: Trip = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 6),
-      studentId: user.id,
-      studentName: user.name,
-      origin,
-      destination,
-      status: "waiting",
-      startTime: new Date().toISOString(),
-      fare: 75000,
-    };
-    setActiveTrip(trip);
-    setTimeout(() => {
-      const driver = MOCK_DRIVERS[0];
-      const updated: Trip = {
-        ...trip,
-        status: "accepted",
-        driverId: driver.id,
-        driverName: driver.name,
-        driverPhone: driver.phone,
-        driverVehicle: `${driver.vehicleType} ${driver.vehicleColor}`,
-        driverRating: driver.rating,
-      };
-      setActiveTrip(updated);
-      setTimeout(() => {
-        setActiveTrip({ ...updated, status: "pickup" });
-        setTimeout(() => {
-          setActiveTrip({ ...updated, status: "inprogress" });
-        }, 8000);
-      }, 6000);
-    }, 4000);
-  }
-
-  function acceptTrip(tripId: string) {
-    if (!pendingRequest || pendingRequest.id !== tripId || !user) return;
-    const accepted: Trip = {
-      ...pendingRequest,
-      driverId: user.id,
-      driverName: user.name,
-      driverPhone: user.phone,
-      status: "accepted",
-    };
-    setActiveTrip(accepted);
-    setPendingRequest(null);
-  }
-
-  function cancelTrip(tripId: string) {
-    if (activeTrip?.id === tripId) {
-      const cancelled: Trip = { ...activeTrip, status: "cancelled" };
-      setTripHistory((prev) => [cancelled, ...prev]);
-      setActiveTrip(null);
+    try {
+      const trip = await api.post<Trip>("/trips", {
+        originLat: origin.lat,
+        originLng: origin.lng,
+        originAddress: origin.address,
+        destLat: destination.lat,
+        destLng: destination.lng,
+        destAddress: destination.address,
+        fare: 75000,
+        driverId,
+      });
+      setActiveTripState(tripWithAliases(trip));
+    } catch (err) {
+      throw err;
     }
   }
 
-  function completeTrip(tripId: string) {
-    if (activeTrip?.id === tripId) {
-      const completed: Trip = {
-        ...activeTrip,
-        status: "completed",
-        endTime: new Date().toISOString(),
-        driverShare: Math.floor(activeTrip.fare * 0.85),
-        appCommission: Math.floor(activeTrip.fare * 0.15),
-      };
-      setTripHistory((prev) => [completed, ...prev]);
-      setActiveTrip(null);
-    }
+  async function acceptTrip(tripId: string) {
+    try {
+      const trip = await api.patch<Trip>(`/trips/${tripId}/status`, { status: "accepted" });
+      setActiveTripState(tripWithAliases(trip));
+      setPendingRequest(null);
+    } catch { /* ignore */ }
   }
 
-  function updateTripStatus(tripId: string, status: TripStatus) {
-    if (activeTrip?.id === tripId) {
-      setActiveTrip({ ...activeTrip, status });
-    }
+  async function cancelTrip(tripId: string) {
+    try {
+      await api.delete(`/trips/${tripId}`);
+      setActiveTripState(null);
+      await fetchHistory();
+    } catch { /* ignore */ }
   }
 
-  function toggleDriverOnline() {
+  async function completeTrip(tripId: string) {
+    try {
+      const trip = await api.patch<Trip>(`/trips/${tripId}/status`, { status: "completed" });
+      setActiveTripState(null);
+      setTripHistory((prev) => [tripWithAliases(trip), ...prev]);
+    } catch { /* ignore */ }
+  }
+
+  async function updateTripStatus(tripId: string, status: TripStatus) {
+    try {
+      const trip = await api.patch<Trip>(`/trips/${tripId}/status`, { status });
+      setActiveTripState(tripWithAliases(trip));
+    } catch { /* ignore */ }
+  }
+
+  async function toggleDriverOnline() {
     const newState = !isDriverOnline;
     setIsDriverOnline(newState);
-    updateUser({ isOnline: newState });
-    if (newState) {
-      setTimeout(() => {
-        if (!activeTrip) {
-          const student = { id: "s99", name: "فاطمة حسن", phone: "07701112233" };
-          const request: Trip = {
-            id: Date.now().toString() + Math.random().toString(36).substr(2, 6),
-            studentId: student.id,
-            studentName: student.name,
-            origin: { lat: 33.32, lng: 44.37, address: "حي الجامعة، بغداد" },
-            destination: { lat: 33.315, lng: 44.366, address: "جامعة بغداد" },
-            status: "waiting",
-            startTime: new Date().toISOString(),
-            fare: 75000,
-          };
-          setPendingRequest(request);
-        }
-      }, 5000);
-    } else {
-      setPendingRequest(null);
+    try {
+      const updated = await api.patch<User>("/drivers/online", { isOnline: newState });
+      setUser(updated);
+      if (newState) {
+        await fetchActiveTrip();
+        const pending = await api.get<Trip | null>("/trips/pending").catch(() => null);
+        if (pending) setPendingRequest(tripWithAliases(pending));
+      } else {
+        setPendingRequest(null);
+      }
+    } catch {
+      setIsDriverOnline(!newState);
     }
   }
 
-  function subscribeToPlan(driverId: string, plan: SubscriptionPlan) {
-    const driver = MOCK_DRIVERS.find((d) => d.id === driverId);
-    if (!driver || !user) return;
-    const planData = driver.subscriptionPlans.find((p) => p.plan === plan);
-    if (!planData) return;
-    const now = new Date();
-    const end = new Date();
-    end.setMonth(end.getMonth() + 1);
-    const sub: Subscription = {
-      id: Date.now().toString(),
-      plan,
-      startDate: now.toISOString(),
-      endDate: end.toISOString(),
-      isActive: true,
-      driverId: driver.id,
-      driverName: driver.name,
-      monthlyFare: planData.monthlyFare,
-      tripsPerMonth: plan === "basic" ? 20 : plan === "standard" ? 40 : 999,
-      tripsUsed: 8,
-    };
-    setSubscription(sub);
+  async function subscribeToPlan(driverId: string, plan: SubscriptionPlan) {
+    try {
+      const sub = await api.post<Subscription>("/subscriptions", { driverId, plan });
+      setSubscriptionState(sub);
+    } catch (err) {
+      throw err;
+    }
   }
+
+  const refreshDrivers = useCallback(fetchDrivers, []);
+  const refreshHistory = useCallback(fetchHistory, []);
 
   const todayEarnings = tripHistory
     .filter((t) => {
@@ -421,14 +359,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         tripDate.getMonth() === today.getMonth()
       );
     })
-    .reduce((sum, t) => sum + (t.driverShare ?? 0), 0);
+    .reduce((sum, t) => sum + Number(t.driverShare ?? 0), 0);
 
   const weeklyEarnings = tripHistory
     .filter((t) => {
       const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
       return t.status === "completed" && new Date(t.startTime).getTime() > weekAgo;
     })
-    .reduce((sum, t) => sum + (t.driverShare ?? 0), 0);
+    .reduce((sum, t) => sum + Number(t.driverShare ?? 0), 0);
 
   return (
     <AppContext.Provider
@@ -438,11 +376,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         activeTrip,
         subscription,
         tripHistory,
-        availableDrivers: MOCK_DRIVERS,
+        availableDrivers,
         todayEarnings,
         weeklyEarnings,
         pendingRequest,
         isDriverOnline,
+        isLoading,
         login,
         logout,
         updateUser,
@@ -455,6 +394,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateTripStatus,
         toggleDriverOnline,
         subscribeToPlan,
+        refreshDrivers,
+        refreshHistory,
       }}
     >
       {children}

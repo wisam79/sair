@@ -154,13 +154,13 @@ export default function HomeScreen() {
               <Text style={styles.requestStudent}>{pendingRequest.studentName}</Text>
               <View style={styles.requestRoute}>
                 <FeatherIcon name="map-pin" size={14} color="rgba(255,255,255,0.7)" />
-                <Text style={styles.requestAddress} numberOfLines={1}>{pendingRequest.origin.address}</Text>
+                <Text style={styles.requestAddress} numberOfLines={1}>{pendingRequest.origin?.address ?? pendingRequest.originAddress}</Text>
               </View>
               <View style={styles.requestRoute}>
                 <FeatherIcon name="flag" size={14} color="#FF9E7A" />
-                <Text style={styles.requestAddress} numberOfLines={1}>{pendingRequest.destination.address}</Text>
+                <Text style={styles.requestAddress} numberOfLines={1}>{pendingRequest.destination?.address ?? pendingRequest.destAddress}</Text>
               </View>
-              <Text style={styles.requestFare}>{(pendingRequest.fare / 1000).toFixed(0)}k دينار</Text>
+              <Text style={styles.requestFare}>{(Number(pendingRequest.fare) / 1000).toFixed(0)}k دينار</Text>
               <View style={styles.requestActions}>
                 <TouchableOpacity
                   style={[styles.rejectBtn, { borderColor: "rgba(255,255,255,0.3)" }]}
@@ -219,7 +219,7 @@ export default function HomeScreen() {
               <View style={styles.vehicleRow}>
                 <FeatherIcon name="star" size={16} color={colors.warning} />
                 <Text style={[styles.vehicleText, { color: colors.foreground }]}>
-                  {user.rating.toFixed(1)} / 5.0
+                  {Number(user.rating ?? 5).toFixed(1)} / 5.0
                 </Text>
               </View>
             </View>
@@ -243,7 +243,7 @@ export default function HomeScreen() {
           </View>
           <View style={[styles.ratingBadge, { backgroundColor: "rgba(255,255,255,0.15)" }]}>
             <FeatherIcon name="star" size={14} color="#FFD700" />
-            <Text style={styles.ratingValue}>{user?.rating.toFixed(1)}</Text>
+            <Text style={styles.ratingValue}>{Number(user?.rating ?? 5).toFixed(1)}</Text>
           </View>
         </View>
 

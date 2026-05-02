@@ -38,11 +38,11 @@ export default function SubscriptionScreen() {
         const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
         return t.status === "completed" && new Date(t.startTime).getTime() > monthAgo;
       })
-      .reduce((sum, t) => sum + (t.driverShare ?? 0), 0);
+      .reduce((sum, t) => sum + Number(t.driverShare ?? 0), 0);
 
     const appCommission = tripHistory
       .filter((t) => t.status === "completed")
-      .reduce((sum, t) => sum + (t.appCommission ?? 0), 0);
+      .reduce((sum, t) => sum + Number(t.appCommission ?? 0), 0);
 
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -139,7 +139,7 @@ export default function SubscriptionScreen() {
                 </View>
                 <View style={styles.earningItemRight}>
                   <Text style={[styles.earningItemAmt, { color: colors.success }]}>
-                    +{((trip.driverShare ?? 0) / 1000).toFixed(0)}k
+                    +{(Number(trip.driverShare ?? 0) / 1000).toFixed(0)}k
                   </Text>
                   <Text style={[styles.earningItemUnit, { color: colors.mutedForeground }]}>د.ع</Text>
                 </View>

@@ -119,7 +119,7 @@ export function TripStatusCard({ trip, role, onComplete, onCancel }: TripStatusC
           <FeatherIcon name="user" size={14} color={colors.mutedForeground} />
           <Text style={[styles.infoText, { color: colors.foreground }]}>{trip.studentName}</Text>
           <FeatherIcon name="map-pin" size={14} color={colors.accent} />
-          <Text style={[styles.infoText, { color: colors.foreground }]} numberOfLines={1}>{trip.destination.address}</Text>
+          <Text style={[styles.infoText, { color: colors.foreground }]} numberOfLines={1}>{trip.destination?.address ?? trip.destAddress}</Text>
         </View>
       )}
 

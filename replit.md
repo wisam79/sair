@@ -1,27 +1,99 @@
-# Workspace
+# يونيرايد — UniRide Iraq
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+تطبيق موبايل (Expo/React Native) لربط طلاب الجامعات بالسائقين في العراق عبر اشتراكات شهرية، مع واجهة خلفية Express + PostgreSQL كاملة.
 
 ## Stack
 
-- **Monorepo tool**: pnpm workspaces
-- **Node.js version**: 24
-- **Package manager**: pnpm
-- **TypeScript version**: 5.9
-- **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
-- **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+- **Monorepo**: pnpm workspaces
+- **Mobile**: Expo ~54.0.27, React Native 0.81.5, expo-router ~6.0.17
+- **API Server**: Express 5 + Drizzle ORM + PostgreSQL (JWT auth)
+- **Database**: PostgreSQL (Replit managed), Drizzle ORM + drizzle-zod
+- **Node.js**: 24 · TypeScript 5.9
+
+## Architecture
+
+```
+artifacts/
+  mobile/         — Expo app (Arabic RTL, student+driver UI)
+  api-server/     — REST API (Express 5, JWT auth, esbuild)
+lib/
+  db/             — Drizzle schema + DB client
+  api-spec/       — OpenAPI spec + codegen
+```
+
+## Database Schema
+
+- `users` — طلاب وسائقون (role: student|driver), JWT auth, subscription plans, online status
+- `trips` — رحلات (status: waiting→accepted→pickup→inprogress→arrived→completed|cancelled), 85/15 commission
+- `subscriptions` — اشتراكات شهرية (basic/standard/premium)
+
+## API Routes
+
+- `POST /api/auth/register` — تسجيل مستخدم جديد → JWT token
+- `POST /api/auth/login` — تسجيل الدخول برقم الهاتف
+- `GET /api/auth/me` — بيانات المستخدم الحالي
+- `PATCH /api/auth/me` — تحديث الملف الشخصي
+- `GET /api/drivers` — السائقون المتاحون (isOnline=true)
+- `GET /api/drivers/all` — جميع السائقين
+- `PATCH /api/drivers/online` — تغيير حالة التوفر
+- `POST /api/trips` — طلب رحلة جديدة
+- `GET /api/trips/active` — الرحلة النشطة الحالية
+- `GET /api/trips/pending` — الطلبات المنتظرة (للسائق)
+- `GET /api/trips/history` — سجل الرحلات
+- `PATCH /api/trips/:id/status` — تحديث حالة الرحلة
+- `DELETE /api/trips/:id` — إلغاء رحلة
+- `GET /api/subscriptions/me` — اشتراك الطالب الحالي
+- `GET /api/subscriptions/driver` — اشتراكات السائق
+- `POST /api/subscriptions` — اشتراك جديد
+- `DELETE /api/subscriptions/:id` — إلغاء اشتراك
+
+## Mobile App Structure
+
+```
+app/
+  index.tsx          — redirect to onboarding or tabs
+  onboarding.tsx     — welcome + role select + register/login (real API)
+  (tabs)/
+    index.tsx        — home: student books ride, driver goes online
+    trips.tsx        — active trip + history
+    subscription.tsx — student plans / driver earnings
+    profile.tsx      — user profile + settings
+components/
+  FeatherIcon.tsx         — SVG icons (web)
+  FeatherIcon.native.tsx  — Feather icons (native)
+  TripStatusCard.tsx      — trip progress stepper
+  DriverCard.tsx          — driver card with subscription plans
+  TripMap.tsx             — web SVG stub
+  TripMap.native.tsx      — MapView (react-native-maps 1.18.0)
+context/
+  AppContext.tsx      — real API calls (JWT + polling every 8s)
+lib/
+  api.ts             — fetch client with JWT Bearer headers
+```
+
+## Key Technical Notes
+
+- Auth: JWT tokens (30d), stored in AsyncStorage, Bearer header on all API calls
+- Polling: AppContext polls `/trips/active` + `/trips/pending` every 8 seconds
+- Commission: 85% driver / 15% app (calculated on trip completion)
+- Icons: FeatherIcon uses react-native-svg paths on web, @expo/vector-icons on native
+- Maps: react-native-maps@1.18.0 (DO NOT upgrade, DO NOT add to app.json plugins)
+- Platform files: TripMap.native.tsx (MapView), TripMap.tsx (web stub)
+- API URL in mobile: `https://${EXPO_PUBLIC_DOMAIN}/api`
+- DO NOT use console.log in server — use req.log or logger singleton
 
 ## Key Commands
 
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- `pnpm --filter @workspace/api-server run dev` — run API server locally
+```bash
+pnpm --filter @workspace/db push-force   # push schema to DB
+pnpm --filter @workspace/api-server run dev  # run API locally
+pnpm --filter @workspace/mobile run dev  # run Expo
+```
 
-See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+## Test Accounts (pre-seeded)
+
+- Driver: أحمد محمد | 07701234567
+- Driver: علي حسين العبيدي | 07809876543
+- Driver: محمد صالح الجبوري | 07601112233
