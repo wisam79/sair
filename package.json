@@ -15,9 +15,9 @@
     "test:performance": "vitest run --dir tests/performance --reporter=verbose",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
-    "db:migrate:test": "pnpm tsx scripts/db/migrate.ts --env=test",
-    "db:seed:test": "pnpm tsx scripts/db/seed.ts --env=test",
-    "db:seed:performance": "pnpm tsx scripts/db/seed.ts --env=performance"
+    "db:migrate:test": "pnpm tsx scripts/src/reset-db.ts --env=test",
+    "db:seed:test": "pnpm tsx scripts/src/seed.ts --env=test",
+    "db:seed:performance": "pnpm tsx scripts/src/seed.ts --env=performance"
   },
   "private": true,
   "devDependencies": {

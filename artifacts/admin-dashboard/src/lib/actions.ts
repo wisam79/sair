@@ -5,6 +5,7 @@ import { db } from '@workspace/db';
 import { profilesTable, driversTable } from '@workspace/db/schema';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { requireAdmin } from './auth';
 
 const userSchema = z.object({
   fullName: z.string().min(2, "الاسم يجب أن يكون أكثر من حرفين"),
@@ -20,6 +21,9 @@ const userSchema = z.object({
 });
 
 export async function createUser(formData: FormData) {
+  // SECURITY FIX: Enforce authentication and authorization before processing the mutation
+  await requireAdmin();
+
   try {
     const data = {
       fullName: formData.get('fullName') as string,

@@ -4,6 +4,7 @@ import { db } from '@workspace/db';
 import { profilesTable, driversTable, routesTable, subscriptionsTable, tripsTable } from '@workspace/db/schema';
 import { eq, sql, count as drizzleCount, sum } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from './auth';
 
 export interface DashboardStats {
   totalStudents: number;
@@ -16,6 +17,9 @@ export interface DashboardStats {
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
+  // SECURITY FIX: Protect data fetching
+  await requireAdmin();
+
   const [studentCount] = await db
     .select({ count: drizzleCount() })
     .from(profilesTable)
@@ -57,5 +61,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 }
 
 export async function getRecentTrips(limit = 10) {
+  // SECURITY FIX: Protect data fetching
+  await requireAdmin();
   return db.select().from(tripsTable).orderBy(sql`created_at DESC`).limit(limit);
 }

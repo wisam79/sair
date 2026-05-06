@@ -5,6 +5,7 @@ import { routesTable, institutionsTable } from '@workspace/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { requireAdmin } from '@/lib/auth';
 
 const routeSchema = z.object({
   driverId: z.string().uuid('يجب اختيار السائق'),
@@ -20,6 +21,9 @@ const routeSchema = z.object({
 });
 
 export async function createRoute(formData: FormData) {
+  // SECURITY FIX: Protect route mutation
+  await requireAdmin();
+
   try {
     const data = {
       driverId: formData.get('driverId') as string,
