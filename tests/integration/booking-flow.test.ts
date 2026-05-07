@@ -81,6 +81,8 @@ describe('Integration - Booking Flow', () => {
       return true;
     };
 
-    expect(() => bookRoute('11111111-1111-1111-1111-111111111111', route)).toThrow('No seats available');
+    expect(() => bookRoute('11111111-1111-1111-1111-111111111111', route)).toThrow(
+      'No seats available',
+    );
   });
 });

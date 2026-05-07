@@ -2,17 +2,22 @@ import { describe, it, expect } from 'vitest';
 
 describe('Performance - Load Testing', () => {
   it('should generate 1000 idempotency keys in under 100ms', () => {
-    const generateIdempotencyKey = (userId: string, routeId: string, timestamp: number, index: number) => {
+    const generateIdempotencyKey = (
+      userId: string,
+      routeId: string,
+      timestamp: number,
+      index: number,
+    ) => {
       return `idem_${userId}_${routeId}_${timestamp}_${index}`;
     };
 
     const start = performance.now();
-    
+
     const keys = new Set();
     for (let i = 0; i < 1000; i++) {
       keys.add(generateIdempotencyKey('user1', 'route1', Date.now(), i));
     }
-    
+
     const end = performance.now();
     const duration = end - start;
 
@@ -30,11 +35,11 @@ describe('Performance - Load Testing', () => {
     }));
 
     const start = performance.now();
-    
+
     // Simulate processing (e.g., filtering active items and summing values)
-    const activeItems = payload.filter(item => item.status === 'active');
+    const activeItems = payload.filter((item) => item.status === 'active');
     const totalValue = activeItems.reduce((sum, item) => sum + item.value, 0);
-    
+
     const end = performance.now();
     const duration = end - start;
 

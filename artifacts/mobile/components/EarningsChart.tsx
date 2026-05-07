@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import FeatherIcon from "@/components/FeatherIcon";
-import { useColors } from "@/hooks/useColors";
+import FeatherIcon from '@/components/FeatherIcon';
+import { useColors } from '@/hooks/useColors';
 
 interface DayData {
   day: string;
@@ -19,7 +19,7 @@ const CHART_HEIGHT = 100;
 export function EarningsChart({ data, maxAmount }: EarningsChartProps) {
   const colors = useColors();
   const [todayIdx] = useState(new Date().getDay());
-  const ARABIC_DAYS = ["أحد", "اثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة", "سبت"];
+  const ARABIC_DAYS = ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'];
 
   const [selectedBar, setSelectedBar] = useState<number | null>(null);
   const tooltipAnim = useRef(new Animated.Value(0)).current;
@@ -42,7 +42,7 @@ export function EarningsChart({ data, maxAmount }: EarningsChartProps) {
         delay: i * 80,
         easing: Easing.bezier(0.25, 0.1, 0.25, 1),
         useNativeDriver: false,
-      })
+      }),
     );
     Animated.stagger(80, animations).start();
   }, [data.length]);
@@ -74,10 +74,10 @@ export function EarningsChart({ data, maxAmount }: EarningsChartProps) {
   const todayAmount = data[data.length - 1]?.amount || 0;
   const yesterdayAmount = data[data.length - 2]?.amount || 0;
   let trendPercent = 0;
-  let trendDir: "up" | "down" | "flat" = "flat";
+  let trendDir: 'up' | 'down' | 'flat' = 'flat';
   if (yesterdayAmount > 0) {
     trendPercent = Math.round(((todayAmount - yesterdayAmount) / yesterdayAmount) * 100);
-    trendDir = trendPercent > 0 ? "up" : trendPercent < 0 ? "down" : "flat";
+    trendDir = trendPercent > 0 ? 'up' : trendPercent < 0 ? 'down' : 'flat';
   }
 
   return (
@@ -85,14 +85,14 @@ export function EarningsChart({ data, maxAmount }: EarningsChartProps) {
       <View style={styles.titleRow}>
         <FeatherIcon name="bar-chart-2" size={16} color={colors.primary} />
         <Text style={[styles.title, { color: colors.foreground }]}>أرباح الأسبوع</Text>
-        {trendDir !== "flat" && (
+        {trendDir !== 'flat' && (
           <View style={styles.trendContainer}>
             <FeatherIcon
-              name={trendDir === "up" ? "trending-up" : "trending-down"}
+              name={trendDir === 'up' ? 'trending-up' : 'trending-down'}
               size={12}
-              color={trendDir === "up" ? "#22C55E" : "#EF4444"}
+              color={trendDir === 'up' ? '#22C55E' : '#EF4444'}
             />
-            <Text style={[styles.trendText, { color: trendDir === "up" ? "#22C55E" : "#EF4444" }]}>
+            <Text style={[styles.trendText, { color: trendDir === 'up' ? '#22C55E' : '#EF4444' }]}>
               {Math.abs(trendPercent)}% من أمس
             </Text>
           </View>
@@ -102,7 +102,9 @@ export function EarningsChart({ data, maxAmount }: EarningsChartProps) {
       {!hasData ? (
         <View style={styles.emptyState}>
           <FeatherIcon name="trending-up" size={28} color={colors.mutedForeground} />
-          <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>لا توجد أرباح بعد</Text>
+          <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
+            لا توجد أرباح بعد
+          </Text>
         </View>
       ) : (
         <View style={styles.chart}>
@@ -125,7 +127,14 @@ export function EarningsChart({ data, maxAmount }: EarningsChartProps) {
                       {
                         backgroundColor: colors.foreground,
                         opacity: tooltipAnim,
-                        transform: [{ translateY: tooltipAnim.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
+                        transform: [
+                          {
+                            translateY: tooltipAnim.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [10, 0],
+                            }),
+                          },
+                        ],
                       },
                     ]}
                   >
@@ -155,7 +164,7 @@ export function EarningsChart({ data, maxAmount }: EarningsChartProps) {
                     styles.dayLabel,
                     {
                       color: isToday ? colors.accent : colors.mutedForeground,
-                      fontFamily: isToday ? "Inter_600SemiBold" : "Inter_400Regular",
+                      fontFamily: isToday ? 'Inter_600SemiBold' : 'Inter_400Regular',
                     },
                   ]}
                 >
@@ -177,7 +186,9 @@ export function EarningsChart({ data, maxAmount }: EarningsChartProps) {
             </Text>
           </View>
           <View style={[styles.statBox, { backgroundColor: colors.background }]}>
-            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>المتوسط اليومي</Text>
+            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>
+              المتوسط اليومي
+            </Text>
             <Text style={[styles.statValue, { color: colors.foreground }]}>
               {(averageAmount / 1000).toFixed(0)}k د.ع
             </Text>
@@ -196,68 +207,68 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
     marginBottom: 20,
   },
   title: {
     flex: 1,
     fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
   },
   trendContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 4,
-    backgroundColor: "rgba(34, 197, 94, 0.1)",
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   trendText: {
     fontSize: 10,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
   },
   chart: {
-    flexDirection: "row",
-    alignItems: "flex-end",
+    flexDirection: 'row',
+    alignItems: 'flex-end',
     height: CHART_HEIGHT + 40,
     gap: 8,
     marginBottom: 16,
   },
   barWrapper: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-end",
-    position: "relative",
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    position: 'relative',
   },
   barTrack: {
-    width: "100%",
+    width: '100%',
     height: CHART_HEIGHT,
-    justifyContent: "flex-end",
-    alignItems: "center",
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   bar: {
-    width: "70%",
+    width: '70%',
     borderRadius: 6,
     minHeight: 0,
   },
   dayLabel: {
     fontSize: 10,
     marginTop: 6,
-    textAlign: "center",
+    textAlign: 'center',
   },
   tooltip: {
-    position: "absolute",
+    position: 'absolute',
     top: -35,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
     zIndex: 10,
     minWidth: 80,
-    alignItems: "center",
-    shadowColor: "#000",
+    alignItems: 'center',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -265,10 +276,10 @@ const styles = StyleSheet.create({
   },
   tooltipText: {
     fontSize: 10,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
   },
   footerStats: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
     marginTop: 4,
   },
@@ -276,25 +287,25 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     borderRadius: 12,
-    alignItems: "center",
+    alignItems: 'center',
   },
   statLabel: {
     fontSize: 10,
-    fontFamily: "Inter_400Regular",
+    fontFamily: 'Inter_400Regular',
     marginBottom: 4,
   },
   statValue: {
     fontSize: 13,
-    fontFamily: "Inter_700Bold",
+    fontFamily: 'Inter_700Bold',
   },
   emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
     paddingVertical: 24,
   },
   emptyText: {
     fontSize: 13,
-    fontFamily: "Inter_400Regular",
+    fontFamily: 'Inter_400Regular',
   },
 });

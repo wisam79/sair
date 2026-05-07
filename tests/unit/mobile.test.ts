@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock supabase first - module-level mock
 vi.mock('../../artifacts/mobile/lib/supabase', () => ({
   supabase: {
     from: vi.fn(() => ({
@@ -11,8 +10,9 @@ vi.mock('../../artifacts/mobile/lib/supabase', () => ({
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({ data: [], error: null }),
       gt: vi.fn().mockResolvedValue({ data: [], error: null }),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
     })),
-    rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
     auth: { getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }) },
   },
 }));
@@ -30,5 +30,25 @@ describe('Mobile API Tests', () => {
       const { api } = await import('../../artifacts/mobile/lib/api');
       expect(api.estimateFare(100000)).toBe(100000);
     });
+  });
+});
+
+describe('Money Calculations — Mobile', () => {
+  it('calculatePerTripCost should divide correctly', async () => {
+    const { calculatePerTripCost, createMoney, toNumberValue } = await import(
+      '../../artifacts/mobile/lib/money'
+    );
+    const fee = createMoney(90000);
+    const perTrip = calculatePerTripCost(fee, 22, 2);
+    expect(toNumberValue(perTrip)).toBe(2045);
+  });
+
+  it('calculateCommission should compute percentage correctly', async () => {
+    const { calculateCommission, createMoney, toNumberValue } = await import(
+      '../../artifacts/mobile/lib/money'
+    );
+    const fee = createMoney(90000);
+    const commission = calculateCommission(fee, 15);
+    expect(toNumberValue(commission)).toBe(13500);
   });
 });

@@ -24,9 +24,7 @@
       },
       "package": "iq.uniride.app"
     },
-    "plugins": [
-      "expo-router"
-    ],
+    "plugins": ["expo-router"],
     "extra": {
       "supabaseUrl": "https://pfjsqgqrxnrlrfnchnqf.supabase.co",
       "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmanNxZ3FyeG5ybHJmbmNobnFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyOTIzOTgsImV4cCI6MjA2MTg2ODM5OH0.non_prod_key"

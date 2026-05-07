@@ -1,5 +1,5 @@
-import React, { Component, ComponentType, PropsWithChildren, ReactNode } from "react";
-import { ErrorFallback, type ErrorFallbackProps } from "./ErrorFallback";
+import React, { Component, ComponentType, PropsWithChildren, ReactNode } from 'react';
+import { ErrorFallback, type ErrorFallbackProps } from './ErrorFallback';
 
 export type ErrorBoundaryProps = PropsWithChildren<{
   FallbackComponent?: ComponentType<ErrorFallbackProps>;
@@ -27,12 +27,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     const timestamp = new Date().toISOString();
 
     console.error(
-      `[ErrorBoundary] ${timestamp} ${error.name}: ${error.message}\n${error.stack ?? ""}\nComponent Stack: ${info.componentStack}`
+      `[ErrorBoundary] ${timestamp} ${error.name}: ${error.message}\n${error.stack ?? ''}\nComponent Stack: ${info.componentStack}`,
     );
 
     this.setState((prev) => ({ errorCount: prev.errorCount + 1 }));
 
-    if (typeof this.props.onError === "function") {
+    if (typeof this.props.onError === 'function') {
       this.props.onError(error, info.componentStack);
     }
   }
@@ -43,7 +43,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   handleResetApp = async (): Promise<void> => {
     try {
-      const { reloadAppAsync } = require("expo");
+      const { reloadAppAsync } = require('expo');
       await reloadAppAsync();
     } catch {
       this.resetError();

@@ -1,7 +1,7 @@
 import React from 'react';
-import { LayoutDashboard, Users, CreditCard, MapPin, Route, LogOut } from 'lucide-react';
-// Next.js Link
+import { LayoutDashboard, Users, CreditCard, MapPin, Route, LogOut, BarChart3 } from 'lucide-react';
 import NextLink from 'next/link';
+import { LogoutButton } from './LogoutButton';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -15,36 +15,51 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </h1>
         </div>
         <nav className="flex-1 px-4 space-y-2 mt-4">
-          <NextLink href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors">
+          <NextLink
+            href="/dashboard"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors"
+          >
             <LayoutDashboard size={20} />
             <span className="font-medium">الرئيسية</span>
           </NextLink>
-          <NextLink href="/dashboard/users" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors">
+          <NextLink
+            href="/dashboard/users"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors"
+          >
             <Users size={20} />
             <span className="font-medium">المستخدمون</span>
           </NextLink>
-          <NextLink href="/dashboard/routes" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors">
+          <NextLink
+            href="/dashboard/routes"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors"
+          >
             <Route size={20} />
             <span className="font-medium">الخطوط</span>
           </NextLink>
-          <NextLink href="/dashboard/subscriptions" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors">
+          <NextLink
+            href="/dashboard/subscriptions"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors"
+          >
             <CreditCard size={20} />
             <span className="font-medium">الاشتراكات</span>
           </NextLink>
-          <NextLink href="/dashboard/trips" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors">
-            <MapPin size={20} />
-            <span className="font-medium">السفرات</span>
-          </NextLink>
-          <NextLink href="/dashboard/cards" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors opacity-50 cursor-not-allowed">
-            <CreditCard size={20} />
-            <span className="font-medium">البطاقات (قريباً)</span>
-          </NextLink>
-        </nav>
+          <NextLink
+             href="/dashboard/trips"
+             className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors"
+           >
+             <MapPin size={20} />
+             <span className="font-medium">السفرات</span>
+           </NextLink>
+           <NextLink
+              href="/dashboard/analytics"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <BarChart3 size={20} />
+              <span className="font-medium">التحليلات</span>
+            </NextLink>
+         </nav>
         <div className="p-4 border-t border-white/10">
-          <button className="flex w-full items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-400/10 transition-colors">
-            <LogOut size={20} />
-            <span className="font-medium">تسجيل الخروج</span>
-          </button>
+          <LogoutButton />
         </div>
       </aside>
 
@@ -54,12 +69,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <h2 className="text-xl font-semibold text-gray-800">لوحة التحكم</h2>
           <div className="flex items-center gap-4">
             <div className="text-sm text-gray-500">مرحباً بك في نظام الإدارة</div>
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">A</div>
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">
+              A
+            </div>
           </div>
         </header>
-        <div className="p-8">
-          {children}
-        </div>
+        <div className="p-8">{children}</div>
       </main>
     </div>
   );

@@ -4,7 +4,7 @@ import { sql } from 'drizzle-orm';
 
 const supabaseAdmin = createClient(
   process.env.EXPO_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
 async function main() {
@@ -18,24 +18,24 @@ async function main() {
     user_metadata: {
       full_name: 'Wisam Samir',
       role: 'driver',
-    }
+    },
   });
 
   let userId;
   if (authError) {
     // @ts-ignore
     if (authError.code === 'email_exists' || authError.message.includes('already')) {
-        console.log('User already exists in auth.users, fetching ID...');
-        const { data: users } = await supabaseAdmin.auth.admin.listUsers();
-        const user = users.users.find(u => u.email === email);
-        if (!user) throw new Error("Could not find existing user.");
-        userId = user.id;
+      console.log('User already exists in auth.users, fetching ID...');
+      const { data: users } = await supabaseAdmin.auth.admin.listUsers();
+      const user = users.users.find((u) => u.email === email);
+      if (!user) throw new Error('Could not find existing user.');
+      userId = user.id;
     } else {
-        console.error('Error creating user:', authError);
-        return;
+      console.error('Error creating user:', authError);
+      return;
     }
   } else {
-      userId = authData.user.id;
+    userId = authData.user.id;
   }
 
   console.log('✅ Auth User ID:', userId);
@@ -73,7 +73,9 @@ async function main() {
   console.log('🎉 Test driver setup complete! You can now log into the mobile app.');
 }
 
-main().then(() => process.exit(0)).catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });

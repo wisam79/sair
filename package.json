@@ -17,17 +17,22 @@
     "test:coverage": "vitest run --coverage",
     "db:migrate:test": "pnpm tsx scripts/src/reset-db.ts --env=test",
     "db:seed:test": "pnpm tsx scripts/src/seed.ts --env=test",
-    "db:seed:performance": "pnpm tsx scripts/src/seed.ts --env=performance"
+    "db:seed:performance": "pnpm tsx scripts/src/seed.ts --env=performance",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,css,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,css,json,md}\"",
+    "prepare": "husky"
   },
   "private": true,
   "devDependencies": {
     "@types/node": "^20.12.12",
+    "@types/react": "19.2.4",
     "@vercel/postgres": "^0.10.0",
     "@vitest/coverage-v8": "^1.6.0",
-    "react": "19.2.4",
-    "@types/react": "19.2.4",
     "esbuild": "0.27.7",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.2",
     "prettier": "^3.8.1",
+    "react": "19.2.4",
     "tsx": "^4.19.0",
     "typescript": "~5.9.2",
     "vitest": "^1.6.0"

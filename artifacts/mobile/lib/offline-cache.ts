@@ -1,9 +1,9 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // @ts-ignore
-import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
+import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 
-const CACHE_PREFIX = "uniride_cache:";
-const QUEUE_KEY = "uniride_sync_queue";
+const CACHE_PREFIX = 'uniride_cache:';
+const QUEUE_KEY = 'uniride_sync_queue';
 
 interface CacheEntry<T = unknown> {
   data: T;
@@ -12,7 +12,7 @@ interface CacheEntry<T = unknown> {
 
 interface SyncOperation {
   id: string;
-  type: "CREATE" | "UPDATE" | "DELETE";
+  type: 'CREATE' | 'UPDATE' | 'DELETE';
   table: string;
   payload: Record<string, unknown>;
   createdAt: number;
@@ -98,7 +98,7 @@ export class SyncQueue {
     this.unsubscribe = null;
   }
 
-  async enqueue(operation: Omit<SyncOperation, "id" | "createdAt" | "retryCount">): Promise<void> {
+  async enqueue(operation: Omit<SyncOperation, 'id' | 'createdAt' | 'retryCount'>): Promise<void> {
     const queue = await this.getQueue();
     const item: SyncOperation = {
       ...operation,
@@ -129,7 +129,7 @@ export class SyncQueue {
         try {
           const success = await onProcessOperation(op);
           if (!success) {
-            throw new Error("Operation returned failure");
+            throw new Error('Operation returned failure');
           }
         } catch {
           op.retryCount += 1;

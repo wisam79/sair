@@ -15,7 +15,7 @@ export function useLocation() {
   const defaultLocation: LocationData = {
     lat: 33.3152,
     lng: 44.3661,
-    address: "بغداد، العراق",
+    address: 'بغداد، العراق',
   };
 
   const getLocation = useCallback(async () => {
@@ -23,7 +23,7 @@ export function useLocation() {
     setError(null);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      
+
       if (status !== 'granted') {
         setError('Permission to access location was denied');
         setLocation(defaultLocation);
@@ -45,12 +45,12 @@ export function useLocation() {
       if (reverseGeocoded.length > 0) {
         const result = reverseGeocoded[0];
         // Format address in Arabic: ${result.street ?? ""} ${result.district ?? ""} ${result.city ?? "بغداد"}
-        const street = result.street ?? "";
-        const district = result.district ?? "";
-        const city = result.city ?? "بغداد";
-        
-        const formattedAddress = `${street} ${district} ${city}`.trim() || "بغداد، العراق";
-        
+        const street = result.street ?? '';
+        const district = result.district ?? '';
+        const city = result.city ?? 'بغداد';
+
+        const formattedAddress = `${street} ${district} ${city}`.trim() || 'بغداد، العراق';
+
         setLocation({
           lat: latitude,
           lng: longitude,
@@ -60,7 +60,7 @@ export function useLocation() {
         setLocation({
           lat: latitude,
           lng: longitude,
-          address: "موقع غير معروف",
+          address: 'موقع غير معروف',
         });
       }
     } catch (err: any) {

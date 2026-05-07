@@ -1,7 +1,13 @@
 'use server';
 
 import { db } from '@workspace/db';
-import { profilesTable, driversTable, routesTable, subscriptionsTable, tripsTable } from '@workspace/db/schema';
+import {
+  profilesTable,
+  driversTable,
+  routesTable,
+  subscriptionsTable,
+  tripsTable,
+} from '@workspace/db/schema';
 import { eq, sql, count as drizzleCount, sum } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from './auth';
@@ -35,9 +41,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     .from(subscriptionsTable)
     .where(eq(subscriptionsTable.status, 'active'));
 
-  const [tripCount] = await db
-    .select({ count: drizzleCount() })
-    .from(tripsTable);
+  const [tripCount] = await db.select({ count: drizzleCount() }).from(tripsTable);
 
   const [revenueResult] = await db
     .select({ total: sum(subscriptionsTable.monthlyFee) })
@@ -63,5 +67,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 export async function getRecentTrips(limit = 10) {
   // SECURITY FIX: Protect data fetching
   await requireAdmin();
-  return db.select().from(tripsTable).orderBy(sql`created_at DESC`).limit(limit);
+  return db
+    .select()
+    .from(tripsTable)
+    .orderBy(sql`created_at DESC`)
+    .limit(limit);
 }

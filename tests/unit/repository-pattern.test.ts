@@ -32,9 +32,9 @@ describe('Repository Pattern Tests', () => {
         { id: '3', fullName: 'C', isDeleted: false },
       ];
 
-      const active = profiles.filter(p => !p.isDeleted);
+      const active = profiles.filter((p) => !p.isDeleted);
       expect(active.length).toBe(2);
-      expect(active.map(p => p.id)).toEqual(['1', '3']);
+      expect(active.map((p) => p.id)).toEqual(['1', '3']);
     });
   });
 
@@ -46,7 +46,7 @@ describe('Repository Pattern Tests', () => {
         { id: 'd3', isAvailable: true, isDeleted: true },
       ];
 
-      const available = drivers.filter(d => d.isAvailable && !d.isDeleted);
+      const available = drivers.filter((d) => d.isAvailable && !d.isDeleted);
       expect(available.length).toBe(1);
       expect(available[0].id).toBe('d1');
     });
@@ -76,7 +76,7 @@ describe('Repository Pattern Tests', () => {
         { isActive: true, availableSeats: 2, isDeleted: true },
       ];
 
-      const available = routes.filter(r => r.isActive && r.availableSeats > 0 && !r.isDeleted);
+      const available = routes.filter((r) => r.isActive && r.availableSeats > 0 && !r.isDeleted);
       expect(available.length).toBe(1);
       expect(available[0].availableSeats).toBe(3);
     });
@@ -91,15 +91,15 @@ describe('Repository Pattern Tests', () => {
         { status: 'active', isDeleted: true },
       ];
 
-      const active = subs.filter(s => s.status === 'active' && !s.isDeleted);
+      const active = subs.filter((s) => s.status === 'active' && !s.isDeleted);
       expect(active.length).toBe(1);
     });
 
     it('should prevent modifying cancelled subscriptions', () => {
       const allowedUpdates: Record<string, string[]> = {
-        'active': ['status', 'payment_status'],
-        'cancelled': [],
-        'expired': [],
+        active: ['status', 'payment_status'],
+        cancelled: [],
+        expired: [],
       };
 
       expect(allowedUpdates['cancelled']).toHaveLength(0);
@@ -114,7 +114,7 @@ describe('Repository Pattern Tests', () => {
         { tripId: 't1', studentId: 's2', status: 'picked_up' },
       ];
 
-      const trip1Students = tripStudents.filter(ts => ts.tripId === 't1');
+      const trip1Students = tripStudents.filter((ts) => ts.tripId === 't1');
       expect(trip1Students.length).toBe(2);
     });
 

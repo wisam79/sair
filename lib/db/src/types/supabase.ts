@@ -238,7 +238,13 @@ export interface Database {
           subscription_id: string | null;
           direction: 'go' | 'return';
           trip_date: string;
-          status: 'scheduled' | 'driver_waiting' | 'in_transit' | 'completed' | 'absent' | 'cancelled';
+          status:
+            | 'scheduled'
+            | 'driver_waiting'
+            | 'in_transit'
+            | 'completed'
+            | 'absent'
+            | 'cancelled';
           started_at: string | null;
           ended_at: string | null;
           created_at: string;
@@ -249,7 +255,13 @@ export interface Database {
           subscription_id?: string | null;
           direction: 'go' | 'return';
           trip_date?: string;
-          status?: 'scheduled' | 'driver_waiting' | 'in_transit' | 'completed' | 'absent' | 'cancelled';
+          status?:
+            | 'scheduled'
+            | 'driver_waiting'
+            | 'in_transit'
+            | 'completed'
+            | 'absent'
+            | 'cancelled';
           started_at?: string | null;
           ended_at?: string | null;
           created_at?: string;
@@ -260,7 +272,13 @@ export interface Database {
           subscription_id?: string | null;
           direction?: 'go' | 'return';
           trip_date?: string;
-          status?: 'scheduled' | 'driver_waiting' | 'in_transit' | 'completed' | 'absent' | 'cancelled';
+          status?:
+            | 'scheduled'
+            | 'driver_waiting'
+            | 'in_transit'
+            | 'completed'
+            | 'absent'
+            | 'cancelled';
           started_at?: string | null;
           ended_at?: string | null;
           created_at?: string;
@@ -395,7 +413,19 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          type: 'request_received' | 'request_accepted' | 'request_rejected' | 'subscription_activated' | 'subscription_expired' | 'subscription_cancelled' | 'driver_at_capacity' | 'trip_started' | 'trip_ended' | 'payment_confirmed' | 'driver_absent' | 'new_review';
+          type:
+            | 'request_received'
+            | 'request_accepted'
+            | 'request_rejected'
+            | 'subscription_activated'
+            | 'subscription_expired'
+            | 'subscription_cancelled'
+            | 'driver_at_capacity'
+            | 'trip_started'
+            | 'trip_ended'
+            | 'payment_confirmed'
+            | 'driver_absent'
+            | 'new_review';
           title: string;
           body: string | null;
           data: string | null;
@@ -405,7 +435,19 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
-          type: 'request_received' | 'request_accepted' | 'request_rejected' | 'subscription_activated' | 'subscription_expired' | 'subscription_cancelled' | 'driver_at_capacity' | 'trip_started' | 'trip_ended' | 'payment_confirmed' | 'driver_absent' | 'new_review';
+          type:
+            | 'request_received'
+            | 'request_accepted'
+            | 'request_rejected'
+            | 'subscription_activated'
+            | 'subscription_expired'
+            | 'subscription_cancelled'
+            | 'driver_at_capacity'
+            | 'trip_started'
+            | 'trip_ended'
+            | 'payment_confirmed'
+            | 'driver_absent'
+            | 'new_review';
           title: string;
           body?: string | null;
           data?: string | null;
@@ -415,7 +457,19 @@ export interface Database {
         Update: {
           id?: string;
           user_id?: string;
-          type?: 'request_received' | 'request_accepted' | 'request_rejected' | 'subscription_activated' | 'subscription_expired' | 'subscription_cancelled' | 'driver_at_capacity' | 'trip_started' | 'trip_ended' | 'payment_confirmed' | 'driver_absent' | 'new_review';
+          type?:
+            | 'request_received'
+            | 'request_accepted'
+            | 'request_rejected'
+            | 'subscription_activated'
+            | 'subscription_expired'
+            | 'subscription_cancelled'
+            | 'driver_at_capacity'
+            | 'trip_started'
+            | 'trip_ended'
+            | 'payment_confirmed'
+            | 'driver_absent'
+            | 'new_review';
           title?: string;
           body?: string | null;
           data?: string | null;

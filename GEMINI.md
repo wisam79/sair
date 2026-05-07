@@ -1,44 +1,51 @@
 # UniRide (يونيرايد) - Workspace Instructions
 
 ## Project Overview
+
 UniRide is a platform designed to facilitate transportation for university students in Iraq, connecting students with verified drivers, managing subscriptions, and handling daily routes. It operates as a state-based, manually updated transportation management ecosystem (NO live GPS tracking).
 
 **Tech Stack:**
+
 - **Workspace:** PNPM Monorepo
 - **Mobile App:** Expo / React Native, Supabase SDK (Unified app for Students & Drivers)
 - **Admin Dashboard:** Next.js / React
 - **Backend & Database:** Supabase (PostgreSQL), Drizzle ORM
 
-*Note: The legacy `api-server` has been phased out in favor of a unified architecture under Supabase.*
+_Note: The legacy `api-server` has been phased out in favor of a unified architecture under Supabase._
 
 ## Building and Running
 
 **Prerequisites:** Node.js (v20+), PNPM (v8+), Expo CLI
 
 **Install Dependencies:**
+
 ```bash
 pnpm install
 ```
 
 **Run Mobile App:**
+
 ```bash
 cd artifacts/mobile
 pnpm run dev
 ```
 
 **Run Admin Dashboard:**
+
 ```bash
 cd artifacts/admin-dashboard
 pnpm run dev
 ```
 
 **Database Migrations (Drizzle):**
+
 ```bash
 cd lib/db
 pnpm run push
 ```
 
 ## Testing Strategy
+
 The project uses **Vitest** for a rigorous 10-layer testing strategy covering unit, security, concurrency, edge-cases, performance, and integration tests.
 
 ```bash

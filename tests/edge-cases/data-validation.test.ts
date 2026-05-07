@@ -21,7 +21,7 @@ describe('Edge Cases - Data Validation', () => {
       latitude: 33.315,
       longitude: 44.366,
     };
-    
+
     const result = RouteSchema.safeParse(route);
     expect(result.success).toBe(false);
   });
@@ -35,12 +35,12 @@ describe('Edge Cases - Data Validation', () => {
       latitude: 91, // Invalid: > 90
       longitude: 200, // Invalid: > 180
     };
-    
+
     const result = RouteSchema.safeParse(invalidRoute);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors.some(e => e.path.includes('latitude'))).toBe(true);
-      expect(result.error.errors.some(e => e.path.includes('longitude'))).toBe(true);
+      expect(result.error.errors.some((e) => e.path.includes('latitude'))).toBe(true);
+      expect(result.error.errors.some((e) => e.path.includes('longitude'))).toBe(true);
     }
   });
 
@@ -52,10 +52,10 @@ describe('Edge Cases - Data Validation', () => {
     const bookSeat = async () => {
       if (lock) throw new Error('Resource locked');
       lock = true; // Acquire lock
-      
+
       // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 10));
-      
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       if (availableSeats <= 0) {
         lock = false;
         throw new Error('No seats left');
@@ -67,11 +67,11 @@ describe('Edge Cases - Data Validation', () => {
 
     // Fire two bookings simultaneously
     const results = await Promise.allSettled([bookSeat(), bookSeat()]);
-    
+
     // One should succeed, one should fail (either lock or no seats)
-    const successes = results.filter(r => r.status === 'fulfilled');
-    const failures = results.filter(r => r.status === 'rejected');
-    
+    const successes = results.filter((r) => r.status === 'fulfilled');
+    const failures = results.filter((r) => r.status === 'rejected');
+
     expect(successes.length).toBe(1);
     expect(failures.length).toBe(1);
     expect(availableSeats).toBe(0);

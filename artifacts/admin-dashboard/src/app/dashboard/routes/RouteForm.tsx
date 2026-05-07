@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { createRoute, updateRoute, deleteRoute, toggleRouteActive } from './actions';
+import { toast } from 'sonner';
 import { Plus, X, Edit, Trash2 } from 'lucide-react';
 
 interface DriverOption {
@@ -59,8 +60,10 @@ export default function RouteForm({ drivers, institutions, editRoute }: Props) {
 
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
     } else {
       setIsOpen(false);
+      toast.success(isEdit ? 'تم تحديث المسار بنجاح' : 'تم إنشاء المسار بنجاح');
     }
 
     setLoading(false);
@@ -74,8 +77,10 @@ export default function RouteForm({ drivers, institutions, editRoute }: Props) {
     const result = await deleteRoute(editRoute.id);
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
     } else {
       setIsOpen(false);
+      toast.success('تم حذف المسار بنجاح');
     }
     setLoading(false);
   }
@@ -87,8 +92,10 @@ export default function RouteForm({ drivers, institutions, editRoute }: Props) {
     const result = await toggleRouteActive(editRoute.id, !editRoute.isActive);
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
     } else {
       setIsOpen(false);
+      toast.success(editRoute.isActive ? 'تم تعطيل المسار بنجاح' : 'تم تفعيل المسار بنجاح');
     }
     setLoading(false);
   }
@@ -114,13 +121,19 @@ export default function RouteForm({ drivers, institutions, editRoute }: Props) {
       )}
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" dir="rtl">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          dir="rtl"
+        >
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden">
             <div className="p-6 border-b flex justify-between items-center">
               <h3 className="text-xl font-bold text-gray-800">
                 {isEdit ? 'تعديل المسار' : 'إضافة مسار جديد'}
               </h3>
-              <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
                 <X size={24} />
               </button>
             </div>
@@ -140,7 +153,9 @@ export default function RouteForm({ drivers, institutions, editRoute }: Props) {
                   defaultValue={editRoute?.driverId ?? ''}
                   className="w-full border-gray-300 rounded-lg shadow-sm p-3 border focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="" disabled>اختر السائق</option>
+                  <option value="" disabled>
+                    اختر السائق
+                  </option>
                   {drivers.map((d) => (
                     <option key={d.id} value={d.id}>
                       {d.fullName} — {d.phone}
@@ -150,7 +165,9 @@ export default function RouteForm({ drivers, institutions, editRoute }: Props) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">منطقة الانطلاق</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  منطقة الانطلاق
+                </label>
                 <input
                   type="text"
                   name="fromArea"
@@ -174,7 +191,9 @@ export default function RouteForm({ drivers, institutions, editRoute }: Props) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">المؤسسة التعليمية</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  المؤسسة التعليمية
+                </label>
                 <select
                   name="institutionId"
                   defaultValue={editRoute?.institutionId ?? ''}
@@ -214,7 +233,9 @@ export default function RouteForm({ drivers, institutions, editRoute }: Props) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">عدد المقاعد</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    عدد المقاعد
+                  </label>
                   <input
                     type="number"
                     name="totalSeats"
@@ -225,7 +246,9 @@ export default function RouteForm({ drivers, institutions, editRoute }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">الأجرة الشهرية (د.ع)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    الأجرة الشهرية (د.ع)
+                  </label>
                   <input
                     type="number"
                     name="monthlyFare"
@@ -251,7 +274,9 @@ export default function RouteForm({ drivers, institutions, editRoute }: Props) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">ملاحظات (اختياري)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  ملاحظات (اختياري)
+                </label>
                 <textarea
                   name="notes"
                   rows={2}

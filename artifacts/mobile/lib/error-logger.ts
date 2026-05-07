@@ -1,3 +1,5 @@
+import { captureError } from './sentry';
+
 interface ErrorEntry {
   id: string;
   timestamp: string;
@@ -17,8 +19,8 @@ function generateId(): string {
   return `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function aggregateKey(entry: Omit<ErrorEntry, "id" | "timestamp" | "count">): string {
-  return `${entry.error.name}:${entry.error.message}:${entry.context ?? "no_context"}`;
+function aggregateKey(entry: Omit<ErrorEntry, 'id' | 'timestamp' | 'count'>): string {
+  return `${entry.error.name}:${entry.error.message}:${entry.context ?? 'no_context'}`;
 }
 
 let remoteEndpoint: string | null = null;
@@ -27,13 +29,10 @@ export function setRemoteEndpoint(url: string): void {
   remoteEndpoint = url;
 }
 
-export function logError(
-  error: Error | unknown,
-  context?: string
-): void {
-  const normalized: Omit<ErrorEntry, "id" | "timestamp" | "count"> = {
+export function logError(error: Error | unknown, context?: string): void {
+  const normalized: Omit<ErrorEntry, 'id' | 'timestamp' | 'count'> = {
     error: {
-      name: error instanceof Error ? error.name : "UnknownError",
+      name: error instanceof Error ? error.name : 'UnknownError',
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     },
@@ -62,9 +61,13 @@ export function logError(
   const entry = errorLog[0];
   console.error(
     `[ErrorLogger ${entry.timestamp}] ${entry.error.name}: ${entry.error.message}` +
-      (context ? ` [Context: ${context}]` : "") +
-      ` (Count: ${entry.count})`
+      (context ? ` [Context: ${context}]` : '') +
+      ` (Count: ${entry.count})`,
   );
+
+  if (error instanceof Error) {
+    captureError(error, { context });
+  }
 
   if (remoteEndpoint) {
     void sendToRemote(entry);
@@ -74,8 +77,8 @@ export function logError(
 async function sendToRemote(entry: ErrorEntry): Promise<void> {
   try {
     await fetch(remoteEndpoint!, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: entry.id,
         timestamp: entry.timestamp,

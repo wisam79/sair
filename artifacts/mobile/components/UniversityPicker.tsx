@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo } from 'react';
 import {
   Modal,
   View,
@@ -9,10 +9,10 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
-} from "react-native";
-import * as Haptics from "expo-haptics";
-import { useColors } from "@/hooks/useColors";
-import FeatherIcon from "@/components/FeatherIcon";
+} from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { useColors } from '@/hooks/useColors';
+import FeatherIcon from '@/components/FeatherIcon';
 
 interface UniversityPickerProps {
   value: string;
@@ -21,47 +21,45 @@ interface UniversityPickerProps {
 }
 
 const UNIVERSITIES = [
-  "جامعة بغداد",
-  "الجامعة التكنولوجية",
-  "جامعة المستنصرية",
-  "جامعة النهرين",
-  "الجامعة الإسلامية",
-  "جامعة الكوفة",
-  "جامعة البصرة",
-  "جامعة الموصل",
-  "جامعة كربلاء",
-  "جامعة ذي قار",
-  "جامعة ميسان",
-  "جامعة واسط",
-  "جامعة القادسية",
-  "جامعة تكريت",
-  "جامعة الأنبار",
-  "جامعة كركوك",
-  "جامعة ديالى",
-  "كلية الطب / بغداد",
-  "المعهد التقني بغداد",
+  'جامعة بغداد',
+  'الجامعة التكنولوجية',
+  'جامعة المستنصرية',
+  'جامعة النهرين',
+  'الجامعة الإسلامية',
+  'جامعة الكوفة',
+  'جامعة البصرة',
+  'جامعة الموصل',
+  'جامعة كربلاء',
+  'جامعة ذي قار',
+  'جامعة ميسان',
+  'جامعة واسط',
+  'جامعة القادسية',
+  'جامعة تكريت',
+  'جامعة الأنبار',
+  'جامعة كركوك',
+  'جامعة ديالى',
+  'كلية الطب / بغداد',
+  'المعهد التقني بغداد',
 ];
 
 export default function UniversityPicker({
   value,
   onChange,
-  placeholder = "اختر الجامعة",
+  placeholder = 'اختر الجامعة',
 }: UniversityPickerProps) {
   const [modalVisible, setModalVisible] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const colors = useColors();
 
   const filteredUniversities = useMemo(() => {
-    return UNIVERSITIES.filter((uni) =>
-      uni.toLowerCase().includes(search.toLowerCase())
-    );
+    return UNIVERSITIES.filter((uni) => uni.toLowerCase().includes(search.toLowerCase()));
   }, [search]);
 
   const handleSelect = (uni: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onChange(uni);
     setModalVisible(false);
-    setSearch("");
+    setSearch('');
   };
 
   return (
@@ -78,12 +76,7 @@ export default function UniversityPicker({
       >
         <View style={styles.triggerLeft}>
           <FeatherIcon name="book-open" size={18} color={colors.muted} />
-          <Text
-            style={[
-              styles.triggerText,
-              { color: value ? colors.text : colors.muted },
-            ]}
-          >
+          <Text style={[styles.triggerText, { color: value ? colors.text : colors.muted }]}>
             {value || placeholder}
           </Text>
         </View>
@@ -99,10 +92,7 @@ export default function UniversityPicker({
         <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.background }]}>
           <View style={styles.header}>
             <View style={styles.dragHandle} />
-            <TouchableOpacity
-              onPress={() => setModalVisible(false)}
-              style={styles.closeButton}
-            >
+            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
               <FeatherIcon name="x" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
@@ -134,10 +124,7 @@ export default function UniversityPicker({
               const isSelected = item === value;
               return (
                 <TouchableOpacity
-                  style={[
-                    styles.itemRow,
-                    isSelected && { backgroundColor: colors.primary + "15" },
-                  ]}
+                  style={[styles.itemRow, isSelected && { backgroundColor: colors.primary + '15' }]}
                   onPress={() => handleSelect(item)}
                 >
                   <Text
@@ -149,9 +136,7 @@ export default function UniversityPicker({
                   >
                     {item}
                   </Text>
-                  {isSelected && (
-                    <FeatherIcon name="check" size={18} color={colors.primary} />
-                  )}
+                  {isSelected && <FeatherIcon name="check" size={18} color={colors.primary} />}
                 </TouchableOpacity>
               );
             }}
@@ -164,39 +149,39 @@ export default function UniversityPicker({
 
 const styles = StyleSheet.create({
   trigger: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
     borderRadius: 12,
     padding: 13,
   },
   triggerLeft: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
     gap: 10,
   },
   triggerText: {
     fontSize: 16,
-    fontFamily: "Inter_400Regular",
+    fontFamily: 'Inter_400Regular',
   },
   modalContainer: {
     flex: 1,
   },
   header: {
-    alignItems: "center",
+    alignItems: 'center',
     paddingVertical: 10,
-    position: "relative",
+    position: 'relative',
   },
   dragHandle: {
     width: 40,
     height: 5,
-    backgroundColor: "#E0E0E0",
+    backgroundColor: '#E0E0E0',
     borderRadius: 3,
     marginBottom: 10,
   },
   closeButton: {
-    position: "absolute",
+    position: 'absolute',
     right: 20,
     top: 15,
   },
@@ -204,8 +189,8 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   searchInputWrapper: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 12,
@@ -215,25 +200,25 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    fontFamily: "Inter_400Regular",
+    fontFamily: 'Inter_400Regular',
   },
   listContent: {
     paddingBottom: 40,
   },
   itemRow: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#EEEEEE",
+    borderBottomColor: '#EEEEEE',
   },
   itemText: {
     fontSize: 16,
-    fontFamily: "Inter_400Regular",
-    textAlign: "right",
+    fontFamily: 'Inter_400Regular',
+    textAlign: 'right',
   },
   itemTextBold: {
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
   },
 });

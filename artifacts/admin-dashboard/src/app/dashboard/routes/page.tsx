@@ -1,13 +1,15 @@
 import React from 'react';
 import { db } from '@workspace/db';
 import { routesTable, driversTable, profilesTable, institutionsTable } from '@workspace/db/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import RouteForm from './RouteForm';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Badge, Button } from '@/components/ui';
+import { routesSearchParamsCache } from '@/lib/search-params';
 
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  searchParams?: Promise<{ page?: string; limit?: string }>;
+  searchParams?: Promise<Record<string, string>>;
 }
 
 async function fetchRoutes(limit: number, offset: number) {
@@ -65,9 +67,9 @@ async function fetchInstitutions() {
 }
 
 export default async function RoutesPage({ searchParams }: Props) {
-  const params = (await searchParams) || {};
-  const page = Math.max(1, parseInt((params as any).page || '1'));
-  const limit = Math.min(100, Math.max(10, parseInt((params as any).limit || '20')));
+  const params = routesSearchParamsCache.parse(await searchParams ?? {});
+  const page = params.page;
+  const limit = params.limit;
   const offset = (page - 1) * limit;
 
   const [{ rows: routes, totalCount }, drivers, institutions] = await Promise.all([
@@ -92,80 +94,76 @@ export default async function RoutesPage({ searchParams }: Props) {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-right">
-            <thead className="bg-gray-50 text-gray-600 border-b border-gray-100">
-              <tr>
-                <th className="px-6 py-4 font-medium">منطقة الانطلاق</th>
-                <th className="px-6 py-4 font-medium">الجامعة</th>
-                <th className="px-6 py-4 font-medium">السائق</th>
-                <th className="px-6 py-4 font-medium">وقت الذهاب</th>
-                <th className="px-6 py-4 font-medium">وقت العودة</th>
-                <th className="px-6 py-4 font-medium">المقاعد</th>
-                <th className="px-6 py-4 font-medium">الطلاب</th>
-                <th className="px-6 py-4 font-medium">الحالة</th>
-                <th className="px-6 py-4 font-medium">إجراءات</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {routes.map((route) => (
-                <tr key={route.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">{route.fromArea}</div>
-                    <div className="text-xs text-gray-500">{route.fromCity}</div>
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">{route.toUniversity}</td>
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">{route.driverName}</div>
-                    <div className="text-xs text-gray-500" dir="ltr">{route.driverPhone}</div>
-                  </td>
-                  <td className="px-6 py-4 text-gray-600" dir="ltr">{route.departureMorning}</td>
-                  <td className="px-6 py-4 text-gray-600" dir="ltr">{route.departureEvening}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      route.availableSeats > 0
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}>
-                      {route.availableSeats}/{route.totalSeats}
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>منطقة الانطلاق</TableHead>
+              <TableHead>الجامعة</TableHead>
+              <TableHead>السائق</TableHead>
+              <TableHead>وقت الذهاب</TableHead>
+              <TableHead>وقت العودة</TableHead>
+              <TableHead>المقاعد</TableHead>
+              <TableHead>الطلاب</TableHead>
+              <TableHead>الحالة</TableHead>
+              <TableHead>إجراءات</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {routes.map((route) => (
+              <TableRow key={route.id}>
+                <TableCell>
+                  <div className="font-medium text-gray-900">{route.fromArea}</div>
+                  <div className="text-xs text-gray-500">{route.fromCity}</div>
+                </TableCell>
+                <TableCell className="text-gray-700">{route.toUniversity}</TableCell>
+                <TableCell>
+                  <div className="font-medium text-gray-900">{route.driverName}</div>
+                  <div className="text-xs text-gray-500" dir="ltr">
+                    {route.driverPhone}
+                  </div>
+                </TableCell>
+                <TableCell className="text-gray-600" dir="ltr">
+                  {route.departureMorning}
+                </TableCell>
+                <TableCell className="text-gray-600" dir="ltr">
+                  {route.departureEvening}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={route.availableSeats > 0 ? 'success' : 'destructive'}>
+                    {route.availableSeats}/{route.totalSeats}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-gray-700">{route.totalStudents}</TableCell>
+                <TableCell>
+                  {route.isActive ? (
+                    <span className="inline-flex items-center gap-1 text-green-600">
+                      <span className="w-2 h-2 rounded-full bg-green-500" />
+                      نشط
                     </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">{route.totalStudents}</td>
-                  <td className="px-6 py-4">
-                    {route.isActive ? (
-                      <span className="inline-flex items-center gap-1 text-green-600">
-                        <span className="w-2 h-2 rounded-full bg-green-500" />
-                        نشط
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-gray-400">
-                        <span className="w-2 h-2 rounded-full bg-gray-300" />
-                        غير نشط
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      <RouteForm
-                        drivers={drivers}
-                        institutions={institutions}
-                        editRoute={route}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-gray-400">
+                      <span className="w-2 h-2 rounded-full bg-gray-300" />
+                      غير نشط
+                    </span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <RouteForm drivers={drivers} institutions={institutions} editRoute={route} />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
 
-              {routes.length === 0 && (
-                <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
-                    لا توجد مسارات بعد.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            {routes.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={9} className="px-6 py-12 text-center text-gray-500">
+                  لا توجد مسارات بعد.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
 
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50">
@@ -173,28 +171,30 @@ export default async function RoutesPage({ searchParams }: Props) {
               إجمالي {totalCount} مسار | صفحة {page} من {totalPages}
             </span>
             <div className="flex gap-2" dir="ltr">
-              <a
-                href={`/dashboard/routes?page=${Math.max(1, page - 1)}&limit=${limit}`}
-                className={`px-3 py-1 text-sm rounded border ${
-                  page <= 1
-                    ? 'text-gray-300 border-gray-200 pointer-events-none'
-                    : 'text-gray-600 border-gray-300 hover:bg-gray-100'
-                }`}
-                aria-disabled={page <= 1}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                className={page <= 1 ? 'pointer-events-none text-gray-300 border-gray-200' : ''}
+                asChild
               >
-                السابق
-              </a>
-              <a
-                href={`/dashboard/routes?page=${Math.min(totalPages, page + 1)}&limit=${limit}`}
-                className={`px-3 py-1 text-sm rounded border ${
-                  page >= totalPages
-                    ? 'text-gray-300 border-gray-200 pointer-events-none'
-                    : 'text-gray-600 border-gray-300 hover:bg-gray-100'
-                }`}
-                aria-disabled={page >= totalPages}
+                <a href={`/dashboard/routes?page=${Math.max(1, page - 1)}&limit=${limit}&search=${params.search}&status=${params.status || ''}&institutionId=${params.institutionId || ''}`}>
+                  السابق
+                </a>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                className={
+                  page >= totalPages ? 'pointer-events-none text-gray-300 border-gray-200' : ''
+                }
+                asChild
               >
-                التالي
-              </a>
+                <a href={`/dashboard/routes?page=${Math.min(totalPages, page + 1)}&limit=${limit}&search=${params.search}&status=${params.status || ''}&institutionId=${params.institutionId || ''}`}>
+                  التالي
+                </a>
+              </Button>
             </div>
           </div>
         )}

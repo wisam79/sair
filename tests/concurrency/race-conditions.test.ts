@@ -21,12 +21,12 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
       // Simulate 10 concurrent booking requests for 5 available seats
       const concurrentRequests = 10;
       const successfulBookings: number[] = [];
-      
+
       // Atomic booking function with transaction simulation
       const atomicBookSeat = async (userId: string, requestId: number): Promise<boolean> => {
         // Simulate database transaction delay
-        await new Promise(resolve => setTimeout(resolve, Math.random() * 10));
-        
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * 10));
+
         // Check available seats (within transaction)
         if (mockRoute.availableSeats > 0) {
           // Decrement seats (atomic operation)
@@ -39,9 +39,9 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
 
       // Execute all requests concurrently
       const promises = Array.from({ length: concurrentRequests }, (_, i) =>
-        atomicBookSeat(`user-${i}`, i)
+        atomicBookSeat(`user-${i}`, i),
       );
-      
+
       await Promise.all(promises);
 
       // Verify no overbooking occurred
@@ -52,7 +52,7 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
 
     it('should handle sequential bookings correctly', async () => {
       const initialSeats = mockRoute.availableSeats;
-      
+
       // Sequential bookings (no race condition)
       for (let i = 0; i < 3; i++) {
         if (mockRoute.availableSeats > 0) {
@@ -80,16 +80,16 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
         if (!lockAcquired) {
           lockAcquired = true;
           lockedRows.push(userId);
-          
+
           // Critical section - only one transaction can be here
-          await new Promise(resolve => setTimeout(resolve, 50));
-          
+          await new Promise((resolve) => setTimeout(resolve, 50));
+
           if (localAvailableSeats > 0) {
             localAvailableSeats--;
             lockAcquired = false;
             return true;
           }
-          
+
           lockAcquired = false;
           return false;
         }
@@ -103,7 +103,7 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
         transactionWithLock('user-3'),
       ]);
 
-      const successCount = results.filter(r => r).length;
+      const successCount = results.filter((r) => r).length;
       expect(successCount).toBe(1); // Only one should succeed due to locking
       expect(lockedRows.length).toBeGreaterThanOrEqual(1);
     });
@@ -123,7 +123,7 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
         if (processedIdempotencyKeys.has(key)) {
           return { success: false, error: 'DUPLICATE_REQUEST' };
         }
-        
+
         // Process payment
         processedIdempotencyKeys.add(key);
         return { success: true };
@@ -153,7 +153,7 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
       }
 
       const key1 = createIdempotencyKey(userId, routeId, Date.now());
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       const key2 = createIdempotencyKey(userId, routeId, Date.now());
 
       const result1 = await localProcessPayment(key1);
@@ -179,7 +179,7 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
       const acquireLocksInOrder = async (txId: string): Promise<void> => {
         for (const resource of resourceOrder) {
           acquiredLocks[txId].push(resource);
-          await new Promise(resolve => setTimeout(resolve, 5));
+          await new Promise((resolve) => setTimeout(resolve, 5));
         }
       };
 
@@ -200,15 +200,15 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
 
       const tryAcquireLock = async (timeout: number): Promise<boolean> => {
         const startTime = Date.now();
-        
+
         while (Date.now() - startTime < timeout) {
           if (!lockHeld) {
             lockHeld = true;
             return true;
           }
-          await new Promise(resolve => setTimeout(resolve, 10));
+          await new Promise((resolve) => setTimeout(resolve, 10));
         }
-        
+
         return false; // Timeout exceeded
       };
 
@@ -231,7 +231,7 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
         if (version !== expectedVersion) {
           return false; // Version mismatch, retry needed
         }
-        
+
         data = { ...data, ...newData };
         version++;
         return true;
@@ -255,19 +255,19 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
       const pessimisticUpdate = async (): Promise<boolean> => {
         // Wait for lock
         while (lockAcquired) {
-          await new Promise(resolve => setTimeout(resolve, 10));
+          await new Promise((resolve) => setTimeout(resolve, 10));
         }
-        
+
         lockAcquired = true;
-        
+
         // Critical section
         if (data.seats > 0) {
           data.seats--;
-          await new Promise(resolve => setTimeout(resolve, 20)); // Simulate work
+          await new Promise((resolve) => setTimeout(resolve, 20)); // Simulate work
           lockAcquired = false;
           return true;
         }
-        
+
         lockAcquired = false;
         return false;
       };
@@ -278,7 +278,7 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
         pessimisticUpdate(),
       ]);
 
-      const successCount = results.filter(r => r).length;
+      const successCount = results.filter((r) => r).length;
       expect(successCount).toBeLessThanOrEqual(5);
       expect(data.seats).toBeGreaterThanOrEqual(0);
     });
@@ -288,7 +288,7 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
     it('should prevent dirty reads', async () => {
       // Transaction 1: Updates but doesn't commit
       // Transaction 2: Should not see uncommitted data
-      
+
       let committedData = { seats: 40 };
       let uncommittedData: any = null;
 
@@ -296,7 +296,7 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
         // Start transaction
         uncommittedData = { seats: 39 };
         // Simulate work without committing
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
         // Commit
         committedData = uncommittedData;
         uncommittedData = null;
@@ -304,8 +304,8 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
 
       const transaction2 = async () => {
         // Try to read during transaction 1
-        await new Promise(resolve => setTimeout(resolve, 25));
-        
+        await new Promise((resolve) => setTimeout(resolve, 25));
+
         // Should only see committed data, not uncommitted
         // Simulate database isolation level READ COMMITTED
         const visibleData = committedData;
@@ -321,14 +321,14 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
 
       const transactionWithRollback = async (shouldFail: boolean): Promise<void> => {
         const backup = { ...currentState };
-        
+
         try {
           currentState.seats--; // Make change
-          
+
           if (shouldFail) {
             throw new Error('Business rule violation');
           }
-          
+
           // Commit happens here
         } catch (error) {
           // Rollback
@@ -347,7 +347,7 @@ describe('Concurrency Tests - Race Conditions & Deadlocks', () => {
       } catch (error) {
         // Expected
       }
-      
+
       expect(currentState.seats).toBe(39); // Unchanged after rollback
     });
   });

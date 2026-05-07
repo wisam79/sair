@@ -131,12 +131,8 @@
           "name": "profiles_institution_id_institutions_id_fk",
           "tableFrom": "profiles",
           "tableTo": "institutions",
-          "columnsFrom": [
-            "institution_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["institution_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -146,9 +142,7 @@
         "profiles_phone_unique": {
           "name": "profiles_phone_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "phone"
-          ]
+          "columns": ["phone"]
         }
       },
       "policies": {},
@@ -204,12 +198,8 @@
           "name": "driver_schedules_driver_id_drivers_id_fk",
           "tableFrom": "driver_schedules",
           "tableTo": "drivers",
-          "columnsFrom": [
-            "driver_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["driver_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -331,12 +321,8 @@
           "name": "drivers_user_id_profiles_id_fk",
           "tableFrom": "drivers",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -344,12 +330,8 @@
           "name": "drivers_institution_id_institutions_id_fk",
           "tableFrom": "drivers",
           "tableTo": "institutions",
-          "columnsFrom": [
-            "institution_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["institution_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -359,9 +341,7 @@
         "drivers_user_id_unique": {
           "name": "drivers_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         }
       },
       "policies": {},
@@ -498,12 +478,8 @@
           "name": "routes_driver_id_drivers_id_fk",
           "tableFrom": "routes",
           "tableTo": "drivers",
-          "columnsFrom": [
-            "driver_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["driver_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -511,12 +487,8 @@
           "name": "routes_institution_id_institutions_id_fk",
           "tableFrom": "routes",
           "tableTo": "institutions",
-          "columnsFrom": [
-            "institution_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["institution_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -595,12 +567,8 @@
           "name": "student_preferences_student_id_profiles_id_fk",
           "tableFrom": "student_preferences",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "student_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["student_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -608,12 +576,8 @@
           "name": "student_preferences_institution_id_institutions_id_fk",
           "tableFrom": "student_preferences",
           "tableTo": "institutions",
-          "columnsFrom": [
-            "institution_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["institution_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -623,9 +587,7 @@
         "student_preferences_student_id_unique": {
           "name": "student_preferences_student_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "student_id"
-          ]
+          "columns": ["student_id"]
         }
       },
       "policies": {},
@@ -712,12 +674,8 @@
           "name": "subscription_requests_student_id_profiles_id_fk",
           "tableFrom": "subscription_requests",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "student_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["student_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -725,12 +683,8 @@
           "name": "subscription_requests_driver_id_drivers_id_fk",
           "tableFrom": "subscription_requests",
           "tableTo": "drivers",
-          "columnsFrom": [
-            "driver_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["driver_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -738,12 +692,8 @@
           "name": "subscription_requests_institution_id_institutions_id_fk",
           "tableFrom": "subscription_requests",
           "tableTo": "institutions",
-          "columnsFrom": [
-            "institution_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["institution_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -902,12 +852,8 @@
           "name": "subscriptions_student_id_profiles_id_fk",
           "tableFrom": "subscriptions",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "student_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["student_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -915,12 +861,8 @@
           "name": "subscriptions_driver_id_drivers_id_fk",
           "tableFrom": "subscriptions",
           "tableTo": "drivers",
-          "columnsFrom": [
-            "driver_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["driver_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -930,16 +872,12 @@
         "subscriptions_activation_code_unique": {
           "name": "subscriptions_activation_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "activation_code"
-          ]
+          "columns": ["activation_code"]
         },
         "subscriptions_idempotency_key_unique": {
           "name": "subscriptions_idempotency_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "idempotency_key"
-          ]
+          "columns": ["idempotency_key"]
         }
       },
       "policies": {},
@@ -990,12 +928,8 @@
           "name": "trip_students_trip_id_trips_id_fk",
           "tableFrom": "trip_students",
           "tableTo": "trips",
-          "columnsFrom": [
-            "trip_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["trip_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1003,12 +937,8 @@
           "name": "trip_students_student_id_profiles_id_fk",
           "tableFrom": "trip_students",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "student_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["student_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1088,12 +1018,8 @@
           "name": "trips_driver_id_drivers_id_fk",
           "tableFrom": "trips",
           "tableTo": "drivers",
-          "columnsFrom": [
-            "driver_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["driver_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1101,12 +1027,8 @@
           "name": "trips_subscription_id_subscriptions_id_fk",
           "tableFrom": "trips",
           "tableTo": "subscriptions",
-          "columnsFrom": [
-            "subscription_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subscription_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1224,12 +1146,8 @@
           "name": "cards_driver_id_drivers_id_fk",
           "tableFrom": "cards",
           "tableTo": "drivers",
-          "columnsFrom": [
-            "driver_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["driver_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1237,12 +1155,8 @@
           "name": "cards_used_by_profiles_id_fk",
           "tableFrom": "cards",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "used_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["used_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1252,9 +1166,7 @@
         "cards_code_unique": {
           "name": "cards_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
+          "columns": ["code"]
         }
       },
       "policies": {},
@@ -1311,12 +1223,8 @@
           "name": "driver_absences_driver_id_drivers_id_fk",
           "tableFrom": "driver_absences",
           "tableTo": "drivers",
-          "columnsFrom": [
-            "driver_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["driver_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1389,12 +1297,8 @@
           "name": "notifications_user_id_profiles_id_fk",
           "tableFrom": "notifications",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1526,12 +1430,8 @@
           "name": "reviews_from_user_id_profiles_id_fk",
           "tableFrom": "reviews",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "from_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["from_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1539,12 +1439,8 @@
           "name": "reviews_to_user_id_profiles_id_fk",
           "tableFrom": "reviews",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "to_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["to_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1552,12 +1448,8 @@
           "name": "reviews_subscription_id_subscriptions_id_fk",
           "tableFrom": "reviews",
           "tableTo": "subscriptions",
-          "columnsFrom": [
-            "subscription_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subscription_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

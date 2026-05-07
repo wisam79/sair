@@ -1,5 +1,17 @@
 import React from 'react';
 import { subscriptionRepository } from '@workspace/db/repositories';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  Badge,
+  Button,
+} from '@/components/ui';
+import { subscriptionsSearchParamsCache } from '@/lib/search-params';
+import { requireAdmin } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,21 +20,17 @@ function formatCurrency(amount: number): string {
 }
 
 interface Props {
-  searchParams?: Promise<{
-    page?: string;
-    limit?: string;
-    status?: string;
-    paymentStatus?: string;
-  }>;
+  searchParams?: Promise<Record<string, string>>;
 }
 
 export default async function SubscriptionsPage({ searchParams }: Props) {
-  const params = (await searchParams) || {};
-  const page = Math.max(1, parseInt((params as any).page || '1'));
-  const limit = Math.min(100, Math.max(10, parseInt((params as any).limit || '20')));
+  await requireAdmin();
+  const params = subscriptionsSearchParamsCache.parse(await searchParams ?? {});
+  const page = params.page;
+  const limit = params.limit;
   const offset = (page - 1) * limit;
-  const statusFilter = (params as any).status || 'all';
-  const paymentStatusFilter = (params as any).paymentStatus || 'all';
+  const statusFilter = params.status || 'all';
+  const paymentStatusFilter = params.paymentStatus || 'all';
 
   const [subscriptions, totalCount] = await Promise.all([
     subscriptionRepository.findAllFiltered({
@@ -39,14 +47,15 @@ export default async function SubscriptionsPage({ searchParams }: Props) {
 
   const totalPages = Math.ceil(totalCount / limit);
 
-  const baseParams = new URLSearchParams();
-  if (statusFilter !== 'all') baseParams.set('status', statusFilter);
-  if (paymentStatusFilter !== 'all') baseParams.set('paymentStatus', paymentStatusFilter);
-  baseParams.set('limit', String(limit));
-
   function pageUrl(p: number): string {
-    const q = new URLSearchParams(baseParams);
+    const q = new URLSearchParams();
     q.set('page', String(p));
+    q.set('limit', String(limit));
+    if (params.status) q.set('status', params.status);
+    if (params.paymentStatus) q.set('paymentStatus', params.paymentStatus);
+    if (params.search) q.set('search', params.search);
+    if (params.sortBy) q.set('sortBy', params.sortBy);
+    if (params.sortOrder) q.set('sortOrder', params.sortOrder);
     return `/dashboard/subscriptions?${q.toString()}`;
   }
 
@@ -59,54 +68,38 @@ export default async function SubscriptionsPage({ searchParams }: Props) {
     return `/dashboard/subscriptions?${q.toString()}`;
   }
 
-  const statusBadge = (s: string) => {
-    switch (s) {
-      case 'active':
-        return 'bg-green-100 text-green-700';
-      case 'cancelled':
-        return 'bg-red-100 text-red-700';
-      case 'expired':
-        return 'bg-gray-100 text-gray-600';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-700';
-      default:
-        return 'bg-gray-100 text-gray-600';
-    }
+  const statusBadgeVariant: Record<
+    string,
+    'default' | 'destructive' | 'secondary' | 'success' | 'warning'
+  > = {
+    active: 'success',
+    cancelled: 'destructive',
+    expired: 'secondary',
+    pending: 'warning',
   };
 
-  const statusLabel = (s: string) => {
-    switch (s) {
-      case 'active': return 'نشط';
-      case 'cancelled': return 'ملغى';
-      case 'expired': return 'منتهي';
-      case 'pending': return 'معلق';
-      default: return s;
-    }
+  const statusLabel: Record<string, string> = {
+    active: 'نشط',
+    cancelled: 'ملغى',
+    expired: 'منتهي',
+    pending: 'معلق',
   };
 
-  const paymentBadge = (s: string) => {
-    switch (s) {
-      case 'paid':
-        return 'bg-green-100 text-green-700';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-700';
-      case 'failed':
-        return 'bg-red-100 text-red-700';
-      case 'refunded':
-        return 'bg-blue-100 text-blue-700';
-      default:
-        return 'bg-gray-100 text-gray-600';
-    }
+  const paymentBadgeVariant: Record<
+    string,
+    'default' | 'destructive' | 'secondary' | 'success' | 'warning'
+  > = {
+    paid: 'success',
+    pending: 'warning',
+    failed: 'destructive',
+    refunded: 'default',
   };
 
-  const paymentLabel = (s: string) => {
-    switch (s) {
-      case 'paid': return 'مدفوع';
-      case 'pending': return 'قيد الانتظار';
-      case 'failed': return 'فشل';
-      case 'refunded': return 'مسترجع';
-      default: return s;
-    }
+  const paymentLabel: Record<string, string> = {
+    paid: 'مدفوع',
+    pending: 'قيد الانتظار',
+    failed: 'فشل',
+    refunded: 'مسترجع',
   };
 
   const statusOptions = [
@@ -135,7 +128,7 @@ export default async function SubscriptionsPage({ searchParams }: Props) {
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-600">الحالة:</span>
             <div className="flex gap-1">
-              {statusOptions.map(opt => (
+              {statusOptions.map((opt) => (
                 <a
                   key={opt.value}
                   href={filterUrl(opt.value, paymentStatusFilter)}
@@ -156,7 +149,7 @@ export default async function SubscriptionsPage({ searchParams }: Props) {
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-600">الدفع:</span>
             <div className="flex gap-1">
-              {paymentOptions.map(opt => (
+              {paymentOptions.map((opt) => (
                 <a
                   key={opt.value}
                   href={filterUrl(statusFilter, opt.value)}
@@ -175,80 +168,74 @@ export default async function SubscriptionsPage({ searchParams }: Props) {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-right">
-            <thead className="bg-gray-50 text-gray-600 border-b border-gray-100">
-              <tr>
-                <th className="px-6 py-4 font-medium">الطالب</th>
-                <th className="px-6 py-4 font-medium">السائق</th>
-                <th className="px-6 py-4 font-medium">تاريخ البداية</th>
-                <th className="px-6 py-4 font-medium">تاريخ النهاية</th>
-                <th className="px-6 py-4 font-medium">الرسوم الشهرية</th>
-                <th className="px-6 py-4 font-medium">العمولة</th>
-                <th className="px-6 py-4 font-medium">صافي السائق</th>
-                <th className="px-6 py-4 font-medium">حالة الدفع</th>
-                <th className="px-6 py-4 font-medium">الحالة</th>
-                <th className="px-6 py-4 font-medium" dir="ltr">السفرات</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {subscriptions.map(sub => (
-                <tr key={sub.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900">
-                    {sub.studentName || '-'}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {sub.driverName || '-'}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {sub.startDate
-                      ? new Date(sub.startDate).toLocaleDateString('ar-IQ')
-                      : '-'}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {sub.endDate
-                      ? new Intl.DateTimeFormat('ar-IQ', { timeZone: 'Asia/Baghdad' }).format(new Date(sub.endDate))
-                      : '-'}
-                  </td>
-                  <td className="px-6 py-4 text-gray-900 font-medium" dir="ltr">
-                    {formatCurrency(sub.monthlyFee)}
-                  </td>
-                  <td className="px-6 py-4 text-gray-900" dir="ltr">
-                    {formatCurrency(sub.commissionAmount)}
-                  </td>
-                  <td className="px-6 py-4 text-gray-900" dir="ltr">
-                    {formatCurrency(sub.driverPayout)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${paymentBadge(sub.paymentStatus)}`}
-                    >
-                      {paymentLabel(sub.paymentStatus)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${statusBadge(sub.status)}`}
-                    >
-                      {statusLabel(sub.status)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-700 text-center" dir="ltr">
-                    {sub.tripsUsed} / {sub.tripsPerMonth}
-                  </td>
-                </tr>
-              ))}
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>الطالب</TableHead>
+              <TableHead>السائق</TableHead>
+              <TableHead>تاريخ البداية</TableHead>
+              <TableHead>تاريخ النهاية</TableHead>
+              <TableHead>الرسوم الشهرية</TableHead>
+              <TableHead>العمولة</TableHead>
+              <TableHead>صافي السائق</TableHead>
+              <TableHead>حالة الدفع</TableHead>
+              <TableHead>الحالة</TableHead>
+              <TableHead align="center" dir="ltr">
+                السفرات
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {subscriptions.map((sub) => (
+              <TableRow key={sub.id}>
+                <TableCell className="font-medium text-gray-900">
+                  {sub.studentName || '-'}
+                </TableCell>
+                <TableCell className="text-gray-700">{sub.driverName || '-'}</TableCell>
+                <TableCell className="text-gray-600">
+                  {sub.startDate ? new Date(sub.startDate).toLocaleDateString('ar-IQ') : '-'}
+                </TableCell>
+                <TableCell className="text-gray-600">
+                  {sub.endDate
+                    ? new Intl.DateTimeFormat('ar-IQ', { timeZone: 'Asia/Baghdad' }).format(
+                        new Date(sub.endDate),
+                      )
+                    : '-'}
+                </TableCell>
+                <TableCell className="text-gray-900 font-medium" dir="ltr">
+                  {formatCurrency(sub.monthlyFee)}
+                </TableCell>
+                <TableCell className="text-gray-900" dir="ltr">
+                  {formatCurrency(sub.commissionAmount)}
+                </TableCell>
+                <TableCell className="text-gray-900" dir="ltr">
+                  {formatCurrency(sub.driverPayout)}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={paymentBadgeVariant[sub.paymentStatus] || 'secondary'}>
+                    {paymentLabel[sub.paymentStatus] || sub.paymentStatus}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={statusBadgeVariant[sub.status] || 'secondary'}>
+                    {statusLabel[sub.status] || sub.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-gray-700 text-center" dir="ltr">
+                  {sub.tripsUsed} / {sub.tripsPerMonth}
+                </TableCell>
+              </TableRow>
+            ))}
 
-              {subscriptions.length === 0 && (
-                <tr>
-                  <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
-                    لا توجد اشتراكات مطابقة.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            {subscriptions.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                  لا توجد اشتراكات مطابقة.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
 
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50">
@@ -256,28 +243,26 @@ export default async function SubscriptionsPage({ searchParams }: Props) {
               إجمالي {totalCount.toLocaleString('ar-IQ')} اشتراك | صفحة {page} من {totalPages}
             </span>
             <div className="flex gap-2" dir="ltr">
-              <a
-                href={pageUrl(Math.max(1, page - 1))}
-                className={`px-3 py-1 text-sm rounded border ${
-                  page <= 1
-                    ? 'text-gray-300 border-gray-200 pointer-events-none'
-                    : 'text-gray-600 border-gray-300 hover:bg-gray-100'
-                }`}
-                aria-disabled={page <= 1}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                className={page <= 1 ? 'pointer-events-none text-gray-300 border-gray-200' : ''}
+                onClick={() => window.location.href = pageUrl(Math.max(1, page - 1))}
               >
                 السابق
-              </a>
-              <a
-                href={pageUrl(Math.min(totalPages, page + 1))}
-                className={`px-3 py-1 text-sm rounded border ${
-                  page >= totalPages
-                    ? 'text-gray-300 border-gray-200 pointer-events-none'
-                    : 'text-gray-600 border-gray-300 hover:bg-gray-100'
-                }`}
-                aria-disabled={page >= totalPages}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                className={
+                  page >= totalPages ? 'pointer-events-none text-gray-300 border-gray-200' : ''
+                }
+                onClick={() => window.location.href = pageUrl(Math.min(totalPages, page + 1))}
               >
                 التالي
-              </a>
+              </Button>
             </div>
           </div>
         )}

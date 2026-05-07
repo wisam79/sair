@@ -2,19 +2,21 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { z } from 'zod';
 
 // Schema definitions for validation
-const SubscriptionSchema = z.object({
-  id: z.string().uuid(),
-  student_id: z.string().uuid(),
-  driver_id: z.string().uuid(),
-  status: z.enum(['pending', 'active', 'cancelled', 'expired']),
-  start_date: z.date(),
-  end_date: z.date(),
-  monthly_fee: z.number().positive(),
-  commission_rate: z.number().positive(),
-}).refine(data => data.end_date > data.start_date, {
-  message: "End date must be after start date",
-  path: ["end_date"]
-});
+const SubscriptionSchema = z
+  .object({
+    id: z.string().uuid(),
+    student_id: z.string().uuid(),
+    driver_id: z.string().uuid(),
+    status: z.enum(['pending', 'active', 'cancelled', 'expired']),
+    start_date: z.date(),
+    end_date: z.date(),
+    monthly_fee: z.number().positive(),
+    commission_rate: z.number().positive(),
+  })
+  .refine((data) => data.end_date > data.start_date, {
+    message: 'End date must be after start date',
+    path: ['end_date'],
+  });
 
 const DriverSchema = z.object({
   id: z.string().uuid(),
@@ -59,7 +61,7 @@ describe('Unit Tests - Business Logic & Constraints', () => {
       const result = SubscriptionSchema.safeParse(invalidSubscription);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors.some(e => e.path.includes('end_date'))).toBe(true);
+        expect(result.error.errors.some((e) => e.path.includes('end_date'))).toBe(true);
       }
     });
 
@@ -138,21 +140,19 @@ describe('Unit Tests - Business Logic & Constraints', () => {
       };
 
       const result = DriverSchema.safeParse(driver);
-      expect(result.success).toBe(true); 
-      
+      expect(result.success).toBe(true);
+
       expect(driver.available_seats <= driver.capacity).toBe(false);
     });
   });
 
-
-
   describe('Payment Status Transitions', () => {
     const validTransitions: Record<string, string[]> = {
-      'pending': ['paid', 'failed', 'cancelled'],
-      'paid': ['refunded'],
-      'failed': ['pending', 'cancelled'],
-      'refunded': [],
-      'cancelled': [],
+      pending: ['paid', 'failed', 'cancelled'],
+      paid: ['refunded'],
+      failed: ['pending', 'cancelled'],
+      refunded: [],
+      cancelled: [],
     };
 
     it('should allow valid payment status transitions', () => {
@@ -184,9 +184,9 @@ describe('Unit Tests - Business Logic & Constraints', () => {
       const userId = '550e8400-e29b-41d4-a716-446655440000';
       const routeId = '660e8400-e29b-41d4-a716-446655440001';
       const timestamp = Date.now();
-      
+
       const key = `idem_${userId}_${routeId}_${timestamp}`;
-      
+
       expect(key).toContain(userId);
       expect(key).toContain(routeId);
     });

@@ -1,21 +1,90 @@
-import FeatherIcon from "@/components/FeatherIcon";
-import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
-import React, { useEffect, useRef } from "react";
-import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import FeatherIcon from '@/components/FeatherIcon';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { SubscriptionPlan } from "@/context";import { useColors } from "@/hooks/useColors";
+import { SubscriptionPlan } from '@/context';
+import { useColors } from '@/hooks/useColors';
+import { useAppSettings } from '@/hooks/useAppSettings';
+import { createMoney, formatMoneyShort, toNumberValue } from '@/lib/money';
 
 interface Plan {
   id: SubscriptionPlan;
   nameAr: string;
   monthlyFare: number;
-  tripsPerMonth: number | "unlimited";
+  tripsPerMonth: number | 'unlimited';
   features: string[];
   negativeFeatures?: string[];
   isPopular?: boolean;
   savings?: string;
   usersCount: string;
+}
+
+function useSubscriptionPlans() {
+  const { monthly_fee } = useAppSettings();
+  const monthlyFeeMoney = createMoney(monthly_fee);
+
+  // Calculate fares using Dinero.js for type-safe math
+  const basicFare = toNumberValue(monthlyFeeMoney) * 0.56;
+  const standardFare = toNumberValue(monthlyFeeMoney) * 0.89;
+  const premiumFare = toNumberValue(monthlyFeeMoney) * 1.33;
+
+  return [
+    {
+      id: "basic" as SubscriptionPlan,
+      nameAr: "الأساسي",
+      monthlyFare: Math.round(basicFare),
+      tripsPerMonth: 20,
+      features: [
+        "تتبع الرحلة مباشرة",
+        "إشعارات الوصول",
+        "دعم فني",
+      ],
+      negativeFeatures: [
+        "أولوية الحجز",
+        "دعم 24/7",
+      ],
+      savings: "40%",
+      usersCount: "يستخدمه 847 طالب",
+    },
+    {
+      id: "standard" as SubscriptionPlan,
+      nameAr: "القياسي",
+      monthlyFare: Math.round(standardFare),
+      tripsPerMonth: 40,
+      features: [
+        "تتبع الرحلة مباشرة",
+        "إشعارات الوصول والمغادرة",
+        "أولوية الاستلام",
+        "دعم فني متميز",
+        "أولوية الحجز",
+      ],
+      negativeFeatures: [
+        "دعم 24/7",
+      ],
+      isPopular: true,
+      savings: "55%",
+      usersCount: "الأكثر شيوعاً - 1,234 طالب",
+    },
+    {
+      id: "premium" as SubscriptionPlan,
+      nameAr: "المميز",
+      monthlyFare: Math.round(premiumFare),
+      tripsPerMonth: "unlimited" as const,
+      features: [
+        "رحلات غير محدودة",
+        "تتبع مباشر مع الخريطة",
+        "أولوية قصوى",
+        "مشاركة الموقع للعائلة",
+        "دعم على مدار الساعة",
+        "أولوية الحجز",
+        "دعم 24/7",
+      ],
+      savings: "70%",
+      usersCount: "للطلاب المميزين - 312 طالب",
+    },
+  ];
 }
 
 interface SubscriptionCardProps {
@@ -37,7 +106,7 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
       useNativeDriver: true,
     }).start();
 
-    if (plan.id === "premium") {
+    if (plan.id === 'premium') {
       Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
@@ -50,7 +119,7 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
             duration: 1000,
             useNativeDriver: true,
           }),
-        ])
+        ]),
       ).start();
     }
   }, []);
@@ -74,17 +143,14 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
     }).start();
   };
 
-  const isPremium = plan.id === "premium";
+  const isPremium = plan.id === 'premium';
 
-  const bgColor = isActive
-    ? colors.primary
-    : plan.isPopular
-    ? colors.primary + "10"
-    : colors.card;
+  const bgColor = isActive ? colors.primary : plan.isPopular ? colors.primary + '10' : colors.card;
 
-  const textColor = isActive || (isPremium && !isActive) ? "#FFFFFF" : colors.foreground;
-  const subTextColor = isActive || (isPremium && !isActive) ? "rgba(255,255,255,0.7)" : colors.mutedForeground;
-  const accentColor = isActive || (isPremium && !isActive) ? "#FF9E7A" : colors.accent;
+  const textColor = isActive || (isPremium && !isActive) ? '#FFFFFF' : colors.foreground;
+  const subTextColor =
+    isActive || (isPremium && !isActive) ? 'rgba(255,255,255,0.7)' : colors.mutedForeground;
+  const accentColor = isActive || (isPremium && !isActive) ? '#FF9E7A' : colors.accent;
 
   const CardContent = (
     <>
@@ -93,8 +159,10 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
           <Text style={styles.popularText}>الأكثر طلباً</Text>
         </View>
       )}
-      {plan.id === "premium" && !isActive && (
-        <Animated.View style={[styles.offerBadge, { backgroundColor: "#F59E0B", opacity: pulseAnim }]}>
+      {plan.id === 'premium' && !isActive && (
+        <Animated.View
+          style={[styles.offerBadge, { backgroundColor: '#F59E0B', opacity: pulseAnim }]}
+        >
           <Text style={styles.offerText}>عرض محدود</Text>
         </Animated.View>
       )}
@@ -115,7 +183,7 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
       </View>
 
       <View style={styles.priceRow}>
-        <Text style={[styles.price, { color: isActive || isPremium ? "#fff" : colors.accent }]}>
+        <Text style={[styles.price, { color: isActive || isPremium ? '#fff' : colors.accent }]}>
           {(plan.monthlyFare / 1000).toFixed(0)}k
         </Text>
         <View>
@@ -124,10 +192,17 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
         </View>
       </View>
 
-      <View style={[styles.divider, { backgroundColor: isActive || isPremium ? "rgba(255,255,255,0.2)" : colors.border }]} />
+      <View
+        style={[
+          styles.divider,
+          { backgroundColor: isActive || isPremium ? 'rgba(255,255,255,0.2)' : colors.border },
+        ]}
+      />
 
       <Text style={[styles.tripsText, { color: accentColor }]}>
-        {plan.tripsPerMonth === "unlimited" ? "رحلات غير محدودة" : `${plan.tripsPerMonth} رحلة / شهر`}
+        {plan.tripsPerMonth === 'unlimited'
+          ? 'رحلات غير محدودة'
+          : `${plan.tripsPerMonth} رحلة / شهر`}
       </Text>
 
       <View style={styles.features}>
@@ -151,7 +226,16 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
       </View>
 
       {!isActive && (
-        <View style={[styles.selectBtn, { backgroundColor: isPremium ? "rgba(255,255,255,0.2)" : colors.primary, borderWidth: isPremium ? 1 : 0, borderColor: "rgba(255,255,255,0.4)" }]}>
+        <View
+          style={[
+            styles.selectBtn,
+            {
+              backgroundColor: isPremium ? 'rgba(255,255,255,0.2)' : colors.primary,
+              borderWidth: isPremium ? 1 : 0,
+              borderColor: 'rgba(255,255,255,0.4)',
+            },
+          ]}
+        >
           <Text style={styles.selectBtnText}>اشترك الآن</Text>
         </View>
       )}
@@ -165,7 +249,11 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
           styles.card,
           !isPremium && {
             backgroundColor: bgColor,
-            borderColor: isActive ? colors.primary : plan.isPopular ? colors.primary + "40" : colors.border,
+            borderColor: isActive
+              ? colors.primary
+              : plan.isPopular
+                ? colors.primary + '40'
+                : colors.border,
             borderWidth: isActive || plan.isPopular ? 2 : 1,
           },
         ]}
@@ -176,7 +264,7 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
       >
         {isPremium && !isActive ? (
           <LinearGradient
-            colors={["#1A3C6E", "#2A5CA8", "#3B7BC8"]}
+            colors={['#1A3C6E', '#2A5CA8', '#3B7BC8']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={[StyleSheet.absoluteFill, { borderRadius: 16 }]}
@@ -188,75 +276,21 @@ export function SubscriptionCard({ plan, isActive, onSelect }: SubscriptionCardP
   );
 }
 
-export const SUBSCRIPTION_PLANS: Plan[] = [
-  {
-    id: "basic",
-    nameAr: "الأساسي",
-    monthlyFare: 50000,
-    tripsPerMonth: 20,
-    features: [
-      "تتبع الرحلة مباشرة",
-      "إشعارات الوصول",
-      "دعم فني",
-    ],
-    negativeFeatures: [
-      "أولوية الحجز",
-      "دعم 24/7",
-    ],
-    savings: "40%",
-    usersCount: "يستخدمه 847 طالب",
-  },
-  {
-    id: "standard",
-    nameAr: "القياسي",
-    monthlyFare: 80000,
-    tripsPerMonth: 40,
-    features: [
-      "تتبع الرحلة مباشرة",
-      "إشعارات الوصول والمغادرة",
-      "أولوية الاستلام",
-      "دعم فني متميز",
-      "أولوية الحجز",
-    ],
-    negativeFeatures: [
-      "دعم 24/7",
-    ],
-    isPopular: true,
-    savings: "55%",
-    usersCount: "الأكثر شيوعاً - 1,234 طالب",
-  },
-  {
-    id: "premium",
-    nameAr: "المميز",
-    monthlyFare: 120000,
-    tripsPerMonth: "unlimited",
-    features: [
-      "رحلات غير محدودة",
-      "تتبع مباشر مع الخريطة",
-      "أولوية قصوى",
-      "مشاركة الموقع للعائلة",
-      "دعم على مدار الساعة",
-      "أولوية الحجز",
-      "دعم 24/7",
-    ],
-    savings: "70%",
-    usersCount: "للطلاب المميزين - 312 طالب",
-  },
-];
+export { useSubscriptionPlans };
 
 const styles = StyleSheet.create({
   card: {
     borderRadius: 16,
     padding: 18,
     marginBottom: 12,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
   },
   popularBadge: {
-    position: "absolute",
+    position: 'absolute',
     top: -1,
     right: 16,
     paddingHorizontal: 10,
@@ -266,12 +300,12 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   popularText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
   },
   offerBadge: {
-    position: "absolute",
+    position: 'absolute',
     top: -1,
     right: 16,
     paddingHorizontal: 10,
@@ -281,16 +315,16 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   offerText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
   },
   activeBadge: {
-    position: "absolute",
+    position: 'absolute',
     top: 12,
     right: 12,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
@@ -298,49 +332,49 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   activeBadgeText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
   },
   headerRow: {
-    flexDirection: "row-reverse",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 10,
   },
   planName: {
     fontSize: 16,
-    fontFamily: "Inter_700Bold",
+    fontFamily: 'Inter_700Bold',
   },
   savingsBadge: {
-    backgroundColor: "#22C55E20",
+    backgroundColor: '#22C55E20',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
   },
   savingsText: {
-    color: "#22C55E",
+    color: '#22C55E',
     fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
   },
   priceRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
+    flexDirection: 'row',
+    alignItems: 'flex-end',
     gap: 6,
     marginBottom: 12,
   },
   price: {
     fontSize: 32,
-    fontFamily: "Inter_700Bold",
+    fontFamily: 'Inter_700Bold',
     lineHeight: 36,
   },
   currency: {
     fontSize: 12,
-    fontFamily: "Inter_400Regular",
+    fontFamily: 'Inter_400Regular',
   },
   period: {
     fontSize: 12,
-    fontFamily: "Inter_400Regular",
+    fontFamily: 'Inter_400Regular',
   },
   divider: {
     height: 1,
@@ -348,7 +382,7 @@ const styles = StyleSheet.create({
   },
   tripsText: {
     fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
     marginBottom: 10,
   },
   features: {
@@ -356,34 +390,34 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   featureRow: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
     gap: 7,
   },
   featureText: {
     fontSize: 13,
-    fontFamily: "Inter_400Regular",
-    textAlign: "right",
+    fontFamily: 'Inter_400Regular',
+    textAlign: 'right',
     flex: 1,
   },
   socialProof: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
     gap: 4,
     marginBottom: 14,
   },
   socialProofText: {
     fontSize: 11,
-    fontFamily: "Inter_400Regular",
+    fontFamily: 'Inter_400Regular',
   },
   selectBtn: {
     borderRadius: 10,
     paddingVertical: 12,
-    alignItems: "center",
+    alignItems: 'center',
   },
   selectBtnText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
   },
 });

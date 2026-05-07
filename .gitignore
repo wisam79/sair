@@ -1,4 +1,3 @@
-```
 # Dependencies
 node_modules/
 .kilo/
@@ -17,7 +16,8 @@ Thumbs.db
 # Environment variables
 .env
 .env.local
-*.env.*
+.env.*.local
+!.env.example
 
 # IDE specific
 .vscode/
@@ -31,7 +31,7 @@ build/
 target/
 .out
 
-# Python artifacts (if any Python in project)
+# Python artifacts
 __pycache__/
 *.pyc
 *.pyo
@@ -52,4 +52,9 @@ coverage/
 # Package manager caches
 .pnpm-store/
 .yarn/cache/
-```
+
+# IDE/Editor specific
+GEMINI.md
+replit.md
+.replit
+.replitignore

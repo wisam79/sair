@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,15 +7,15 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import FeatherIcon from "@/components/FeatherIcon";
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import FeatherIcon from '@/components/FeatherIcon';
 
-const { width } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
 
 interface Props {
   message: string;
-  type: "success" | "error" | "info" | "warning";
+  type: 'success' | 'error' | 'info' | 'warning';
   onDismiss: () => void;
   visible: boolean;
 }
@@ -26,17 +26,17 @@ export function NotificationBanner({ message, type, onDismiss, visible }: Props)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const colors = {
-    success: "#22C55E",
-    error: "#EF4444",
-    info: "#1A3C6E",
-    warning: "#F59E0B",
+    success: '#22C55E',
+    error: '#EF4444',
+    info: '#1A3C6E',
+    warning: '#F59E0B',
   };
 
   const icons = {
-    success: "check-circle",
-    error: "x-circle",
-    info: "info",
-    warning: "alert-triangle",
+    success: 'check-circle',
+    error: 'x-circle',
+    info: 'info',
+    warning: 'alert-triangle',
   };
 
   useEffect(() => {
@@ -87,11 +87,7 @@ export function NotificationBanner({ message, type, onDismiss, visible }: Props)
         },
       ]}
     >
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={handleDismiss}
-        style={styles.content}
-      >
+      <TouchableOpacity activeOpacity={0.9} onPress={handleDismiss} style={styles.content}>
         <FeatherIcon name={icons[type]} size={24} color="#FFF" />
         <Text style={styles.message}>{message}</Text>
       </TouchableOpacity>
@@ -101,7 +97,7 @@ export function NotificationBanner({ message, type, onDismiss, visible }: Props)
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
@@ -111,7 +107,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 16,
     ...Platform.select({
       ios: {
-        shadowColor: "#000",
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
@@ -122,16 +118,16 @@ const styles = StyleSheet.create({
     }),
   },
   content: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
     paddingHorizontal: 20,
   },
   message: {
-    color: "#FFF",
+    color: '#FFF',
     fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
     marginRight: 12,
-    textAlign: "right",
+    textAlign: 'right',
     flex: 1,
   },
 });

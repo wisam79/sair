@@ -9,7 +9,7 @@ describe('Mobile Utility Functions', () => {
     });
 
     it('should handle string number inputs', () => {
-      const formatted = formatIQD("50000");
+      const formatted = formatIQD('50000');
       expect(formatted).toContain('د.ع');
       // Depending on Node locale, 50000 could be formatted with Arabic or Latin numerals
       // Just verifying it handles strings gracefully
@@ -29,7 +29,7 @@ describe('Mobile Utility Functions', () => {
     });
 
     it('should contain major universities in IRAQI_UNIVERSITIES', () => {
-      const uob = IRAQI_UNIVERSITIES.find(u => u.id === 'uob');
+      const uob = IRAQI_UNIVERSITIES.find((u) => u.id === 'uob');
       expect(uob).toBeDefined();
       expect(uob?.name).toBe('جامعة بغداد');
 

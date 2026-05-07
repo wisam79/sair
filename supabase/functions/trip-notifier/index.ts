@@ -21,19 +21,26 @@ Deno.serve(async (req: Request) => {
   try {
     const { tripId, newStatus } = await req.json();
     if (!tripId || !newStatus) {
-      return new Response(JSON.stringify({ error: 'tripId and newStatus required' }), { status: 400 });
+      return new Response(JSON.stringify({ error: 'tripId and newStatus required' }), {
+        status: 400,
+      });
     }
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Missing Authorization header' }), { status: 401 });
+      return new Response(JSON.stringify({ error: 'Missing Authorization header' }), {
+        status: 401,
+      });
     }
 
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
+      global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseClient.auth.getUser();
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
@@ -106,7 +113,6 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ success: true, notified: notifiedIds }), {
       headers: { 'Content-Type': 'application/json' },
     });
-
   } catch (err) {
     return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500 });
   }

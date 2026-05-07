@@ -115,7 +115,7 @@ lib/
 - DO NOT use console.log in server — use req.log or logger singleton
 - DB table names: `routesTable`, `absencesTable`, etc. in @workspace/db/schema
 - Design system: Primary #1A3C6E, Accent #FF6B35, Background #F5F7FA, RTL Arabic
-- I18nManager.forceRTL(true) in _layout.tsx
+- I18nManager.forceRTL(true) in \_layout.tsx
 - EmptyState is a DEFAULT export (not named export)
 - Route booking auto-creates standard subscription (40 trips/month), deactivates previous
 - Fares in IQD: formatIQD(80000) → "80k د.ع"

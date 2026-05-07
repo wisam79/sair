@@ -1,16 +1,8 @@
-import React, { useState } from "react";
-import {
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import FeatherIcon from "@/components/FeatherIcon";
-import { useColors } from "@/hooks/useColors";
+import React, { useState } from 'react';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import FeatherIcon from '@/components/FeatherIcon';
+import { useColors } from '@/hooks/useColors';
 export interface ErrorFallbackProps {
   error: Error;
   resetError: () => void;
@@ -24,9 +16,9 @@ export function ErrorFallback({ error, resetError, errorCount, onResetApp }: Err
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const monoFont = Platform.select({
-    ios: "Menlo",
-    android: "monospace",
-    default: "monospace",
+    ios: 'Menlo',
+    android: 'monospace',
+    default: 'monospace',
   });
 
   const formatErrorDetails = (): string => {
@@ -37,13 +29,13 @@ export function ErrorFallback({ error, resetError, errorCount, onResetApp }: Err
     return details;
   };
 
-  const timestamp = new Date().toLocaleString("ar-IQ", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
+  const timestamp = new Date().toLocaleString('ar-IQ', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
   });
 
   return (
@@ -75,7 +67,10 @@ export function ErrorFallback({ error, resetError, errorCount, onResetApp }: Err
 
         {__DEV__ ? (
           <View style={[styles.errorPreview, { backgroundColor: colors.card }]}>
-            <Text style={[styles.errorPreviewText, { color: colors.mutedForeground }]} numberOfLines={2}>
+            <Text
+              style={[styles.errorPreviewText, { color: colors.mutedForeground }]}
+              numberOfLines={2}
+            >
               {error.message}
             </Text>
           </View>
@@ -149,11 +144,17 @@ export function ErrorFallback({ error, resetError, errorCount, onResetApp }: Err
 
               <ScrollView
                 style={styles.modalScrollView}
-                contentContainerStyle={[styles.modalScrollContent, { paddingBottom: insets.bottom + 16 }]}
+                contentContainerStyle={[
+                  styles.modalScrollContent,
+                  { paddingBottom: insets.bottom + 16 },
+                ]}
                 showsVerticalScrollIndicator
               >
                 <View style={[styles.errorContainer, { backgroundColor: colors.card }]}>
-                  <Text style={[styles.errorText, { color: colors.foreground, fontFamily: monoFont }]} selectable>
+                  <Text
+                    style={[styles.errorText, { color: colors.foreground, fontFamily: monoFont }]}
+                    selectable
+                  >
                     {formatErrorDetails()}
                   </Text>
                 </View>
@@ -169,48 +170,48 @@ export function ErrorFallback({ error, resetError, errorCount, onResetApp }: Err
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 24,
   },
   content: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 16,
-    width: "100%",
+    width: '100%',
     maxWidth: 600,
   },
   title: {
     fontSize: 24,
-    fontWeight: "700",
-    textAlign: "center",
+    fontWeight: '700',
+    textAlign: 'center',
     lineHeight: 36,
   },
   message: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 24,
   },
   errorPreview: {
-    width: "100%",
+    width: '100%',
     padding: 12,
     borderRadius: 8,
   },
   errorPreviewText: {
     fontSize: 13,
-    textAlign: "center",
+    textAlign: 'center',
   },
   topButton: {
-    position: "absolute",
+    position: 'absolute',
     right: 16,
     width: 44,
     height: 44,
     borderRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 10,
   },
   button: {
@@ -218,11 +219,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 24,
     minWidth: 200,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -234,25 +235,25 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   buttonText: {
-    fontWeight: "600",
-    textAlign: "center",
+    fontWeight: '600',
+    textAlign: 'center',
     fontSize: 16,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
   },
   modalContainer: {
-    width: "100%",
-    height: "90%",
+    width: '100%',
+    height: '90%',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
   modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 12,
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   timestamp: {
     fontSize: 12,
@@ -269,8 +270,8 @@ const styles = StyleSheet.create({
   closeButton: {
     width: 44,
     height: 44,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalScrollView: {
     flex: 1,
@@ -279,14 +280,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   errorContainer: {
-    width: "100%",
+    width: '100%',
     borderRadius: 8,
-    overflow: "hidden",
+    overflow: 'hidden',
     padding: 16,
   },
   errorText: {
     fontSize: 12,
     lineHeight: 18,
-    width: "100%",
+    width: '100%',
   },
 });

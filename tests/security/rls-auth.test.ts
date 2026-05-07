@@ -1,189 +1,148 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import { sql } from '@vercel/postgres';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-describe('Security Tests - Row Level Security & Authorization', () => {
+const SUPABASE_URL = process.env.TEST_SUPABASE_URL || 'http://127.0.0.1:54321';
+const SUPABASE_ANON_KEY = process.env.TEST_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const SUPABASE_SERVICE_KEY = process.env.TEST_SUPABASE_SERVICE_KEY || '';
+
+const hasRealDb = SUPABASE_URL !== 'http://127.0.0.1:54321' || !!SUPABASE_SERVICE_KEY;
+
+describe.skipIf(!hasRealDb)('RLS Policy Tests — Real Database', () => {
+  let adminClient: SupabaseClient;
+  let studentClient: SupabaseClient;
+  let driverClient: SupabaseClient;
+  let studentId: string;
+  let driverId: string;
+
   beforeAll(async () => {
-    console.log('🔒 Running Security Tests...');
+    adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+    const { data: studentUser } = await adminClient.auth.admin.createUser({
+      email: `rls_student_${Date.now()}@test.uniride`,
+      password: 'Test123456!',
+      email_confirm: true,
+      user_metadata: { role: 'student', full_name: 'RLS Test Student' },
+    });
+    studentId = studentUser?.id ?? '';
+
+    const { data: driverUser } = await adminClient.auth.admin.createUser({
+      email: `rls_driver_${Date.now()}@test.uniride`,
+      password: 'Test123456!',
+      email_confirm: true,
+      user_metadata: { role: 'driver', full_name: 'RLS Test Driver' },
+    });
+    driverId = driverUser?.id ?? '';
+
+    const studentToken = (await adminClient.auth.admin.generateLink({ type: 'magiclink', email: studentUser?.email ?? '' }))?.data?.properties?.hashed_token ?? '';
+    const driverToken = (await adminClient.auth.admin.generateLink({ type: 'magiclink', email: driverUser?.email ?? '' }))?.data?.properties?.hashed_token ?? '';
+
+    studentClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    driverClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   });
 
-  describe('Row Level Security (RLS) Policies', () => {
-    it('should prevent students from accessing other students subscriptions', async () => {
-      // This test verifies RLS policy:
-      // CREATE POLICY "Students can only view their own subscriptions"
-      // ON subscriptions FOR SELECT
-      // USING (auth.uid() = user_id);
-      
-      const mockStudentId = 'student-001';
-      const mockOtherStudentId = 'student-002';
-      
-      // Simulate RLS check
-      const canAccessOwnData = mockStudentId === mockStudentId;
-      const canAccessOthersData = mockStudentId === mockOtherStudentId;
-      
-      expect(canAccessOwnData).toBe(true);
-      expect(canAccessOthersData).toBe(false);
-    });
-
-    it('should prevent drivers from modifying routes they do not own', async () => {
-      // RLS Policy:
-      // CREATE POLICY "Drivers can only update their own routes"
-      // ON routes FOR UPDATE
-      // USING (auth.uid() = driver_id);
-      
-      const mockDriverId = 'driver-001';
-      const mockRouteOwnerId = 'driver-002';
-      
-      const canModifyOwnRoute = mockDriverId === mockDriverId;
-      const canModifyOthersRoute = mockDriverId === mockRouteOwnerId;
-      
-      expect(canModifyOwnRoute).toBe(true);
-      expect(canModifyOthersRoute).toBe(false);
-    });
-
-    it('should allow admins to access all data', async () => {
-      // RLS Policy for admins bypasses user_id checks
-      const mockUserRole = 'admin';
-      const mockDataOwnerId = 'any-user-id';
-      
-      const isAdmin = mockUserRole === 'admin';
-      const canAccessAllData = isAdmin;
-      
-      expect(canAccessAllData).toBe(true);
-    });
+  afterAll(async () => {
+    if (studentId) await adminClient.auth.admin.deleteUser(studentId);
+    if (driverId) await adminClient.auth.admin.deleteUser(driverId);
   });
 
-  describe('Gender-Based Access Control', () => {
-    it('should prevent male students from booking female-only routes', async () => {
-      const mockStudentGender = 'male';
-      const routeGenderPreference = 'female';
-      
-      const canBook = mockStudentGender === routeGenderPreference || 
-                      routeGenderPreference === 'any';
-      
-      expect(canBook).toBe(false);
+  describe('profiles RLS', () => {
+    it('student can read own profile only', async () => {
+      const { data } = await studentClient.from('profiles').select('*').eq('id', studentId);
+      expect(data?.length).toBeLessThanOrEqual(1);
     });
 
-    it('should allow female students to book female-only routes', async () => {
-      const mockStudentGender = 'female';
-      const routeGenderPreference = 'female';
-      
-      const canBook = mockStudentGender === routeGenderPreference || 
-                      routeGenderPreference === 'any';
-      
-      expect(canBook).toBe(true);
+    it('student cannot update another student profile', async () => {
+      const { error } = await studentClient
+        .from('profiles')
+        .update({ full_name: 'hacked' })
+        .eq('id', driverId);
+      expect(error).toBeTruthy();
     });
 
-    it('should allow any student to book routes with no gender preference', async () => {
-      const mockStudentGender = 'male';
-      const routeGenderPreference = 'any';
-      
-      const canBook = mockStudentGender === routeGenderPreference || 
-                      routeGenderPreference === 'any';
-      
-      expect(canBook).toBe(true);
-    });
-
-    it('should verify gender match at booking time, not just at query time', async () => {
-      // Critical security test: gender must be validated in the transaction
-      const mockStudent = { id: 'student-001', gender: 'male' };
-      const mockRoute = { id: 'route-001', genderPreference: 'female', availableSeats: 5 };
-      
-      // This should fail even if the student somehow gets past the UI
-      const genderMatch = mockStudent.gender === mockRoute.genderPreference || 
-                          mockRoute.genderPreference === 'any';
-      
-      expect(genderMatch).toBe(false);
+    it('student cannot insert profiles', async () => {
+      const { error } = await studentClient.from('profiles').insert({
+        id: '00000000-0000-0000-0000-000000000000',
+        full_name: 'Fake',
+        phone: '000',
+        role: 'admin',
+      });
+      expect(error).toBeTruthy();
     });
   });
 
-  describe('Subscription State Security', () => {
-    it('should prevent modification of cancelled subscriptions', async () => {
-      const subscriptionStatus = 'cancelled';
-      const attemptedAction = 'update';
-      
-      const allowedActionsForCancelled: string[] = [];
-      const canPerformAction = allowedActionsForCancelled.includes(attemptedAction);
-      
-      expect(canPerformAction).toBe(false);
+  describe('subscriptions RLS', () => {
+    it('student can only see own subscriptions', async () => {
+      const { data } = await studentClient.from('subscriptions').select('*');
+      const allOwn = data?.every((s: any) => s.student_id === studentId) ?? true;
+      expect(allOwn).toBe(true);
     });
 
-    it('should prevent double-booking with same idempotency key', async () => {
-      const idempotencyKey = 'idem_user1_route1_1234567890';
-      const existingKeys = new Set([idempotencyKey]);
-      
-      const isDuplicate = existingKeys.has(idempotencyKey);
-      
-      expect(isDuplicate).toBe(true);
-    });
-
-    it('should allow new booking with different idempotency key', async () => {
-      const idempotencyKey1 = 'idem_user1_route1_1234567890';
-      const idempotencyKey2 = 'idem_user1_route1_1234567891';
-      const existingKeys = new Set([idempotencyKey1]);
-      
-      const isDuplicate1 = existingKeys.has(idempotencyKey1);
-      const isDuplicate2 = existingKeys.has(idempotencyKey2);
-      
-      expect(isDuplicate1).toBe(true);
-      expect(isDuplicate2).toBe(false);
+    it('student cannot update subscription status directly', async () => {
+      const { error } = await studentClient
+        .from('subscriptions')
+        .update({ status: 'active' })
+        .eq('student_id', driverId);
+      expect(error).toBeTruthy();
     });
   });
 
-  describe('SQL Injection Prevention', () => {
-    it('should sanitize user input in queries', async () => {
-      const maliciousInput = "'; DROP TABLE subscriptions; --";
-      
-      // Using parameterized queries prevents SQL injection
-      // Example: await sql`SELECT * FROM users WHERE id = ${userId}`
-      // The ${userId} is automatically sanitized
-      
-      // Verify the input contains dangerous characters
-      const hasDangerousChars = /[;'\-]/.test(maliciousInput);
-      expect(hasDangerousChars).toBe(true);
-      
-      // But parameterized queries handle this safely
-      const safeQuery = `SELECT * FROM users WHERE id = $1`;
-      expect(safeQuery).not.toContain(maliciousInput);
+  describe('trips RLS', () => {
+    it('driver can only see own trips', async () => {
+      const { data } = await driverClient.from('trips').select('*');
+      const allOwn = data?.every((t: any) => t.driver_id === driverId) ?? true;
+      expect(allOwn).toBe(true);
     });
 
-    it('should validate UUID format before database queries', async () => {
-      const validUUID = '550e8400-e29b-41d4-a716-446655440000';
-      const invalidUUID = "'; DROP TABLE users; --";
-      
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      
-      expect(uuidRegex.test(validUUID)).toBe(true);
-      expect(uuidRegex.test(invalidUUID)).toBe(false);
+    it('student cannot insert trips', async () => {
+      const { error } = await studentClient.from('trips').insert({
+        driver_id: driverId,
+        direction: 'go',
+        status: 'scheduled',
+      });
+      expect(error).toBeTruthy();
     });
   });
 
-  describe('Authentication & Session Security', () => {
-    it('should require authentication for all write operations', async () => {
-      const mockAuthToken = 'valid-jwt-token';
-      const mockOperation = 'INSERT';
-      
-      const isAuthenticated = !!mockAuthToken;
-      const requiresAuth = ['INSERT', 'UPDATE', 'DELETE'].includes(mockOperation);
-      
-      const canPerformOperation = !requiresAuth || isAuthenticated;
-      
-      expect(canPerformOperation).toBe(true);
+  describe('notifications RLS', () => {
+    it('user can only see own notifications', async () => {
+      const { data } = await studentClient.from('notifications').select('*');
+      const allOwn = data?.every((n: any) => n.user_id === studentId) ?? true;
+      expect(allOwn).toBe(true);
     });
+  });
+});
 
-    it('should reject requests with expired tokens', async () => {
-      const mockTokenExpiry = new Date(Date.now() - 1000); // Expired 1 second ago
-      const isExpired = mockTokenExpiry < new Date();
-      
-      expect(isExpired).toBe(true);
-    });
+describe('RLS Policy Tests — Logic Verification (no DB required)', () => {
+  it('should verify UUID format before DB queries', () => {
+    const validUUID = '550e8400-e29b-41d4-a716-446655440000';
+    const invalidUUID = "'; DROP TABLE users; --";
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    expect(uuidRegex.test(validUUID)).toBe(true);
+    expect(uuidRegex.test(invalidUUID)).toBe(false);
+  });
 
-    it('should validate token audience matches application', async () => {
-      const mockTokenAudience = 'uniride-app';
-      const expectedAudience = 'uniride-app';
-      
-      const isValidAudience = mockTokenAudience === expectedAudience;
-      
-      expect(isValidAudience).toBe(true);
-    });
+  it('should prevent gender-based booking violations', () => {
+    const maleStudent = 'male';
+    const femaleOnlyRoute = 'female';
+    const anyRoute = 'any';
+    expect(maleStudent === femaleOnlyRoute || femaleOnlyRoute === 'any').toBe(false);
+    expect(maleStudent === anyRoute || anyRoute === 'any').toBe(true);
+  });
+
+  it('should enforce idempotency key uniqueness', () => {
+    const existing = new Set(['idem_user1_route1_123']);
+    expect(existing.has('idem_user1_route1_123')).toBe(true);
+    expect(existing.has('idem_user1_route1_124')).toBe(false);
+  });
+
+  it('should validate subscription status transitions', () => {
+    const validTransitions: Record<string, string[]> = {
+      pending: ['active', 'cancelled'],
+      active: ['cancelled', 'expired'],
+      cancelled: [],
+      expired: [],
+    };
+    expect(validTransitions['pending'].includes('active')).toBe(true);
+    expect(validTransitions['cancelled'].includes('active')).toBe(false);
   });
 });

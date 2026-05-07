@@ -3,6 +3,7 @@
 🎓 **UniRide** is a comprehensive platform designed to facilitate transportation for university students in Iraq. It connects students with verified drivers, managing subscriptions, daily routes, and payments with a focus on safety and reliability.
 
 ## 📚 Documentation
+
 This repository contains detailed documentation to help you understand, run, and contribute to the project:
 
 - [**System Architecture**](./docs/architecture.md) - Learn about the monorepo structure, database design, and tech stack.
@@ -19,4 +20,5 @@ This repository contains detailed documentation to help you understand, run, and
 - **Testing:** Vitest.
 
 ---
-*Built to streamline student mobility across Iraqi Universities.*
+
+_Built to streamline student mobility across Iraqi Universities._

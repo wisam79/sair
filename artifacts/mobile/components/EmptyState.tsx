@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native";
-import FeatherIcon from "@/components/FeatherIcon";
-import { useColors } from "@/hooks/useColors";
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import FeatherIcon from '@/components/FeatherIcon';
+import { useColors } from '@/hooks/useColors';
 
 interface Props {
   icon: string;
@@ -48,27 +48,20 @@ export default function EmptyState({
         styles.container,
         {
           backgroundColor: colors.card,
-          borderColor: colors.border || "#E8EDF5",
+          borderColor: colors.border || '#E8EDF5',
           opacity: opacityAnim,
           transform: [{ scale: scaleAnim }],
         },
       ]}
     >
-      <View
-        style={[
-          styles.iconCircle,
-          { backgroundColor: `${iconColor}15` },
-        ]}
-      >
+      <View style={[styles.iconCircle, { backgroundColor: `${iconColor}15` }]}>
         <FeatherIcon name={icon} size={32} color={iconColor} />
       </View>
 
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
 
       {description && (
-        <Text style={[styles.description, { color: colors.muted }]}>
-          {description}
-        </Text>
+        <Text style={[styles.description, { color: colors.muted }]}>{description}</Text>
       )}
 
       {actionLabel && onAction && (
@@ -87,8 +80,8 @@ export default function EmptyState({
 const styles = StyleSheet.create({
   container: {
     padding: 32,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 20,
     borderWidth: 1,
     marginHorizontal: 20,
@@ -98,20 +91,20 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 20,
   },
   title: {
     fontSize: 17,
-    fontFamily: "Inter_600SemiBold",
-    textAlign: "center",
+    fontFamily: 'Inter_600SemiBold',
+    textAlign: 'center',
     marginBottom: 8,
   },
   description: {
     fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
+    fontFamily: 'Inter_400Regular',
+    textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
   },
@@ -120,11 +113,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 14,
     minWidth: 140,
-    alignItems: "center",
+    alignItems: 'center',
   },
   buttonText: {
-    color: "#FFFFFF",
+    color: '#FFFFFF',
     fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
   },
 });

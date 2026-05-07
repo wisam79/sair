@@ -1,5 +1,5 @@
-import FeatherIcon from "@/components/FeatherIcon";
-import React from "react";
+import FeatherIcon from '@/components/FeatherIcon';
+import React from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -8,10 +8,10 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useColors } from "@/hooks/useColors";
+import { useColors } from '@/hooks/useColors';
 
 interface ScreenWrapperProps {
   children: React.ReactNode;
@@ -29,7 +29,7 @@ interface ScreenWrapperProps {
   onEmptyAction?: () => void;
   scrollEnabled?: boolean;
   contentContainerStyle?: object;
-  safeAreaEdges?: ("top" | "bottom" | "left" | "right")[];
+  safeAreaEdges?: ('top' | 'bottom' | 'left' | 'right')[];
   bottomPadding?: number;
 }
 
@@ -38,28 +38,28 @@ export default function ScreenWrapper({
   refreshing = false,
   onRefresh,
   isLoading = false,
-  loadingMessage = "جاري التحميل...",
+  loadingMessage = 'جاري التحميل...',
   error = null,
   onDismissError,
   isEmpty = false,
-  emptyIcon = "inbox",
-  emptyTitle = "لا توجد بيانات",
+  emptyIcon = 'inbox',
+  emptyTitle = 'لا توجد بيانات',
   emptyDescription,
   emptyActionLabel,
   onEmptyAction,
   scrollEnabled = true,
   contentContainerStyle,
-  safeAreaEdges = ["bottom"],
+  safeAreaEdges = ['bottom'],
   bottomPadding = 100,
 }: ScreenWrapperProps) {
   const colors = useColors();
 
   const emptyIconMap: Record<string, string> = {
-    inbox: "inbox",
-    map: "map",
-    clock: "clock",
-    users: "users",
-    truck: "truck",
+    inbox: 'inbox',
+    map: 'map',
+    clock: 'clock',
+    users: 'users',
+    truck: 'truck',
   };
 
   if (isLoading) {
@@ -84,7 +84,7 @@ export default function ScreenWrapper({
       style={[styles.container, { backgroundColor: colors.background }]}
     >
       {error ? (
-        <View style={[styles.errorBanner, { backgroundColor: "#FEE2E2", borderColor: "#FECACA" }]}>
+        <View style={[styles.errorBanner, { backgroundColor: '#FEE2E2', borderColor: '#FECACA' }]}>
           <FeatherIcon name="alert-circle" size={16} color="#DC2626" />
           <Text style={styles.errorText}>{error}</Text>
           {onDismissError && (
@@ -146,7 +146,7 @@ export default function ScreenWrapper({
       )}
 
       {isLoading && (
-        <View style={[styles.overlaySpinner, { backgroundColor: "rgba(255,255,255,0.6)" }]}>
+        <View style={[styles.overlaySpinner, { backgroundColor: 'rgba(255,255,255,0.6)' }]}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       )}
@@ -160,17 +160,17 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 16 },
   loadingContainer: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 16,
   },
   loadingText: {
     fontSize: 15,
-    fontFamily: "Inter_400Regular",
+    fontFamily: 'Inter_400Regular',
   },
   errorBanner: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginHorizontal: 16,
     marginTop: 12,
     padding: 12,
@@ -181,17 +181,17 @@ const styles = StyleSheet.create({
   errorText: {
     flex: 1,
     fontSize: 13,
-    fontFamily: "Inter_500Medium",
-    color: "#DC2626",
-    textAlign: "right",
+    fontFamily: 'Inter_500Medium',
+    color: '#DC2626',
+    textAlign: 'right',
   },
   errorDismiss: {
     padding: 4,
   },
   emptyContainer: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 32,
     gap: 12,
   },
@@ -199,19 +199,19 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 8,
   },
   emptyTitle: {
     fontSize: 18,
-    fontFamily: "Inter_600SemiBold",
-    textAlign: "center",
+    fontFamily: 'Inter_600SemiBold',
+    textAlign: 'center',
   },
   emptyDescription: {
     fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
+    fontFamily: 'Inter_400Regular',
+    textAlign: 'center',
     lineHeight: 22,
     maxWidth: 280,
   },
@@ -222,14 +222,14 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   emptyButtonText: {
-    color: "#FFFFFF",
+    color: '#FFFFFF',
     fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
   },
   overlaySpinner: {
     ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 100,
   },
 });

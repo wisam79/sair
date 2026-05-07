@@ -1,85 +1,149 @@
 import { describe, it, expect } from 'vitest';
-import { createMockAppSettings } from '../setup';
+import {
+  createMoney,
+  calculateCommission,
+  calculateDriverPayout,
+  calculatePerTripCost,
+  calculateReferralDiscount,
+  calculateSavings,
+  toNumberValue,
+  formatMoney,
+} from '../../artifacts/mobile/lib/money';
 
-// Financial Engine Service (Mock Implementation)
-// In a real scenario, this would be imported from the actual service module
-class FinancialService {
-  static calculateSubscription(monthlyFee: number, commissionRate: number) {
-    if (monthlyFee < 0) throw new Error('Monthly fee cannot be negative');
-    if (commissionRate < 0 || commissionRate > 100) throw new Error('Invalid commission rate');
-
-    const commissionAmount = Math.round(monthlyFee * (commissionRate / 100));
-    const driverPayout = monthlyFee - commissionAmount;
-
-    return {
-      monthlyFee,
-      commissionRate,
-      commissionAmount,
-      driverPayout
-    };
-  }
-
-  static applyReferralDiscount(monthlyFee: number, discountAmount: number) {
-    if (discountAmount < 0) throw new Error('Discount cannot be negative');
-    if (discountAmount > monthlyFee) throw new Error('Discount cannot exceed monthly fee');
-    
-    return monthlyFee - discountAmount;
-  }
-}
-
-describe('Financial Engine Unit Tests', () => {
-  const appSettings = createMockAppSettings();
-  const defaultCommissionRate = parseFloat(appSettings.default_commission_rate); // 15%
-
-  describe('Commission Calculations', () => {
-    it('should correctly calculate commission and driver payout for base subscription', () => {
-      const baseFee = 90000;
-      
-      const result = FinancialService.calculateSubscription(baseFee, defaultCommissionRate);
-      
-      expect(result.monthlyFee).toBe(90000);
-      expect(result.commissionAmount).toBe(13500); // 15% of 90,000
-      expect(result.driverPayout).toBe(76500); // 90,000 - 13,500
-      
-      // Total should always match
-      expect(result.commissionAmount + result.driverPayout).toBe(baseFee);
+describe('Financial Engine — Real Money Module Tests', () => {
+  describe('calculatePerTripCost', () => {
+    it('should correctly divide monthly fee by total trips (22 days × 2 trips)', () => {
+      const monthlyFee = createMoney(90000);
+      const perTrip = calculatePerTripCost(monthlyFee, 22, 2);
+      expect(toNumberValue(perTrip)).toBe(2045);
     });
 
-    it('should handle different commission rates accurately', () => {
-      const result10Percent = FinancialService.calculateSubscription(100000, 10);
-      expect(result10Percent.commissionAmount).toBe(10000);
-      expect(result10Percent.driverPayout).toBe(90000);
-
-      const result20Percent = FinancialService.calculateSubscription(80000, 20);
-      expect(result20Percent.commissionAmount).toBe(16000);
-      expect(result20Percent.driverPayout).toBe(64000);
+    it('should use floor division to avoid floating-point errors', () => {
+      const monthlyFee = createMoney(90000);
+      const perTrip = calculatePerTripCost(monthlyFee, 22, 2);
+      const totalTrips = 22 * 2;
+      const expected = Math.floor(90000 / totalTrips);
+      expect(toNumberValue(perTrip)).toBe(expected);
     });
 
-    it('should reject negative monthly fees', () => {
-      expect(() => FinancialService.calculateSubscription(-50000, 15)).toThrow('Monthly fee cannot be negative');
+    it('should handle default tripsPerDay=2', () => {
+      const monthlyFee = createMoney(90000);
+      const perTrip = calculatePerTripCost(monthlyFee, 22);
+      expect(toNumberValue(perTrip)).toBe(2045);
     });
 
-    it('should reject invalid commission rates', () => {
-      expect(() => FinancialService.calculateSubscription(90000, -5)).toThrow('Invalid commission rate');
-      expect(() => FinancialService.calculateSubscription(90000, 150)).toThrow('Invalid commission rate');
+    it('should handle single trip per day', () => {
+      const monthlyFee = createMoney(90000);
+      const perTrip = calculatePerTripCost(monthlyFee, 22, 1);
+      expect(toNumberValue(perTrip)).toBe(Math.floor(90000 / 22));
+    });
+
+    it('should produce integer results (no fractional IQD)', () => {
+      const monthlyFee = createMoney(90000);
+      const perTrip = calculatePerTripCost(monthlyFee, 22, 2);
+      expect(Number.isInteger(toNumberValue(perTrip))).toBe(true);
     });
   });
 
-  describe('Referral & Discounts', () => {
-    it('should accurately apply fixed referral discount', () => {
-      const baseFee = 90000;
-      const discount = 5000; // As per business rules
-      
-      const discountedFee = FinancialService.applyReferralDiscount(baseFee, discount);
-      expect(discountedFee).toBe(85000);
+  describe('calculateCommission', () => {
+    it('should calculate 15% commission on 90,000 IQD', () => {
+      const monthlyFee = createMoney(90000);
+      const commission = calculateCommission(monthlyFee, 15);
+      expect(toNumberValue(commission)).toBe(13500);
     });
 
-    it('should reject negative discounts', () => {
-      expect(() => FinancialService.applyReferralDiscount(90000, -1000)).toThrow('Discount cannot be negative');
+    it('should calculate 20% commission on 80,000 IQD', () => {
+      const monthlyFee = createMoney(80000);
+      const commission = calculateCommission(monthlyFee, 20);
+      expect(toNumberValue(commission)).toBe(16000);
     });
 
-    it('should prevent discounts larger than the base fee', () => {
-      expect(() => FinancialService.applyReferralDiscount(90000, 100000)).toThrow('Discount cannot exceed monthly fee');
+    it('should produce integer commission values', () => {
+      const monthlyFee = createMoney(99001);
+      const commission = calculateCommission(monthlyFee, 15);
+      expect(Number.isInteger(toNumberValue(commission))).toBe(true);
+    });
+
+    it('should handle 0% commission', () => {
+      const monthlyFee = createMoney(90000);
+      const commission = calculateCommission(monthlyFee, 0);
+      expect(toNumberValue(commission)).toBe(0);
+    });
+  });
+
+  describe('calculateDriverPayout', () => {
+    it('should subtract commission from monthly fee', () => {
+      const monthlyFee = createMoney(90000);
+      const commission = createMoney(13500);
+      const payout = calculateDriverPayout(monthlyFee, commission);
+      expect(toNumberValue(payout)).toBe(76500);
+    });
+
+    it('should equal monthly fee when commission is 0', () => {
+      const monthlyFee = createMoney(90000);
+      const commission = createMoney(0);
+      const payout = calculateDriverPayout(monthlyFee, commission);
+      expect(toNumberValue(payout)).toBe(90000);
+    });
+
+    it('should equal 0 when commission equals monthly fee', () => {
+      const monthlyFee = createMoney(90000);
+      const commission = createMoney(90000);
+      const payout = calculateDriverPayout(monthlyFee, commission);
+      expect(toNumberValue(payout)).toBe(0);
+    });
+  });
+
+  describe('calculateReferralDiscount', () => {
+    it('should subtract flat discount from amount', () => {
+      const amount = createMoney(90000);
+      const discounted = calculateReferralDiscount(amount, 5000);
+      expect(toNumberValue(discounted)).toBe(85000);
+    });
+
+    it('should handle 0 discount', () => {
+      const amount = createMoney(90000);
+      const discounted = calculateReferralDiscount(amount, 0);
+      expect(toNumberValue(discounted)).toBe(90000);
+    });
+  });
+
+  describe('calculateSavings', () => {
+    it('should calculate difference between original and discounted', () => {
+      const original = createMoney(90000);
+      const discounted = createMoney(85000);
+      const savings = calculateSavings(original, discounted);
+      expect(toNumberValue(savings)).toBe(5000);
+    });
+  });
+
+  describe('Financial Consistency Invariants', () => {
+    it('commission + driver payout = monthly fee (no money lost)', () => {
+      const monthlyFee = createMoney(90000);
+      const commission = calculateCommission(monthlyFee, 15);
+      const payout = calculateDriverPayout(monthlyFee, commission);
+      expect(toNumberValue(commission) + toNumberValue(payout)).toBe(90000);
+    });
+
+    it('per-trip cost × total trips ≤ monthly fee (never over-pays)', () => {
+      const monthlyFee = createMoney(90000);
+      const perTrip = calculatePerTripCost(monthlyFee, 22, 2);
+      const totalTrips = 22 * 2;
+      expect(toNumberValue(perTrip) * totalTrips).toBeLessThanOrEqual(90000);
+    });
+
+    it('referral discount never makes fee negative', () => {
+      const amount = createMoney(5000);
+      const discounted = calculateReferralDiscount(amount, 5000);
+      expect(toNumberValue(discounted)).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('formatMoney', () => {
+    it('should format money with IQD suffix', () => {
+      const money = createMoney(90000);
+      expect(formatMoney(money)).toContain('90000');
+      expect(formatMoney(money)).toContain('IQD');
     });
   });
 });

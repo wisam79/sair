@@ -1,1 +1,1 @@
-export { Feather as default } from "@expo/vector-icons";
+export { Feather as default } from '@expo/vector-icons';

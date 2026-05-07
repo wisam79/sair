@@ -1,8 +1,8 @@
-import { TripStatusCard } from "@/components/TripStatusCard";
-import FeatherIcon from "@/components/FeatherIcon";
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { TripStatusCard } from '@/components/TripStatusCard';
+import FeatherIcon from '@/components/FeatherIcon';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   RefreshControl,
   ScrollView,
@@ -13,34 +13,31 @@ import {
   Animated,
   Platform,
   Share,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQueryClient } from '@tanstack/react-query';
 
-import ScreenWrapper from "@/components/ScreenWrapper";
-import EmptyState from "@/components/EmptyState";
-import RatingModal from "@/components/RatingModal";
-import { useAuth, useTrip, type TripData } from "@/context";
-import { useColors } from "@/hooks/useColors";
+import ScreenWrapper from '@/components/ScreenWrapper';
+import EmptyState from '@/components/EmptyState';
+import RatingModal from '@/components/RatingModal';
+import { useAuthStore, useTripStore, type TripData } from '@/stores';
+import { useColors } from '@/hooks/useColors';
+import { useTripHistoryQuery } from '@/hooks';
+import { formatArabicDayName, formatArabicDate, formatTimeArabic, format, arSA } from '@/lib/dates';
 
 const STATUS_MAP: Record<string, { label: string; color: (c: any) => string }> = {
-  scheduled: { label: "مجدولة", color: (c) => c.primary },
-  driver_waiting: { label: "بانتظار السائق", color: (c) => c.warning },
-  in_transit: { label: "جارية", color: (c) => c.success },
-  completed: { label: "مكتملة", color: (c) => c.success },
-  cancelled: { label: "ملغاة", color: (c) => c.destructive },
-  absent: { label: "غائب", color: (c) => c.destructive },
+  scheduled: { label: 'مجدولة', color: (c) => c.primary },
+  driver_waiting: { label: 'بانتظار السائق', color: (c) => c.warning },
+  in_transit: { label: 'جارية', color: (c) => c.success },
+  completed: { label: 'مكتملة', color: (c) => c.success },
+  cancelled: { label: 'ملغاة', color: (c) => c.destructive },
+  absent: { label: 'غائب', color: (c) => c.destructive },
 };
 
-function TripHistoryItem({
-  trip,
-  role,
-}: {
-  trip: TripData;
-  role: "student" | "driver";
-}) {
+function TripHistoryItem({ trip, role }: { trip: TripData; role: 'student' | 'driver' }) {
   const colors = useColors();
   const router = useRouter();
-  const { fetchTripHistory } = useTrip();
+  const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(false);
   const [showRating, setShowRating] = useState(false);
 
@@ -51,21 +48,10 @@ function TripHistoryItem({
   const statusColor = statusInfo.color(colors);
 
   const date = new Date(trip.started_at ?? trip.trip_date);
-  const arabicDays = [
-    "الأحد", "الاثنين", "الثلاثاء", "الأربعاء",
-    "الخميس", "الجمعة", "السبت",
-  ];
-  const arabicMonths = [
-    "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
-    "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر",
-  ];
-  const dateStr = `${arabicDays[date.getDay()]}، ${date.getDate()} ${arabicMonths[date.getMonth()]}`;
-  const timeStr = date.toLocaleTimeString("ar-IQ", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const dateStr = `${formatArabicDayName(date)}، ${format(date, 'd MMMM', { locale: arSA })}`;
+  const timeStr = formatTimeArabic(date);
 
-  const directionLabel = trip.direction === "go" ? "ذهاب" : "إياب";
+  const directionLabel = trip.direction === 'go' ? 'ذهاب' : 'إياب';
 
   const handleShare = () => {
     Share.share({
@@ -84,19 +70,15 @@ function TripHistoryItem({
         <View style={styles.tripMain}>
           <View style={styles.routeRow}>
             <FeatherIcon name="map-pin" size={12} color={colors.success} />
-            <Text style={[styles.tripRoute, { color: colors.foreground }]}>
-              {directionLabel}
-            </Text>
+            <Text style={[styles.tripRoute, { color: colors.foreground }]}>{directionLabel}</Text>
           </View>
           <Text style={[styles.tripMeta, { color: colors.mutedForeground }]}>
             {dateStr} · {timeStr}
           </Text>
         </View>
         <View style={styles.tripRight}>
-          <View style={[styles.miniStatus, { backgroundColor: statusColor + "15" }]}>
-            <Text style={[styles.miniStatusText, { color: statusColor }]}>
-              {statusInfo.label}
-            </Text>
+          <View style={[styles.miniStatus, { backgroundColor: statusColor + '15' }]}>
+            <Text style={[styles.miniStatusText, { color: statusColor }]}>{statusInfo.label}</Text>
           </View>
         </View>
       </View>
@@ -111,9 +93,7 @@ function TripHistoryItem({
           </View>
           <View style={styles.detailRow}>
             <FeatherIcon name="navigation" size={14} color={colors.mutedForeground} />
-            <Text style={[styles.detailText, { color: colors.foreground }]}>
-              {directionLabel}
-            </Text>
+            <Text style={[styles.detailText, { color: colors.foreground }]}>{directionLabel}</Text>
           </View>
 
           <View style={styles.actionRow}>
@@ -131,13 +111,16 @@ function TripHistoryItem({
               <FeatherIcon name="file-text" size={14} color={colors.primary} />
               <Text style={[styles.actionBtnText, { color: colors.primary }]}>الإيصال</Text>
             </TouchableOpacity>
-            {role === "student" && trip.status === "completed" && (
+            {role === 'student' && trip.status === 'completed' && (
               <TouchableOpacity
                 onPress={() => setShowRating(true)}
-                style={[styles.actionBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]}
+                style={[
+                  styles.actionBtn,
+                  { backgroundColor: colors.primary, borderColor: colors.primary },
+                ]}
               >
                 <FeatherIcon name="star" size={14} color="#fff" />
-                <Text style={[styles.actionBtnText, { color: "#fff" }]}>تقييم</Text>
+                <Text style={[styles.actionBtnText, { color: '#fff' }]}>تقييم</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -152,7 +135,7 @@ function TripHistoryItem({
           onClose={() => setShowRating(false)}
           onSubmitted={() => {
             setShowRating(false);
-            fetchTripHistory();
+            queryClient.invalidateQueries({ queryKey: ['tripHistory'] });
           }}
         />
       )}
@@ -203,12 +186,7 @@ function FilterChip({
           },
         ]}
       >
-        <Text
-          style={[
-            styles.filterChipText,
-            { color: active ? "#fff" : colors.mutedForeground },
-          ]}
-        >
+        <Text style={[styles.filterChipText, { color: active ? '#fff' : colors.mutedForeground }]}>
           {label}
         </Text>
       </Animated.View>
@@ -219,68 +197,56 @@ function FilterChip({
 export default function TripsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
-  const { activeTrip, tripHistory, fetchTripHistory } = useTrip();
+  const { user } = useAuthStore();
+  const { activeTrip } = useTripStore();
+  const { data: tripHistory = [], refetch: refetchTripHistory } = useTripHistoryQuery();
 
-  const [filter, setFilter] = useState<"all" | "completed" | "cancelled" | "scheduled">("all");
+  const [filter, setFilter] = useState<'all' | 'completed' | 'cancelled' | 'scheduled'>('all');
   const [refreshing, setRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
-  const role = (user?.role === "driver" ? "driver" : "student") as "student" | "driver";
-
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    await fetchTripHistory();
-    setIsLoading(false);
-  }, [fetchTripHistory]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  const role = (user?.role === 'driver' ? 'driver' : 'student') as 'student' | 'driver';
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchTripHistory();
+    await refetchTripHistory();
     setRefreshing(false);
-  }, [fetchTripHistory]);
+  }, [refetchTripHistory]);
 
   const stats = useMemo(() => {
-    const completed = tripHistory.filter((t) => t.status === "completed").length;
-    const cancelled = tripHistory.filter((t) => t.status === "cancelled").length;
+    const completed = tripHistory.filter((t) => t.status === 'completed').length;
+    const cancelled = tripHistory.filter((t) => t.status === 'cancelled').length;
     const scheduled = tripHistory.filter(
-      (t) => t.status === "scheduled" || t.status === "driver_waiting" || t.status === "in_transit"
+      (t) => t.status === 'scheduled' || t.status === 'driver_waiting' || t.status === 'in_transit',
     ).length;
     return { completed, cancelled, scheduled };
   }, [tripHistory]);
 
   const filteredHistory = useMemo(() => {
-    if (filter === "all") return tripHistory;
-    if (filter === "scheduled")
+    if (filter === 'all') return tripHistory;
+    if (filter === 'scheduled')
       return tripHistory.filter(
-        (t) => t.status === "scheduled" || t.status === "driver_waiting" || t.status === "in_transit"
+        (t) =>
+          t.status === 'scheduled' || t.status === 'driver_waiting' || t.status === 'in_transit',
       );
     return tripHistory.filter((t) => t.status === filter);
   }, [tripHistory, filter]);
 
-  const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
-  const bottomPad = Platform.OS === "web" ? 34 : 0;
+  const topPad = insets.top + (Platform.OS === 'web' ? 67 : 0);
+  const bottomPad = Platform.OS === 'web' ? 34 : 0;
 
   return (
     <ScreenWrapper
       refreshing={refreshing}
       onRefresh={onRefresh}
-      isLoading={isLoading}
       bottomPadding={bottomPad + 100}
       contentContainerStyle={{ padding: 0 }}
     >
       <LinearGradient
-        colors={["#0D2847", "#1A3C6E"]}
+        colors={['#0D2847', '#1A3C6E']}
         style={[styles.header, { paddingTop: topPad + 16 }]}
       >
         <View style={styles.headerRow}>
-          <Text style={styles.headerTitle}>
-            {role === "student" ? "السفرات" : "الرحلات"}
-          </Text>
+          <Text style={styles.headerTitle}>{role === 'student' ? 'السفرات' : 'الرحلات'}</Text>
         </View>
         <Text style={styles.headerSub}>
           {stats.completed} مكتملة · {stats.cancelled} ملغاة · {stats.scheduled} قادمة
@@ -292,7 +258,11 @@ export default function TripsScreen() {
         contentContainerStyle={{ paddingBottom: bottomPad + 100 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+          />
         }
       >
         {activeTrip && (
@@ -311,17 +281,23 @@ export default function TripsScreen() {
               ]}
             >
               <View style={styles.summaryItem}>
-                <Text style={[styles.summaryValue, { color: colors.success }]}>{stats.completed}</Text>
+                <Text style={[styles.summaryValue, { color: colors.success }]}>
+                  {stats.completed}
+                </Text>
                 <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>مكتملة</Text>
               </View>
               <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
               <View style={styles.summaryItem}>
-                <Text style={[styles.summaryValue, { color: colors.destructive }]}>{stats.cancelled}</Text>
+                <Text style={[styles.summaryValue, { color: colors.destructive }]}>
+                  {stats.cancelled}
+                </Text>
                 <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>ملغاة</Text>
               </View>
               <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
               <View style={styles.summaryItem}>
-                <Text style={[styles.summaryValue, { color: colors.primary }]}>{stats.scheduled}</Text>
+                <Text style={[styles.summaryValue, { color: colors.primary }]}>
+                  {stats.scheduled}
+                </Text>
                 <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>قادمة</Text>
               </View>
             </View>
@@ -334,17 +310,17 @@ export default function TripsScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.filterScroll}
           >
-            {(["all", "scheduled", "completed", "cancelled"] as const).map((f) => (
+            {(['all', 'scheduled', 'completed', 'cancelled'] as const).map((f) => (
               <FilterChip
                 key={f}
                 label={
-                  f === "all"
-                    ? "الكل"
-                    : f === "scheduled"
-                    ? "القادمة"
-                    : f === "completed"
-                    ? "المكتملة"
-                    : "الملغاة"
+                  f === 'all'
+                    ? 'الكل'
+                    : f === 'scheduled'
+                      ? 'القادمة'
+                      : f === 'completed'
+                        ? 'المكتملة'
+                        : 'الملغاة'
                 }
                 active={filter === f}
                 onPress={() => setFilter(f)}
@@ -360,19 +336,17 @@ export default function TripsScreen() {
               icon="clock"
               title="لا توجد رحلات"
               description={
-                filter === "all"
-                  ? "لا توجد رحلات بعد"
-                  : filter === "scheduled"
-                  ? "لا توجد رحلات قادمة"
-                  : filter === "completed"
-                  ? "لم تكتمل أي رحلة بعد"
-                  : "لا توجد رحلات ملغاة"
+                filter === 'all'
+                  ? 'لا توجد رحلات بعد'
+                  : filter === 'scheduled'
+                    ? 'لا توجد رحلات قادمة'
+                    : filter === 'completed'
+                      ? 'لم تكتمل أي رحلة بعد'
+                      : 'لا توجد رحلات ملغاة'
               }
             />
           ) : (
-            filteredHistory.map((trip) => (
-              <TripHistoryItem key={trip.id} trip={trip} role={role} />
-            ))
+            filteredHistory.map((trip) => <TripHistoryItem key={trip.id} trip={trip} role={role} />)
           )}
         </View>
       </ScrollView>
@@ -386,20 +360,20 @@ const styles = StyleSheet.create({
     paddingBottom: 25,
   },
   headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 6,
   },
   headerTitle: {
     fontSize: 24,
-    fontFamily: "Inter_700Bold",
-    color: "#fff",
+    fontFamily: 'Inter_700Bold',
+    color: '#fff',
   },
   headerSub: {
     fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    color: "rgba(255,255,255,0.7)",
+    fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.7)',
   },
   content: {
     flex: 1,
@@ -409,7 +383,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: "Inter_700Bold",
+    fontFamily: 'Inter_700Bold',
     marginBottom: 16,
   },
   summaryWrapper: {
@@ -420,17 +394,17 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     elevation: 2,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
   },
   summaryItem: {
     flex: 1,
-    alignItems: "center",
+    alignItems: 'center',
   },
   summaryDivider: {
     width: 1,
@@ -439,13 +413,13 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 10,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
+    fontFamily: 'Inter_400Regular',
+    textAlign: 'center',
     marginTop: 4,
   },
   summaryValue: {
     fontSize: 20,
-    fontFamily: "Inter_700Bold",
+    fontFamily: 'Inter_700Bold',
   },
   filterContainer: {
     marginBottom: 16,
@@ -461,7 +435,7 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
   },
   tripItem: {
     borderRadius: 16,
@@ -469,14 +443,14 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     elevation: 2,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
     shadowRadius: 8,
   },
   tripItemTop: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
   },
   statusDot: {
@@ -488,21 +462,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   routeRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
     marginBottom: 4,
   },
   tripRoute: {
     fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
   },
   tripMeta: {
     fontSize: 12,
-    fontFamily: "Inter_400Regular",
+    fontFamily: 'Inter_400Regular',
   },
   tripRight: {
-    alignItems: "flex-end",
+    alignItems: 'flex-end',
   },
   miniStatus: {
     paddingHorizontal: 10,
@@ -511,7 +485,7 @@ const styles = StyleSheet.create({
   },
   miniStatusText: {
     fontSize: 11,
-    fontFamily: "Inter_700Bold",
+    fontFamily: 'Inter_700Bold',
   },
   tripDetails: {
     borderTopWidth: 1,
@@ -520,24 +494,24 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   detailText: {
     fontSize: 13,
-    fontFamily: "Inter_400Regular",
+    fontFamily: 'Inter_400Regular',
   },
   actionRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 10,
     marginTop: 6,
   },
   actionBtn: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
     paddingVertical: 10,
     borderRadius: 10,
@@ -545,6 +519,6 @@ const styles = StyleSheet.create({
   },
   actionBtnText: {
     fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: 'Inter_600SemiBold',
   },
 });

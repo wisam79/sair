@@ -1,14 +1,7 @@
-import React, { useState } from "react";
-import {
-  View,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ViewStyle,
-  Animated,
-} from "react-native";
-import FeatherIcon from "@/components/FeatherIcon";
-import { useColors } from "@/hooks/useColors";
+import React, { useState } from 'react';
+import { View, TextInput, TouchableOpacity, StyleSheet, ViewStyle, Animated } from 'react-native';
+import FeatherIcon from '@/components/FeatherIcon';
+import { useColors } from '@/hooks/useColors';
 
 interface Props {
   value: string;
@@ -45,7 +38,7 @@ export function SearchBar({ value, onChange, placeholder, onClear, style }: Prop
     if (onClear) {
       onClear();
     } else {
-      onChange("");
+      onChange('');
     }
   };
 
@@ -71,7 +64,7 @@ export function SearchBar({ value, onChange, placeholder, onClear, style }: Prop
       <TextInput
         value={value}
         onChangeText={onChange}
-        placeholder={placeholder || "ابحث..."}
+        placeholder={placeholder || 'ابحث...'}
         placeholderTextColor={colors.mutedForeground}
         style={[styles.input, { color: colors.text }]}
         onFocus={handleFocus}
@@ -89,13 +82,13 @@ export function SearchBar({ value, onChange, placeholder, onClear, style }: Prop
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
     height: 46,
     borderRadius: 14,
     borderWidth: 1,
     paddingHorizontal: 12,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -107,7 +100,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 14,
-    height: "100%",
+    height: '100%',
     paddingVertical: 0,
   },
   clearButton: {

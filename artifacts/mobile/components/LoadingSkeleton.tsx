@@ -1,7 +1,12 @@
-import React, { useEffect, useRef } from "react";
-import { Animated, StyleSheet, View, ViewStyle } from "react-native";
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, View, ViewStyle } from 'react-native';
 
-function SkeletonBox({ width, height, borderRadius = 8, style }: {
+function SkeletonBox({
+  width,
+  height,
+  borderRadius = 8,
+  style,
+}: {
   width?: number | string;
   height: number;
   borderRadius?: number;
@@ -14,7 +19,7 @@ function SkeletonBox({ width, height, borderRadius = 8, style }: {
       Animated.sequence([
         Animated.timing(opacity, { toValue: 0.7, duration: 700, useNativeDriver: true }),
         Animated.timing(opacity, { toValue: 0.3, duration: 700, useNativeDriver: true }),
-      ])
+      ]),
     );
     anim.start();
     return () => anim.stop();
@@ -24,10 +29,10 @@ function SkeletonBox({ width, height, borderRadius = 8, style }: {
     <Animated.View
       style={[
         {
-          width: (width ?? "100%") as any,
+          width: (width ?? '100%') as any,
           height,
           borderRadius,
-          backgroundColor: "#DDE3EE",
+          backgroundColor: '#DDE3EE',
           opacity,
         },
         style,
@@ -104,62 +109,62 @@ const styles = StyleSheet.create({
   driverCard: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#DDE3EE",
+    borderColor: '#DDE3EE',
     padding: 16,
     marginBottom: 12,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     gap: 12,
   },
   driverHeader: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
   },
   driverInfo: {
     flex: 1,
   },
   statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 8,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: "#DDE3EE",
+    borderColor: '#DDE3EE',
     paddingVertical: 10,
   },
   plansRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 8,
   },
   tripItem: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#DDE3EE",
+    borderColor: '#DDE3EE',
     padding: 14,
     marginBottom: 10,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
   },
   tripMain: {
     flex: 1,
   },
   tripRight: {
-    alignItems: "flex-end",
+    alignItems: 'flex-end',
   },
   statBoxRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     padding: 16,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#DDE3EE",
-    backgroundColor: "#fff",
+    borderColor: '#DDE3EE',
+    backgroundColor: '#fff',
     marginBottom: 12,
   },
   statBox: {
-    alignItems: "center",
+    alignItems: 'center',
     flex: 1,
   },
 });

@@ -1,28 +1,32 @@
-import { db } from "../index";
-import { routesTable } from "../schema/routes";
-import { eq, and, gt, desc, sql } from "drizzle-orm";
-import type { Route, InsertRoute } from "../schema/routes";
+import { db } from '../index';
+import { routesTable } from '../schema/routes';
+import { eq, and, gt, desc, sql } from 'drizzle-orm';
+import type { Route, InsertRoute } from '../schema/routes';
 
 export const routeRepository = {
   async findAll(limit = 50, offset = 0): Promise<Route[]> {
-    return db.select().from(routesTable)
+    return db
+      .select()
+      .from(routesTable)
       .where(eq(routesTable.isDeleted, false))
       .orderBy(desc(routesTable.createdAt))
-      .limit(limit).offset(offset);
+      .limit(limit)
+      .offset(offset);
   },
 
   async findById(id: string): Promise<Route | undefined> {
-    const [result] = await db.select().from(routesTable)
+    const [result] = await db
+      .select()
+      .from(routesTable)
       .where(and(eq(routesTable.id, id), eq(routesTable.isDeleted, false)));
     return result;
   },
 
   async findByDriver(driverId: string): Promise<Route[]> {
-    return db.select().from(routesTable)
-      .where(and(
-        eq(routesTable.driverId, driverId),
-        eq(routesTable.isDeleted, false)
-      ))
+    return db
+      .select()
+      .from(routesTable)
+      .where(and(eq(routesTable.driverId, driverId), eq(routesTable.isDeleted, false)))
       .orderBy(desc(routesTable.createdAt));
   },
 
@@ -37,7 +41,9 @@ export const routeRepository = {
       conditions.push(eq(routesTable.institutionId, institutionId));
     }
 
-    return db.select().from(routesTable)
+    return db
+      .select()
+      .from(routesTable)
       .where(and(...conditions))
       .orderBy(desc(routesTable.createdAt));
   },
@@ -48,7 +54,8 @@ export const routeRepository = {
   },
 
   async update(id: string, data: Partial<InsertRoute>): Promise<Route> {
-    const [result] = await db.update(routesTable)
+    const [result] = await db
+      .update(routesTable)
       .set(data)
       .where(eq(routesTable.id, id))
       .returning();
@@ -56,13 +63,12 @@ export const routeRepository = {
   },
 
   async softDelete(id: string): Promise<void> {
-    await db.update(routesTable)
-      .set({ isDeleted: true })
-      .where(eq(routesTable.id, id));
+    await db.update(routesTable).set({ isDeleted: true }).where(eq(routesTable.id, id));
   },
 
   async decrementSeats(id: string): Promise<Route | undefined> {
-    const [result] = await db.update(routesTable)
+    const [result] = await db
+      .update(routesTable)
       .set({
         availableSeats: sql`available_seats - 1`,
         totalStudents: sql`total_students + 1`,
@@ -73,7 +79,8 @@ export const routeRepository = {
   },
 
   async count(): Promise<number> {
-    const [result] = await db.select({ count: sql<number>`count(*)` })
+    const [result] = await db
+      .select({ count: sql<number>`count(*)` })
       .from(routesTable)
       .where(eq(routesTable.isDeleted, false));
     return Number(result?.count ?? 0);

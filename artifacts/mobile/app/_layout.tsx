@@ -4,18 +4,24 @@ import {
   Inter_600SemiBold,
   Inter_700Bold,
   useFonts,
-} from "@expo-google-fonts/inter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
-import { I18nManager, Platform } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { KeyboardProvider } from "react-native-keyboard-controller";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+} from '@expo-google-fonts/inter';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import React, { useEffect } from 'react';
+import { I18nManager, Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { RootProvider } from "@/context";
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { AppToaster } from '@/components/ui/Toast';
+import { initSentry } from '@/lib/sentry';
+import { useAppInit } from '@/hooks/useAppInit';
+import { useAuthSync } from '@/hooks/useAuthSync';
+import { useTripRealtime } from '@/hooks/useTripRealtime';
+
+initSentry();
 
 // ← تفعيل RTL العربي على مستوى التطبيق كاملاً
 I18nManager.allowRTL(true);
@@ -23,7 +29,23 @@ I18nManager.forceRTL(true);
 
 SplashScreen.preventAutoHideAsync();
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      retry: 3,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+    },
+  },
+});
+
+function AppInit() {
+  useAppInit();
+  useAuthSync();
+  useTripRealtime();
+  return null;
+}
 
 function RootLayoutNav() {
   return (
@@ -42,7 +64,7 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    Feather: require("../assets/fonts/Feather.ttf"),
+    Feather: require('../assets/fonts/Feather.ttf'),
   });
 
   useEffect(() => {
@@ -57,13 +79,13 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <RootProvider>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <KeyboardProvider>
-                <RootLayoutNav />
-              </KeyboardProvider>
-            </GestureHandlerRootView>
-          </RootProvider>
+          <AppInit />
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <KeyboardProvider>
+              <RootLayoutNav />
+              <AppToaster />
+            </KeyboardProvider>
+          </GestureHandlerRootView>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>

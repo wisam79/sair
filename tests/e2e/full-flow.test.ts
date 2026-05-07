@@ -10,11 +10,9 @@ const describeE2E = hasEnv ? describe : describe.skip;
 
 if (hasEnv) {
   var { createClient } = await import('@supabase/supabase-js');
-  var supabase = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  var supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 }
 
 const TEST_PREFIX = `e2e_${Date.now()}`;
@@ -36,7 +34,9 @@ async function rpc(name: string, payload: Record<string, unknown>) {
 }
 
 async function sql(query: string) {
-  const { data, error } = await supabase.rpc('exec_sql', { query_text: query }).catch(() => ({ data: null, error: new Error('exec_sql not available') }));
+  const { data, error } = await supabase
+    .rpc('exec_sql', { query_text: query })
+    .catch(() => ({ data: null, error: new Error('exec_sql not available') }));
   if (!error) return data;
   throw error;
 }
@@ -66,10 +66,7 @@ async function createAuthUser(label: string, overrides: Record<string, unknown> 
 }
 
 async function setRole(userId: string, role: 'student' | 'driver') {
-  const { error } = await supabase
-    .from('profiles')
-    .update({ role })
-    .eq('id', userId);
+  const { error } = await supabase.from('profiles').update({ role }).eq('id', userId);
   if (error) throw error;
 }
 
@@ -115,11 +112,7 @@ async function createRoute(driverId: string, totalSeats = 4) {
 }
 
 async function getStudentProfile(userId: string) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
   if (error) throw error;
   return data;
 }
@@ -406,7 +399,7 @@ describeE2E('Full E2E Business Flow', () => {
     const subId = secondSub.data!.id;
     createdSubIds.push(subId);
 
-    const refundAmount = Math.round((90000 * (30 - 5) / 30) * 0.75);
+    const refundAmount = Math.round(((90000 * (30 - 5)) / 30) * 0.75);
 
     const { error: cancelErr } = await supabase
       .from('subscriptions')

@@ -1,6 +1,6 @@
-import FeatherIcon from "@/components/FeatherIcon";
-import { LinearGradient } from "expo-linear-gradient";
-import React, { useState } from "react";
+import FeatherIcon from '@/components/FeatherIcon';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState } from 'react';
 import {
   Platform,
   ScrollView,
@@ -9,66 +9,81 @@ import {
   View,
   TouchableOpacity,
   Alert,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
-import { SUBSCRIPTION_PLANS, SubscriptionCard } from "@/components/SubscriptionCard";
-import { EarningsChart } from "@/components/EarningsChart";
-import { useAuth, useSubscription, useTrip } from "@/context";
-import { useColors } from "@/hooks/useColors";
+import { SubscriptionCard } from '@/components/SubscriptionCard';
+import { EarningsChart } from '@/components/EarningsChart';
+import { useAuthStore, useTripStore } from '@/stores';
+import { useColors } from '@/hooks/useColors';
+import { useSubscriptionQuery, useCancelSubscription, useSubscribeToPlan } from '@/hooks';
+import { useAppSettings } from '@/hooks/useAppSettings';
+import { useSubscriptionPlans } from '@/components/SubscriptionCard';
+import { createMoney, calculateDriverPayout, calculateCommission, calculatePerTripCost, toNumberValue, formatMoneyShort } from '@/lib/money';
+import {
+  formatArabicDate,
+  getStartOfDay,
+  getStartOfWeek,
+  isSameMonthDate,
+  getDaysDifference,
+} from '@/lib/dates';
 
 export default function SubscriptionScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
-  const { subscription, subscribeToPlan, cancelSubscription } = useSubscription();
-  const { tripHistory } = useTrip();
+  const { user } = useAuthStore();
+  const { data: subscription } = useSubscriptionQuery();
+  const { tripHistory } = useTripStore();
+  const cancelSubscriptionMutation = useCancelSubscription();
+  const subscribeToPlanMutation = useSubscribeToPlan();
 
-  const [isCancelling, setIsCancelling] = useState(false);
   const [todayEarnings] = useState(0);
   const [weeklyEarnings] = useState(0);
   const weeklyEarningsData: { week: number; count: number; earnings: number }[] = [];
 
-  const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
-  const bottomPad = Platform.OS === "web" ? 34 : 0;
-  const role = user?.role ?? "student";
+  const topPad = insets.top + (Platform.OS === 'web' ? 67 : 0);
+  const bottomPad = Platform.OS === 'web' ? 34 : 0;
+  const role = user?.role ?? 'student';
+
+  const { monthly_fee, commission_amount_iqd, monthly_period_days, target_work_days } = useAppSettings();
+  const SUBSCRIPTION_PLANS = useSubscriptionPlans();
 
   const handleCancelSubscription = async () => {
     if (!subscription?.id) return;
 
     Alert.alert(
-      "إلغاء الاشتراك",
-      "هل أنت متأكد من رغبتك في إلغاء الاشتراك؟ ستفقد جميع الميزات بنهاية اليوم.",
+      'إلغاء الاشتراك',
+      'هل أنت متأكد من رغبتك في إلغاء الاشتراك؟ ستفقد جميع الميزات بنهاية اليوم.',
       [
-        { text: "تراجع", style: "cancel" },
+        { text: 'تراجع', style: 'cancel' },
         {
-          text: "تأكيد الإلغاء",
-          style: "destructive",
+          text: 'تأكيد الإلغاء',
+          style: 'destructive',
           onPress: async () => {
             try {
-              setIsCancelling(true);
-              await cancelSubscription();
-              Alert.alert("تم", "تم إلغاء الاشتراك بنجاح");
-            } catch (err) {
-              Alert.alert("خطأ", "فشل في إلغاء الاشتراك");
-            } finally {
-              setIsCancelling(false);
+              await cancelSubscriptionMutation.mutateAsync(subscription.id);
+              Alert.alert('تم', 'تم إلغاء الاشتراك بنجاح');
+            } catch {
+              Alert.alert('خطأ', 'فشل في إلغاء الاشتراك');
             }
           },
         },
-      ]
+      ],
     );
   };
 
-  if (role === "driver") {
-    const completedTrips = (tripHistory || []).filter((t: any) => t.status === "completed");
-    
+  if (role === 'driver') {
+    const completedTrips = (tripHistory || []).filter((t: any) => t.status === 'completed');
+
     const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay()).getTime();
-    
-    const DRIVER_PAYOUT_PER_TRIP = 70000;
+    const startOfDay = getStartOfDay(now).getTime();
+    const startOfWeek = getStartOfWeek(now).getTime();
+
+    const monthlyFeeMoney = createMoney(monthly_fee);
+    const commissionMoney = calculateCommission(monthlyFeeMoney, 15);
+    const driverPayoutPerMonth = calculateDriverPayout(monthlyFeeMoney, commissionMoney);
+    const driverPayoutPerTrip = toNumberValue(calculatePerTripCost(driverPayoutPerMonth, target_work_days || 22));
 
     let todayEarnings = 0;
     let weeklyEarnings = 0;
@@ -78,12 +93,12 @@ export default function SubscriptionScreen() {
     const tripsThisMonth = completedTrips.filter((t: any) => {
       const d = new Date(t.started_at ?? t.trip_date);
       const time = d.getTime();
-      if (time >= startOfDay) todayEarnings += DRIVER_PAYOUT_PER_TRIP;
-      if (time >= startOfWeek) weeklyEarnings += DRIVER_PAYOUT_PER_TRIP;
-      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      if (time >= startOfDay) todayEarnings += driverPayoutPerTrip;
+      if (time >= startOfWeek) weeklyEarnings += driverPayoutPerTrip;
+      return isSameMonthDate(d, now) && d.getFullYear() === currentYear;
     });
 
-    const weeks = [1, 2, 3, 4].map(w => {
+    const weeks = [1, 2, 3, 4].map((w) => {
       const weekTrips = tripsThisMonth.filter((t: any) => {
         const d = new Date(t.started_at ?? t.trip_date);
         const day = d.getDate();
@@ -95,28 +110,31 @@ export default function SubscriptionScreen() {
       return {
         week: w,
         count: weekTrips.length,
-        earnings: weekTrips.length * DRIVER_PAYOUT_PER_TRIP
+        earnings: weekTrips.length * driverPayoutPerTrip,
       };
     });
 
-    const monthlyEarnings = tripsThisMonth.length * DRIVER_PAYOUT_PER_TRIP;
-    const appCommissionTotal = tripsThisMonth.length * 20000;
-    const projectedMonthly = Math.round((weeklyEarnings || 0) / 7 * 30);
-    const acceptanceRate = tripHistory && tripHistory.length > 0 
-      ? Math.round((completedTrips.length / tripHistory.length) * 100) 
-      : 100;
+    const monthlyEarnings = tripsThisMonth.length * driverPayoutPerTrip;
+    const appCommissionTotal = toNumberValue(commissionMoney) * tripsThisMonth.length;
+    const projectedMonthly = Math.round(
+      ((weeklyEarnings || 0) / (target_work_days || 22)) * (monthly_period_days || 30),
+    );
+    const acceptanceRate =
+      tripHistory && tripHistory.length > 0
+        ? Math.round((completedTrips.length / tripHistory.length) * 100)
+        : 100;
 
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <LinearGradient
-          colors={["#0D2847", "#1A3C6E"]}
+          colors={['#0D2847', '#1A3C6E']}
           style={[styles.header, { paddingTop: topPad + 16 }]}
         >
           <Text style={styles.headerTitle}>الأرباح والعمولات</Text>
           <Text style={styles.headerSub}>متابعة دخلك اليومي والشهري</Text>
 
           <View style={styles.earningsGrid}>
-            <View style={[styles.earningBox, { backgroundColor: "rgba(255,255,255,0.1)" }]}>
+            <View style={[styles.earningBox, { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
               <View style={styles.trendRow}>
                 <FeatherIcon name="sun" size={16} color="#FFD700" />
                 <FeatherIcon name="trending-up" size={12} color={colors.success} />
@@ -124,7 +142,7 @@ export default function SubscriptionScreen() {
               <Text style={styles.earningValue}>{(todayEarnings / 1000).toFixed(0)}k</Text>
               <Text style={styles.earningLabel}>اليوم (د.ع)</Text>
             </View>
-            <View style={[styles.earningBox, { backgroundColor: "rgba(255,255,255,0.1)" }]}>
+            <View style={[styles.earningBox, { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
               <View style={styles.trendRow}>
                 <FeatherIcon name="calendar" size={16} color="#5B8DEF" />
                 <FeatherIcon name="trending-up" size={12} color={colors.success} />
@@ -132,7 +150,7 @@ export default function SubscriptionScreen() {
               <Text style={styles.earningValue}>{(weeklyEarnings / 1000).toFixed(0)}k</Text>
               <Text style={styles.earningLabel}>الأسبوع (د.ع)</Text>
             </View>
-            <View style={[styles.earningBox, { backgroundColor: "rgba(255,255,255,0.1)" }]}>
+            <View style={[styles.earningBox, { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
               <View style={styles.trendRow}>
                 <FeatherIcon name="trending-up" size={16} color="#22C55E" />
                 <FeatherIcon name="trending-up" size={12} color={colors.success} />
@@ -150,28 +168,72 @@ export default function SubscriptionScreen() {
         >
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>أداء الأسبوع</Text>
-            <EarningsChart data={weeks.map(w => ({ day: `أسبوع ${w.week}`, amount: w.earnings })) || []} />
+            <EarningsChart
+              data={weeks.map((w) => ({ day: `أسبوع ${w.week}`, amount: w.earnings })) || []}
+            />
           </View>
 
           <View style={styles.section}>
-            <View style={[styles.projectedCard, { backgroundColor: colors.success + "15", borderColor: colors.success + "30" }]}>
+            <View
+              style={[
+                styles.projectedCard,
+                { backgroundColor: colors.success + '15', borderColor: colors.success + '30' },
+              ]}
+            >
               <View style={styles.projectedHeader}>
                 <FeatherIcon name="trending-up" size={20} color={colors.success} />
-                <Text style={[styles.projectedTitle, { color: colors.success }]}>الدخل المتوقع هذا الشهر</Text>
+                <Text style={[styles.projectedTitle, { color: colors.success }]}>
+                  الدخل المتوقع هذا الشهر
+                </Text>
               </View>
-              <Text style={[styles.projectedValue, { color: colors.success }]}>{(projectedMonthly / 1000).toFixed(0)}k دينار</Text>
-              <Text style={[styles.projectedSub, { color: colors.success }]}>بناءً على متوسط أرباحك الأسبوعية</Text>
+              <Text style={[styles.projectedValue, { color: colors.success }]}>
+                {(projectedMonthly / 1000).toFixed(0)}k دينار
+              </Text>
+              <Text style={[styles.projectedSub, { color: colors.success }]}>
+                بناءً على متوسط أرباحك الأسبوعية
+              </Text>
             </View>
           </View>
 
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>تفصيل أرباح الشهر الحالي</Text>
-            <View style={[styles.tableCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+              تفصيل أرباح الشهر الحالي
+            </Text>
+            <View
+              style={[
+                styles.tableCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
               {weeks.map((w, i) => (
-                <View key={w.week} style={[styles.tableRow, i % 2 !== 0 && { backgroundColor: "rgba(0,0,0,0.02)" }]}>
-                  <Text style={[styles.tableCell, { flex: 1, color: colors.mutedForeground }]}>الأسبوع {w.week}</Text>
-                  <Text style={[styles.tableCell, { flex: 1, color: colors.foreground, textAlign: "center" }]}>{w.count} رحلة</Text>
-                  <Text style={[styles.tableCell, { flex: 1, color: colors.success, textAlign: "right", fontFamily: "Inter_700Bold" }]}>{(w.earnings / 1000).toFixed(0)}k</Text>
+                <View
+                  key={w.week}
+                  style={[styles.tableRow, i % 2 !== 0 && { backgroundColor: 'rgba(0,0,0,0.02)' }]}
+                >
+                  <Text style={[styles.tableCell, { flex: 1, color: colors.mutedForeground }]}>
+                    الأسبوع {w.week}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.tableCell,
+                      { flex: 1, color: colors.foreground, textAlign: 'center' },
+                    ]}
+                  >
+                    {w.count} رحلة
+                  </Text>
+                  <Text
+                    style={[
+                      styles.tableCell,
+                      {
+                        flex: 1,
+                        color: colors.success,
+                        textAlign: 'right',
+                        fontFamily: 'Inter_700Bold',
+                      },
+                    ]}
+                  >
+                    {(w.earnings / 1000).toFixed(0)}k
+                  </Text>
                 </View>
               ))}
             </View>
@@ -179,7 +241,12 @@ export default function SubscriptionScreen() {
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>نظام العمولات</Text>
-            <View style={[styles.commissionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View
+              style={[
+                styles.commissionCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
               <View style={styles.splitContainer}>
                 <View style={[styles.splitBar, { flex: 85, backgroundColor: colors.primary }]}>
                   <Text style={styles.splitText}>85%</Text>
@@ -188,16 +255,24 @@ export default function SubscriptionScreen() {
                   <Text style={styles.splitText}>15%</Text>
                 </View>
               </View>
-              
+
               <View style={styles.commissionDetailRow}>
                 <View style={styles.commissionItem}>
-                  <Text style={[styles.commissionVal, { color: colors.primary }]}>{(monthlyEarnings / 1000).toFixed(0)}k</Text>
-                  <Text style={[styles.commissionLabel, { color: colors.mutedForeground }]}>للسائق</Text>
+                  <Text style={[styles.commissionVal, { color: colors.primary }]}>
+                    {(monthlyEarnings / 1000).toFixed(0)}k
+                  </Text>
+                  <Text style={[styles.commissionLabel, { color: colors.mutedForeground }]}>
+                    للسائق
+                  </Text>
                 </View>
                 <View style={[styles.commissionDivider, { backgroundColor: colors.border }]} />
                 <View style={styles.commissionItem}>
-                  <Text style={[styles.commissionVal, { color: colors.accent }]}>{(appCommissionTotal / 1000).toFixed(0)}k</Text>
-                  <Text style={[styles.commissionLabel, { color: colors.mutedForeground }]}>للتطبيق</Text>
+                  <Text style={[styles.commissionVal, { color: colors.accent }]}>
+                    {(appCommissionTotal / 1000).toFixed(0)}k
+                  </Text>
+                  <Text style={[styles.commissionLabel, { color: colors.mutedForeground }]}>
+                    للتطبيق
+                  </Text>
                 </View>
               </View>
             </View>
@@ -205,22 +280,39 @@ export default function SubscriptionScreen() {
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>ملخص الأداء</Text>
-            <View style={[styles.summaryCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View
+              style={[
+                styles.summaryCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
               <View style={styles.summaryRow}>
                 <View style={styles.summaryItem}>
-                  <Text style={[styles.summaryValue, { color: colors.foreground }]}>{completedTrips.length}</Text>
-                  <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>إجمالي الرحلات</Text>
+                  <Text style={[styles.summaryValue, { color: colors.foreground }]}>
+                    {completedTrips.length}
+                  </Text>
+                  <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>
+                    إجمالي الرحلات
+                  </Text>
                 </View>
                 <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
                 <View style={styles.summaryItem}>
-                  <Text style={[styles.summaryValue, { color: colors.foreground }]}>{acceptanceRate}%</Text>
-                  <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>نسبة القبول</Text>
+                  <Text style={[styles.summaryValue, { color: colors.foreground }]}>
+                    {acceptanceRate}%
+                  </Text>
+                  <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>
+                    نسبة القبول
+                  </Text>
                 </View>
                 <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
-                <View style={styles.summaryItem}>
-                  <Text style={[styles.summaryValue, { color: colors.foreground }]}>3,500</Text>
-                  <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>سعر كم (د.ع)</Text>
-                </View>
+                  <View style={styles.summaryItem}>
+                    <Text style={[styles.summaryValue, { color: colors.foreground }]}>
+                      {toNumberValue(calculatePerTripCost(createMoney(monthly_fee), target_work_days || 22)) / 1000}k
+                    </Text>
+                   <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>
+                     سعر كم (د.ع)
+                   </Text>
+                 </View>
               </View>
             </View>
           </View>
@@ -229,22 +321,22 @@ export default function SubscriptionScreen() {
     );
   }
 
-  const isActive = subscription?.status === "active";
+  const isActive = subscription?.status === 'active';
   const daysLeft = subscription
-    ? Math.max(0, Math.ceil((new Date(subscription.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    ? Math.max(0, getDaysDifference(new Date(subscription.end_date), new Date()))
     : 0;
 
-  const progress = daysLeft / 30;
+  const progress = daysLeft / (monthly_period_days || 30);
 
   const tripsThisMonthCount = (tripHistory || []).filter((t: any) => {
     const d = new Date(t.started_at ?? t.trip_date);
-    return d.getMonth() === new Date().getMonth() && t.status === "completed";
+    return isSameMonthDate(d, new Date()) && t.status === 'completed';
   }).length;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <LinearGradient
-        colors={["#0D2847", "#1A3C6E"]}
+        colors={['#0D2847', '#1A3C6E']}
         style={[styles.header, { paddingTop: topPad + 16 }]}
       >
         <Text style={styles.headerTitle}>الاشتراك الشهري</Text>
@@ -268,22 +360,22 @@ export default function SubscriptionScreen() {
               )}
               <View style={styles.activeSubTop}>
                 <View>
-                  <Text style={styles.activeSubPlan}>
-                    اشتراك شهري
-                  </Text>
+                  <Text style={styles.activeSubPlan}>اشتراك شهري</Text>
                   <Text style={styles.activeSubDriver}>مع السائق</Text>
-                  <Text style={styles.expiryDateText}>ينتهي في {new Date(subscription.end_date).toLocaleDateString("ar-IQ")}</Text>
+                  <Text style={styles.expiryDateText}>
+                    ينتهي في {formatArabicDate(subscription.end_date)}
+                  </Text>
                 </View>
                 <View style={styles.ringContainer}>
-                  <View style={[styles.ringOuter, { borderColor: "rgba(255,255,255,0.2)" }]} />
-                  <View 
+                  <View style={[styles.ringOuter, { borderColor: 'rgba(255,255,255,0.2)' }]} />
+                  <View
                     style={[
-                      styles.ringInner, 
-                      { 
+                      styles.ringInner,
+                      {
                         borderColor: colors.accent,
-                        transform: [{ rotate: `${(1 - progress) * 360}deg` }] 
-                      }
-                    ]} 
+                        transform: [{ rotate: `${(1 - progress) * 360}deg` }],
+                      },
+                    ]}
                   />
                   <Text style={styles.ringText}>{daysLeft}</Text>
                 </View>
@@ -301,7 +393,7 @@ export default function SubscriptionScreen() {
                 </View>
                 <View style={styles.activeSubStatDiv} />
                 <View style={styles.activeSubStat}>
-                  <Text style={styles.activeSubStatValue}>22</Text>
+                  <Text style={styles.activeSubStatValue}>{target_work_days || 22}</Text>
                   <Text style={styles.activeSubStatLabel}>رحلة متبقية</Text>
                 </View>
               </View>
@@ -311,37 +403,57 @@ export default function SubscriptionScreen() {
                 <Text style={styles.savingsText}>وفّرت 35% مقارنة بدفع كل رحلة</Text>
               </View>
             </View>
-            
+
             <View style={styles.studentStatsRow}>
-              <View style={[styles.studentStatBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View
+                style={[
+                  styles.studentStatBox,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
                 <FeatherIcon name="map" size={18} color={colors.primary} />
-                <Text style={[styles.studentStatVal, { color: colors.foreground }]}>{tripsThisMonthCount}</Text>
-                <Text style={[styles.studentStatLabel, { color: colors.mutedForeground }]}>رحلات هذا الشهر</Text>
+                <Text style={[styles.studentStatVal, { color: colors.foreground }]}>
+                  {tripsThisMonthCount}
+                </Text>
+                <Text style={[styles.studentStatLabel, { color: colors.mutedForeground }]}>
+                  رحلات هذا الشهر
+                </Text>
               </View>
-              <View style={[styles.studentStatBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View
+                style={[
+                  styles.studentStatBox,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
                 <FeatherIcon name="trending-down" size={18} color={colors.success} />
                 <Text style={[styles.studentStatVal, { color: colors.success }]}>35%</Text>
-                <Text style={[styles.studentStatLabel, { color: colors.mutedForeground }]}>توفير إجمالي</Text>
+                <Text style={[styles.studentStatLabel, { color: colors.mutedForeground }]}>
+                  توفير إجمالي
+                </Text>
               </View>
             </View>
           </View>
         )}
 
         <TouchableOpacity
-          style={[styles.activateCardBanner, { borderColor: colors.accent + "60", backgroundColor: colors.accent + "10" }]}
-          onPress={() => router.push("/activate-card")}
+          style={[
+            styles.activateCardBanner,
+            { borderColor: colors.accent + '60', backgroundColor: colors.accent + '10' },
+          ]}
+          onPress={() => router.push('/activate-card')}
           activeOpacity={0.85}
         >
-          <LinearGradient
-            colors={["#FF6B3508", "#FF6B3520"]}
-            style={styles.activateCardInner}
-          >
+          <LinearGradient colors={['#FF6B3508', '#FF6B3520']} style={styles.activateCardInner}>
             <View style={[styles.activateCardIconBox, { backgroundColor: colors.accent }]}>
               <FeatherIcon name="credit-card" size={22} color="#fff" />
             </View>
             <View style={styles.activateCardText}>
-              <Text style={[styles.activateCardTitle, { color: colors.accent }]}>لديك بطاقة اشتراك؟</Text>
-              <Text style={[styles.activateCardSub, { color: colors.mutedForeground }]}>أدخل رمز البطاقة لتفعيل اشتراكك فوراً</Text>
+              <Text style={[styles.activateCardTitle, { color: colors.accent }]}>
+                لديك بطاقة اشتراك؟
+              </Text>
+              <Text style={[styles.activateCardSub, { color: colors.mutedForeground }]}>
+                أدخل رمز البطاقة لتفعيل اشتراكك فوراً
+              </Text>
             </View>
             <FeatherIcon name="arrow-left" size={20} color={colors.accent} />
           </LinearGradient>
@@ -349,7 +461,7 @@ export default function SubscriptionScreen() {
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-            {isActive ? "تغيير الخطة" : "اختر خطتك"}
+            {isActive ? 'تغيير الخطة' : 'اختر خطتك'}
           </Text>
           {SUBSCRIPTION_PLANS.map((plan) => (
             <SubscriptionCard
@@ -358,7 +470,10 @@ export default function SubscriptionScreen() {
               isActive={isActive}
               onSelect={() => {
                 if (subscription?.driver_id) {
-                  subscribeToPlan(subscription.driver_id, plan.id as any);
+                  subscribeToPlanMutation.mutate({
+                    driverId: subscription.driver_id,
+                    plan: plan.id as any,
+                  });
                 }
               }}
             />
@@ -366,13 +481,13 @@ export default function SubscriptionScreen() {
         </View>
 
         {isActive && (
-          <TouchableOpacity 
-            style={styles.cancelButton} 
+          <TouchableOpacity
+            style={styles.cancelButton}
             onPress={handleCancelSubscription}
-            disabled={isCancelling}
+            disabled={cancelSubscriptionMutation.isPending}
           >
             <Text style={[styles.cancelButtonText, { color: colors.destructive }]}>
-              {isCancelling ? "جاري الإلغاء..." : "إلغاء الاشتراك"}
+              {cancelSubscriptionMutation.isPending ? 'جاري الإلغاء...' : 'إلغاء الاشتراك'}
             </Text>
           </TouchableOpacity>
         )}
@@ -384,73 +499,144 @@ export default function SubscriptionScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { paddingHorizontal: 20, paddingBottom: 24 },
-  headerTitle: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#fff", marginBottom: 4 },
-  headerSub: { fontSize: 13, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.6)" },
-  earningsGrid: { flexDirection: "row", gap: 10, marginTop: 16 },
-  earningBox: { flex: 1, borderRadius: 12, padding: 14, alignItems: "center", gap: 4 },
-  earningValue: { fontSize: 20, fontFamily: "Inter_700Bold", color: "#fff" },
-  earningLabel: { fontSize: 10, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.6)", textAlign: "center" },
-  trendRow: { flexDirection: "row", justifyContent: "space-between", width: "100%", marginBottom: 4 },
+  headerTitle: { fontSize: 22, fontFamily: 'Inter_700Bold', color: '#fff', marginBottom: 4 },
+  headerSub: { fontSize: 13, fontFamily: 'Inter_400Regular', color: 'rgba(255,255,255,0.6)' },
+  earningsGrid: { flexDirection: 'row', gap: 10, marginTop: 16 },
+  earningBox: { flex: 1, borderRadius: 12, padding: 14, alignItems: 'center', gap: 4 },
+  earningValue: { fontSize: 20, fontFamily: 'Inter_700Bold', color: '#fff' },
+  earningLabel: {
+    fontSize: 10,
+    fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.6)',
+    textAlign: 'center',
+  },
+  trendRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 4,
+  },
   content: { flex: 1 },
   section: { marginBottom: 20 },
-  sectionTitle: { fontSize: 16, fontFamily: "Inter_700Bold", marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', marginBottom: 12 },
   summaryCard: { borderRadius: 14, borderWidth: 1, padding: 16 },
-  summaryRow: { flexDirection: "row", justifyContent: "space-around" },
-  summaryItem: { alignItems: "center", flex: 1 },
-  summaryValue: { fontSize: 22, fontFamily: "Inter_700Bold", marginBottom: 4 },
-  summaryLabel: { fontSize: 11, fontFamily: "Inter_400Regular", textAlign: "center" },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-around' },
+  summaryItem: { alignItems: 'center', flex: 1 },
+  summaryValue: { fontSize: 22, fontFamily: 'Inter_700Bold', marginBottom: 4 },
+  summaryLabel: { fontSize: 11, fontFamily: 'Inter_400Regular', textAlign: 'center' },
   summaryDivider: { width: 1 },
-  projectedCard: { borderRadius: 16, borderWidth: 1, padding: 20, alignItems: "center" },
-  projectedHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
-  projectedTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  projectedValue: { fontSize: 28, fontFamily: "Inter_800ExtraBold", marginBottom: 4 },
-  projectedSub: { fontSize: 11, fontFamily: "Inter_400Regular", opacity: 0.8 },
-  tableCard: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
-  tableRow: { flexDirection: "row", padding: 16, alignItems: "center" },
-  tableCell: { fontSize: 14, fontFamily: "Inter_500Medium" },
-  splitContainer: { height: 12, flexDirection: "row", borderRadius: 6, overflow: "hidden", margin: 16 },
-  splitBar: { height: "100%", justifyContent: "center", alignItems: "center" },
-  splitText: { fontSize: 8, color: "#fff", fontFamily: "Inter_700Bold" },
-  commissionCard: { borderRadius: 14, borderWidth: 1, overflow: "hidden" },
-  commissionDetailRow: { flexDirection: "row", padding: 16 },
-  commissionItem: { flex: 1, alignItems: "center" },
-  commissionVal: { fontSize: 18, fontFamily: "Inter_700Bold", marginBottom: 2 },
-  commissionLabel: { fontSize: 11, fontFamily: "Inter_400Regular" },
-  commissionDivider: { width: 1, height: "100%" },
-  studentStatsRow: { flexDirection: "row", gap: 12, marginTop: 16 },
-  studentStatBox: { flex: 1, borderRadius: 16, borderWidth: 1, padding: 16, alignItems: "center", gap: 4 },
-  studentStatVal: { fontSize: 20, fontFamily: "Inter_700Bold" },
-  studentStatLabel: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  projectedCard: { borderRadius: 16, borderWidth: 1, padding: 20, alignItems: 'center' },
+  projectedHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  projectedTitle: { fontSize: 14, fontFamily: 'Inter_600SemiBold' },
+  projectedValue: { fontSize: 28, fontFamily: 'Inter_800ExtraBold', marginBottom: 4 },
+  projectedSub: { fontSize: 11, fontFamily: 'Inter_400Regular', opacity: 0.8 },
+  tableCard: { borderRadius: 16, borderWidth: 1, overflow: 'hidden' },
+  tableRow: { flexDirection: 'row', padding: 16, alignItems: 'center' },
+  tableCell: { fontSize: 14, fontFamily: 'Inter_500Medium' },
+  splitContainer: {
+    height: 12,
+    flexDirection: 'row',
+    borderRadius: 6,
+    overflow: 'hidden',
+    margin: 16,
+  },
+  splitBar: { height: '100%', justifyContent: 'center', alignItems: 'center' },
+  splitText: { fontSize: 8, color: '#fff', fontFamily: 'Inter_700Bold' },
+  commissionCard: { borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
+  commissionDetailRow: { flexDirection: 'row', padding: 16 },
+  commissionItem: { flex: 1, alignItems: 'center' },
+  commissionVal: { fontSize: 18, fontFamily: 'Inter_700Bold', marginBottom: 2 },
+  commissionLabel: { fontSize: 11, fontFamily: 'Inter_400Regular' },
+  commissionDivider: { width: 1, height: '100%' },
+  studentStatsRow: { flexDirection: 'row', gap: 12, marginTop: 16 },
+  studentStatBox: {
+    flex: 1,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    alignItems: 'center',
+    gap: 4,
+  },
+  studentStatVal: { fontSize: 20, fontFamily: 'Inter_700Bold' },
+  studentStatLabel: { fontSize: 11, fontFamily: 'Inter_400Regular' },
   activeSubCard: { borderRadius: 16, padding: 20 },
-  warningBanner: { flexDirection: "row", alignItems: "center", gap: 6, padding: 8, borderRadius: 8, marginBottom: 12 },
-  warningText: { color: "#fff", fontSize: 12, fontFamily: "Inter_600SemiBold" },
-  activeSubTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
-  activeSubPlan: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#fff", marginBottom: 2 },
-  activeSubDriver: { fontSize: 14, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.8)" },
-  expiryDateText: { fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 4 },
-  ringContainer: { width: 60, height: 60, alignItems: "center", justifyContent: "center" },
-  ringOuter: { position: "absolute", width: 60, height: 60, borderRadius: 30, borderWidth: 4 },
-  ringInner: { position: "absolute", width: 60, height: 60, borderRadius: 30, borderWidth: 4, borderLeftColor: "transparent", borderBottomColor: "transparent" },
-  ringText: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#fff" },
-  activeSubStats: { flexDirection: "row", marginBottom: 16 },
-  activeSubStat: { flex: 1, alignItems: "center" },
-  activeSubStatValue: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#fff" },
-  activeSubStatLabel: { fontSize: 10, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.6)", textAlign: "center" },
-  activeSubStatDiv: { width: 1, backgroundColor: "rgba(255,255,255,0.2)" },
-  savingsBanner: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(255,255,255,0.1)", padding: 12, borderRadius: 10 },
-  savingsText: { color: "#fff", fontSize: 13, fontFamily: "Inter_500Medium" },
-  comparisonCard: { borderRadius: 16, borderWidth: 1, overflow: "hidden", padding: 12 },
-  comparisonHeader: { flexDirection: "row", paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.05)" },
-  comparisonLabel: { flex: 1, fontSize: 11, fontFamily: "Inter_600SemiBold", textAlign: "center" },
-  comparisonRow: { flexDirection: "row", paddingVertical: 12, alignItems: "center" },
-  comparisonText: { flex: 1, fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "center" },
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  warningText: { color: '#fff', fontSize: 12, fontFamily: 'Inter_600SemiBold' },
+  activeSubTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  activeSubPlan: { fontSize: 22, fontFamily: 'Inter_700Bold', color: '#fff', marginBottom: 2 },
+  activeSubDriver: { fontSize: 14, fontFamily: 'Inter_400Regular', color: 'rgba(255,255,255,0.8)' },
+  expiryDateText: { fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 4 },
+  ringContainer: { width: 60, height: 60, alignItems: 'center', justifyContent: 'center' },
+  ringOuter: { position: 'absolute', width: 60, height: 60, borderRadius: 30, borderWidth: 4 },
+  ringInner: {
+    position: 'absolute',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 4,
+    borderLeftColor: 'transparent',
+    borderBottomColor: 'transparent',
+  },
+  ringText: { fontSize: 18, fontFamily: 'Inter_700Bold', color: '#fff' },
+  activeSubStats: { flexDirection: 'row', marginBottom: 16 },
+  activeSubStat: { flex: 1, alignItems: 'center' },
+  activeSubStatValue: { fontSize: 22, fontFamily: 'Inter_700Bold', color: '#fff' },
+  activeSubStatLabel: {
+    fontSize: 10,
+    fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.6)',
+    textAlign: 'center',
+  },
+  activeSubStatDiv: { width: 1, backgroundColor: 'rgba(255,255,255,0.2)' },
+  savingsBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    padding: 12,
+    borderRadius: 10,
+  },
+  savingsText: { color: '#fff', fontSize: 13, fontFamily: 'Inter_500Medium' },
+  comparisonCard: { borderRadius: 16, borderWidth: 1, overflow: 'hidden', padding: 12 },
+  comparisonHeader: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  comparisonLabel: { flex: 1, fontSize: 11, fontFamily: 'Inter_600SemiBold', textAlign: 'center' },
+  comparisonRow: { flexDirection: 'row', paddingVertical: 12, alignItems: 'center' },
+  comparisonText: { flex: 1, fontSize: 12, fontFamily: 'Inter_400Regular', textAlign: 'center' },
   separator: { height: 1, marginHorizontal: 16 },
-  cancelButton: { marginTop: 8, padding: 16, alignItems: "center" },
-  cancelButtonText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  activateCardBanner: { borderRadius: 16, borderWidth: 1.5, marginBottom: 20, overflow: "hidden" },
-  activateCardInner: { flexDirection: "row", alignItems: "center", padding: 16, gap: 12 },
-  activateCardIconBox: { width: 46, height: 46, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  cancelButton: { marginTop: 8, padding: 16, alignItems: 'center' },
+  cancelButtonText: { fontSize: 14, fontFamily: 'Inter_600SemiBold' },
+  activateCardBanner: { borderRadius: 16, borderWidth: 1.5, marginBottom: 20, overflow: 'hidden' },
+  activateCardInner: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },
+  activateCardIconBox: {
+    width: 46,
+    height: 46,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   activateCardText: { flex: 1 },
-  activateCardTitle: { fontSize: 15, fontFamily: "Inter_700Bold", textAlign: "right" },
-  activateCardSub: { fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "right", marginTop: 2 },
+  activateCardTitle: { fontSize: 15, fontFamily: 'Inter_700Bold', textAlign: 'right' },
+  activateCardSub: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    textAlign: 'right',
+    marginTop: 2,
+  },
 });

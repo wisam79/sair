@@ -1,8 +1,8 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { Inter_400Regular, Inter_700Bold } from "@expo-google-fonts/inter";
-import { useColors } from "@/hooks/useColors";
-import FeatherIcon from "@/components/FeatherIcon";
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
+import { useColors } from '@/hooks/useColors';
+import FeatherIcon from '@/components/FeatherIcon';
 
 interface StatCardProps {
   label: string;
@@ -10,7 +10,7 @@ interface StatCardProps {
   unit?: string;
   icon: string;
   iconColor?: string;
-  trend?: "up" | "down" | "neutral";
+  trend?: 'up' | 'down' | 'neutral';
   trendValue?: string;
   onPress?: () => void;
   compact?: boolean;
@@ -28,58 +28,72 @@ export function StatCard({
   compact = false,
 }: StatCardProps) {
   const colors = useColors();
-  
-  const formattedValue = typeof value === 'number' 
-    ? value.toLocaleString('ar-IQ') 
-    : value;
+
+  const formattedValue = typeof value === 'number' ? value.toLocaleString('ar-IQ') : value;
 
   const renderContent = () => (
-    <View style={[
-      styles.card, 
-      { backgroundColor: colors.card, borderColor: colors.border },
-      compact && styles.compactCard
-    ]}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: colors.card, borderColor: colors.border },
+        compact && styles.compactCard,
+      ]}
+    >
       {trend && (
-        <View style={[
-          styles.trendBadge, 
-          { backgroundColor: trend === 'up' ? colors.success + '20' : trend === 'down' ? colors.destructive + '20' : colors.muted + '20' }
-        ]}>
-          <Text style={[
-            styles.trendText, 
-            { color: trend === 'up' ? colors.success : trend === 'down' ? colors.destructive : colors.muted }
-          ]}>
+        <View
+          style={[
+            styles.trendBadge,
+            {
+              backgroundColor:
+                trend === 'up'
+                  ? colors.success + '20'
+                  : trend === 'down'
+                    ? colors.destructive + '20'
+                    : colors.muted + '20',
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.trendText,
+              {
+                color:
+                  trend === 'up'
+                    ? colors.success
+                    : trend === 'down'
+                      ? colors.destructive
+                      : colors.muted,
+              },
+            ]}
+          >
             {trend === 'up' ? '↑' : trend === 'down' ? '↓' : '•'} {trendValue}
           </Text>
         </View>
       )}
 
       <View style={[styles.contentRow, compact && styles.compactRow]}>
-        <View style={[
-          styles.iconContainer, 
-          { backgroundColor: (iconColor || colors.primary) + '15' },
-          compact ? styles.compactIcon : styles.standardIcon
-        ]}>
-          <FeatherIcon 
-            name={icon} 
-            size={compact ? 16 : 20} 
-            color={iconColor || colors.primary} 
-          />
+        <View
+          style={[
+            styles.iconContainer,
+            { backgroundColor: (iconColor || colors.primary) + '15' },
+            compact ? styles.compactIcon : styles.standardIcon,
+          ]}
+        >
+          <FeatherIcon name={icon} size={compact ? 16 : 20} color={iconColor || colors.primary} />
         </View>
 
         <View style={[styles.textContainer, compact && styles.compactTextContainer]}>
           <View style={styles.valueRow}>
-            <Text style={[
-              styles.value, 
-              { color: colors.text, fontFamily: 'Inter_700Bold' },
-              compact ? styles.compactValue : styles.standardValue
-            ]}>
+            <Text
+              style={[
+                styles.value,
+                { color: colors.text, fontFamily: 'Inter_700Bold' },
+                compact ? styles.compactValue : styles.standardValue,
+              ]}
+            >
               {formattedValue}
             </Text>
-            {unit && (
-              <Text style={[styles.unit, { color: colors.muted }]}>
-                {" "}{unit}
-              </Text>
-            )}
+            {unit && <Text style={[styles.unit, { color: colors.muted }]}> {unit}</Text>}
           </View>
           <Text style={[styles.label, { color: colors.muted, fontFamily: 'Inter_400Regular' }]}>
             {label}
@@ -97,11 +111,7 @@ export function StatCard({
     );
   }
 
-  return (
-    <View style={styles.container}>
-      {renderContent()}
-    </View>
-  );
+  return <View style={styles.container}>{renderContent()}</View>;
 }
 
 const styles = StyleSheet.create({

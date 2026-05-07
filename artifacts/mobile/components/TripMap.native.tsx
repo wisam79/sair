@@ -1,6 +1,6 @@
-import React from "react";
-import { StyleSheet } from "react-native";
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
+import React from 'react';
+import { StyleSheet } from 'react-native';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 
 interface TripMapProps {
   originLat: number;
@@ -47,6 +47,6 @@ export function TripMap({ originLat, originLng, destLat, destLng }: TripMapProps
 const styles = StyleSheet.create({
   map: {
     height: 220,
-    width: "100%",
+    width: '100%',
   },
 });

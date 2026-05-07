@@ -33,9 +33,9 @@ export async function createRoute(formData: FormData) {
       departureEvening: formData.get('departureEvening') as string,
       totalSeats: formData.get('totalSeats') as string,
       monthlyFare: formData.get('monthlyFare') as string,
-      genderPreference: formData.get('genderPreference') as string ?? 'any',
-      institutionId: formData.get('institutionId') as string || null,
-      notes: formData.get('notes') as string || null,
+      genderPreference: (formData.get('genderPreference') as string) ?? 'any',
+      institutionId: (formData.get('institutionId') as string) || null,
+      notes: (formData.get('notes') as string) || null,
     };
 
     const parsed = routeSchema.safeParse(data);
@@ -74,9 +74,9 @@ export async function updateRoute(id: string, formData: FormData) {
       departureEvening: formData.get('departureEvening') as string,
       totalSeats: formData.get('totalSeats') as string,
       monthlyFare: formData.get('monthlyFare') as string,
-      genderPreference: formData.get('genderPreference') as string ?? 'any',
-      institutionId: formData.get('institutionId') as string || null,
-      notes: formData.get('notes') as string || null,
+      genderPreference: (formData.get('genderPreference') as string) ?? 'any',
+      institutionId: (formData.get('institutionId') as string) || null,
+      notes: (formData.get('notes') as string) || null,
     };
 
     const parsed = routeSchema.safeParse(data);
@@ -87,7 +87,8 @@ export async function updateRoute(id: string, formData: FormData) {
 
     const { institutionId, notes, ...routeData } = parsed.data;
 
-    await db.update(routesTable)
+    await db
+      .update(routesTable)
       .set({
         ...routeData,
         totalSeats: routeData.totalSeats,
@@ -105,10 +106,10 @@ export async function updateRoute(id: string, formData: FormData) {
 }
 
 export async function deleteRoute(id: string) {
+  await requireAdmin();
+
   try {
-    await db.update(routesTable)
-      .set({ isDeleted: true })
-      .where(eq(routesTable.id, id));
+    await db.update(routesTable).set({ isDeleted: true }).where(eq(routesTable.id, id));
 
     revalidatePath('/dashboard/routes');
     return { success: true };
@@ -123,9 +124,7 @@ export async function toggleRouteActive(id: string, isActive: boolean) {
   await requireAdmin();
 
   try {
-    await db.update(routesTable)
-      .set({ isActive })
-      .where(eq(routesTable.id, id));
+    await db.update(routesTable).set({ isActive }).where(eq(routesTable.id, id));
 
     revalidatePath('/dashboard/routes');
     return { success: true };

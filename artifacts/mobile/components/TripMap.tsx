@@ -1,8 +1,8 @@
-import FeatherIcon from "@/components/FeatherIcon";
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import FeatherIcon from '@/components/FeatherIcon';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { useColors } from "@/hooks/useColors";
+import { useColors } from '@/hooks/useColors';
 
 interface TripMapProps {
   originLat: number;
@@ -26,12 +26,12 @@ export function TripMap(_props: TripMapProps) {
 const styles = StyleSheet.create({
   placeholder: {
     height: 220,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 10,
   },
   text: {
     fontSize: 13,
-    fontFamily: "Inter_400Regular",
+    fontFamily: 'Inter_400Regular',
   },
 });
