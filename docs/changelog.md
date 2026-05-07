@@ -10,6 +10,10 @@
 - Added safe defaults for mockup sandbox build config (`PORT=4173`, `BASE_PATH=/`) to prevent workspace build failures when env variables are absent.
 - Added `react-native-web` dependency to mobile workspace to satisfy Expo export web dependency requirements.
 
+### Warning Cleanup
+- Migrated Next.js request gate from deprecated `middleware.ts` convention to `proxy.ts` convention in the admin dashboard.
+- Upgraded mobile dev dependency `react-native-worklets` from `~0.5.2` to `~0.6.1` to satisfy `sonner-native` peer dependency expectations.
+
 ## 2026-05-07 — Core 1.0 Direction Reset
 
 ### Product Direction

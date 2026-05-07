@@ -55,7 +55,7 @@
   "devDependencies": {
     "@types/react": "~19.1.10",
     "@workspace/db": "workspace:*",
-    "react-native-worklets": "~0.5.2",
+    "react-native-worklets": "~0.6.1",
     "typescript": "~5.9.2"
   }
 }

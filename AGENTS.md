@@ -259,3 +259,27 @@ Then, execute the following steps exactly in order. DO NOT proceed to the next s
 
 - Finalize auth method: email/password, phone OTP, or email OTP.
 - Refactor existing code to match the new Core 1.0 documents.
+
+---
+
+### Session: 2026-05-07 (Phase 0 Stabilization Continuation)
+
+**Completed:**
+
+- Stabilized workspace build pipeline to pass all major quality gates:
+  - `pnpm run typecheck` ✅
+  - `pnpm test` ✅
+  - `pnpm build` ✅
+- Migrated admin request gate from deprecated `src/middleware.ts` to `src/proxy.ts` for Next.js 16 compatibility.
+- Improved admin build environment loading by fixing workspace root/env loading in `artifacts/admin-dashboard/next.config.ts`.
+- Resolved admin build blockers:
+  - lazy initialization for service-role Supabase client (`getAdminClient`)
+  - ensured chart dependency availability (`recharts`)
+- Resolved mobile export blocker by installing `react-native-web`.
+- Resolved mobile peer warning by upgrading `react-native-worklets` to `~0.6.1`.
+- Resolved mockup-sandbox build instability by adding safe default config for missing env (`PORT`, `BASE_PATH`) and normalizing Vite plugin typing.
+
+**Current Status:**
+
+- `core/phase-0-stabilization` is now green on local typecheck/test/build.
+- Branch includes a clean stabilization commit sequence and has been pushed to origin.
