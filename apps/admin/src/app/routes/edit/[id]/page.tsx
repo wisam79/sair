@@ -1,6 +1,7 @@
 "use client";
 
-import { Edit, useSelect } from "@refinedev/mui";
+import { Edit } from "@refinedev/mui";
+import { useSelect } from "@refinedev/core";
 import { Box, TextField, Checkbox, FormControlLabel, Autocomplete } from "@mui/material";
 import { useForm } from "@refinedev/react-hook-form";
 import { Controller } from "react-hook-form";

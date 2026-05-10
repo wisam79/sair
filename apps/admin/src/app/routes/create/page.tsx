@@ -1,9 +1,9 @@
 "use client";
 
-import { Create, useSelect } from "@refinedev/mui";
+import { Create } from "@refinedev/mui";
+import { useSelect } from "@refinedev/core";
 import { Box, TextField, Checkbox, FormControlLabel, Autocomplete } from "@mui/material";
 import { useForm } from "@refinedev/react-hook-form";
-import { useEffect } from "react";
 
 export default function RouteCreate() {
   const {
