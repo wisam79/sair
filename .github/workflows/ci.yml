@@ -1,29 +1,106 @@
-name: CI v2
+name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  lint-and-typecheck:
+    name: Lint & Typecheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
+
+      - uses: pnpm/action-setup@v4
         with:
           version: 10
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install
+      - run: pnpm install --frozen-lockfile
+
+      - name: Format Check
+        run: pnpm format --check
 
       - name: Typecheck
-        run: pnpm run typecheck
+        run: pnpm typecheck
+
+  unit-tests:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
 
       - name: Run Tests
-        run: pnpm test
+        run: pnpm test -- --coverage
+
+      - name: Upload Coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  build-admin:
+    name: Build Admin Dashboard
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build Next.js
+        working-directory: apps/admin
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDYzMzMyODAsImV4cCI6MTk2MTkwOTI4MH0.placeholder
+          DATABASE_URL: postgres://postgres:postgres@localhost:54321/postgres
+
+  ci-success:
+    name: CI Passed
+    if: always()
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, unit-tests, build-admin]
+    steps:
+      - name: Check all jobs passed
+        run: |
+          if [[ "${{ needs.lint-and-typecheck.result }}" == "success" && \
+                "${{ needs.unit-tests.result }}" == "success" && \
+                "${{ needs.build-admin.result }}" == "success" ]]; then
+            echo "All CI checks passed"
+          else
+            echo "One or more CI checks failed"
+            exit 1
+          fi

@@ -1,0 +1,56 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      supabase_url:
+        description: "Supabase Project URL (overrides secret)"
+        required: false
+      supabase_anon_key:
+        description: "Supabase Anon Key (overrides secret)"
+        required: false
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api-e2e:
+    name: API Security & RLS Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run E2E Tests
+        run: pnpm test:e2e
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ inputs.supabase_url || secrets.SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ inputs.supabase_anon_key || secrets.SUPABASE_ANON_KEY }}
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
