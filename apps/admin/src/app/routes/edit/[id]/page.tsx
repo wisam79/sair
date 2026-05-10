@@ -1,7 +1,7 @@
 "use client";
 
-import { Edit } from "@refinedev/mui";
-import { Box, TextField, Checkbox, FormControlLabel } from "@mui/material";
+import { Edit, useSelect } from "@refinedev/mui";
+import { Box, TextField, Checkbox, FormControlLabel, Autocomplete } from "@mui/material";
 import { useForm } from "@refinedev/react-hook-form";
 import { Controller } from "react-hook-form";
 
@@ -11,10 +11,22 @@ export default function RouteEdit() {
     refineCore: { queryResult, formLoading },
     register,
     control,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm();
 
   const routesData = queryResult?.data?.data;
+  const currentDriverId = routesData?.driver_id;
+
+  const { options: driverOptions } = useSelect({
+    resource: "drivers",
+    meta: {
+      select: '*, profiles(full_name)',
+    },
+  });
+
+  const selectedDriver = driverOptions.find((d) => d.id === currentDriverId);
 
   return (
     <Edit isLoading={formLoading} saveButtonProps={saveButtonProps}>
@@ -24,18 +36,13 @@ export default function RouteEdit() {
         autoComplete="off"
       >
         <TextField
-          {...register("driverId", {
-            required: "This field is required",
-          })}
-          error={!!(errors as any)?.driverId}
-          helperText={(errors as any)?.driverId?.message}
+          value={selectedDriver?.profiles?.full_name || currentDriverId || ''}
           margin="normal"
           fullWidth
           InputLabelProps={{ shrink: true }}
-          type="text"
-          label="Driver ID"
-          name="driverId"
-          disabled // ID should typically not be edited, or fetched dynamically
+          label="Driver"
+          disabled
+          helperText="Driver cannot be changed after creation"
         />
         <TextField
           {...register("title", {
@@ -51,35 +58,36 @@ export default function RouteEdit() {
           name="title"
         />
         <TextField
-          {...register("startLocation", {
+          {...register("start_location", {
             required: "This field is required",
           })}
-          error={!!(errors as any)?.startLocation}
-          helperText={(errors as any)?.startLocation?.message}
+          error={!!(errors as any)?.start_location}
+          helperText={(errors as any)?.start_location?.message}
           margin="normal"
           fullWidth
           InputLabelProps={{ shrink: true }}
           type="text"
           label="Start Location"
-          name="startLocation"
+          name="start_location"
         />
         <TextField
-          {...register("endLocation", {
+          {...register("end_location", {
             required: "This field is required",
           })}
-          error={!!(errors as any)?.endLocation}
-          helperText={(errors as any)?.endLocation?.message}
+          error={!!(errors as any)?.end_location}
+          helperText={(errors as any)?.end_location?.message}
           margin="normal"
           fullWidth
           InputLabelProps={{ shrink: true }}
           type="text"
           label="End Location"
-          name="endLocation"
+          name="end_location"
         />
         <TextField
           {...register("price", {
             required: "This field is required",
             valueAsNumber: true,
+            validate: (value) => value > 0 || "Price must be greater than 0",
           })}
           error={!!(errors as any)?.price}
           helperText={(errors as any)?.price?.message}
@@ -87,13 +95,14 @@ export default function RouteEdit() {
           fullWidth
           InputLabelProps={{ shrink: true }}
           type="number"
-          label="Price"
+          label="Price (IQD)"
           name="price"
         />
         <TextField
           {...register("capacity", {
             required: "This field is required",
             valueAsNumber: true,
+            validate: (value) => value >= 1 || "Capacity must be at least 1",
           })}
           error={!!(errors as any)?.capacity}
           helperText={(errors as any)?.capacity?.message}
@@ -105,22 +114,26 @@ export default function RouteEdit() {
           name="capacity"
         />
         <TextField
-          {...register("availableSeats", {
+          {...register("available_seats", {
             required: "This field is required",
             valueAsNumber: true,
+            validate: (value) => {
+              const capacity = watch("capacity");
+              return value <= capacity || "Available seats cannot exceed capacity";
+            },
           })}
-          error={!!(errors as any)?.availableSeats}
-          helperText={(errors as any)?.availableSeats?.message}
+          error={!!(errors as any)?.available_seats}
+          helperText={(errors as any)?.available_seats?.message || "Must be less than or equal to capacity"}
           margin="normal"
           fullWidth
           InputLabelProps={{ shrink: true }}
           type="number"
           label="Available Seats"
-          name="availableSeats"
+          name="available_seats"
         />
         <Controller
           control={control}
-          name="isActive"
+          name="is_active"
           render={({ field }) => (
             <FormControlLabel
               control={<Checkbox {...field} checked={field.value} />}
