@@ -1,0 +1,54 @@
+name: PR Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check:
+    name: PR Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for .env files in diff
+        run: |
+          changed=$(git diff --name-only origin/main...HEAD)
+          env_files=$(echo "$changed" | grep -i '\.env' || true)
+          if [ -n "$env_files" ]; then
+            echo "::error::Found .env files in PR - remove them before merging"
+            echo "$env_files"
+            exit 1
+          fi
+          echo "No .env files detected"
+
+      - name: Check for console.log in diff
+        run: |
+          console_logs=$(git diff origin/main...HEAD -- '*.ts' '*.tsx' | grep '^\+' | grep 'console\.log' || true)
+          if [ -n "$console_logs" ]; then
+            echo "::warning::Found console.log statements in PR"
+            echo "$console_logs"
+          fi
+
+      - name: Check migration file naming
+        run: |
+          for f in $(git diff --name-only origin/main...HEAD -- 'supabase/migrations/*.sql'); do
+            basename=$(basename "$f")
+            if ! echo "$basename" | grep -qE '^[0-9]{10,}_[a-z][a-z0-9_]*\.sql$'; then
+              echo "::error file=$f::Migration filename must follow pattern: YYYYMMDDNN_descriptive_name.sql"
+              exit 1
+            fi
+          done
+
+      - name: Check PR description
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            if (!pr.body || pr.body.trim().length < 10) {
+              core.setFailed('PR description is missing or too short. Please describe your changes.');
+            }
