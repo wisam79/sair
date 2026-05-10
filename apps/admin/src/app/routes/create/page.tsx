@@ -1,8 +1,7 @@
 "use client";
 
 import { Create } from "@refinedev/mui";
-import { useSelect } from "@refinedev/core";
-import { Box, TextField, Checkbox, FormControlLabel, Autocomplete } from "@mui/material";
+import { Box, TextField, Checkbox, FormControlLabel } from "@mui/material";
 import { useForm } from "@refinedev/react-hook-form";
 
 export default function RouteCreate() {
@@ -15,13 +14,6 @@ export default function RouteCreate() {
     formState: { errors },
   } = useForm();
 
-  const { options: driverOptions } = useSelect({
-    resource: "drivers",
-    meta: {
-      select: '*, profiles(full_name)',
-    },
-  });
-
   const selectedDriverId = watch("driver_id");
 
   return (
@@ -31,23 +23,19 @@ export default function RouteCreate() {
         sx={{ display: "flex", flexDirection: "column" }}
         autoComplete="off"
       >
-        <Autocomplete
-          options={driverOptions}
-          getOptionLabel={(option) => option.profiles?.full_name || option.id || ''}
-          value={driverOptions.find((d) => d.id === selectedDriverId) || null}
-          onChange={(_, newValue) => {
-            setValue("driver_id", newValue?.id || '', { shouldValidate: true });
-          }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Driver"
-              margin="normal"
-              required
-              error={!!(errors as any)?.driver_id}
-              helperText={(errors as any)?.driver_id?.message || "Select a driver"}
-            />
-          )}
+        <TextField
+          {...register("driver_id", {
+            required: "This field is required",
+          })}
+          error={!!(errors as any)?.driver_id}
+          helperText={(errors as any)?.driver_id?.message || "Enter driver UUID from Drivers list"}
+          margin="normal"
+          fullWidth
+          InputLabelProps={{ shrink: true }}
+          type="text"
+          label="Driver ID (UUID)"
+          name="driver_id"
+          placeholder="e.g., 550e8400-e29b-41d4-a716-446655440000"
         />
         <TextField
           {...register("title", {

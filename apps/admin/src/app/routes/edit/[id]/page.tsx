@@ -1,8 +1,7 @@
 "use client";
 
 import { Edit } from "@refinedev/mui";
-import { useSelect } from "@refinedev/core";
-import { Box, TextField, Checkbox, FormControlLabel, Autocomplete } from "@mui/material";
+import { Box, TextField, Checkbox, FormControlLabel } from "@mui/material";
 import { useForm } from "@refinedev/react-hook-form";
 import { Controller } from "react-hook-form";
 
@@ -20,15 +19,6 @@ export default function RouteEdit() {
   const routesData = queryResult?.data?.data;
   const currentDriverId = routesData?.driver_id;
 
-  const { options: driverOptions } = useSelect({
-    resource: "drivers",
-    meta: {
-      select: '*, profiles(full_name)',
-    },
-  });
-
-  const selectedDriver = driverOptions.find((d) => d.id === currentDriverId);
-
   return (
     <Edit isLoading={formLoading} saveButtonProps={saveButtonProps}>
       <Box
@@ -37,11 +27,11 @@ export default function RouteEdit() {
         autoComplete="off"
       >
         <TextField
-          value={selectedDriver?.profiles?.full_name || currentDriverId || ''}
+          value={currentDriverId || ''}
           margin="normal"
           fullWidth
           InputLabelProps={{ shrink: true }}
-          label="Driver"
+          label="Driver ID"
           disabled
           helperText="Driver cannot be changed after creation"
         />
