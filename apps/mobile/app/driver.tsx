@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
+  StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
@@ -16,11 +17,13 @@ import { useAuthStore, useTripStore } from '../src/hooks/useStore';
 import { useDriverTrips, useLocationTracker } from '../src/hooks/useTrips';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { canTransition, TripStatus, Route } from '@uniride/core';
+import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../src/theme';
+import { Ionicons } from '@expo/vector-icons';
 
 function getErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   if (typeof err === 'string') return err;
-  return 'An unknown error occurred';
+  return 'حدث خطأ غير معروف';
 }
 
 interface DriverTrip {
@@ -31,18 +34,18 @@ interface DriverTrip {
   scheduled_at: string;
   started_at: string | null;
   ended_at: string | null;
-  last_lat: string | null;
-  last_lng: string | null;
-  routes: Route | null;
+  last_lat: number | null;
+  last_lng: number | null;
+  routes?: Route | null;
 }
 
-const STATUS_DISPLAY: Record<string, { label: string; color: string }> = {
-  scheduled: { label: 'مجدولة', color: '#FF9500' },
-  driver_waiting: { label: 'في الانتظار', color: '#5856D6' },
-  in_transit: { label: 'في الطريق', color: '#34C759' },
-  completed: { label: 'مكتملة', color: '#007AFF' },
-  absent: { label: 'غائب', color: '#999' },
-  cancelled: { label: 'ملغاة', color: '#FF3B30' },
+const STATUS_DISPLAY: Record<string, { label: string; color: string; bg: string; icon: string }> = {
+  scheduled:      { label: 'مجدولة',       color: Colors.warning, bg: Colors.warningSurface, icon: 'calendar-outline' },
+  driver_waiting: { label: 'في الانتظار',   color: Colors.primary, bg: Colors.primarySurface, icon: 'time-outline' },
+  in_transit:     { label: 'في الطريق',     color: Colors.success, bg: Colors.successSurface, icon: 'navigate-outline' },
+  completed:      { label: 'مكتملة',       color: Colors.textMuted, bg: Colors.surfaceMuted, icon: 'checkmark-circle-outline' },
+  absent:         { label: 'غائب',         color: Colors.textMuted, bg: Colors.surfaceMuted, icon: 'person-remove-outline' },
+  cancelled:      { label: 'ملغاة',         color: Colors.error, bg: Colors.errorSurface, icon: 'ban-outline' },
 };
 
 async function getCurrentLocation(): Promise<{ lat: number; lng: number } | null> {
@@ -60,19 +63,19 @@ export default function DriverDashboard() {
   const { trips, isLoading, refetch } = useDriverTrips();
   const { profile, logout } = useAuthStore();
   const { startTracking, stopTracking } = useLocationTracker();
-  const { t, isRTL } = useTranslation();
+  const { t } = useTranslation();
   const router = useRouter();
   const [updatingTripId, setUpdatingTripId] = useState<string | null>(null);
-  const { activeTripId, currentStatus, setActiveTrip, updateStatus, clearTrip } = useTripStore();
+  const { activeTripId, setActiveTrip, updateStatus, clearTrip } = useTripStore();
 
   const getNextAction = (status: TripStatus): { label: string; newStatus: TripStatus } | null => {
     switch (status) {
       case 'scheduled':
-        return { label: t('start_trip'), newStatus: 'driver_waiting' as TripStatus };
+        return { label: 'بدء استقبال الطلاب', newStatus: 'driver_waiting' as TripStatus };
       case 'driver_waiting':
-        return { label: t('start_trip'), newStatus: 'in_transit' as TripStatus };
+        return { label: 'انطلاق الرحلة', newStatus: 'in_transit' as TripStatus };
       case 'in_transit':
-        return { label: t('end_trip'), newStatus: 'completed' as TripStatus };
+        return { label: 'إنهاء الرحلة', newStatus: 'completed' as TripStatus };
       default:
         return null;
     }
@@ -81,7 +84,7 @@ export default function DriverDashboard() {
   const handleStatusUpdate = useCallback(
     async (tripId: string, currentStatus: TripStatus, newStatus: TripStatus) => {
       if (!canTransition(currentStatus, newStatus)) {
-        Alert.alert(t('error_generic'), t('invalid_transition'));
+        Alert.alert('خطأ', 'انتقال حالة غير صالح');
         return;
       }
 
@@ -91,21 +94,14 @@ export default function DriverDashboard() {
         let lat: number | null = null;
         let lng: number | null = null;
 
-        if (newStatus === 'driver_waiting') {
-          const loc = await getCurrentLocation();
-          if (loc) {
-            lat = loc.lat;
-            lng = loc.lng;
-          }
+        const loc = await getCurrentLocation();
+        if (loc) {
+          lat = loc.lat;
+          lng = loc.lng;
         }
 
         const { error } = await supabase.functions.invoke('trip-engine', {
-          body: {
-            tripId,
-            newStatus,
-            lat,
-            lng,
-          },
+          body: { tripId, newStatus, lat, lng },
         });
 
         if (error) throw error;
@@ -124,20 +120,20 @@ export default function DriverDashboard() {
 
         refetch();
       } catch (err: unknown) {
-        Alert.alert(t('error_generic'), getErrorMessage(err) || t('error_generic'));
+        Alert.alert('خطأ', getErrorMessage(err));
       } finally {
         setUpdatingTripId(null);
       }
     },
-    [activeTripId]
+    [activeTripId, startTracking, stopTracking, setActiveTrip, clearTrip, updateStatus, refetch]
   );
 
   const handleCancelTrip = useCallback(
     async (tripId: string, currentStatus: TripStatus) => {
-      Alert.alert(t('cancel_trip'), t('are_you_sure'), [
-        { text: t('no'), style: 'cancel' },
+      Alert.alert('إلغاء الرحلة', 'هل أنت متأكد من إلغاء هذه الرحلة؟', [
+        { text: 'تراجع', style: 'cancel' },
         {
-          text: t('yes'),
+          text: 'نعم، قم بالإلغاء',
           style: 'destructive',
           onPress: () => handleStatusUpdate(tripId, currentStatus, 'cancelled' as TripStatus),
         },
@@ -156,33 +152,41 @@ export default function DriverDashboard() {
     const statusDisplay = STATUS_DISPLAY[item.status] || STATUS_DISPLAY.scheduled;
     const nextAction = getNextAction(item.status as TripStatus);
     const isUpdating = updatingTripId === item.id;
+    const tripDate = new Date(item.scheduled_at).toLocaleDateString('ar-IQ');
+    const tripTime = new Date(item.scheduled_at).toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
 
     return (
-      <View style={[styles.tripCard, isRTL && styles.cardRTL]}>
+      <View style={styles.tripCard}>
+        {/* Header */}
         <View style={styles.tripHeader}>
-          <View style={[styles.statusBadge, { backgroundColor: statusDisplay.color }]}>
-            <Text style={styles.statusText}>{statusDisplay.label}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: statusDisplay.bg }]}>
+            <Ionicons name={statusDisplay.icon as any} size={14} color={statusDisplay.color} />
+            <Text style={[styles.statusText, { color: statusDisplay.color }]}>{statusDisplay.label}</Text>
           </View>
-          <Text style={styles.tripTime}>
-            {new Date(item.scheduled_at).toLocaleDateString()}
-          </Text>
+          <Text style={styles.tripTime}>{tripDate} {tripTime}</Text>
         </View>
 
+        {/* Route Info */}
         {item.routes && (
-          <Text style={[styles.routeInfo, isRTL && styles.textRTL]}>
-            {item.routes.title}
-          </Text>
+          <View style={styles.routeContainer}>
+            <Ionicons name="bus-outline" size={24} color={Colors.secondaryLight} />
+            <Text style={styles.routeInfo} numberOfLines={2}>
+              {item.routes.title}
+            </Text>
+          </View>
         )}
 
+        {/* Actions */}
         {nextAction && (
           <View style={styles.actionRow}>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: statusDisplay.color }]}
               onPress={() => handleStatusUpdate(item.id, item.status, nextAction.newStatus)}
               disabled={isUpdating}
+              activeOpacity={0.85}
             >
               {isUpdating ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={Colors.white} />
               ) : (
                 <Text style={styles.actionText}>{nextAction.label}</Text>
               )}
@@ -193,8 +197,9 @@ export default function DriverDashboard() {
                 style={styles.cancelButton}
                 onPress={() => handleCancelTrip(item.id, item.status)}
                 disabled={isUpdating}
+                activeOpacity={0.85}
               >
-                <Text style={styles.cancelText}>{t('cancel_trip')}</Text>
+                <Ionicons name="trash-outline" size={20} color={Colors.error} />
               </TouchableOpacity>
             )}
           </View>
@@ -205,128 +210,193 @@ export default function DriverDashboard() {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={Colors.secondary} />
+      
+      {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={[styles.headerTitle, isRTL && styles.textRTL]}>
-            {t('driver_dashboard')}
-          </Text>
-          {profile?.full_name ? (
-            <Text style={styles.headerSubtitle}>{profile.full_name}</Text>
-          ) : null}
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>لوحة السائق</Text>
+          {profile?.full_name && (
+            <Text style={styles.headerSubtitle}>مرحباً، {profile.full_name}</Text>
+          )}
         </View>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>{t('logout')}</Text>
+        <TouchableOpacity style={styles.profileButton} onPress={() => router.push('/profile')} activeOpacity={0.8}>
+          <Ionicons name="person-circle-outline" size={36} color={Colors.white} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
+          <Ionicons name="log-out-outline" size={24} color={Colors.errorSurface} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabActive}>
-          <Text style={styles.tabTextActive}>{t('driver_dashboard')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tab} onPress={() => router.push('/profile')}>
-          <Text style={styles.tabText}>{t('profile')}</Text>
-        </TouchableOpacity>
-      </View>
       <FlatList
-        data={trips as DriverTrip[]}
+        data={trips as unknown as DriverTrip[]}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refetch}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
         ListEmptyComponent={
           <View style={styles.center}>
-            <Text style={styles.emptyText}>{t('no_active_trips')}</Text>
+            <Ionicons name="car-outline" size={64} color={Colors.border} />
+            <Text style={styles.emptyText}>لا توجد رحلات مجدولة حالياً</Text>
           </View>
         }
+        showsVerticalScrollIndicator={false}
       />
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.9}
+        onPress={() => router.push('/create-trip')}
+      >
+        <Ionicons name="add" size={32} color={Colors.white} />
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: Colors.background },
+  // Header
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.secondary,
+    paddingTop: Spacing.xl + 12,
+    paddingBottom: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
   },
-  headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
-  headerSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
+  headerTitleContainer: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 22,
+    color: Colors.white,
+  },
+  headerSubtitle: {
+    fontFamily: FontFamily.regular,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.7)',
+    marginTop: 2,
+  },
+  profileButton: {
+    padding: Spacing.xs,
+    marginRight: Spacing.sm,
+  },
   logoutButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    padding: Spacing.xs,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: BorderRadius.sm,
   },
-  logoutText: { color: '#fff', fontWeight: '600' },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+  // List
+  listContent: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxxl,
   },
-  tab: {
+  center: {
     flex: 1,
-    paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.section,
+    gap: Spacing.md,
   },
-  tabActive: {
-    flex: 1,
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderBottomWidth: 3,
-    borderBottomColor: '#fff',
+  emptyText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 16,
+    color: Colors.textMuted,
   },
-  tabText: { fontSize: 13, color: 'rgba(255,255,255,0.6)', fontWeight: '500' },
-  tabTextActive: { fontSize: 13, color: '#fff', fontWeight: '700' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
-  listContent: { padding: 15 },
+  // Card
   tripCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
+    marginBottom: Spacing.md,
+    ...Shadow.md,
   },
-  cardRTL: { direction: 'rtl' },
   tripHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: Spacing.lg,
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.pill,
   },
-  statusText: { color: '#fff', fontSize: 12, fontWeight: '600' },
-  tripTime: { fontSize: 12, color: '#999' },
-  routeInfo: { fontSize: 16, fontWeight: '500', color: '#333', marginBottom: 12 },
-  actionRow: { flexDirection: 'row', gap: 10 },
+  statusText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 13,
+  },
+  tripTime: {
+    fontFamily: FontFamily.medium,
+    fontSize: 13,
+    color: Colors.textMuted,
+  },
+  routeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.surfaceMuted,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.lg,
+  },
+  routeInfo: {
+    flex: 1,
+    fontFamily: FontFamily.bold,
+    fontSize: 16,
+    color: Colors.text,
+    textAlign: 'right',
+  },
+  // Actions
+  actionRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
   actionButton: {
     flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  actionText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-  cancelButton: {
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#FF3B30',
+    paddingVertical: Spacing.lg,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    ...Shadow.sm,
   },
-  textRTL: { textAlign: 'right' },
-  emptyText: { fontSize: 16, color: '#666', textAlign: 'center' },
-  cancelText: { color: '#FF3B30', fontWeight: 'bold', fontSize: 14 },
+  actionText: {
+    fontFamily: FontFamily.bold,
+    color: Colors.white,
+    fontSize: 15,
+  },
+  cancelButton: {
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1.5,
+    borderColor: Colors.error,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.errorSurface,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: Spacing.xxxl,
+    left: Spacing.xl, // FAB on the left for RTL
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadow.lg,
+  },
 });

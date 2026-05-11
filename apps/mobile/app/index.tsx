@@ -1,176 +1,480 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   FlatList,
-  ActivityIndicator,
   TouchableOpacity,
   RefreshControl,
+  TextInput,
+  StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import { useRoutes } from '../src/hooks/useRoutes';
 import { useAuthStore } from '../src/hooks/useStore';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { useRouter } from 'expo-router';
 import { Route } from '@uniride/core';
+import { Colors, Typography, Spacing, BorderRadius, Shadow, FontFamily } from '../src/theme';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function DiscoveryPage() {
-  const { routes, isLoading, error, refetch } = useRoutes();
-  const { role, profile } = useAuthStore();
+  const { profile } = useAuthStore();
+  const { routes, isLoading, error, refetch } = useRoutes(profile?.institution_id);
   const { t, isRTL } = useTranslation();
   const router = useRouter();
 
-  const renderItem = ({ item }: { item: Route }) => (
+  const greeting = profile?.full_name
+    ? `مرحباً، ${profile.full_name.split(' ')[0]} 👋`
+    : 'مرحباً 👋';
+
+  const renderRoute = ({ item }: { item: Route }) => (
     <TouchableOpacity
-      style={[styles.card, isRTL && styles.cardRTL]}
+      style={styles.card}
       onPress={() => router.push({ pathname: '/booking', params: { routeId: item.id } })}
+      activeOpacity={0.85}
     >
-      <View style={styles.cardHeader}>
-        <Text style={[styles.title, isRTL && styles.textRTL]}>{item.title}</Text>
-        <Text style={styles.price}>{item.price.toLocaleString()} IQD</Text>
-      </View>
-      <View style={styles.cardBody}>
-        <Text style={[styles.location, isRTL && styles.textRTL]}>
-          {t('from')}: {item.start_location}
-        </Text>
-        <Text style={[styles.location, isRTL && styles.textRTL]}>
-          {t('to')}: {item.end_location}
-        </Text>
-      </View>
-      <View style={styles.cardFooter}>
-        <Text style={styles.seats}>
-          {item.available_seats} {t('seats_available')}
-        </Text>
+      {/* Orange accent bar */}
+      <View style={styles.cardAccent} />
+
+      <View style={styles.cardContent}>
+        {/* Route Name */}
+        <Text style={styles.routeName} numberOfLines={1}>{item.title}</Text>
+
+        {/* From → To */}
+        <View style={styles.routePath}>
+          <View style={styles.routeStop}>
+            <Ionicons name="radio-button-on" size={12} color={Colors.primary} />
+            <Text style={styles.routeStopText} numberOfLines={1}>{item.start_location}</Text>
+          </View>
+          <View style={styles.routeLine} />
+          <View style={styles.routeStop}>
+            <Ionicons name="location" size={12} color={Colors.secondary} />
+            <Text style={styles.routeStopText} numberOfLines={1}>{item.end_location}</Text>
+          </View>
+        </View>
+
+        {/* Schedule */}
+        <View style={styles.scheduleRow}>
+          {item.departure_time && (
+            <View style={styles.timeBadge}>
+              <Ionicons name="sunny-outline" size={14} color={Colors.warning} />
+              <Text style={styles.timeText}>ذهاب: {item.departure_time.substring(0, 5)}</Text>
+            </View>
+          )}
+          {item.return_time && (
+            <View style={styles.timeBadge}>
+              <Ionicons name="moon-outline" size={14} color={Colors.secondary} />
+              <Text style={styles.timeText}>إياب: {item.return_time.substring(0, 5)}</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Footer */}
+        <View style={styles.cardFooter}>
+          <View style={styles.seatBadge}>
+            <Ionicons name="people-outline" size={13} color={Colors.primary} />
+            <Text style={styles.seatText}>{item.available_seats} مقعد</Text>
+          </View>
+          <Text style={styles.price}>{item.price.toLocaleString()} د.ع</Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
 
-  if (isLoading && routes.length === 0) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </View>
-    );
-  }
+  const ListEmpty = () => (
+    <View style={styles.emptyContainer}>
+      <Ionicons name="bus-outline" size={64} color={Colors.border} />
+      <Text style={styles.emptyTitle}>لا توجد خطوط متاحة</Text>
+      <Text style={styles.emptySubtitle}>اسحب للأسفل للتحديث</Text>
+    </View>
+  );
 
-  if (error) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>
-          {t('error_generic')}: {error}
-        </Text>
-        <TouchableOpacity style={styles.retryButton} onPress={refetch}>
-          <Text style={styles.retryText}>{t('retry')}</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  const ListError = () => (
+    <View style={styles.emptyContainer}>
+      <Ionicons name="wifi-outline" size={64} color={Colors.error} />
+      <Text style={styles.emptyTitle}>تعذّر تحميل الخطوط</Text>
+      <TouchableOpacity style={styles.retryButton} onPress={refetch}>
+        <Text style={styles.retryText}>إعادة المحاولة</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const handleSearch = async (text: string) => {
+    setSearchQuery(text);
+    if (text.length < 3) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&countrycodes=iq&limit=5`,
+        { headers: { 'User-Agent': 'UniRide-App' } }
+      );
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (error) {
+      console.warn('Geocoding error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={[styles.header, isRTL && styles.textRTL]}>{t('welcome')}</Text>
-        {profile?.full_name ? (
-          <Text style={[styles.subHeader, isRTL && styles.textRTL]}>{profile.full_name}</Text>
-        ) : null}
-      </View>
-      <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabActive} onPress={() => router.push('/')}>
-          <Text style={styles.tabTextActive}>{t('available_routes')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tab} onPress={() => router.push('/subscriptions')}>
-          <Text style={styles.tabText}>{t('my_subscriptions')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tab} onPress={() => router.push('/profile')}>
-          <Text style={styles.tabText}>{t('profile')}</Text>
-        </TouchableOpacity>
-      </View>
-      {routes.length === 0 ? (
-        <View style={styles.center}>
-          <Text style={styles.emptyText}>{t('no_seats')}</Text>
+      <StatusBar barStyle="light-content" backgroundColor={Colors.secondary} />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>{greeting}</Text>
+          <Text style={styles.headerSubtitle}>ابحث عن خط نقلك</Text>
         </View>
-      ) : (
-        <FlatList
-          data={routes}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
-        />
-      )}
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={() => router.push('/profile')}
+        >
+          <Ionicons name="person-circle-outline" size={36} color={Colors.white} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBar}>
+          <Ionicons name="search-outline" size={18} color={Colors.textMuted} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="إلى أين تريد الذهاب؟"
+            placeholderTextColor={Colors.textMuted}
+            value={searchQuery}
+            onChangeText={handleSearch}
+          />
+          {isSearching && <ActivityIndicator size="small" color={Colors.primary} />}
+        </View>
+
+        {/* Search Results Dropdown */}
+        {searchResults.length > 0 && (
+          <View style={styles.searchResults}>
+            {searchResults.map((result, index) => (
+              <TouchableOpacity 
+                key={index} 
+                style={styles.searchResultItem}
+                onPress={() => {
+                  setSearchQuery(result.display_name.split(',')[0]);
+                  setSearchResults([]);
+                }}
+              >
+                <Ionicons name="location-outline" size={16} color={Colors.textMuted} />
+                <Text style={styles.searchResultText} numberOfLines={1}>
+                  {result.display_name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
+
+      {/* License Banner */}
+      <View style={{ paddingHorizontal: 20, marginBottom: 10 }}>
+        <TouchableOpacity 
+          style={styles.licenseBanner} 
+          onPress={() => router.push('/activate')}
+          activeOpacity={0.8}
+        >
+          <View style={styles.licenseBannerContent}>
+            <Ionicons name="card-outline" size={24} color={Colors.primary} />
+            <View>
+              <Text style={styles.licenseBannerTitle}>تفعيل ترخيص جديد</Text>
+              <Text style={styles.licenseBannerSubtitle}>أدخل الكود لتفعيل اشتراكك</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-back" size={20} color={Colors.border} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Routes List */}
+      <FlatList
+        data={error ? [] : routes}
+        keyExtractor={(item) => item.id}
+        renderItem={renderRoute}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refetch}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
+        ListEmptyComponent={error ? <ListError /> : <ListEmpty />}
+        ListHeaderComponent={
+          routes.length > 0 ? (
+            <Text style={styles.sectionTitle}>
+              {routes.length} خط متاح
+            </Text>
+          ) : null
+        }
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
-  headerContainer: {
-    padding: 20,
-    backgroundColor: '#007AFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#0066D6',
-  },
-  header: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  subHeader: { fontSize: 16, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  tab: {
+  container: {
     flex: 1,
-    paddingVertical: 14,
-    alignItems: 'center',
+    backgroundColor: Colors.background,
   },
-  tabActive: {
-    flex: 1,
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderBottomWidth: 3,
-    borderBottomColor: '#007AFF',
-  },
-  tabText: { fontSize: 13, color: '#888', fontWeight: '500' },
-  tabTextActive: { fontSize: 13, color: '#007AFF', fontWeight: '700' },
-  listContent: { padding: 15 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardRTL: { direction: 'rtl' },
-  cardHeader: {
+  // Header
+  header: {
+    backgroundColor: Colors.secondary,
+    paddingTop: Spacing.xl + 12,
+    paddingBottom: Spacing.xxl,
+    paddingHorizontal: Spacing.xl,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
   },
-  title: { fontSize: 18, fontWeight: 'bold', flex: 1 },
-  price: { fontSize: 18, fontWeight: 'bold', color: '#2e7d32' },
-  cardBody: { marginBottom: 10 },
-  location: { fontSize: 14, color: '#424242', marginBottom: 4 },
+  greeting: {
+    fontFamily: FontFamily.bold,
+    fontSize: 20,
+    color: Colors.white,
+  },
+  headerSubtitle: {
+    fontFamily: FontFamily.regular,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.65)',
+    marginTop: 2,
+  },
+  profileButton: {
+    padding: Spacing.xs,
+  },
+  // Search
+  searchContainer: {
+    backgroundColor: Colors.secondary,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xl,
+    zIndex: 10,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    paddingHorizontal: Spacing.lg,
+    height: 56,
+    borderRadius: BorderRadius.pill,
+    ...Shadow.sm,
+  },
+  searchResults: {
+    position: 'absolute',
+    top: 76,
+    left: Spacing.lg,
+    right: Spacing.lg,
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: Spacing.sm,
+    ...Shadow.md,
+    zIndex: 100,
+  },
+  searchResultItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.surface,
+  },
+  searchResultText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 14,
+    color: Colors.text,
+    flex: 1,
+    textAlign: 'right',
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: FontFamily.medium,
+    fontSize: 15,
+    color: Colors.text,
+    textAlign: 'right',
+    paddingHorizontal: Spacing.md,
+  },
+  // License Banner
+  licenseBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.surface,
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Shadow.sm,
+  },
+  licenseBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  licenseBannerTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 15,
+    color: Colors.text,
+    textAlign: 'right',
+  },
+  licenseBannerSubtitle: {
+    fontFamily: FontFamily.regular,
+    fontSize: 13,
+    color: Colors.textSecondary,
+    textAlign: 'right',
+  },
+  // List
+  listContent: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xxxl,
+  },
+  sectionTitle: {
+    fontFamily: FontFamily.medium,
+    fontSize: 13,
+    color: Colors.textMuted,
+    marginBottom: Spacing.md,
+    textAlign: 'right',
+  },
+  // Card
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.md,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    ...Shadow.md,
+  },
+  cardAccent: {
+    width: 4,
+    backgroundColor: Colors.primary,
+  },
+  cardContent: {
+    flex: 1,
+    padding: Spacing.md,
+  },
+  routeName: {
+    fontFamily: FontFamily.bold,
+    fontSize: 15,
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+    textAlign: 'right',
+  },
+  routePath: {
+    marginBottom: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  routeStop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    justifyContent: 'flex-end',
+  },
+  routeStopText: {
+    fontFamily: FontFamily.regular,
+    fontSize: 13,
+    color: Colors.textSecondary,
+    flex: 1,
+    textAlign: 'right',
+  },
+  routeLine: {
+    width: 1.5,
+    height: 10,
+    backgroundColor: Colors.border,
+    marginRight: 5,
+    alignSelf: 'flex-end',
+  },
+  scheduleRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+    marginTop: Spacing.xs,
+    justifyContent: 'flex-end',
+  },
+  timeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  timeText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
   cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#eee',
-    paddingTop: 10,
-    alignItems: 'flex-end',
+    borderTopColor: Colors.border,
+    paddingTop: Spacing.sm,
+    marginTop: Spacing.xs,
   },
-  seats: { fontSize: 14, fontWeight: '600', color: '#1976d2' },
-  textRTL: { textAlign: 'right' },
-  errorText: { color: '#FF3B30', fontSize: 16, textAlign: 'center', marginBottom: 16 },
-  emptyText: { fontSize: 16, color: '#666', textAlign: 'center' },
+  seatBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    backgroundColor: Colors.primarySurface,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.pill,
+  },
+  seatText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 12,
+    color: Colors.primary,
+  },
+  price: {
+    fontFamily: FontFamily.bold,
+    fontSize: 15,
+    color: Colors.success,
+  },
+  // Empty / Error
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.section,
+    gap: Spacing.md,
+  },
+  emptyTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 17,
+    color: Colors.textSecondary,
+  },
+  emptySubtitle: {
+    fontFamily: FontFamily.regular,
+    fontSize: 14,
+    color: Colors.textMuted,
+  },
   retryButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
   },
-  retryText: { color: '#fff', fontWeight: 'bold' },
+  retryText: {
+    fontFamily: FontFamily.bold,
+    color: Colors.white,
+    fontSize: 14,
+  },
 });

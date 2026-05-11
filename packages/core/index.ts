@@ -50,9 +50,18 @@ export type TripUpdateRequest = z.infer<typeof TripUpdateRequest>;
 export const SubscriptionStatus = z.enum(['pending', 'active', 'expired', 'cancelled']);
 export type SubscriptionStatus = z.infer<typeof SubscriptionStatus>;
 
+export const InstitutionSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  city: z.string().nullable().optional(),
+  created_at: z.string(),
+});
+export type Institution = z.infer<typeof InstitutionSchema>;
+
 export const RouteSchema = z.object({
   id: z.string().uuid(),
   driver_id: z.string().uuid(),
+  institution_id: z.string().uuid().nullable().optional(),
   title: z.string().min(1),
   start_location: z.string().min(1),
   end_location: z.string().min(1),
@@ -60,8 +69,25 @@ export const RouteSchema = z.object({
   capacity: z.number().int().min(1),
   available_seats: z.number().int().min(0),
   is_active: z.boolean(),
+  start_lat: z.number().nullable().optional(),
+  start_lng: z.number().nullable().optional(),
+  end_lat: z.number().nullable().optional(),
+  end_lng: z.number().nullable().optional(),
+  departure_time: z.string().nullable().optional(),
+  return_time: z.string().nullable().optional(),
 });
 export type Route = z.infer<typeof RouteSchema>;
+
+export const RatingSchema = z.object({
+  id: z.string().uuid(),
+  trip_id: z.string().uuid(),
+  student_id: z.string().uuid(),
+  driver_id: z.string().uuid(),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().nullable().optional(),
+  created_at: z.string(),
+});
+export type Rating = z.infer<typeof RatingSchema>;
 
 export const TripSchema = z.object({
   id: z.string().uuid(),
@@ -87,12 +113,41 @@ export const SubscriptionSchema = z.object({
 });
 export type Subscription = z.infer<typeof SubscriptionSchema>;
 
+export const LicenseStatus = z.enum(['active', 'used', 'revoked']);
+export type LicenseStatus = z.infer<typeof LicenseStatus>;
+
+export const LicenseSchema = z.object({
+  id: z.string().uuid(),
+  batch_id: z.string().uuid(),
+  route_id: z.string().uuid(),
+  code: z.string(),
+  status: LicenseStatus,
+  used_by: z.string().uuid().nullable().optional(),
+  used_at: z.string().nullable().optional(),
+  valid_days: z.number().int().min(1),
+  created_at: z.string(),
+});
+export type License = z.infer<typeof LicenseSchema>;
+
+export const LicenseBatchSchema = z.object({
+  id: z.string().uuid(),
+  created_by: z.string().uuid(),
+  route_id: z.string().uuid(),
+  batch_name: z.string(),
+  quantity: z.number().int().min(1),
+  price: z.number().min(0),
+  valid_days: z.number().int().min(1),
+  created_at: z.string(),
+});
+export type LicenseBatch = z.infer<typeof LicenseBatchSchema>;
+
 export const ProfileSchema = z.object({
   id: z.string().uuid(),
   full_name: z.string().min(1),
   phone: z.string().min(1),
   role: UserRole,
   institution_id: z.string().uuid().nullable(),
+  is_verified: z.boolean().default(false),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -218,30 +273,4 @@ export const Translations: Record<Language, Record<string, string>> = {
   },
 };
 
-export const Theme = {
-  colors: {
-    primary: '#007AFF',
-    secondary: '#5856D6',
-    success: '#34C759',
-    danger: '#FF3B30',
-    warning: '#FF9500',
-    background: '#FFFFFF',
-    surface: '#F5F5F5',
-    text: '#000000',
-    textSecondary: '#666666',
-    border: '#EEEEEE',
-  },
-  spacing: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
-  },
-  borderRadius: {
-    sm: 8,
-    md: 12,
-    lg: 16,
-    full: 9999,
-  },
-};
+// NOTE: Theme tokens are defined in apps/mobile/src/theme/ — do not add here.

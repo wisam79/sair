@@ -10,16 +10,21 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#2D2D2D"
     },
     "assetBundlePatterns": ["**/*"],
+    "fonts": [
+      "./node_modules/@expo-google-fonts/ibm-plex-sans-arabic/IBMPlexSansArabic_400Regular.ttf",
+      "./node_modules/@expo-google-fonts/ibm-plex-sans-arabic/IBMPlexSansArabic_500Medium.ttf",
+      "./node_modules/@expo-google-fonts/ibm-plex-sans-arabic/IBMPlexSansArabic_700Bold.ttf"
+    ],
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#C2703E"
       }
     },
     "web": {
@@ -32,3 +37,4 @@
     }
   }
 }
+

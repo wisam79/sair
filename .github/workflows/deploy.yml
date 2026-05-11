@@ -58,8 +58,10 @@ jobs:
       - name: Deploy Edge Functions
         if: ${{ inputs.dry_run != true }}
         run: |
-          supabase functions deploy atomic-booking --project-ref "$PROJECT_REF"
           supabase functions deploy trip-engine --project-ref "$PROJECT_REF"
+          supabase functions deploy send-notification --project-ref "$PROJECT_REF"
+          supabase functions deploy zaincash-checkout --project-ref "$PROJECT_REF"
+          supabase functions deploy zaincash-webhook --project-ref "$PROJECT_REF"
 
       - name: Set Edge Function Secrets
         if: ${{ inputs.dry_run != true }}
@@ -68,6 +70,7 @@ jobs:
             SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
             SUPABASE_SERVICE_ROLE_KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             ADMIN_URL="${{ secrets.ADMIN_URL }}" \
+            ZAINCASH_SECRET="${{ secrets.ZAINCASH_SECRET }}" \
             --project-ref "$PROJECT_REF"
 
       - name: Verify Deployment

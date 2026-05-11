@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Authenticated, useLogout, useCustom } from "@refinedev/core";
-import { Box, Card, CardContent, Typography, Grid } from "@mui/material";
+import { Authenticated, useLogout } from "@refinedev/core";
+import { Box, Card, CardContent, Typography, Grid, CircularProgress } from "@mui/material";
+import { supabaseClient } from "../providers/supabaseClient";
 
 interface DashboardStats {
   total_users: number;
@@ -34,23 +35,21 @@ function StatCard({ title, value, color }: { title: string; value: string | numb
 export default function Page() {
   const { mutate: logout } = useLogout();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-
-  const { data, isLoading, error } = useCustom<{ data: DashboardStats }>({
-    url: 'rest/v1/rpc/get_dashboard_stats',
-    method: 'get',
-    config: {
-      headers: {
-        'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage?.getItem('sb-access-token') || '' : ''}`,
-      },
-    },
-  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (data?.data?.data) {
-      setStats(data.data.data);
-    }
-  }, [data]);
+    supabaseClient
+      .rpc('get_dashboard_stats')
+      .then(({ data, error }) => {
+        if (error) {
+          setError(error.message);
+        } else if (data) {
+          setStats(data as DashboardStats);
+        }
+        setIsLoading(false);
+      });
+  }, []);
 
   if (isLoading || !stats) {
     return (

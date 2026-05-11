@@ -56,6 +56,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const { data: rateLimitOk, error: rateLimitError } = await supabaseClient.rpc('check_rate_limit', {
+      p_user_id: user.id, // FIX: pass explicitly — auth.uid() is NULL with service role key
       p_action: 'trip_engine',
       p_limit: 30,
       p_window_seconds: 60,
@@ -85,12 +86,9 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (typeof lat !== 'number' || typeof lng !== 'number') {
-      return new Response(JSON.stringify({ error: 'lat and lng must be numbers' }), {
-        status: 400,
-        headers: responseHeaders,
-      });
-    }
+    // lat/lng are optional — only relevant for certain transitions (e.g. driver_waiting)
+    const validLat = typeof lat === 'number' ? lat : null;
+    const validLng = typeof lng === 'number' ? lng : null;
 
     const { data: driverData, error: driverError } = await supabaseClient
       .from('drivers')
@@ -126,12 +124,14 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // FIX: pass user.id (auth UID) — create_trip() stores auth.uid() as trips.driver_id,
+    // so we must compare against the same value, not drivers.id
     const { error } = await supabaseClient.rpc('update_trip_status', {
       p_trip_id: tripId,
       p_new_status: newStatus,
-      p_lat: lat ?? null,
-      p_lng: lng ?? null,
-      p_driver_id: driverData.id,
+      p_lat: validLat,
+      p_lng: validLng,
+      p_driver_id: user.id,
     });
 
     if (error) {

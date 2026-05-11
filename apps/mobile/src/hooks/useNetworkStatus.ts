@@ -34,32 +34,3 @@ export function useNetworkStatus() {
 
   return { isOnline };
 }
-
-export function useOptimisticAction<T>(
-  realAction: () => Promise<{ data: T | null; error: Error | null }>,
-  optimisticUpdate: () => void,
-  rollback: () => void
-) {
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const execute = useCallback(async () => {
-    setIsProcessing(true);
-    optimisticUpdate();
-
-    try {
-      const result = await realAction();
-      if (result.error) {
-        rollback();
-        return { data: null, error: result.error };
-      }
-      return { data: result.data, error: null };
-    } catch (err) {
-      rollback();
-      return { data: null, error: err instanceof Error ? err : new Error('Unknown error') };
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [realAction, optimisticUpdate, rollback]);
-
-  return { execute, isProcessing };
-}
