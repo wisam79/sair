@@ -1,7 +1,14 @@
 import { test, expect } from '@playwright/test';
 
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://zpcvvyxtmxzplmojobbv.supabase.co';
-const ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwY3Z2eXh0bXh6cGxtb2pvYmJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzMzIzODUsImV4cCI6MjA5MzkwODM4NX0.xpNyYLCSInR-aQzaA_l_8eoPTiWoWxgoMKEh_cgKD8s';
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL || !ANON_KEY) {
+  throw new Error(
+    'E2E tests require EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY env vars. ' +
+    'Copy .env.example to .env and fill in values.'
+  );
+}
 
 test.describe('Edge Function API Security', () => {
   test('atomic-booking rejects unauthenticated requests', async ({ request }) => {

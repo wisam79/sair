@@ -12,9 +12,11 @@ interface AuthUser {
 interface AuthState {
   user: AuthUser | null;
   role: UserRole | null;
-  profile: { full_name: string; phone: string } | null;
+  profile: { full_name: string; phone: string; institution_id?: string | null } | null;
+  initialized: boolean;
   setAuth: (user: AuthUser | null, role: UserRole | null) => void;
-  setProfile: (profile: { full_name: string; phone: string }) => void;
+  setProfile: (profile: { full_name: string; phone: string; institution_id?: string | null }) => void;
+  setInitialized: (initialized: boolean) => void;
   logout: () => void;
 }
 
@@ -24,8 +26,10 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       role: null,
       profile: null,
+      initialized: false,
       setAuth: (user, role) => set({ user, role }),
       setProfile: (profile) => set({ profile }),
+      setInitialized: (initialized) => set({ initialized }),
       logout: () => set({ user: null, role: null, profile: null }),
     }),
     {

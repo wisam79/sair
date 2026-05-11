@@ -8,12 +8,14 @@ import {
   TouchableOpacity,
   RefreshControl,
   Alert,
+  StatusBar,
 } from 'react-native';
 import { supabase } from '../src/lib/supabase';
 import { useSubscriptions } from '../src/hooks/useTrips';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { useRouter } from 'expo-router';
-import { SubscriptionStatus } from '@uniride/core';
+import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../src/theme';
+import { Ionicons } from '@expo/vector-icons';
 
 interface SubscriptionWithRoute {
   id: string;
@@ -32,33 +34,23 @@ interface SubscriptionWithRoute {
   } | null;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  active: '#34C759',
-  pending: '#FF9500',
-  expired: '#999',
-  cancelled: '#FF3B30',
+const STATUS_CONFIG: Record<string, { color: string; bg: string; label: string; icon: string }> = {
+  active:    { color: Colors.success, bg: Colors.successSurface, label: 'نشط', icon: 'checkmark-circle' },
+  pending:   { color: Colors.warning, bg: Colors.warningSurface, label: 'معلّق', icon: 'time' },
+  expired:   { color: Colors.textMuted, bg: Colors.surfaceMuted, label: 'منتهي', icon: 'close-circle' },
+  cancelled: { color: Colors.error, bg: Colors.errorSurface, label: 'ملغي', icon: 'ban' },
 };
 
 export default function SubscriptionsScreen() {
   const { subscriptions, isLoading, error, refetch } = useSubscriptions();
-  const { t, isRTL } = useTranslation();
+  const { t } = useTranslation();
   const router = useRouter();
 
-  const getStatusLabel = (status: string): string => {
-    const map: Record<string, string> = {
-      active: t('subscription_active'),
-      pending: t('subscription_pending'),
-      expired: t('subscription_expired'),
-      cancelled: t('subscription_cancelled'),
-    };
-    return map[status] || status;
-  };
-
   const handleCancelSubscription = useCallback(async (subscriptionId: string) => {
-    Alert.alert(t('cancel_trip'), t('cancel_confirmation'), [
-      { text: t('no'), style: 'cancel' },
+    Alert.alert('إلغاء الاشتراك', 'هل أنت متأكد من إلغاء هذا الاشتراك؟', [
+      { text: 'تراجع', style: 'cancel' },
       {
-        text: t('yes'),
+        text: 'إلغاء الاشتراك',
         style: 'destructive',
         onPress: async () => {
           try {
@@ -66,48 +58,64 @@ export default function SubscriptionsScreen() {
               .from('subscriptions')
               .update({ status: 'cancelled' })
               .eq('id', subscriptionId);
-
             if (error) throw error;
             refetch();
           } catch (err: unknown) {
-            const msg = err instanceof Error ? err.message : t('error_generic');
-            Alert.alert(t('error_generic'), msg);
+            Alert.alert('خطأ', err instanceof Error ? err.message : 'حدث خطأ');
           }
         },
       },
     ]);
-  }, [refetch, t]);
+  }, [refetch]);
 
-  const renderItem = ({ item }: { item: SubscriptionWithRoute }) => (
-    <View style={[styles.card, isRTL && styles.cardRTL]}>
-      <View style={styles.cardHeader}>
-        <Text style={[styles.routeTitle, isRTL && styles.textRTL]}>
-          {item.routes?.title || t('route_details')}
-        </Text>
-        <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.status] || '#999' }]}>
-          <Text style={styles.statusText}>{getStatusLabel(item.status)}</Text>
-        </View>
-      </View>
+  const renderItem = ({ item }: { item: SubscriptionWithRoute }) => {
+    const status = STATUS_CONFIG[item.status] || STATUS_CONFIG.expired;
+    const startDate = new Date(item.start_date).toLocaleDateString('ar-IQ');
+    const endDate = new Date(item.end_date).toLocaleDateString('ar-IQ');
 
-      {item.routes && (
-        <>
-          <Text style={[styles.location, isRTL && styles.textRTL]}>
-            {item.routes.start_location} → {item.routes.end_location}
+    return (
+      <View style={styles.card}>
+        {/* Header */}
+        <View style={styles.cardHeader}>
+          <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
+            <Ionicons name={status.icon as any} size={13} color={status.color} />
+            <Text style={[styles.statusText, { color: status.color }]}>{status.label}</Text>
+          </View>
+          <Text style={styles.routeTitle} numberOfLines={1}>
+            {item.routes?.title || 'خط نقل'}
           </Text>
-          <Text style={styles.price}>{item.routes.price?.toLocaleString()} IQD</Text>
-        </>
-      )}
+        </View>
 
-      <Text style={[styles.dateText, isRTL && styles.textRTL]}>
-        {new Date(item.start_date).toLocaleDateString()} - {new Date(item.end_date).toLocaleDateString()}
-      </Text>
+        {/* Route Path */}
+        {item.routes && (
+          <View style={styles.routePath}>
+            <View style={styles.pathStop}>
+              <Ionicons name="radio-button-on" size={12} color={Colors.primary} />
+              <Text style={styles.pathText}>{item.routes.start_location}</Text>
+            </View>
+            <View style={styles.pathDivider} />
+            <View style={styles.pathStop}>
+              <Ionicons name="location" size={12} color={Colors.secondary} />
+              <Text style={styles.pathText}>{item.routes.end_location}</Text>
+            </View>
+          </View>
+        )}
 
-      <View style={styles.actionRow}>
-        {item.status === 'active' && item.routes && (
-          <TouchableOpacity
-            style={styles.trackButton}
-            onPress={async () => {
-              if (item.route_id) {
+        {/* Details Row */}
+        <View style={styles.detailsRow}>
+          <Text style={styles.dateText}>{startDate} — {endDate}</Text>
+          {item.routes && (
+            <Text style={styles.priceText}>{item.routes.price.toLocaleString()} د.ع</Text>
+          )}
+        </View>
+
+        {/* Actions */}
+        <View style={styles.actions}>
+          {item.status === 'active' && item.routes && (
+            <TouchableOpacity
+              style={styles.trackButton}
+              activeOpacity={0.85}
+              onPress={async () => {
                 const { data: activeTrip } = await supabase
                   .from('trips')
                   .select('id')
@@ -119,104 +127,219 @@ export default function SubscriptionsScreen() {
                 if (activeTrip) {
                   router.push({ pathname: '/tracking/[tripId]', params: { tripId: activeTrip.id } });
                 } else {
-                  Alert.alert(t('live_tracking'), t('no_active_trips'));
+                  Alert.alert('التتبع', 'لا توجد رحلة نشطة الآن');
                 }
-              }
-            }}
-          >
-            <Text style={styles.trackButtonText}>{t('live_tracking')}</Text>
-          </TouchableOpacity>
-        )}
+              }}
+            >
+              <Ionicons name="navigate-outline" size={14} color={Colors.white} />
+              <Text style={styles.trackButtonText}>تتبع الرحلة</Text>
+            </TouchableOpacity>
+          )}
 
-        {(item.status === 'active' || item.status === 'pending') && (
-          <TouchableOpacity
-            style={styles.cancelSubButton}
-            onPress={() => handleCancelSubscription(item.id)}
-          >
-            <Text style={styles.cancelSubButtonText}>{t('cancel_trip')}</Text>
-          </TouchableOpacity>
-        )}
+          {(item.status === 'active' || item.status === 'pending') && (
+            <TouchableOpacity
+              style={styles.cancelButton}
+              activeOpacity={0.85}
+              onPress={() => handleCancelSubscription(item.id)}
+            >
+              <Text style={styles.cancelButtonText}>إلغاء</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   if (isLoading && subscriptions.length === 0) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
       <FlatList
         data={subscriptions as SubscriptionWithRoute[]}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refetch}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
+        ListHeaderComponent={
+          <Text style={styles.pageTitle}>اشتراكاتي</Text>
+        }
         ListEmptyComponent={
-          <View style={styles.center}>
-            <Text style={styles.emptyText}>{t('no_active_trips')}</Text>
+          <View style={styles.emptyContainer}>
+            <Ionicons name="ticket-outline" size={64} color={Colors.border} />
+            <Text style={styles.emptyTitle}>لا توجد اشتراكات</Text>
+            <Text style={styles.emptySubtitle}>احجز خطاً من الصفحة الرئيسية</Text>
           </View>
         }
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
-  listContent: { padding: 15 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
   },
-  cardRTL: { direction: 'rtl' },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  listContent: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxxl,
+  },
+  pageTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 22,
+    color: Colors.text,
+    textAlign: 'right',
+    marginBottom: Spacing.lg,
+  },
+  // Card
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    ...Shadow.md,
+  },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: Spacing.sm,
   },
-  routeTitle: { fontSize: 16, fontWeight: 'bold', flex: 1 },
+  routeTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 15,
+    color: Colors.text,
+    flex: 1,
+    textAlign: 'right',
+    marginRight: Spacing.sm,
+  },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.pill,
   },
-  statusText: { color: '#fff', fontSize: 12, fontWeight: '600' },
-  location: { fontSize: 14, color: '#424242', marginBottom: 4 },
-  price: { fontSize: 16, fontWeight: '600', color: '#2e7d32', marginBottom: 8 },
-  dateText: { fontSize: 12, color: '#999' },
-  textRTL: { textAlign: 'right' },
-  actionRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  statusText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 12,
+  },
+  // Route
+  routePath: {
+    backgroundColor: Colors.surfaceMuted,
+    borderRadius: BorderRadius.sm,
+    padding: Spacing.sm,
+    marginBottom: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  pathStop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    justifyContent: 'flex-end',
+  },
+  pathText: {
+    fontFamily: FontFamily.regular,
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  pathDivider: {
+    width: 1,
+    height: 8,
+    backgroundColor: Colors.border,
+    alignSelf: 'flex-end',
+    marginRight: 5,
+  },
+  // Details
+  detailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    marginBottom: Spacing.sm,
+  },
+  dateText: {
+    fontFamily: FontFamily.regular,
+    fontSize: 12,
+    color: Colors.textMuted,
+  },
+  priceText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 14,
+    color: Colors.success,
+  },
+  // Actions
+  actions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
   trackButton: {
     flex: 1,
-    backgroundColor: '#5856D6',
-    padding: 10,
-    borderRadius: 8,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
   },
-  trackButtonText: { color: '#fff', fontWeight: '600' },
-  cancelSubButton: {
-    flex: 1,
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#FF3B30',
+  trackButtonText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 13,
+    color: Colors.white,
+  },
+  cancelButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1.5,
+    borderColor: Colors.error,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  cancelSubButtonText: { color: '#FF3B30', fontWeight: '600' },
-  emptyText: { fontSize: 16, color: '#666', textAlign: 'center' },
+  cancelButtonText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 13,
+    color: Colors.error,
+  },
+  // Empty
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.section,
+    gap: Spacing.md,
+  },
+  emptyTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 17,
+    color: Colors.textSecondary,
+  },
+  emptySubtitle: {
+    fontFamily: FontFamily.regular,
+    fontSize: 14,
+    color: Colors.textMuted,
+  },
 });

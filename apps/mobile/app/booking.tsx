@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -14,17 +14,19 @@ import { useRouteById } from '../src/hooks/useRoutes';
 import { useBookingStore } from '../src/hooks/useStore';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { BookingRequest } from '@uniride/core';
+import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../src/theme';
+import { Ionicons } from '@expo/vector-icons';
 
 function getErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   if (typeof err === 'string') return err;
-  return 'An unknown error occurred';
+  return 'حدث خطأ غير معروف';
 }
 
 export default function BookingScreen() {
   const { routeId } = useLocalSearchParams<{ routeId: string }>();
   const { route, isLoading } = useRouteById(routeId || null);
-  const { isBooking, setBooking, setBookingResult, resetBooking } = useBookingStore();
+  const { isBooking, setBooking, setBookingResult } = useBookingStore();
   const { t, isRTL } = useTranslation();
   const router = useRouter();
   const lastPressRef = useRef(0);
@@ -38,13 +40,13 @@ export default function BookingScreen() {
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      Alert.alert(t('login'), t('error_generic'));
+      Alert.alert('تنبيه', 'يجب تسجيل الدخول أولاً');
       return;
     }
 
     const parsed = BookingRequest.safeParse({ routeId, studentId: user.id });
     if (!parsed.success) {
-      Alert.alert(t('booking_failed'), parsed.error.issues.map((i) => i.message).join(', '));
+      Alert.alert('فشل الحجز', parsed.error.issues.map((i) => i.message).join(', '));
       return;
     }
 
@@ -57,24 +59,24 @@ export default function BookingScreen() {
 
       if (error) {
         setBookingResult(null, error.message);
-        Alert.alert(t('booking_failed'), error.message);
+        Alert.alert('فشل الحجز', error.message);
       } else {
         setBookingResult(data?.subscriptionId || 'success', null);
-        Alert.alert(t('book_now'), t('seat_reserved'), [
-          { text: 'OK', onPress: () => router.push('/subscriptions') },
+        Alert.alert('نجاح', 'تم حجز المقعد بنجاح', [
+          { text: 'حسناً', onPress: () => router.push('/subscriptions') },
         ]);
       }
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
-      setBookingResult(null, msg || t('booking_failed'));
-      Alert.alert(t('booking_failed'), msg || t('error_generic'));
+      setBookingResult(null, msg);
+      Alert.alert('فشل الحجز', msg);
     }
-  }, [routeId, isBooking]);
+  }, [routeId, isBooking, router]);
 
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
@@ -82,9 +84,9 @@ export default function BookingScreen() {
   if (!route) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorText}>{t('error_generic')}</Text>
+        <Text style={styles.errorText}>لم يتم العثور على الخط</Text>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backText}>{t('go_back')}</Text>
+          <Text style={styles.backText}>رجوع</Text>
         </TouchableOpacity>
       </View>
     );
@@ -92,34 +94,37 @@ export default function BookingScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={[styles.routeCard, isRTL && styles.cardRTL]}>
-        <Text style={[styles.routeTitle, isRTL && styles.textRTL]}>{route.title}</Text>
+      <View style={styles.routeCard}>
+        <Text style={styles.routeTitle}>{route.title}</Text>
 
         <View style={styles.detailRow}>
-          <Text style={[styles.label, isRTL && styles.textRTL]}>{t('from')}</Text>
-          <Text style={[styles.value, isRTL && styles.textRTL]}>{route.start_location}</Text>
+          <Text style={styles.label}>من</Text>
+          <Text style={styles.value}>{route.start_location}</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Text style={[styles.label, isRTL && styles.textRTL]}>{t('to')}</Text>
-          <Text style={[styles.value, isRTL && styles.textRTL]}>{route.end_location}</Text>
+          <Text style={styles.label}>إلى</Text>
+          <Text style={styles.value}>{route.end_location}</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Text style={[styles.label, isRTL && styles.textRTL]}>{t('price')}</Text>
-          <Text style={styles.priceValue}>{route.price.toLocaleString()} IQD</Text>
+          <Text style={styles.label}>السعر</Text>
+          <Text style={styles.priceValue}>{route.price.toLocaleString()} د.ع</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Text style={[styles.label, isRTL && styles.textRTL]}>{t('seats_available')}</Text>
-          <Text
-            style={[
-              styles.seatsValue,
-              route.available_seats <= 2 && styles.seatsWarning,
-            ]}
-          >
-            {route.available_seats}
-          </Text>
+          <Text style={styles.label}>المقاعد المتاحة</Text>
+          <View style={styles.seatBadge}>
+            <Ionicons name="people-outline" size={16} color={Colors.primary} />
+            <Text
+              style={[
+                styles.seatsValue,
+                route.available_seats <= 2 && styles.seatsWarning,
+              ]}
+            >
+              {route.available_seats}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -127,13 +132,17 @@ export default function BookingScreen() {
         style={[styles.bookButton, (isBooking || route.available_seats <= 0) && styles.bookButtonDisabled]}
         onPress={handleBook}
         disabled={isBooking || route.available_seats <= 0}
+        activeOpacity={0.85}
       >
         {isBooking ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={Colors.white} />
         ) : (
-          <Text style={styles.bookButtonText}>
-            {route.available_seats <= 0 ? t('no_seats') : t('confirm_booking')}
-          </Text>
+          <>
+            <Ionicons name="ticket-outline" size={20} color={Colors.white} style={{ position: 'absolute', right: Spacing.xl }} />
+            <Text style={styles.bookButtonText}>
+              {route.available_seats <= 0 ? 'لا توجد مقاعد متاحة' : 'تأكيد الحجز'}
+            </Text>
+          </>
         )}
       </TouchableOpacity>
     </ScrollView>
@@ -141,50 +150,91 @@ export default function BookingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  content: { padding: 20 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  container: { flex: 1, backgroundColor: Colors.background },
+  content: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.md },
+  // Card
   routeCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
+    ...Shadow.lg,
   },
-  cardRTL: { direction: 'rtl' },
-  routeTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 20, color: '#333' },
-  textRTL: { textAlign: 'right' },
+  routeTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 20,
+    color: Colors.text,
+    marginBottom: Spacing.lg,
+    textAlign: 'right',
+  },
+  // Details
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Colors.border,
   },
-  label: { fontSize: 14, color: '#888' },
-  value: { fontSize: 16, fontWeight: '500', color: '#333' },
-  priceValue: { fontSize: 18, fontWeight: 'bold', color: '#2e7d32' },
-  seatsValue: { fontSize: 18, fontWeight: 'bold', color: '#1976d2' },
-  seatsWarning: { color: '#FF9500' },
-  bookButton: {
-    backgroundColor: '#007AFF',
-    padding: 18,
-    borderRadius: 12,
+  label: {
+    fontFamily: FontFamily.regular,
+    fontSize: 13,
+    color: Colors.textMuted,
+  },
+  value: {
+    fontFamily: FontFamily.medium,
+    fontSize: 15,
+    color: Colors.text,
+  },
+  priceValue: {
+    fontFamily: FontFamily.bold,
+    fontSize: 18,
+    color: Colors.success,
+  },
+  seatBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 24,
+    gap: Spacing.xs,
   },
-  bookButtonDisabled: { backgroundColor: '#ccc' },
-  bookButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
-  errorText: { color: '#FF3B30', fontSize: 16, textAlign: 'center', marginBottom: 16 },
+  seatsValue: {
+    fontFamily: FontFamily.bold,
+    fontSize: 18,
+    color: Colors.primary,
+  },
+  seatsWarning: { color: Colors.warning },
+  // Book Button
+  bookButton: {
+    backgroundColor: Colors.primary,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.xl,
+    borderRadius: BorderRadius.lg,
+    marginTop: Spacing.xl,
+    ...Shadow.md,
+  },
+  bookButtonDisabled: { backgroundColor: Colors.textMuted, opacity: 0.6 },
+  bookButtonText: {
+    fontFamily: FontFamily.bold,
+    color: Colors.white,
+    fontSize: 17,
+  },
+  // Error
+  errorText: {
+    fontFamily: FontFamily.medium,
+    color: Colors.error,
+    fontSize: 15,
+    textAlign: 'center',
+  },
   backButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
   },
-  backText: { color: '#fff', fontWeight: 'bold' },
+  backText: {
+    fontFamily: FontFamily.bold,
+    color: Colors.white,
+    fontSize: 14,
+  },
 });

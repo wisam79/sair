@@ -27,6 +27,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 meta: { label: "Users" },
               },
               {
+                name: "drivers",
+                list: "/drivers",
+                meta: { label: "Drivers Management" },
+              },
+              {
                 name: "routes",
                 list: "/routes",
                 create: "/routes/create",
@@ -43,6 +48,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 name: "subscriptions",
                 list: "/subscriptions",
                 meta: { label: "Subscriptions" },
+              },
+              {
+                name: "license_batches",
+                list: "/license_batches",
+                create: "/license_batches/create",
+                meta: { label: "License Batches" },
+              },
+              {
+                name: "licenses",
+                list: "/licenses",
+                meta: { label: "Licenses" },
               },
             ]}
             options={{

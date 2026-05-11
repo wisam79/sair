@@ -1,0 +1,155 @@
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  Alert,
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { supabase } from '../../src/lib/supabase';
+import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../../src/theme';
+import { Ionicons } from '@expo/vector-icons';
+
+export default function RatingScreen() {
+  const { tripId } = useLocalSearchParams<{ tripId: string }>();
+  const router = useRouter();
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      Alert.alert('تنبيه', 'يرجى اختيار عدد النجوم للتقييم');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const { error } = await supabase.rpc('submit_rating', {
+        p_trip_id: tripId,
+        p_rating: rating,
+        p_comment: comment.trim() || null,
+      });
+
+      if (error) throw error;
+
+      Alert.alert('شكراً لك', 'تم إرسال تقييمك بنجاح!', [
+        { text: 'حسناً', onPress: () => router.push('/') }
+      ]);
+    } catch (err: any) {
+      Alert.alert('خطأ', err.message || 'حدث خطأ أثناء إرسال التقييم');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.title}>كيف كانت رحلتك؟</Text>
+          <Text style={styles.subtitle}>تقييمك يساعدنا في تحسين جودة النقل للجميع</Text>
+        </View>
+
+        <View style={styles.starContainer}>
+          {[1, 2, 3, 4, 5].map((star) => (
+            <TouchableOpacity 
+              key={star} 
+              onPress={() => setRating(star)}
+              activeOpacity={0.7}
+            >
+              <Ionicons 
+                name={star <= rating ? "star" : "star-outline"} 
+                size={48} 
+                color={star <= rating ? Colors.warning : Colors.border} 
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>ملاحظات إضافية (اختياري)</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="اكتب تعليقك هنا..."
+            placeholderTextColor={Colors.textMuted}
+            multiline
+            numberOfLines={4}
+            value={comment}
+            onChangeText={setComment}
+          />
+        </View>
+
+        <TouchableOpacity 
+          style={[styles.submitButton, (rating === 0 || isSubmitting) && styles.disabledButton]}
+          onPress={handleSubmit}
+          disabled={rating === 0 || isSubmitting}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color={Colors.white} />
+          ) : (
+            <Text style={styles.submitText}>إرسال التقييم</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.skipButton}
+          onPress={() => router.push('/')}
+          disabled={isSubmitting}
+        >
+          <Text style={styles.skipText}>تخطي</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: Colors.background },
+  content: { padding: Spacing.xl, alignItems: 'center', paddingTop: 80 },
+  header: { alignItems: 'center', marginBottom: Spacing.xxxl },
+  title: { fontFamily: FontFamily.bold, fontSize: 26, color: Colors.text, marginBottom: Spacing.sm },
+  subtitle: { fontFamily: FontFamily.regular, fontSize: 16, color: Colors.textSecondary, textAlign: 'center', lineHeight: 24 },
+  starContainer: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.xxxl },
+  inputContainer: { width: '100%', marginBottom: Spacing.xxxl },
+  label: { fontFamily: FontFamily.bold, fontSize: 15, color: Colors.text, marginBottom: Spacing.md, textAlign: 'right' },
+  textInput: {
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    height: 120,
+    textAlignVertical: 'top',
+    textAlign: 'right',
+    fontFamily: FontFamily.regular,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Shadow.sm,
+  },
+  submitButton: {
+    width: '100%',
+    backgroundColor: Colors.primary,
+    height: 56,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.lg,
+    ...Shadow.md,
+  },
+  disabledButton: { backgroundColor: Colors.border },
+  submitText: { fontFamily: FontFamily.bold, fontSize: 18, color: Colors.white },
+  skipButton: { padding: Spacing.md },
+  skipText: { fontFamily: FontFamily.medium, fontSize: 16, color: Colors.textMuted },
+});

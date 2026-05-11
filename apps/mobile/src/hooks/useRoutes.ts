@@ -4,7 +4,7 @@ import { Route } from '@uniride/core';
 
 const PAGE_SIZE = 20;
 
-export function useRoutes(page = 0) {
+export function useRoutes(institutionId?: string | null, page = 0) {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,13 +14,19 @@ export function useRoutes(page = 0) {
     try {
       setIsLoading(true);
       const from = page * PAGE_SIZE;
-      const { data, error, count } = await supabase
+      
+      let query = supabase
         .from('routes')
         .select('*', { count: 'exact' })
         .eq('is_active', true)
         .gt('available_seats', 0)
-        .order('created_at', { ascending: false })
-        .range(from, from + PAGE_SIZE - 1);
+        .order('created_at', { ascending: false });
+
+      if (institutionId) {
+        query = query.eq('institution_id', institutionId);
+      }
+
+      const { data, error, count } = await query.range(from, from + PAGE_SIZE - 1);
 
       if (error) throw error;
       const newRoutes = data || [];
@@ -37,7 +43,7 @@ export function useRoutes(page = 0) {
     } finally {
       setIsLoading(false);
     }
-  }, [page]);
+  }, [page, institutionId]);
 
   useEffect(() => {
     fetchRoutes();

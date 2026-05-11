@@ -23,6 +23,8 @@ interface SubscriptionWithRoute extends Subscription {
   } | null;
 }
 
+import { OfflineCache } from '../lib/offlineCache';
+
 export function useSubscriptions(page = 0) {
   const [subscriptions, setSubscriptions] = useState<SubscriptionWithRoute[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,7 +35,12 @@ export function useSubscriptions(page = 0) {
     try {
       setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        // Try to load offline
+        const offlineSub = await OfflineCache.getActiveSubscription();
+        if (offlineSub) setSubscriptions([offlineSub as SubscriptionWithRoute]);
+        return;
+      }
 
       const from = page * PAGE_SIZE;
       const { data, error, count } = await supabase
@@ -47,8 +54,22 @@ export function useSubscriptions(page = 0) {
       const newSubs = (data as SubscriptionWithRoute[]) || [];
       setSubscriptions(page === 0 ? newSubs : (prev) => [...prev, ...newSubs]);
       setHasMore(newSubs.length === PAGE_SIZE && (!count || from + PAGE_SIZE < count));
+
+      // Cache active subscription for offline use
+      if (page === 0) {
+        const activeSub = newSubs.find(s => s.status === 'active');
+        await OfflineCache.saveActiveSubscription(activeSub || null);
+      }
     } catch (err: unknown) {
       setError(getErrorMessage(err));
+      // Fallback to offline cache on network error
+      if (page === 0) {
+        const offlineSub = await OfflineCache.getActiveSubscription();
+        if (offlineSub) {
+          setSubscriptions([offlineSub as SubscriptionWithRoute]);
+          setError(null); // Clear error if we have offline data
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -65,34 +86,31 @@ export function useActiveTrips() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastRealtimeUpdate, setLastRealtimeUpdate] = useState<number>(0);
+
+  const fetchTrips = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('trips')
+        .select('*')
+        .in('status', ['driver_waiting', 'in_transit'])
+        .order('scheduled_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setTrips((data as Trip[]) || []);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
-
-    async function fetchTrips() {
-      try {
-        setIsLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data, error } = await supabase
-          .from('trips')
-          .select('*')
-          .in('status', ['driver_waiting', 'in_transit'])
-          .order('scheduled_at', { ascending: false })
-          .limit(50);
-
-        if (error) throw error;
-        if (isMounted) {
-          setTrips((data as Trip[]) || []);
-        }
-      } catch (err: unknown) {
-        if (isMounted) setError(getErrorMessage(err));
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    }
 
     fetchTrips();
 
@@ -109,7 +127,6 @@ export function useActiveTrips() {
             if (prev.find((t) => t.id === newTrip.id)) return prev;
             return [newTrip, ...prev];
           });
-          setLastRealtimeUpdate(Date.now());
         } else if (payload.eventType === 'UPDATE') {
           if (['completed', 'cancelled', 'absent'].includes(newTrip.status)) {
             setTrips((prev) => prev.filter((t) => t.id !== newTrip.id));
@@ -118,51 +135,68 @@ export function useActiveTrips() {
               prev.map((t) => (t.id === newTrip.id ? newTrip : t))
             );
           }
-          setLastRealtimeUpdate(Date.now());
         } else if (payload.eventType === 'DELETE' && oldTrip) {
           setTrips((prev) => prev.filter((t) => t.id !== oldTrip.id));
-          setLastRealtimeUpdate(Date.now());
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        // Auto-reconnect on channel error or timeout
+        if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') && isMounted) {
+          console.warn('[Realtime] trips-active channel error, re-fetching...', status);
+          fetchTrips();
+        }
+      });
 
     return () => {
       isMounted = false;
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchTrips]);
 
-  return { trips, isLoading, error, refetch: () => {} };
+  return { trips, isLoading, error, refetch: fetchTrips };
+}
+
+export interface TripWithRoute extends Trip {
+  routes: {
+    start_lat: number | null;
+    start_lng: number | null;
+    end_lat: number | null;
+    end_lng: number | null;
+    title: string;
+  } | null;
+  driver: {
+    full_name: string;
+    phone: string;
+  } | null;
 }
 
 export function useTripTracking(tripId: string | null) {
-  const [trip, setTrip] = useState<Trip | null>(null);
+  const [trip, setTrip] = useState<TripWithRoute | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchTrip = useCallback(async () => {
     if (!tripId) {
       setIsLoading(false);
       return;
     }
-
-    async function fetchTrip() {
-      try {
-        setIsLoading(true);
-        const { data, error } = await supabase
-          .from('trips')
-          .select('*')
-          .eq('id', tripId)
-          .single();
-        if (error) throw error;
-        setTrip(data as Trip);
-      } catch (err: unknown) {
-        setError(getErrorMessage(err));
-      } finally {
-        setIsLoading(false);
-      }
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('trips')
+        .select('*, routes(start_lat, start_lng, end_lat, end_lng, title), driver:profiles!driver_id(full_name, phone)')
+        .eq('id', tripId)
+        .single();
+      if (error) throw error;
+      setTrip(data as unknown as TripWithRoute);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
     }
+  }, [tripId]);
 
+  useEffect(() => {
     fetchTrip();
 
     const channel = supabase
@@ -170,18 +204,24 @@ export function useTripTracking(tripId: string | null) {
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'trips', filter: `id=eq.${tripId}` },
-        (payload) => {
-          setTrip(payload.new as Trip);
+        () => {
+          // Re-fetch full trip with joins — ensures driver/route data stays fresh
+          fetchTrip();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('[Realtime] trip tracking reconnecting...', status);
+          fetchTrip();
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [tripId]);
+  }, [tripId, fetchTrip]);
 
-  return { trip, isLoading, error };
+  return { trip, isLoading, error, refetch: fetchTrip };
 }
 
 export function useDriverTrips(page = 0) {
@@ -219,7 +259,12 @@ export function useDriverTrips(page = 0) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trips' }, () => {
         fetchTrips();
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('[Realtime] driver-trips channel error, re-fetching...', status);
+          fetchTrips();
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -270,7 +315,7 @@ async function flushGpsQueue() {
       await AsyncStorage.removeItem(GPS_QUEUE_KEY);
     }
   } catch (err) {
-    console.error('Failed to flush GPS queue:', err);
+    console.warn('Failed to flush GPS queue:', err);
   }
 }
 
