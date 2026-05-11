@@ -72,3 +72,4 @@ jobs:
           PR_NUMBER="${{ steps.create.outputs.number }}"
           gh pr edit "$PR_NUMBER" --add-label "auto-merge"
           echo "Added auto-merge label to PR #$PR_NUMBER"
+
