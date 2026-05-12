@@ -1,4 +1,5 @@
 # UniRide v2 — منصة النقل الذكي للجامعة
+
 ## التوثيق الهندسي الشامل
 
 ---
@@ -25,22 +26,22 @@
 
 ### 1.2 الحزم والتقنيات
 
-| الحزمة | التقنية | الإصدار |
-|--------|---------|---------|
-| **Root** | pnpm workspaces | 10.0.0 |
-| **Admin** | Next.js + React + MUI + Refine | Next.js 16.2.6, React 19 |
-| **Mobile** | Expo + React Native + Expo Router | Expo 54, RN 0.81.5 |
-| **Core** | Zod schemas, i18n | TypeScript 5.4.5 |
-| **DB** | Drizzle ORM + Supabase PostgreSQL | - |
-| **Testing** | Vitest (unit) + Playwright (E2E) | Vitest 1.6.0, Playwright 1.59.1 |
+| الحزمة      | التقنية                           | الإصدار                         |
+| ----------- | --------------------------------- | ------------------------------- |
+| **Root**    | pnpm workspaces                   | 10.0.0                          |
+| **Admin**   | Next.js + React + MUI + Refine    | Next.js 16.2.6, React 19        |
+| **Mobile**  | Expo + React Native + Expo Router | Expo 54, RN 0.81.5              |
+| **Core**    | Zod schemas, i18n                 | TypeScript 5.4.5                |
+| **DB**      | Drizzle ORM + Supabase PostgreSQL | -                               |
+| **Testing** | Vitest (unit) + Playwright (E2E)  | Vitest 1.6.0, Playwright 1.59.1 |
 
 ### 1.3 أدوار المستخدمين
 
-| الدور | الوصف | الصلاحيات |
-|-------|-------|----------|
-| **admin** | مدير النظام | لوحة تحكم كاملة، إدارة جميع الكيانات |
-| **student** | طالب جامعي | حجز المقاعد، عرض الاشتراكات، تتبع الرحلة |
-| **driver** | سائق الحافلة | بدء/إنهاء الرحلات، إرسال موقع GPS، عرض الركاب |
+| الدور       | الوصف        | الصلاحيات                                     |
+| ----------- | ------------ | --------------------------------------------- |
+| **admin**   | مدير النظام  | لوحة تحكم كاملة، إدارة جميع الكيانات          |
+| **student** | طالب جامعي   | حجز المقاعد، عرض الاشتراكات، تتبع الرحلة      |
+| **driver**  | سائق الحافلة | بدء/إنهاء الرحلات، إرسال موقع GPS، عرض الركاب |
 
 ### 1.4 حالات الرحلة (Trip State Machine)
 
@@ -52,6 +53,7 @@ cancelled           cancelled             absent
 ```
 
 الانتقالات المسموحة:
+
 - `scheduled` → `driver_waiting`, `cancelled`
 - `driver_waiting` → `in_transit`, `cancelled`
 - `in_transit` → `completed`, `absent`
@@ -138,9 +140,9 @@ uniride/
 
 ### 2.3 الفرق بين Drizzle و Supabase Migrations
 
-| النظام | الغرض | المصدر؟ |
-|--------|--------|---------|
-| **Drizzle Kit** | توليد Typescript types محلي | تطوير فقط |
+| النظام                  | الغرض                          | المصدر؟                   |
+| ----------------------- | ------------------------------ | ------------------------- |
+| **Drizzle Kit**         | توليد Typescript types محلي    | تطوير فقط                 |
 | **Supabase Migrations** | التطبيق الحقيقي على production | **المصدر الوحيد للحقيقة** |
 
 > **مهم:** لا يتم رفع migraitons Drizzle إلى production. فقط `supabase/migrations/*.sql` هي التي تُنشر.
@@ -152,6 +154,7 @@ uniride/
 ### 3.1 جداول قاعدة البيانات
 
 #### `profiles` — ملفات المستخدمين
+
 ```sql
 id              UUID PRIMARY KEY (FK auth.users)
 full_name       TEXT NOT NULL
@@ -163,6 +166,7 @@ updated_at      TIMESTAMPTZ DEFAULT NOW()
 ```
 
 #### `drivers` — بيانات السائقين والمركبات
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 user_id         UUID NOT NULL UNIQUE (FK profiles.id)
@@ -174,6 +178,7 @@ created_at      TIMESTAMPTZ DEFAULT NOW()
 ```
 
 #### `routes` — خطوط النقل
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 driver_id       UUID NOT NULL (FK drivers.id)
@@ -189,6 +194,7 @@ updated_at      TIMESTAMPTZ DEFAULT NOW()
 ```
 
 #### `subscriptions` — اشتراكات الطلاب
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 student_id      UUID NOT NULL (FK profiles.id)
@@ -200,6 +206,7 @@ created_at      TIMESTAMPTZ DEFAULT NOW()
 ```
 
 #### `trips` — رحلات فعلية
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 route_id        UUID NOT NULL (FK routes.id)
@@ -215,6 +222,7 @@ updated_at      TIMESTAMPTZ DEFAULT NOW()
 ```
 
 #### `audit_logs` — سجل المراجعة
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 user_id         UUID NOT NULL (FK auth.users)
@@ -226,6 +234,7 @@ created_at      TIMESTAMPTZ DEFAULT NOW()
 ```
 
 #### `rate_limits` — التحكم في معدل الطلبات
+
 ```sql
 id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
 user_id         UUID NOT NULL (FK auth.users)
@@ -251,24 +260,24 @@ auth.users
 
 ### 3.3 الدوال المخزنة (Stored Procedures / RPCs)
 
-| الدالة | الغرض | معلجات |
-|--------|--------|--------|
-| `reserve_seat(route_id, student_id)` | حجز مقعد بشكل ذري باستخدام `FOR UPDATE` lock | تمنع الحجز المزدوج |
-| `update_trip_status(trip_id, new_status, lat, lng, driver_id)` | تحديث حالة الرحلة مع التحقق من state machine | يحمي transitions |
-| `update_trip_location(trip_id, lat, lng)` | تحديث موقع GPS فقط | لا يغير الحالة |
-| `get_dashboard_stats()` | إحصائيات للوحة التحكم (بدلاً من تحميل كل البيانات) | تُرجع JSON |
-| `check_rate_limit(action, limit, window_seconds)` | تحديد معدل الطلبات لكل مستخدم | DB-backed |
-| `ping()` | فحص الاتصال بالشبكة | تُرجع TRUE دائماً |
-| `get_my_role()` | إرجاع role من `app_metadata` (وليس `user_metadata`) | آمن |
-| `log_audit(...)` | تسجيل فعل في audit_logs | للتتبع |
+| الدالة                                                         | الغرض                                               | معلجات             |
+| -------------------------------------------------------------- | --------------------------------------------------- | ------------------ |
+| `reserve_seat(route_id, student_id)`                           | حجز مقعد بشكل ذري باستخدام `FOR UPDATE` lock        | تمنع الحجز المزدوج |
+| `update_trip_status(trip_id, new_status, lat, lng, driver_id)` | تحديث حالة الرحلة مع التحقق من state machine        | يحمي transitions   |
+| `update_trip_location(trip_id, lat, lng)`                      | تحديث موقع GPS فقط                                  | لا يغير الحالة     |
+| `get_dashboard_stats()`                                        | إحصائيات للوحة التحكم (بدلاً من تحميل كل البيانات)  | تُرجع JSON         |
+| `check_rate_limit(action, limit, window_seconds)`              | تحديد معدل الطلبات لكل مستخدم                       | DB-backed          |
+| `ping()`                                                       | فحص الاتصال بالشبكة                                 | تُرجع TRUE دائماً  |
+| `get_my_role()`                                                | إرجاع role من `app_metadata` (وليس `user_metadata`) | آمن                |
+| `log_audit(...)`                                               | تسجيل فعل في audit_logs                             | للتتبع             |
 
 ### 3.4 الـ Triggers
 
-| Trigger | الجدول | الوظيفة |
-|---------|--------|--------|
-| `set_trips_updated_at` | `trips` | تحديث `updated_at` تلقائياً عند أي تغيير |
+| Trigger                  | الجدول          | الوظيفة                                         |
+| ------------------------ | --------------- | ----------------------------------------------- |
+| `set_trips_updated_at`   | `trips`         | تحديث `updated_at` تلقائياً عند أي تغيير        |
 | `on_subscription_cancel` | `subscriptions` | إعادة المقاعد المتاحة للخط عند الإلغاء/الانتهاء |
-| `on_profile_update` | `profiles` | مزامنة الاسم إلى auth metadata |
+| `on_profile_update`      | `profiles`      | مزامنة الاسم إلى auth metadata                  |
 
 ### 3.5 الفهارس (Indexes)
 
@@ -322,11 +331,11 @@ auth.jwt() -> 'app_metadata' ->> 'role'  // الدور
 
 ### 4.3 الفرق بين `app_metadata` و `user_metadata`
 
-| الخاصية | `app_metadata` | `user_metadata` |
-|---------|---------------|----------------|
-| **الكتابة** | admin-only (خادم) | client-writable |
-| **الأمان** | ✅ آمن للدور والصلاحيات | ❌ غير آمن |
-| **الاستخدام** | `authProvider.ts` | ❌ لا تستخدمه للصلاحيات |
+| الخاصية       | `app_metadata`          | `user_metadata`         |
+| ------------- | ----------------------- | ----------------------- |
+| **الكتابة**   | admin-only (خادم)       | client-writable         |
+| **الأمان**    | ✅ آمن للدور والصلاحيات | ❌ غير آمن              |
+| **الاستخدام** | `authProvider.ts`       | ❌ لا تستخدمه للصلاحيات |
 
 > **تحذير:** استخدام `user_metadata.role` للصلاحيات = ثغرة ارتفاع صلاحيات (Privilege Escalation)
 > لأن أي مستخدم يمكنه تغيير `user_metadata` من العميل.
@@ -432,6 +441,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
 
 **الحدود:**
+
 - `trip-engine`: 30 طلب / 60 ثانية
 - `atomic-booking`: 10 طلب / 60 ثانية
 
@@ -456,11 +466,14 @@ if (idempotencyKey) {
     .single();
 
   if (existingAudit) {
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Status already updated (idempotent response)',
-      idempotent: true,
-    }), { status: 200, headers });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Status already updated (idempotent response)',
+        idempotent: true,
+      }),
+      { status: 200, headers },
+    );
   }
 }
 ```
@@ -493,6 +506,7 @@ idempotency-key: <unique-key>  // optional
 ```
 
 **خطوات المعالجة:**
+
 1. التحقق من Authorization header
 2. التحقق من Rate limit (30/60s)
 3. التحقق من أن المستخدم سائق (`drivers` table)
@@ -523,6 +537,7 @@ idempotency-key: <unique-key>  // optional
 ```
 
 **خطوات المعالجة:**
+
 1. التحقق من Authorization header
 2. التحقق من Rate limit (10/60s)
 3. التحقق من UUID format
@@ -538,10 +553,10 @@ idempotency-key: <unique-key>  // optional
 
 ### 6.1 تطبيقات إدارة الحالة
 
-| التطبيق | الحل | التفاصيل |
-|---------|------|----------|
+| التطبيق    | الحل                     | التفاصيل                            |
+| ---------- | ------------------------ | ----------------------------------- |
 | **Mobile** | Zustand 5 + AsyncStorage | 4 stores: auth, trip, booking, i18n |
-| **Admin** | Refine + React Hook Form | Server state via Refine hooks |
+| **Admin**  | Refine + React Hook Form | Server state via Refine hooks       |
 
 ### 6.2 Zustand Stores (Mobile)
 
@@ -595,6 +610,7 @@ idempotency-key: <unique-key>  // optional
 ```
 
 **الكود:**
+
 ```typescript
 const GPS_QUEUE_KEY = 'gps_offline_queue';
 
@@ -631,15 +647,19 @@ async function checkNetwork() {
 // تتبع الرحلات النشطة
 const channel = supabase
   .channel('trips-active-realtime')
-  .on('postgres_changes', {
-    event: '*',
-    schema: 'public',
-    table: 'trips'
-  }, (payload) => {
-    // INSERT: أضف للـ list إذا كانت نشطة
-    // UPDATE: حدّث العنصر أو احذفه إذا اكتملت
-    // DELETE: احذف من الـ list
-  })
+  .on(
+    'postgres_changes',
+    {
+      event: '*',
+      schema: 'public',
+      table: 'trips',
+    },
+    (payload) => {
+      // INSERT: أضف للـ list إذا كانت نشطة
+      // UPDATE: حدّث العنصر أو احذفه إذا اكتملت
+      // DELETE: احذف من الـ list
+    },
+  )
   .subscribe();
 ```
 
@@ -649,14 +669,14 @@ const channel = supabase
 
 ### 7.1 ملخص Workflows
 
-| Workflow | Trigger | الوظيفة |
-|----------|---------|---------|
-| **ci.yml** | push/PR main | lint → typecheck → test → build |
-| **pr-check.yml** | PR opened | التحقق من .env، console.log، تسمية migrations |
-| **deploy.yml** | CI success / manual | تطبيق Migrations + نشر Edge Functions |
-| **e2e.yml** | push main / manual | Playwright API tests |
-| **security.yml** | weekly / manual | pnpm audit + مراجعة SQL |
-| **setup-branch-protection.yml** | manual | إعداد حماية الفرع |
+| Workflow                        | Trigger             | الوظيفة                                       |
+| ------------------------------- | ------------------- | --------------------------------------------- |
+| **ci.yml**                      | push/PR main        | lint → typecheck → test → build               |
+| **pr-check.yml**                | PR opened           | التحقق من .env، console.log، تسمية migrations |
+| **deploy.yml**                  | CI success / manual | تطبيق Migrations + نشر Edge Functions         |
+| **e2e.yml**                     | push main / manual  | Playwright API tests                          |
+| **security.yml**                | weekly / manual     | pnpm audit + مراجعة SQL                       |
+| **setup-branch-protection.yml** | manual              | إعداد حماية الفرع                             |
 
 ### 7.2 CI Pipeline (`ci.yml`)
 
@@ -831,19 +851,19 @@ main branch
 1. Check the failing workflow in GitHub Actions tab
 
 2. Most common causes:
-   
+
    a) Format error:
       pnpm format --write "**/*.ts"
       git add . && git commit --amend --no-edit
       git push --force (only if not pushed yet)
-   
+
    b) TypeScript error:
       pnpm typecheck
       → Fix the type errors
-   
+
    c) Test coverage below threshold:
       → Add more tests or adjust thresholds (if justified)
-   
+
    d) Build error:
       → Check Next.js/Expo build logs
 
@@ -888,22 +908,23 @@ gh run watch                # مراقبة الـ CI
 
 ### 9.1 الملفات الحرجة
 
-| الملف | الوظيفة |
-|-------|---------|
-| `apps/admin/src/providers/authProvider.ts` | تسجيل دخول admin، التحقق من الدور من `app_metadata` |
-| `apps/admin/src/app/page.tsx` | لوحة التحكم — تستخدم `get_dashboard_stats()` RPC |
-| `apps/mobile/src/hooks/useTrips.ts` | إدارة الرحلات + تتبع GPS + Offline queue |
-| `apps/mobile/src/hooks/useNetworkStatus.ts` | فحص الشبكة عبر `ping()` RPC |
-| `apps/mobile/src/hooks/useRoutes.ts` | جلب الخطوط مع pagination |
-| `apps/mobile/src/stores/useStore.ts` | Zustand stores |
-| `packages/core/index.ts` | Zod schemas, state machine, i18n |
-| `supabase/functions/trip-engine/index.ts` | تحديث حالة الرحلة |
-| `supabase/functions/atomic-booking/index.ts` | حجز المقعد |
-| `supabase/migrations/2026051005_critical_fixes.sql` | RPCs، indexes، RLS policies |
+| الملف                                               | الوظيفة                                             |
+| --------------------------------------------------- | --------------------------------------------------- |
+| `apps/admin/src/providers/authProvider.ts`          | تسجيل دخول admin، التحقق من الدور من `app_metadata` |
+| `apps/admin/src/app/page.tsx`                       | لوحة التحكم — تستخدم `get_dashboard_stats()` RPC    |
+| `apps/mobile/src/hooks/useTrips.ts`                 | إدارة الرحلات + تتبع GPS + Offline queue            |
+| `apps/mobile/src/hooks/useNetworkStatus.ts`         | فحص الشبكة عبر `ping()` RPC                         |
+| `apps/mobile/src/hooks/useRoutes.ts`                | جلب الخطوط مع pagination                            |
+| `apps/mobile/src/stores/useStore.ts`                | Zustand stores                                      |
+| `packages/core/index.ts`                            | Zod schemas, state machine, i18n                    |
+| `supabase/functions/trip-engine/index.ts`           | تحديث حالة الرحلة                                   |
+| `supabase/functions/atomic-booking/index.ts`        | حجز المقعد                                          |
+| `supabase/migrations/2026051005_critical_fixes.sql` | RPCs، indexes، RLS policies                         |
 
 ### 9.2 متغيرات البيئة
 
 **Admin (`apps/admin/.env.local`):**
+
 ```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
@@ -911,6 +932,7 @@ DATABASE_URL=postgres://...
 ```
 
 **Mobile (`apps/mobile/.env`):**
+
 ```
 EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_ANON_KEY=
@@ -918,6 +940,7 @@ EXPO_PUBLIC_SUPABASE_URL_AND_ANON_KEY=
 ```
 
 **Supabase Secrets (for Edge Functions):**
+
 ```
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
@@ -926,9 +949,9 @@ ADMIN_URL=
 
 ### 9.3 Supabase Projects
 
-| المشروع | ref | الاستخدام |
-|---------|-----|----------|
-| في `.env` (محلي) | `pfjsqgqrxnrlrfnchnqf` | التطوير المحلي |
+| المشروع          | ref                    | الاستخدام             |
+| ---------------- | ---------------------- | --------------------- |
+| في `.env` (محلي) | `pfjsqgqrxnrlrfnchnqf` | التطوير المحلي        |
 | للإنتاج (linked) | `zpcvvyxtmxzplmojobbv` | Production deployment |
 
 ---

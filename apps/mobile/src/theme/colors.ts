@@ -9,25 +9,25 @@ export const Colors = {
   primary: '#C2703E',
   primaryLight: '#D4845A',
   primaryDark: '#A85C2E',
-  primarySurface: '#FDF0E8',   // very light orange background
+  primarySurface: '#FDF0E8', // very light orange background
 
   // Secondary — Dark Charcoal
   secondary: '#2D2D2D',
   secondaryLight: '#3D3D3D',
-  secondaryDark: '#1A1A1A',    // used as dark screen background
+  secondaryDark: '#1A1A1A', // used as dark screen background
 
   // Surfaces
-  background: '#F5F2EF',       // warm off-white for light screens
-  backgroundDark: '#1A1A1A',   // login / dark screens
-  surface: '#FFFFFF',          // cards
-  surfaceMuted: '#F5F2EF',     // subtle card variant
+  background: '#F5F2EF', // warm off-white for light screens
+  backgroundDark: '#1A1A1A', // login / dark screens
+  surface: '#FFFFFF', // cards
+  surfaceMuted: '#F5F2EF', // subtle card variant
 
   // Text
   text: '#1A1A1A',
   textSecondary: '#555555',
   textMuted: '#8A8A8A',
-  textOnPrimary: '#FFFFFF',    // text on orange buttons
-  textOnDark: '#FFFFFF',       // text on dark backgrounds
+  textOnPrimary: '#FFFFFF', // text on orange buttons
+  textOnDark: '#FFFFFF', // text on dark backgrounds
 
   // Status
   success: '#4CAF50',

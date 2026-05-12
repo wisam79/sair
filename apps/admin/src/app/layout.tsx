@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
-import { AppProvider } from "../providers/AppProvider";
-import AdminLayout from "../components/layout";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { AppProvider } from '../providers/AppProvider';
+import AdminLayout from '../components/layout';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: "UniRide Admin",
-  description: "Management dashboard for UniRide platform",
+  title: 'UniRide Admin',
+  description: 'Management dashboard for UniRide platform',
 };
 
 export default function RootLayout({

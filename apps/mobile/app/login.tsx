@@ -84,13 +84,16 @@ export default function LoginScreen() {
 
         {/* Card */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>
-            {isSignup ? 'إنشاء حساب جديد' : 'تسجيل الدخول'}
-          </Text>
+          <Text style={styles.cardTitle}>{isSignup ? 'إنشاء حساب جديد' : 'تسجيل الدخول'}</Text>
 
           {isSignup && (
             <View style={styles.inputWrapper}>
-              <Ionicons name="person-outline" size={18} color={Colors.textMuted} style={styles.inputIcon} />
+              <Ionicons
+                name="person-outline"
+                size={18}
+                color={Colors.textMuted}
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={[styles.input, isRTL && styles.inputRTL]}
                 placeholder="الاسم الكامل"
@@ -103,7 +106,12 @@ export default function LoginScreen() {
           )}
 
           <View style={styles.inputWrapper}>
-            <Ionicons name="mail-outline" size={18} color={Colors.textMuted} style={styles.inputIcon} />
+            <Ionicons
+              name="mail-outline"
+              size={18}
+              color={Colors.textMuted}
+              style={styles.inputIcon}
+            />
             <TextInput
               style={[styles.input, isRTL && styles.inputRTL]}
               placeholder="البريد الإلكتروني"
@@ -116,7 +124,12 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.inputWrapper}>
-            <Ionicons name="lock-closed-outline" size={18} color={Colors.textMuted} style={styles.inputIcon} />
+            <Ionicons
+              name="lock-closed-outline"
+              size={18}
+              color={Colors.textMuted}
+              style={styles.inputIcon}
+            />
             <TextInput
               style={[styles.input, styles.inputPassword, isRTL && styles.inputRTL]}
               placeholder="كلمة المرور"
@@ -125,7 +138,10 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
             />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeButton}
+            >
               <Ionicons
                 name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                 size={18}
@@ -150,7 +166,12 @@ export default function LoginScreen() {
                       color={selectedRole === role ? Colors.white : Colors.primary}
                       style={{ marginLeft: Spacing.xs }}
                     />
-                    <Text style={[styles.roleChipText, selectedRole === role && styles.roleChipTextActive]}>
+                    <Text
+                      style={[
+                        styles.roleChipText,
+                        selectedRole === role && styles.roleChipTextActive,
+                      ]}
+                    >
                       {role === 'student' ? 'طالب' : 'سائق'}
                     </Text>
                   </TouchableOpacity>
@@ -168,9 +189,7 @@ export default function LoginScreen() {
             {loading ? (
               <ActivityIndicator color={Colors.white} />
             ) : (
-              <Text style={styles.buttonText}>
-                {isSignup ? 'إنشاء الحساب' : 'تسجيل الدخول'}
-              </Text>
+              <Text style={styles.buttonText}>{isSignup ? 'إنشاء الحساب' : 'تسجيل الدخول'}</Text>
             )}
           </TouchableOpacity>
 
@@ -185,9 +204,7 @@ export default function LoginScreen() {
         <TouchableOpacity onPress={() => setIsSignup(!isSignup)} style={styles.switchButton}>
           <Text style={styles.switchText}>
             {isSignup ? 'لديك حساب بالفعل؟ ' : 'لا تملك حساباً؟ '}
-            <Text style={styles.switchLink}>
-              {isSignup ? 'تسجيل الدخول' : 'إنشاء حساب جديد'}
-            </Text>
+            <Text style={styles.switchLink}>{isSignup ? 'تسجيل الدخول' : 'إنشاء حساب جديد'}</Text>
           </Text>
         </TouchableOpacity>
       </ScrollView>

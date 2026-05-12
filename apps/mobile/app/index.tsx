@@ -39,18 +39,24 @@ export default function DiscoveryPage() {
 
       <View style={styles.cardContent}>
         {/* Route Name */}
-        <Text style={styles.routeName} numberOfLines={1}>{item.title}</Text>
+        <Text style={styles.routeName} numberOfLines={1}>
+          {item.title}
+        </Text>
 
         {/* From → To */}
         <View style={styles.routePath}>
           <View style={styles.routeStop}>
             <Ionicons name="radio-button-on" size={12} color={Colors.primary} />
-            <Text style={styles.routeStopText} numberOfLines={1}>{item.start_location}</Text>
+            <Text style={styles.routeStopText} numberOfLines={1}>
+              {item.start_location}
+            </Text>
           </View>
           <View style={styles.routeLine} />
           <View style={styles.routeStop}>
             <Ionicons name="location" size={12} color={Colors.secondary} />
-            <Text style={styles.routeStopText} numberOfLines={1}>{item.end_location}</Text>
+            <Text style={styles.routeStopText} numberOfLines={1}>
+              {item.end_location}
+            </Text>
           </View>
         </View>
 
@@ -115,7 +121,7 @@ export default function DiscoveryPage() {
       setIsSearching(true);
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&countrycodes=iq&limit=5`,
-        { headers: { 'User-Agent': 'UniRide-App' } }
+        { headers: { 'User-Agent': 'UniRide-App' } },
       );
       const data = await response.json();
       setSearchResults(data);
@@ -136,10 +142,7 @@ export default function DiscoveryPage() {
           <Text style={styles.greeting}>{greeting}</Text>
           <Text style={styles.headerSubtitle}>ابحث عن خط نقلك</Text>
         </View>
-        <TouchableOpacity
-          style={styles.profileButton}
-          onPress={() => router.push('/profile')}
-        >
+        <TouchableOpacity style={styles.profileButton} onPress={() => router.push('/profile')}>
           <Ionicons name="person-circle-outline" size={36} color={Colors.white} />
         </TouchableOpacity>
       </View>
@@ -162,8 +165,8 @@ export default function DiscoveryPage() {
         {searchResults.length > 0 && (
           <View style={styles.searchResults}>
             {searchResults.map((result, index) => (
-              <TouchableOpacity 
-                key={index} 
+              <TouchableOpacity
+                key={index}
                 style={styles.searchResultItem}
                 onPress={() => {
                   setSearchQuery(result.display_name.split(',')[0]);
@@ -182,8 +185,8 @@ export default function DiscoveryPage() {
 
       {/* License Banner */}
       <View style={{ paddingHorizontal: 20, marginBottom: 10 }}>
-        <TouchableOpacity 
-          style={styles.licenseBanner} 
+        <TouchableOpacity
+          style={styles.licenseBanner}
           onPress={() => router.push('/activate')}
           activeOpacity={0.8}
         >
@@ -215,9 +218,7 @@ export default function DiscoveryPage() {
         ListEmptyComponent={error ? <ListError /> : <ListEmpty />}
         ListHeaderComponent={
           routes.length > 0 ? (
-            <Text style={styles.sectionTitle}>
-              {routes.length} خط متاح
-            </Text>
+            <Text style={styles.sectionTitle}>{routes.length} خط متاح</Text>
           ) : null
         }
         showsVerticalScrollIndicator={false}

@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { List, useDataGrid, DateField } from "@refinedev/mui";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import React from "react";
-import { Chip, Stack, Switch } from "@mui/material";
-import { useUpdate } from "@refinedev/core";
+import { List, useDataGrid, DateField } from '@refinedev/mui';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import React from 'react';
+import { Chip, Stack, Switch } from '@mui/material';
+import { useUpdate } from '@refinedev/core';
 
 export default function DriverList() {
   const { dataGridProps } = useDataGrid({
-    resource: "profiles",
+    resource: 'profiles',
     filters: {
       initial: [
         {
-          field: "role",
-          operator: "eq",
-          value: "driver",
+          field: 'role',
+          operator: 'eq',
+          value: 'driver',
         },
       ],
     },
@@ -24,7 +24,7 @@ export default function DriverList() {
 
   const handleVerifyToggle = (id: string, currentStatus: boolean) => {
     mutate({
-      resource: "profiles",
+      resource: 'profiles',
       id,
       values: {
         is_verified: !currentStatus,
@@ -35,22 +35,22 @@ export default function DriverList() {
   const columns = React.useMemo<GridColDef[]>(
     () => [
       {
-        field: "full_name",
-        headerName: "Full Name",
-        type: "string",
+        field: 'full_name',
+        headerName: 'Full Name',
+        type: 'string',
         minWidth: 200,
         flex: 1,
       },
       {
-        field: "phone",
-        headerName: "Phone",
-        type: "string",
+        field: 'phone',
+        headerName: 'Phone',
+        type: 'string',
         minWidth: 150,
         flex: 1,
       },
       {
-        field: "is_verified",
-        headerName: "Verified",
+        field: 'is_verified',
+        headerName: 'Verified',
         minWidth: 120,
         flex: 1,
         renderCell: function render({ row }) {
@@ -64,8 +64,8 @@ export default function DriverList() {
         },
       },
       {
-        field: "created_at",
-        headerName: "Registered At",
+        field: 'created_at',
+        headerName: 'Registered At',
         minWidth: 200,
         flex: 1,
         renderCell: function render({ value }) {
@@ -73,7 +73,7 @@ export default function DriverList() {
         },
       },
     ],
-    []
+    [],
   );
 
   return (

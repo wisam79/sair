@@ -11,7 +11,8 @@ const ALLOWED_ORIGINS = [
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, idempotency-key',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, idempotency-key',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
@@ -46,7 +47,10 @@ Deno.serve(async (req: Request) => {
 
     const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseClient.auth.getUser(token);
 
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Invalid token' }), {
@@ -55,12 +59,15 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const { data: rateLimitOk, error: rateLimitError } = await supabaseClient.rpc('check_rate_limit', {
-      p_user_id: user.id, // FIX: pass explicitly — auth.uid() is NULL with service role key
-      p_action: 'trip_engine',
-      p_limit: 30,
-      p_window_seconds: 60,
-    });
+    const { data: rateLimitOk, error: rateLimitError } = await supabaseClient.rpc(
+      'check_rate_limit',
+      {
+        p_user_id: user.id, // FIX: pass explicitly — auth.uid() is NULL with service role key
+        p_action: 'trip_engine',
+        p_limit: 30,
+        p_window_seconds: 60,
+      },
+    );
 
     if (rateLimitError || !rateLimitOk) {
       return new Response(JSON.stringify({ error: 'Too many requests. Please try again later.' }), {
@@ -78,7 +85,14 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const validStatuses = ['scheduled', 'driver_waiting', 'in_transit', 'completed', 'absent', 'cancelled'];
+    const validStatuses = [
+      'scheduled',
+      'driver_waiting',
+      'in_transit',
+      'completed',
+      'absent',
+      'cancelled',
+    ];
     if (!validStatuses.includes(newStatus)) {
       return new Response(JSON.stringify({ error: 'Invalid status value' }), {
         status: 400,
@@ -114,13 +128,16 @@ Deno.serve(async (req: Request) => {
         .single();
 
       if (existingAudit) {
-        return new Response(JSON.stringify({
-          success: true,
-          message: 'Status already updated (idempotent response)',
-          idempotent: true,
-        }), {
-          headers: responseHeaders,
-        });
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'Status already updated (idempotent response)',
+            idempotent: true,
+          }),
+          {
+            headers: responseHeaders,
+          },
+        );
       }
     }
 
@@ -153,7 +170,11 @@ Deno.serve(async (req: Request) => {
   } catch (err) {
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
-      headers: { ...CORS_HEADERS, 'Access-Control-Allow-Origin': resolvedOrigin, 'Content-Type': 'application/json' },
+      headers: {
+        ...CORS_HEADERS,
+        'Access-Control-Allow-Origin': resolvedOrigin,
+        'Content-Type': 'application/json',
+      },
     });
   }
 });

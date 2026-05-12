@@ -18,12 +18,37 @@ import { Ionicons } from '@expo/vector-icons';
 import { TripMap } from '../../src/components/TripMap';
 
 const STATUS_CONFIG: Record<string, { color: string; bg: string; label: string; icon: string }> = {
-  scheduled:     { color: Colors.warning, bg: Colors.warningSurface, label: 'مجدولة', icon: 'calendar-outline' },
-  driver_waiting:{ color: Colors.primary, bg: Colors.primarySurface, label: 'السائق بانتظارك', icon: 'bus-outline' },
-  in_transit:    { color: Colors.success, bg: Colors.successSurface, label: 'في الطريق', icon: 'navigate-outline' },
-  completed:     { color: Colors.textMuted, bg: Colors.surfaceMuted, label: 'مكتملة', icon: 'checkmark-circle-outline' },
-  absent:        { color: Colors.textMuted, bg: Colors.surfaceMuted, label: 'غائب', icon: 'person-remove-outline' },
-  cancelled:     { color: Colors.error, bg: Colors.errorSurface, label: 'ملغاة', icon: 'ban-outline' },
+  scheduled: {
+    color: Colors.warning,
+    bg: Colors.warningSurface,
+    label: 'مجدولة',
+    icon: 'calendar-outline',
+  },
+  driver_waiting: {
+    color: Colors.primary,
+    bg: Colors.primarySurface,
+    label: 'السائق بانتظارك',
+    icon: 'bus-outline',
+  },
+  in_transit: {
+    color: Colors.success,
+    bg: Colors.successSurface,
+    label: 'في الطريق',
+    icon: 'navigate-outline',
+  },
+  completed: {
+    color: Colors.textMuted,
+    bg: Colors.surfaceMuted,
+    label: 'مكتملة',
+    icon: 'checkmark-circle-outline',
+  },
+  absent: {
+    color: Colors.textMuted,
+    bg: Colors.surfaceMuted,
+    label: 'غائب',
+    icon: 'person-remove-outline',
+  },
+  cancelled: { color: Colors.error, bg: Colors.errorSurface, label: 'ملغاة', icon: 'ban-outline' },
 };
 
 export default function TrackingScreen() {
@@ -86,7 +111,11 @@ export default function TrackingScreen() {
 
         {/* Real Map */}
         <View style={styles.mapPlaceholder}>
-          {trip.routes && trip.routes.start_lat && trip.routes.start_lng && trip.routes.end_lat && trip.routes.end_lng ? (
+          {trip.routes &&
+          trip.routes.start_lat &&
+          trip.routes.start_lng &&
+          trip.routes.end_lat &&
+          trip.routes.end_lng ? (
             <TripMap
               startLat={trip.routes.start_lat}
               startLng={trip.routes.start_lng}
@@ -114,11 +143,7 @@ export default function TrackingScreen() {
               <Text style={styles.driverLabel}>السائق الحالي</Text>
             </View>
           </View>
-          <TouchableOpacity 
-            style={styles.shareButton} 
-            onPress={handleShare}
-            activeOpacity={0.7}
-          >
+          <TouchableOpacity style={styles.shareButton} onPress={handleShare} activeOpacity={0.7}>
             <Ionicons name="share-social-outline" size={20} color={Colors.primary} />
             <Text style={styles.shareText}>مشاركة</Text>
           </TouchableOpacity>
@@ -143,7 +168,9 @@ export default function TrackingScreen() {
               </View>
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>وقت الانطلاق</Text>
-                <Text style={styles.infoValue}>{new Date(trip.started_at).toLocaleTimeString('ar-IQ')}</Text>
+                <Text style={styles.infoValue}>
+                  {new Date(trip.started_at).toLocaleTimeString('ar-IQ')}
+                </Text>
               </View>
             </View>
           )}
@@ -155,7 +182,9 @@ export default function TrackingScreen() {
               </View>
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>وقت الوصول</Text>
-                <Text style={styles.infoValue}>{new Date(trip.ended_at).toLocaleTimeString('ar-IQ')}</Text>
+                <Text style={styles.infoValue}>
+                  {new Date(trip.ended_at).toLocaleTimeString('ar-IQ')}
+                </Text>
               </View>
             </View>
           )}

@@ -5,6 +5,7 @@ This guide will walk you through setting up the UniRide v2 environment on your l
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
+
 - **Node.js**: v22.0.0 or higher.
 - **PNPM**: v10.0.0 or higher (`npm install -g pnpm`).
 - **Supabase CLI**: Latest version for local database development.
@@ -29,6 +30,7 @@ cp .env.example .env
 ```
 
 Ensure your `.env` contains:
+
 ```env
 DATABASE_URL="postgres://postgres:postgres@127.0.0.1:54322/postgres"
 NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321"
@@ -58,15 +60,19 @@ pnpm --filter @uniride/db run seed
 ## 4. Running the Applications
 
 ### Admin Dashboard (Next.js)
+
 ```bash
 pnpm --filter admin-dashboard dev
 ```
+
 Accessible at `http://localhost:3000`.
 
 ### Mobile Application (Expo)
+
 ```bash
 pnpm --filter mobile-app start
 ```
+
 Use the Expo Go app on your phone to scan the QR code, or press `i` / `a` to run on iOS/Android emulators.
 
 ## 5. Deploying Edge Functions Locally

@@ -38,7 +38,7 @@ export default function ActivateLicenseScreen() {
       if (error) throw error;
 
       Alert.alert('نجاح', 'تم تفعيل الاشتراك بنجاح!', [
-        { text: 'حسناً', onPress: () => router.push('/') }
+        { text: 'حسناً', onPress: () => router.push('/') },
       ]);
     } catch (err: any) {
       Alert.alert('خطأ في التفعيل', err.message || 'الكود غير صالح أو مستخدم مسبقاً');
@@ -48,7 +48,7 @@ export default function ActivateLicenseScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
@@ -67,7 +67,7 @@ export default function ActivateLicenseScreen() {
         <View style={styles.iconContainer}>
           <Ionicons name="card-outline" size={80} color={Colors.primary} />
         </View>
-        
+
         <Text style={styles.title}>أدخل كود الترخيص</Text>
         <Text style={styles.subtitle}>
           الرجاء إدخال الكود المكون من 8 أحرف وأرقام الذي حصلت عليه لتفعيل اشتراكك
@@ -86,8 +86,8 @@ export default function ActivateLicenseScreen() {
           />
         </View>
 
-        <TouchableOpacity 
-          style={[styles.button, (!code || code.length < 8 || isLoading) && styles.buttonDisabled]} 
+        <TouchableOpacity
+          style={[styles.button, (!code || code.length < 8 || isLoading) && styles.buttonDisabled]}
           onPress={handleActivate}
           disabled={!code || code.length < 8 || isLoading}
           activeOpacity={0.8}

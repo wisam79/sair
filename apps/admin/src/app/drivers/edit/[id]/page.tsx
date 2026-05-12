@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { Edit } from "@refinedev/mui";
-import { Box, TextField, Checkbox, FormControlLabel } from "@mui/material";
-import { useForm } from "@refinedev/react-hook-form";
-import { Controller } from "react-hook-form";
+import { Edit } from '@refinedev/mui';
+import { Box, TextField, Checkbox, FormControlLabel } from '@mui/material';
+import { useForm } from '@refinedev/react-hook-form';
+import { Controller } from 'react-hook-form';
 
-import { BaseRecord, HttpError } from "@refinedev/core";
+import { BaseRecord, HttpError } from '@refinedev/core';
 
 interface DriverEditFormValues {
   license_number: string;
@@ -29,11 +29,7 @@ export default function DriverEdit() {
 
   return (
     <Edit isLoading={formLoading} saveButtonProps={saveButtonProps}>
-      <Box
-        component="form"
-        sx={{ display: "flex", flexDirection: "column" }}
-        autoComplete="off"
-      >
+      <Box component="form" sx={{ display: 'flex', flexDirection: 'column' }} autoComplete="off">
         <TextField
           value={currentUserId || ''}
           margin="normal"
@@ -44,11 +40,11 @@ export default function DriverEdit() {
           helperText="User profile cannot be changed after creation"
         />
         <TextField
-          {...register("license_number", {
-            required: "This field is required",
+          {...register('license_number', {
+            required: 'This field is required',
           })}
-          error={!!(errors)?.license_number}
-          helperText={(errors)?.license_number?.message}
+          error={!!errors?.license_number}
+          helperText={errors?.license_number?.message}
           margin="normal"
           fullWidth
           InputLabelProps={{ shrink: true }}
@@ -57,11 +53,11 @@ export default function DriverEdit() {
           name="license_number"
         />
         <TextField
-          {...register("vehicle_model", {
-            required: "This field is required",
+          {...register('vehicle_model', {
+            required: 'This field is required',
           })}
-          error={!!(errors)?.vehicle_model}
-          helperText={(errors)?.vehicle_model?.message}
+          error={!!errors?.vehicle_model}
+          helperText={errors?.vehicle_model?.message}
           margin="normal"
           fullWidth
           InputLabelProps={{ shrink: true }}
@@ -70,11 +66,11 @@ export default function DriverEdit() {
           name="vehicle_model"
         />
         <TextField
-          {...register("vehicle_plate", {
-            required: "This field is required",
+          {...register('vehicle_plate', {
+            required: 'This field is required',
           })}
-          error={!!(errors)?.vehicle_plate}
-          helperText={(errors)?.vehicle_plate?.message}
+          error={!!errors?.vehicle_plate}
+          helperText={errors?.vehicle_plate?.message}
           margin="normal"
           fullWidth
           InputLabelProps={{ shrink: true }}
@@ -83,13 +79,13 @@ export default function DriverEdit() {
           name="vehicle_plate"
         />
         <TextField
-          {...register("capacity", {
-            required: "This field is required",
+          {...register('capacity', {
+            required: 'This field is required',
             valueAsNumber: true,
-            validate: (value) => value >= 1 || "Capacity must be at least 1",
+            validate: (value) => value >= 1 || 'Capacity must be at least 1',
           })}
-          error={!!(errors)?.capacity}
-          helperText={(errors)?.capacity?.message}
+          error={!!errors?.capacity}
+          helperText={errors?.capacity?.message}
           margin="normal"
           fullWidth
           InputLabelProps={{ shrink: true }}

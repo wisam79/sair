@@ -17,6 +17,7 @@ graph TD;
 ```
 
 ### Transition Rules:
+
 - `scheduled` -> `driver_waiting`: Requires the driver to be physically near the start location (GPS verified).
 - `driver_waiting` -> `in_transit`: Initiates the journey. All students not checked-in are marked absent.
 - `in_transit` -> `completed`: Requires the driver to be at the destination (GPS verified).
@@ -32,7 +33,9 @@ graph TD;
 ```
 
 ### The Atomic Booking Flow
-When a student requests a route, the following happens *atomically*:
+
+When a student requests a route, the following happens _atomically_:
+
 1. **Lock**: The route row is locked (`FOR UPDATE`).
 2. **Check**: Is `available_seats > 0`?
 3. **Mutate**: `available_seats -= 1`.

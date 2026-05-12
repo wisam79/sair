@@ -1,5 +1,5 @@
-import { AuthBindings } from "@refinedev/core";
-import { supabaseClient } from "./supabaseClient";
+import { AuthBindings } from '@refinedev/core';
+import { supabaseClient } from './supabaseClient';
 
 export const authProvider: AuthBindings = {
   login: async ({ email, password }) => {
@@ -18,27 +18,27 @@ export const authProvider: AuthBindings = {
     if (data?.session) {
       // Only allow admins - use app_metadata (not user_metadata which is client-writable)
       const role = data.user?.app_metadata?.role;
-      if (role !== "admin") {
+      if (role !== 'admin') {
         await supabaseClient.auth.signOut();
         return {
           success: false,
           error: {
-            message: "Unauthorized. Admin access only.",
-            name: "Unauthorized",
+            message: 'Unauthorized. Admin access only.',
+            name: 'Unauthorized',
           },
         };
       }
       return {
         success: true,
-        redirectTo: "/",
+        redirectTo: '/',
       };
     }
 
     return {
       success: false,
       error: {
-        message: "Login failed",
-        name: "Invalid credentials",
+        message: 'Login failed',
+        name: 'Invalid credentials',
       },
     };
   },
@@ -47,20 +47,20 @@ export const authProvider: AuthBindings = {
     if (error) {
       return { success: false, error };
     }
-    return { success: true, redirectTo: "/login" };
+    return { success: true, redirectTo: '/login' };
   },
   check: async () => {
     const { data } = await supabaseClient.auth.getSession();
     const { session } = data;
 
     if (!session) {
-      return { authenticated: false, redirectTo: "/login" };
+      return { authenticated: false, redirectTo: '/login' };
     }
-    
+
     // Check if user is admin - use app_metadata for security
     const role = session.user?.app_metadata?.role;
-    if (role !== "admin") {
-      return { authenticated: false, redirectTo: "/login", logout: true };
+    if (role !== 'admin') {
+      return { authenticated: false, redirectTo: '/login', logout: true };
     }
 
     return { authenticated: true };

@@ -26,7 +26,8 @@ export default function ProfileScreen() {
   const initials = (profile?.full_name || user?.email || 'U')[0].toUpperCase();
 
   const roleLabel = role === 'driver' ? 'سائق' : role === 'admin' ? 'مدير' : 'طالب';
-  const roleIcon = role === 'driver' ? 'car-outline' : role === 'admin' ? 'shield-outline' : 'school-outline';
+  const roleIcon =
+    role === 'driver' ? 'car-outline' : role === 'admin' ? 'shield-outline' : 'school-outline';
 
   const handleSave = async () => {
     if (!fullName.trim()) return;
@@ -91,7 +92,12 @@ export default function ProfileScreen() {
         <View style={styles.field}>
           <Text style={styles.fieldLabel}>الاسم الكامل</Text>
           <View style={styles.inputWrapper}>
-            <Ionicons name="person-outline" size={16} color={Colors.textMuted} style={styles.inputIcon} />
+            <Ionicons
+              name="person-outline"
+              size={16}
+              color={Colors.textMuted}
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               value={fullName}
@@ -106,7 +112,12 @@ export default function ProfileScreen() {
         <View style={styles.field}>
           <Text style={styles.fieldLabel}>رقم الهاتف</Text>
           <View style={styles.inputWrapper}>
-            <Ionicons name="call-outline" size={16} color={Colors.textMuted} style={styles.inputIcon} />
+            <Ionicons
+              name="call-outline"
+              size={16}
+              color={Colors.textMuted}
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               value={phone}
@@ -121,7 +132,12 @@ export default function ProfileScreen() {
         <View style={styles.field}>
           <Text style={styles.fieldLabel}>البريد الإلكتروني</Text>
           <View style={[styles.inputWrapper, styles.inputDisabled]}>
-            <Ionicons name="mail-outline" size={16} color={Colors.textMuted} style={styles.inputIcon} />
+            <Ionicons
+              name="mail-outline"
+              size={16}
+              color={Colors.textMuted}
+              style={styles.inputIcon}
+            />
             <TextInput
               style={[styles.input, { color: Colors.textMuted }]}
               value={user?.email || ''}
@@ -152,13 +168,18 @@ export default function ProfileScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>اللغة</Text>
         <View style={styles.langRow}>
-          {[{ code: 'ar', label: 'العربية' }, { code: 'en', label: 'English' }].map((lang) => (
+          {[
+            { code: 'ar', label: 'العربية' },
+            { code: 'en', label: 'English' },
+          ].map((lang) => (
             <TouchableOpacity
               key={lang.code}
               style={[styles.langChip, language === lang.code && styles.langChipActive]}
               onPress={() => setLanguage(lang.code as 'ar' | 'en')}
             >
-              <Text style={[styles.langChipText, language === lang.code && styles.langChipTextActive]}>
+              <Text
+                style={[styles.langChipText, language === lang.code && styles.langChipTextActive]}
+              >
                 {lang.label}
               </Text>
             </TouchableOpacity>

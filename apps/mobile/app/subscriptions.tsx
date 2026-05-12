@@ -35,9 +35,19 @@ interface SubscriptionWithRoute {
 }
 
 const STATUS_CONFIG: Record<string, { color: string; bg: string; label: string; icon: string }> = {
-  active:    { color: Colors.success, bg: Colors.successSurface, label: 'نشط', icon: 'checkmark-circle' },
-  pending:   { color: Colors.warning, bg: Colors.warningSurface, label: 'معلّق', icon: 'time' },
-  expired:   { color: Colors.textMuted, bg: Colors.surfaceMuted, label: 'منتهي', icon: 'close-circle' },
+  active: {
+    color: Colors.success,
+    bg: Colors.successSurface,
+    label: 'نشط',
+    icon: 'checkmark-circle',
+  },
+  pending: { color: Colors.warning, bg: Colors.warningSurface, label: 'معلّق', icon: 'time' },
+  expired: {
+    color: Colors.textMuted,
+    bg: Colors.surfaceMuted,
+    label: 'منتهي',
+    icon: 'close-circle',
+  },
   cancelled: { color: Colors.error, bg: Colors.errorSurface, label: 'ملغي', icon: 'ban' },
 };
 
@@ -46,27 +56,30 @@ export default function SubscriptionsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const handleCancelSubscription = useCallback(async (subscriptionId: string) => {
-    Alert.alert('إلغاء الاشتراك', 'هل أنت متأكد من إلغاء هذا الاشتراك؟', [
-      { text: 'تراجع', style: 'cancel' },
-      {
-        text: 'إلغاء الاشتراك',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            const { error } = await supabase
-              .from('subscriptions')
-              .update({ status: 'cancelled' })
-              .eq('id', subscriptionId);
-            if (error) throw error;
-            refetch();
-          } catch (err: unknown) {
-            Alert.alert('خطأ', err instanceof Error ? err.message : 'حدث خطأ');
-          }
+  const handleCancelSubscription = useCallback(
+    async (subscriptionId: string) => {
+      Alert.alert('إلغاء الاشتراك', 'هل أنت متأكد من إلغاء هذا الاشتراك؟', [
+        { text: 'تراجع', style: 'cancel' },
+        {
+          text: 'إلغاء الاشتراك',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await supabase
+                .from('subscriptions')
+                .update({ status: 'cancelled' })
+                .eq('id', subscriptionId);
+              if (error) throw error;
+              refetch();
+            } catch (err: unknown) {
+              Alert.alert('خطأ', err instanceof Error ? err.message : 'حدث خطأ');
+            }
+          },
         },
-      },
-    ]);
-  }, [refetch]);
+      ]);
+    },
+    [refetch],
+  );
 
   const renderItem = ({ item }: { item: SubscriptionWithRoute }) => {
     const status = STATUS_CONFIG[item.status] || STATUS_CONFIG.expired;
@@ -103,7 +116,9 @@ export default function SubscriptionsScreen() {
 
         {/* Details Row */}
         <View style={styles.detailsRow}>
-          <Text style={styles.dateText}>{startDate} — {endDate}</Text>
+          <Text style={styles.dateText}>
+            {startDate} — {endDate}
+          </Text>
           {item.routes && (
             <Text style={styles.priceText}>{item.routes.price.toLocaleString()} د.ع</Text>
           )}
@@ -125,7 +140,10 @@ export default function SubscriptionsScreen() {
                   .limit(1)
                   .single();
                 if (activeTrip) {
-                  router.push({ pathname: '/tracking/[tripId]', params: { tripId: activeTrip.id } });
+                  router.push({
+                    pathname: '/tracking/[tripId]',
+                    params: { tripId: activeTrip.id },
+                  });
                 } else {
                   Alert.alert('التتبع', 'لا توجد رحلة نشطة الآن');
                 }
@@ -174,9 +192,7 @@ export default function SubscriptionsScreen() {
             tintColor={Colors.primary}
           />
         }
-        ListHeaderComponent={
-          <Text style={styles.pageTitle}>اشتراكاتي</Text>
-        }
+        ListHeaderComponent={<Text style={styles.pageTitle}>اشتراكاتي</Text>}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="ticket-outline" size={64} color={Colors.border} />

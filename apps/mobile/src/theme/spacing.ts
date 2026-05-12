@@ -21,7 +21,7 @@ export const BorderRadius = {
   md: 12,
   lg: 16,
   xl: 20,
-  pill: 999,   // fully rounded (buttons, badges)
+  pill: 999, // fully rounded (buttons, badges)
   circle: 9999,
 } as const;
 
@@ -36,7 +36,7 @@ export const Shadow = {
   md: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
+    shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 4,
   },
@@ -50,8 +50,8 @@ export const Shadow = {
 } as const;
 
 export const Layout = {
-  screenPaddingH: Spacing.lg,   // horizontal padding for all screens
-  screenPaddingV: Spacing.xl,   // vertical padding for all screens
+  screenPaddingH: Spacing.lg, // horizontal padding for all screens
+  screenPaddingV: Spacing.xl, // vertical padding for all screens
   cardPadding: Spacing.lg,
   headerHeight: 56,
   tabBarHeight: 64,

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { Authenticated, useLogout } from "@refinedev/core";
-import { Box, Card, CardContent, Typography, Grid, CircularProgress } from "@mui/material";
-import { supabaseClient } from "../providers/supabaseClient";
+import { useEffect, useState } from 'react';
+import { Authenticated, useLogout } from '@refinedev/core';
+import { Box, Card, CardContent, Typography, Grid, CircularProgress } from '@mui/material';
+import { supabaseClient } from '../providers/supabaseClient';
 
 interface DashboardStats {
   total_users: number;
@@ -17,14 +17,22 @@ interface DashboardStats {
   monthly_revenue: number;
 }
 
-function StatCard({ title, value, color }: { title: string; value: string | number; color: string }) {
+function StatCard({
+  title,
+  value,
+  color,
+}: {
+  title: string;
+  value: string | number;
+  color: string;
+}) {
   return (
-    <Card sx={{ height: "100%" }}>
+    <Card sx={{ height: '100%' }}>
       <CardContent>
         <Typography color="textSecondary" gutterBottom variant="overline">
           {title}
         </Typography>
-        <Typography variant="h4" sx={{ color, fontWeight: "bold" }}>
+        <Typography variant="h4" sx={{ color, fontWeight: 'bold' }}>
           {typeof value === 'number' ? value.toLocaleString() : value}
         </Typography>
       </CardContent>
@@ -39,16 +47,14 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    supabaseClient
-      .rpc('get_dashboard_stats')
-      .then(({ data, error }) => {
-        if (error) {
-          setError(error.message);
-        } else if (data) {
-          setStats(data as DashboardStats);
-        }
-        setIsLoading(false);
-      });
+    supabaseClient.rpc('get_dashboard_stats').then(({ data, error }) => {
+      if (error) {
+        setError(error.message);
+      } else if (data) {
+        setStats(data as DashboardStats);
+      }
+      setIsLoading(false);
+    });
   }, []);
 
   if (isLoading || !stats) {
@@ -62,7 +68,7 @@ export default function Page() {
   return (
     <Authenticated key="dashboard" fallback={<div>Loading or redirecting...</div>}>
       <Box sx={{ p: 4 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
           <Typography variant="h4" fontWeight="bold">
             UniRide Admin Dashboard
           </Typography>
@@ -94,10 +100,18 @@ export default function Page() {
             <StatCard title="Total Trips" value={stats.total_trips} color="#34C759" />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <StatCard title="Active Subscriptions" value={stats.active_subscriptions} color="#5856D6" />
+            <StatCard
+              title="Active Subscriptions"
+              value={stats.active_subscriptions}
+              color="#5856D6"
+            />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <StatCard title="Monthly Revenue (IQD)" value={stats.monthly_revenue.toLocaleString()} color="#FF9500" />
+            <StatCard
+              title="Monthly Revenue (IQD)"
+              value={stats.monthly_revenue.toLocaleString()}
+              color="#FF9500"
+            />
           </Grid>
         </Grid>
 

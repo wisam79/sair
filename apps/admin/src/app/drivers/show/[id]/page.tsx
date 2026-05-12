@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useShow, useOne } from "@refinedev/core";
-import { Show, TextFieldComponent, NumberField, BooleanField } from "@refinedev/mui";
-import { Typography, Stack } from "@mui/material";
+import { useShow, useOne } from '@refinedev/core';
+import { Show, TextFieldComponent, NumberField, BooleanField } from '@refinedev/mui';
+import { Typography, Stack } from '@mui/material';
 
 export default function DriverShow() {
   const { queryResult } = useShow();
@@ -10,8 +10,8 @@ export default function DriverShow() {
   const record = data?.data;
 
   const { data: profileData, isLoading: profileIsLoading } = useOne({
-    resource: "profiles",
-    id: record?.user_id || "",
+    resource: 'profiles',
+    id: record?.user_id || '',
     queryOptions: {
       enabled: !!record?.user_id,
     },
@@ -52,7 +52,7 @@ export default function DriverShow() {
         <Typography variant="body1" fontWeight="bold">
           Capacity
         </Typography>
-        <NumberField value={record?.capacity ?? ""} />
+        <NumberField value={record?.capacity ?? ''} />
 
         <Typography variant="body1" fontWeight="bold">
           Verified

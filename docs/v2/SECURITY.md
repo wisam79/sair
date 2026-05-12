@@ -5,6 +5,7 @@ Security in UniRide v2 is built around **Supabase Row Level Security (RLS)** and
 ## 1. High-Performance RLS via JWT Claims
 
 In v1, checking if a user was an admin required a database query:
+
 ```sql
 -- BAD (v1): Causes N+1 query performance issues
 SELECT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin');
@@ -21,10 +22,12 @@ $$ LANGUAGE sql STABLE;
 
 ## 2. Atomic Operations vs. TypeScript Concurrency
 
-We **never** use the "Check-then-Act" pattern in Edge Functions or Next.js API routes for sensitive data (like decreasing seat counts or handling money). 
+We **never** use the "Check-then-Act" pattern in Edge Functions or Next.js API routes for sensitive data (like decreasing seat counts or handling money).
 
 ### Why?
+
 If two students press "Book" at the exact same millisecond:
+
 - **TypeScript**: Both read `seats = 1`. Both update `seats = 0`. Result: 2 students booked 1 seat. (Overbooking).
 - **Postgres RPC (Our Approach)**: Request A locks the row. Request B waits. Request A updates `seats = 0` and unlocks. Request B reads `seats = 0` and fails. Result: 1 student booked, 1 rejected. (Perfect consistency).
 

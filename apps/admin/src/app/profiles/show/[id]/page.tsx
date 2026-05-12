@@ -1,13 +1,16 @@
-"use client";
+'use client';
 
-import { Show, TextFieldComponent as TextField } from "@refinedev/mui";
-import { Typography, Stack, Chip } from "@mui/material";
-import { useShow } from "@refinedev/core";
+import { Show, TextFieldComponent as TextField } from '@refinedev/mui';
+import { Typography, Stack, Chip } from '@mui/material';
+import { useShow } from '@refinedev/core';
 
-const ROLE_COLORS: Record<string, "default" | "primary" | "success" | "error" | "warning" | "info"> = {
-  admin: "error",
-  student: "primary",
-  driver: "success",
+const ROLE_COLORS: Record<
+  string,
+  'default' | 'primary' | 'success' | 'error' | 'warning' | 'info'
+> = {
+  admin: 'error',
+  student: 'primary',
+  driver: 'success',
 };
 
 export default function ProfileShow() {
@@ -36,21 +39,17 @@ export default function ProfileShow() {
         <Typography variant="body1" fontWeight="bold">
           Role
         </Typography>
-        <Chip
-          label={record?.role}
-          color={ROLE_COLORS[record?.role] || "default"}
-          size="small"
-        />
+        <Chip label={record?.role} color={ROLE_COLORS[record?.role] || 'default'} size="small" />
 
         <Typography variant="body1" fontWeight="bold">
           Institution ID
         </Typography>
-        <TextField value={record?.institutionId || "N/A"} />
+        <TextField value={record?.institutionId || 'N/A'} />
 
         <Typography variant="body1" fontWeight="bold">
           Joined
         </Typography>
-        <TextField value={record?.createdAt ? new Date(record.createdAt).toLocaleString() : "-"} />
+        <TextField value={record?.createdAt ? new Date(record.createdAt).toLocaleString() : '-'} />
       </Stack>
     </Show>
   );
