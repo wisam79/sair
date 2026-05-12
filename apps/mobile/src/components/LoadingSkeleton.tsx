@@ -19,7 +19,7 @@ export function LoadingCard() {
           easing: Easing.ease,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
     animation.start();
     return () => animation.stop();

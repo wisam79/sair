@@ -45,12 +45,20 @@ export default function Layout() {
 
   // Auth listener
   useEffect(() => {
-    supabase.auth.getSession()
+    supabase.auth
+      .getSession()
       .then(async ({ data: { session } }) => {
         try {
           if (session?.user) {
             const role = session.user.app_metadata?.role || 'student'; // SECURITY: app_metadata only
-            setAuth({ id: session.user.id, email: session.user.email, user_metadata: session.user.user_metadata }, role);
+            setAuth(
+              {
+                id: session.user.id,
+                email: session.user.email,
+                user_metadata: session.user.user_metadata,
+              },
+              role,
+            );
             // Fetch full profile from DB (includes institution_id for smart matching)
             const { data: profileData } = await supabase
               .from('profiles')
@@ -82,7 +90,14 @@ export default function Layout() {
       try {
         if (session?.user) {
           const role = session.user.app_metadata?.role || 'student'; // SECURITY: app_metadata only
-          setAuth({ id: session.user.id, email: session.user.email, user_metadata: session.user.user_metadata }, role);
+          setAuth(
+            {
+              id: session.user.id,
+              email: session.user.email,
+              user_metadata: session.user.user_metadata,
+            },
+            role,
+          );
           // Fetch full profile from DB (includes institution_id for smart matching)
           const { data: profileData } = await supabase
             .from('profiles')
@@ -162,11 +177,11 @@ export default function Layout() {
           <Stack.Screen name="tracking/[tripId]" options={{ title: 'تتبع الرحلة' }} />
           <Stack.Screen name="activate" options={{ title: 'تفعيل اشتراك' }} />
           <Stack.Screen name="create-trip" options={{ title: 'إنشاء رحلة' }} />
-          <Stack.Screen name="rating/[tripId]" options={{ title: 'تقييم الرحلة', headerShown: false }} />
           <Stack.Screen
-            name="driver"
-            options={{ title: 'لوحة السائق', headerShown: false }}
+            name="rating/[tripId]"
+            options={{ title: 'تقييم الرحلة', headerShown: false }}
           />
+          <Stack.Screen name="driver" options={{ title: 'لوحة السائق', headerShown: false }} />
         </Stack>
       </View>
     </ErrorBoundary>

@@ -86,7 +86,14 @@ describe('Core Validation Logic', () => {
     });
 
     it('should define valid transitions for all statuses', () => {
-      const allStatuses: TripStatus[] = ['scheduled', 'driver_waiting', 'in_transit', 'completed', 'absent', 'cancelled'];
+      const allStatuses: TripStatus[] = [
+        'scheduled',
+        'driver_waiting',
+        'in_transit',
+        'completed',
+        'absent',
+        'cancelled',
+      ];
       for (const status of allStatuses) {
         expect(ValidTransitions[status]).toBeDefined();
         expect(Array.isArray(ValidTransitions[status])).toBe(true);
@@ -96,41 +103,65 @@ describe('Core Validation Logic', () => {
 
   describe('BookingRequest', () => {
     it('should validate booking requests', () => {
-      expect(BookingRequest.safeParse({ routeId: '550e8400-e29b-41d4-a716-446655440000', studentId: '550e8400-e29b-41d4-a716-446655440001' }).success).toBe(true);
-      expect(BookingRequest.safeParse({ routeId: 'invalid', studentId: '550e8400-e29b-41d4-a716-446655440001' }).success).toBe(false);
-      expect(BookingRequest.safeParse({ routeId: '550e8400-e29b-41d4-a716-446655440000' }).success).toBe(false);
+      expect(
+        BookingRequest.safeParse({
+          routeId: '550e8400-e29b-41d4-a716-446655440000',
+          studentId: '550e8400-e29b-41d4-a716-446655440001',
+        }).success,
+      ).toBe(true);
+      expect(
+        BookingRequest.safeParse({
+          routeId: 'invalid',
+          studentId: '550e8400-e29b-41d4-a716-446655440001',
+        }).success,
+      ).toBe(false);
+      expect(
+        BookingRequest.safeParse({ routeId: '550e8400-e29b-41d4-a716-446655440000' }).success,
+      ).toBe(false);
     });
 
     it('should reject empty routeId or studentId', () => {
-      expect(BookingRequest.safeParse({ routeId: '', studentId: '550e8400-e29b-41d4-a716-446655440001' }).success).toBe(false);
-      expect(BookingRequest.safeParse({ routeId: '550e8400-e29b-41d4-a716-446655440000', studentId: '' }).success).toBe(false);
+      expect(
+        BookingRequest.safeParse({ routeId: '', studentId: '550e8400-e29b-41d4-a716-446655440001' })
+          .success,
+      ).toBe(false);
+      expect(
+        BookingRequest.safeParse({ routeId: '550e8400-e29b-41d4-a716-446655440000', studentId: '' })
+          .success,
+      ).toBe(false);
     });
   });
 
   describe('TripUpdateRequest', () => {
     it('should validate trip update requests', () => {
-      expect(TripUpdateRequest.safeParse({
-        tripId: '550e8400-e29b-41d4-a716-446655440000',
-        newStatus: 'in_transit',
-        lat: 33.3152,
-        lng: 44.3661,
-      }).success).toBe(true);
+      expect(
+        TripUpdateRequest.safeParse({
+          tripId: '550e8400-e29b-41d4-a716-446655440000',
+          newStatus: 'in_transit',
+          lat: 33.3152,
+          lng: 44.3661,
+        }).success,
+      ).toBe(true);
 
-      expect(TripUpdateRequest.safeParse({
-        tripId: '550e8400-e29b-41d4-a716-446655440000',
-        newStatus: 'invalid',
-        lat: 33.3152,
-        lng: 44.3661,
-      }).success).toBe(false);
+      expect(
+        TripUpdateRequest.safeParse({
+          tripId: '550e8400-e29b-41d4-a716-446655440000',
+          newStatus: 'invalid',
+          lat: 33.3152,
+          lng: 44.3661,
+        }).success,
+      ).toBe(false);
     });
 
     it('should reject out-of-range coordinates', () => {
-      expect(TripUpdateRequest.safeParse({
-        tripId: '550e8400-e29b-41d4-a716-446655440000',
-        newStatus: 'in_transit',
-        lat: 200,
-        lng: 44.3661,
-      }).success).toBe(false);
+      expect(
+        TripUpdateRequest.safeParse({
+          tripId: '550e8400-e29b-41d4-a716-446655440000',
+          newStatus: 'in_transit',
+          lat: 200,
+          lng: 44.3661,
+        }).success,
+      ).toBe(false);
     });
   });
 
@@ -220,8 +251,18 @@ describe('Core Validation Logic', () => {
 
     it('should have all essential translation keys', () => {
       const essentialKeys = [
-        'welcome', 'book_now', 'login', 'logout', 'profile', 'no_seats',
-        'error_generic', 'no_internet', 'cancel_subscription', 'save', 'phone', 'language',
+        'welcome',
+        'book_now',
+        'login',
+        'logout',
+        'profile',
+        'no_seats',
+        'error_generic',
+        'no_internet',
+        'cancel_subscription',
+        'save',
+        'phone',
+        'language',
       ];
       for (const key of essentialKeys) {
         expect(Translations.ar[key]).toBeDefined();

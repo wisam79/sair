@@ -26,7 +26,9 @@ export default function CreateTripScreen() {
     async function fetchMyRoutes() {
       try {
         setIsLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) return;
 
         const { data: driverData, error: driverError } = await supabase
@@ -44,7 +46,7 @@ export default function CreateTripScreen() {
           .eq('is_active', true);
 
         if (error) throw error;
-        setRoutes(data as Route[] || []);
+        setRoutes((data as Route[]) || []);
       } catch (err: any) {
         Alert.alert('خطأ', err.message);
       } finally {

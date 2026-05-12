@@ -15,7 +15,11 @@ interface AuthState {
   profile: { full_name: string; phone: string; institution_id?: string | null } | null;
   initialized: boolean;
   setAuth: (user: AuthUser | null, role: UserRole | null) => void;
-  setProfile: (profile: { full_name: string; phone: string; institution_id?: string | null }) => void;
+  setProfile: (profile: {
+    full_name: string;
+    phone: string;
+    institution_id?: string | null;
+  }) => void;
   setInitialized: (initialized: boolean) => void;
   logout: () => void;
 }
@@ -36,8 +40,8 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-storage',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({ role: state.role, profile: state.profile }),
-    }
-  )
+    },
+  ),
 );
 
 interface TripState {
@@ -63,8 +67,8 @@ export const useTripStore = create<TripState>()(
     {
       name: 'trip-storage',
       storage: createJSONStorage(() => AsyncStorage),
-    }
-  )
+    },
+  ),
 );
 
 interface BookingState {
@@ -88,14 +92,15 @@ export const useBookingStore = create<BookingState>()(
       setBooking: (isBooking) => set({ isBooking }),
       setBookingResult: (subscriptionId, error) =>
         set({ isBooking: false, lastBookingId: subscriptionId, bookingError: error }),
-      resetBooking: () => set({ isBooking: false, lastBookingId: null, bookingError: null, idempotencyKey: null }),
+      resetBooking: () =>
+        set({ isBooking: false, lastBookingId: null, bookingError: null, idempotencyKey: null }),
       setIdempotencyKey: (key) => set({ idempotencyKey: key }),
     }),
     {
       name: 'booking-storage',
       storage: createJSONStorage(() => AsyncStorage),
-    }
-  )
+    },
+  ),
 );
 
 interface I18nState {
@@ -112,6 +117,6 @@ export const useI18nStore = create<I18nState>()(
     {
       name: 'i18n-storage',
       storage: createJSONStorage(() => AsyncStorage),
-    }
-  )
+    },
+  ),
 );

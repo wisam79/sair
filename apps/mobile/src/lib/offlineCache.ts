@@ -35,7 +35,7 @@ export const OfflineCache = {
 
       const payload = JSON.parse(raw);
       const sub: Subscription = payload.data;
-      
+
       // Basic verification: Is it expired?
       const endDate = new Date(sub.end_date);
       if (endDate < new Date()) {
@@ -59,5 +59,5 @@ export const OfflineCache = {
     } catch (e) {
       console.warn('Failed to clear offline cache', e);
     }
-  }
+  },
 };

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Create } from "@refinedev/mui";
-import { Box, TextField, Checkbox, FormControlLabel } from "@mui/material";
-import { useForm } from "@refinedev/react-hook-form";
-import { BaseRecord, HttpError } from "@refinedev/core";
+import { Create } from '@refinedev/mui';
+import { Box, TextField, Checkbox, FormControlLabel } from '@mui/material';
+import { useForm } from '@refinedev/react-hook-form';
+import { BaseRecord, HttpError } from '@refinedev/core';
 
 interface FormValues {
   driver_id: string;
@@ -26,21 +26,17 @@ export default function RouteCreate() {
     formState: { errors },
   } = useForm<BaseRecord, HttpError, FormValues>();
 
-  const selectedDriverId = watch("driver_id");
+  const selectedDriverId = watch('driver_id');
 
   return (
     <Create isLoading={formLoading} saveButtonProps={saveButtonProps}>
-      <Box
-        component="form"
-        sx={{ display: "flex", flexDirection: "column" }}
-        autoComplete="off"
-      >
+      <Box component="form" sx={{ display: 'flex', flexDirection: 'column' }} autoComplete="off">
         <TextField
-          {...register("driver_id", {
-            required: "This field is required",
+          {...register('driver_id', {
+            required: 'This field is required',
           })}
           error={!!errors?.driver_id}
-          helperText={errors?.driver_id?.message || "Enter driver UUID from Drivers list"}
+          helperText={errors?.driver_id?.message || 'Enter driver UUID from Drivers list'}
           margin="normal"
           fullWidth
           InputLabelProps={{ shrink: true }}
@@ -50,8 +46,8 @@ export default function RouteCreate() {
           placeholder="e.g., 550e8400-e29b-41d4-a716-446655440000"
         />
         <TextField
-          {...register("title", {
-            required: "This field is required",
+          {...register('title', {
+            required: 'This field is required',
           })}
           error={!!errors?.title}
           helperText={errors?.title?.message}
@@ -63,8 +59,8 @@ export default function RouteCreate() {
           name="title"
         />
         <TextField
-          {...register("start_location", {
-            required: "This field is required",
+          {...register('start_location', {
+            required: 'This field is required',
           })}
           error={!!errors?.start_location}
           helperText={errors?.start_location?.message}
@@ -76,8 +72,8 @@ export default function RouteCreate() {
           name="start_location"
         />
         <TextField
-          {...register("end_location", {
-            required: "This field is required",
+          {...register('end_location', {
+            required: 'This field is required',
           })}
           error={!!errors?.end_location}
           helperText={errors?.end_location?.message}
@@ -89,10 +85,10 @@ export default function RouteCreate() {
           name="end_location"
         />
         <TextField
-          {...register("price", {
-            required: "This field is required",
+          {...register('price', {
+            required: 'This field is required',
             valueAsNumber: true,
-            validate: (value) => value > 0 || "Price must be greater than 0",
+            validate: (value) => value > 0 || 'Price must be greater than 0',
           })}
           error={!!errors?.price}
           helperText={errors?.price?.message}
@@ -104,10 +100,10 @@ export default function RouteCreate() {
           name="price"
         />
         <TextField
-          {...register("capacity", {
-            required: "This field is required",
+          {...register('capacity', {
+            required: 'This field is required',
             valueAsNumber: true,
-            validate: (value) => value >= 1 || "Capacity must be at least 1",
+            validate: (value) => value >= 1 || 'Capacity must be at least 1',
           })}
           error={!!errors?.capacity}
           helperText={errors?.capacity?.message}
@@ -119,16 +115,16 @@ export default function RouteCreate() {
           name="capacity"
         />
         <TextField
-          {...register("available_seats", {
-            required: "This field is required",
+          {...register('available_seats', {
+            required: 'This field is required',
             valueAsNumber: true,
             validate: (value) => {
-              const capacity = watch("capacity");
-              return value <= capacity || "Available seats cannot exceed capacity";
+              const capacity = watch('capacity');
+              return value <= capacity || 'Available seats cannot exceed capacity';
             },
           })}
           error={!!errors?.available_seats}
-          helperText={errors?.available_seats?.message || "Must be less than or equal to capacity"}
+          helperText={errors?.available_seats?.message || 'Must be less than or equal to capacity'}
           margin="normal"
           fullWidth
           InputLabelProps={{ shrink: true }}
@@ -137,13 +133,7 @@ export default function RouteCreate() {
           name="available_seats"
         />
         <FormControlLabel
-          control={
-            <Checkbox
-              {...register("is_active")}
-              defaultChecked={true}
-              name="is_active"
-            />
-          }
+          control={<Checkbox {...register('is_active')} defaultChecked={true} name="is_active" />}
           label="Is Active"
         />
       </Box>

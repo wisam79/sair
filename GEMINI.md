@@ -5,6 +5,7 @@
 UniRide v2 is a scalable, secure, and clean architecture-based platform designed to manage university student transportation in Iraq. It is structured as a symmetric monorepo using `pnpm` workspaces, separating domain logic from presentation layers.
 
 **Key Technologies:**
+
 - **Frontend Admin:** Next.js (App Router), Refine, Material UI
 - **Frontend Mobile:** React Native, Expo, Expo Router, Zustand
 - **Backend & Auth:** Supabase (Database, Auth, Realtime, Edge Functions)
@@ -12,6 +13,7 @@ UniRide v2 is a scalable, secure, and clean architecture-based platform designed
 - **Shared/Core:** TypeScript, Zod, i18next (AR/EN)
 
 **Architectural Highlights:**
+
 - **Domain-Driven Design:** The `@uniride/core` package acts as the single source of truth for types, validation schemas, and state machine logic.
 - **Database as Logic Engine:** High-integrity operations (like the atomic seat booking to prevent overbooking) are offloaded to PostgreSQL RPCs using pessimistic locking (`FOR UPDATE`).
 - **Edge Functions:** Supabase Edge Functions act as secure gateways for complex operations, handling rate limiting, idempotency, and CORS before interacting with the database.
@@ -22,6 +24,7 @@ UniRide v2 is a scalable, secure, and clean architecture-based platform designed
 The project utilizes `pnpm` (v10+) as its package manager.
 
 **Key Commands:**
+
 - **Install Dependencies:** `pnpm install`
 - **Run Development Servers:** `pnpm dev` (Starts all apps/packages in dev mode)
 - **Build All:** `pnpm build`

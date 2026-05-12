@@ -3,6 +3,7 @@
 ## Edge Functions
 
 ### 1. `atomic-booking`
+
 - **Purpose**: Atomic seat reservation.
 - **Endpoint**: `POST /functions/v1/atomic-booking`
 - **Payload**:
@@ -15,6 +16,7 @@
 - **Security**: Requires Service Role Key or valid User JWT.
 
 ### 2. `trip-engine`
+
 - **Purpose**: Trip state management with GPS verification.
 - **Endpoint**: `POST /functions/v1/trip-engine`
 - **Payload**:
@@ -30,6 +32,7 @@
 ## Database RPCs
 
 ### `reserve_seat(p_route_id, p_student_id)`
+
 - **Type**: PL/pgSQL Function.
 - **Logic**: Pessimistic Locking (`FOR UPDATE`).
 - **Returns**: `void` or `RAISE EXCEPTION`.

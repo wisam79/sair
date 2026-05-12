@@ -91,7 +91,12 @@ export const TripMap: React.FC<TripMapProps> = ({
         {/* Driver Point */}
         {driverLat && driverLng && (
           <Marker coordinate={{ latitude: driverLat, longitude: driverLng }} title="موقع السائق">
-            <View style={[styles.markerCircle, { backgroundColor: Colors.success, width: 36, height: 36, borderRadius: 18 }]}>
+            <View
+              style={[
+                styles.markerCircle,
+                { backgroundColor: Colors.success, width: 36, height: 36, borderRadius: 18 },
+              ]}
+            >
               <Ionicons name="car" size={20} color={Colors.white} />
             </View>
           </Marker>

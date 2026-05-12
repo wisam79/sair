@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { Create } from "@refinedev/mui";
-import { Box, TextField, MenuItem, Autocomplete, Alert } from "@mui/material";
-import { useForm } from "@refinedev/react-hook-form";
-import { useSelect, useApiUrl, useCustomMutation, BaseRecord, HttpError } from "@refinedev/core";
-import { supabaseClient } from "../../../providers/supabaseClient";
+import { Create } from '@refinedev/mui';
+import { Box, TextField, MenuItem, Autocomplete, Alert } from '@mui/material';
+import { useForm } from '@refinedev/react-hook-form';
+import { useSelect, useApiUrl, useCustomMutation, BaseRecord, HttpError } from '@refinedev/core';
+import { supabaseClient } from '../../../providers/supabaseClient';
 
 interface LicenseBatchFormValues {
   batch_name: string;
@@ -25,9 +25,9 @@ export default function LicenseBatchCreate() {
   } = useForm<BaseRecord, HttpError, LicenseBatchFormValues>();
 
   const { options: routeOptions } = useSelect({
-    resource: "routes",
-    optionLabel: "title",
-    optionValue: "id",
+    resource: 'routes',
+    optionLabel: 'title',
+    optionValue: 'id',
   });
 
   const { mutate } = useCustomMutation();
@@ -35,7 +35,7 @@ export default function LicenseBatchCreate() {
   const handleCustomSubmit = async (data: LicenseBatchFormValues) => {
     // Call the RPC to create a batch securely and generate the codes
     try {
-      const { data: batchId, error } = await supabaseClient.rpc("create_license_batch", {
+      const { data: batchId, error } = await supabaseClient.rpc('create_license_batch', {
         p_route_id: data.route_id,
         p_batch_name: data.batch_name,
         p_quantity: Number(data.quantity),
@@ -47,23 +47,26 @@ export default function LicenseBatchCreate() {
         alert(`Error: ${error.message}`);
         return;
       }
-      
+
       // Redirect back manually since we used custom mutation
-      window.location.href = "/license_batches";
+      window.location.href = '/license_batches';
     } catch (e: unknown) {
       if (e instanceof Error) {
         alert(`Error: ${e.message}`);
       } else {
-        alert("An unknown error occurred");
+        alert('An unknown error occurred');
       }
     }
   };
 
   return (
-    <Create saveButtonProps={{ ...saveButtonProps, onClick: handleSubmit(handleCustomSubmit) }} isLoading={formLoading}>
-      <Box component="form" sx={{ display: "flex", flexDirection: "column" }} autoComplete="off">
+    <Create
+      saveButtonProps={{ ...saveButtonProps, onClick: handleSubmit(handleCustomSubmit) }}
+      isLoading={formLoading}
+    >
+      <Box component="form" sx={{ display: 'flex', flexDirection: 'column' }} autoComplete="off">
         <TextField
-          {...register("batch_name", { required: "This field is required" })}
+          {...register('batch_name', { required: 'This field is required' })}
           error={!!errors?.batch_name}
           helperText={errors?.batch_name?.message}
           margin="normal"
@@ -76,7 +79,7 @@ export default function LicenseBatchCreate() {
 
         <TextField
           select
-          {...register("route_id", { required: "This field is required" })}
+          {...register('route_id', { required: 'This field is required' })}
           error={!!errors?.route_id}
           helperText={errors?.route_id?.message}
           margin="normal"
@@ -94,7 +97,7 @@ export default function LicenseBatchCreate() {
         </TextField>
 
         <TextField
-          {...register("quantity", { required: "This field is required", min: 1 })}
+          {...register('quantity', { required: 'This field is required', min: 1 })}
           error={!!errors?.quantity}
           helperText={errors?.quantity?.message}
           margin="normal"
@@ -106,7 +109,7 @@ export default function LicenseBatchCreate() {
         />
 
         <TextField
-          {...register("price", { required: "This field is required", min: 0 })}
+          {...register('price', { required: 'This field is required', min: 0 })}
           error={!!errors?.price}
           helperText={errors?.price?.message}
           margin="normal"
@@ -118,7 +121,7 @@ export default function LicenseBatchCreate() {
         />
 
         <TextField
-          {...register("valid_days", { required: "This field is required", min: 1 })}
+          {...register('valid_days', { required: 'This field is required', min: 1 })}
           error={!!errors?.valid_days}
           helperText={errors?.valid_days?.message}
           margin="normal"
@@ -129,9 +132,10 @@ export default function LicenseBatchCreate() {
           name="valid_days"
           defaultValue={30}
         />
-        
+
         <Alert severity="info" sx={{ mt: 2 }}>
-          Generating a batch will securely create the requested quantity of unique 8-character codes immediately.
+          Generating a batch will securely create the requested quantity of unique 8-character codes
+          immediately.
         </Alert>
       </Box>
     </Create>

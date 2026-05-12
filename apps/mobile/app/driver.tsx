@@ -40,12 +40,37 @@ interface DriverTrip {
 }
 
 const STATUS_DISPLAY: Record<string, { label: string; color: string; bg: string; icon: string }> = {
-  scheduled:      { label: 'مجدولة',       color: Colors.warning, bg: Colors.warningSurface, icon: 'calendar-outline' },
-  driver_waiting: { label: 'في الانتظار',   color: Colors.primary, bg: Colors.primarySurface, icon: 'time-outline' },
-  in_transit:     { label: 'في الطريق',     color: Colors.success, bg: Colors.successSurface, icon: 'navigate-outline' },
-  completed:      { label: 'مكتملة',       color: Colors.textMuted, bg: Colors.surfaceMuted, icon: 'checkmark-circle-outline' },
-  absent:         { label: 'غائب',         color: Colors.textMuted, bg: Colors.surfaceMuted, icon: 'person-remove-outline' },
-  cancelled:      { label: 'ملغاة',         color: Colors.error, bg: Colors.errorSurface, icon: 'ban-outline' },
+  scheduled: {
+    label: 'مجدولة',
+    color: Colors.warning,
+    bg: Colors.warningSurface,
+    icon: 'calendar-outline',
+  },
+  driver_waiting: {
+    label: 'في الانتظار',
+    color: Colors.primary,
+    bg: Colors.primarySurface,
+    icon: 'time-outline',
+  },
+  in_transit: {
+    label: 'في الطريق',
+    color: Colors.success,
+    bg: Colors.successSurface,
+    icon: 'navigate-outline',
+  },
+  completed: {
+    label: 'مكتملة',
+    color: Colors.textMuted,
+    bg: Colors.surfaceMuted,
+    icon: 'checkmark-circle-outline',
+  },
+  absent: {
+    label: 'غائب',
+    color: Colors.textMuted,
+    bg: Colors.surfaceMuted,
+    icon: 'person-remove-outline',
+  },
+  cancelled: { label: 'ملغاة', color: Colors.error, bg: Colors.errorSurface, icon: 'ban-outline' },
 };
 
 async function getCurrentLocation(): Promise<{ lat: number; lng: number } | null> {
@@ -109,7 +134,11 @@ export default function DriverDashboard() {
         if (newStatus === 'in_transit') {
           setActiveTrip(tripId, newStatus, '');
           startTracking(tripId);
-        } else if (newStatus === 'completed' || newStatus === 'absent' || newStatus === 'cancelled') {
+        } else if (
+          newStatus === 'completed' ||
+          newStatus === 'absent' ||
+          newStatus === 'cancelled'
+        ) {
           stopTracking();
           if (activeTripId === tripId) {
             clearTrip();
@@ -125,7 +154,7 @@ export default function DriverDashboard() {
         setUpdatingTripId(null);
       }
     },
-    [activeTripId, startTracking, stopTracking, setActiveTrip, clearTrip, updateStatus, refetch]
+    [activeTripId, startTracking, stopTracking, setActiveTrip, clearTrip, updateStatus, refetch],
   );
 
   const handleCancelTrip = useCallback(
@@ -139,7 +168,7 @@ export default function DriverDashboard() {
         },
       ]);
     },
-    [handleStatusUpdate]
+    [handleStatusUpdate],
   );
 
   const handleLogout = async () => {
@@ -153,7 +182,10 @@ export default function DriverDashboard() {
     const nextAction = getNextAction(item.status as TripStatus);
     const isUpdating = updatingTripId === item.id;
     const tripDate = new Date(item.scheduled_at).toLocaleDateString('ar-IQ');
-    const tripTime = new Date(item.scheduled_at).toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
+    const tripTime = new Date(item.scheduled_at).toLocaleTimeString('ar-IQ', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
 
     return (
       <View style={styles.tripCard}>
@@ -161,9 +193,13 @@ export default function DriverDashboard() {
         <View style={styles.tripHeader}>
           <View style={[styles.statusBadge, { backgroundColor: statusDisplay.bg }]}>
             <Ionicons name={statusDisplay.icon as any} size={14} color={statusDisplay.color} />
-            <Text style={[styles.statusText, { color: statusDisplay.color }]}>{statusDisplay.label}</Text>
+            <Text style={[styles.statusText, { color: statusDisplay.color }]}>
+              {statusDisplay.label}
+            </Text>
           </View>
-          <Text style={styles.tripTime}>{tripDate} {tripTime}</Text>
+          <Text style={styles.tripTime}>
+            {tripDate} {tripTime}
+          </Text>
         </View>
 
         {/* Route Info */}
@@ -211,7 +247,7 @@ export default function DriverDashboard() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.secondary} />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
@@ -220,7 +256,11 @@ export default function DriverDashboard() {
             <Text style={styles.headerSubtitle}>مرحباً، {profile.full_name}</Text>
           )}
         </View>
-        <TouchableOpacity style={styles.profileButton} onPress={() => router.push('/profile')} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={() => router.push('/profile')}
+          activeOpacity={0.8}
+        >
           <Ionicons name="person-circle-outline" size={36} color={Colors.white} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>

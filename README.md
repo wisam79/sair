@@ -27,4 +27,5 @@ Welcome to the UniRide engineering documentation. Everything you need to underst
 4. **Developer Experience (DX)**: Automated database seeding (`pnpm seed`), pre-commit hooks (Husky), and fully typed interfaces end-to-end.
 
 ---
-*Architected and documented for operational excellence.*
+
+_Architected and documented for operational excellence._

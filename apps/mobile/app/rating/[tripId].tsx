@@ -41,7 +41,7 @@ export default function RatingScreen() {
       if (error) throw error;
 
       Alert.alert('شكراً لك', 'تم إرسال تقييمك بنجاح!', [
-        { text: 'حسناً', onPress: () => router.push('/') }
+        { text: 'حسناً', onPress: () => router.push('/') },
       ]);
     } catch (err: any) {
       Alert.alert('خطأ', err.message || 'حدث خطأ أثناء إرسال التقييم');
@@ -51,12 +51,12 @@ export default function RatingScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
-      
+
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Text style={styles.title}>كيف كانت رحلتك؟</Text>
@@ -65,15 +65,11 @@ export default function RatingScreen() {
 
         <View style={styles.starContainer}>
           {[1, 2, 3, 4, 5].map((star) => (
-            <TouchableOpacity 
-              key={star} 
-              onPress={() => setRating(star)}
-              activeOpacity={0.7}
-            >
-              <Ionicons 
-                name={star <= rating ? "star" : "star-outline"} 
-                size={48} 
-                color={star <= rating ? Colors.warning : Colors.border} 
+            <TouchableOpacity key={star} onPress={() => setRating(star)} activeOpacity={0.7}>
+              <Ionicons
+                name={star <= rating ? 'star' : 'star-outline'}
+                size={48}
+                color={star <= rating ? Colors.warning : Colors.border}
               />
             </TouchableOpacity>
           ))}
@@ -92,7 +88,7 @@ export default function RatingScreen() {
           />
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.submitButton, (rating === 0 || isSubmitting) && styles.disabledButton]}
           onPress={handleSubmit}
           disabled={rating === 0 || isSubmitting}
@@ -104,7 +100,7 @@ export default function RatingScreen() {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.skipButton}
           onPress={() => router.push('/')}
           disabled={isSubmitting}
@@ -120,11 +116,28 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   content: { padding: Spacing.xl, alignItems: 'center', paddingTop: 80 },
   header: { alignItems: 'center', marginBottom: Spacing.xxxl },
-  title: { fontFamily: FontFamily.bold, fontSize: 26, color: Colors.text, marginBottom: Spacing.sm },
-  subtitle: { fontFamily: FontFamily.regular, fontSize: 16, color: Colors.textSecondary, textAlign: 'center', lineHeight: 24 },
+  title: {
+    fontFamily: FontFamily.bold,
+    fontSize: 26,
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  subtitle: {
+    fontFamily: FontFamily.regular,
+    fontSize: 16,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
   starContainer: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.xxxl },
   inputContainer: { width: '100%', marginBottom: Spacing.xxxl },
-  label: { fontFamily: FontFamily.bold, fontSize: 15, color: Colors.text, marginBottom: Spacing.md, textAlign: 'right' },
+  label: {
+    fontFamily: FontFamily.bold,
+    fontSize: 15,
+    color: Colors.text,
+    marginBottom: Spacing.md,
+    textAlign: 'right',
+  },
   textInput: {
     backgroundColor: Colors.white,
     borderRadius: BorderRadius.lg,

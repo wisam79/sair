@@ -1,12 +1,14 @@
 # UniRide v2 - Project Map
 
 ## [TECH_STACK]
+
 - **Frontend**: Next.js 16.2.6 (Admin), Expo 55 (Mobile)
 - **Database**: Supabase + Drizzle ORM 0.45.2
 - **Shared**: Zod, TypeScript 5.4+
 - **Security**: Custom JWT Claims (app_metadata) + RLS
 
 ## [SYSTEM_FLOW]
+
 - Auth -> Profile Management (Trigger: syncs full_name to auth.users metadata)
 - Booking -> Atomic Seat Reservation (Edge Function with JWT Auth)
 - Subscription Cancellation -> Postgres Trigger (returns seat to routes.available_seats)
@@ -20,6 +22,7 @@
 - Role Resolution -> app_metadata.role (primary), user_metadata.role (fallback)
 
 ## [ARCHITECTURE]
+
 - **Naming Convention**: snake_case everywhere (DB columns, TypeScript types, Supabase queries). Database is source of truth.
 - `packages/core`: Validation, Shared Types (snake_case), i18n, Theme, State Machine Logic.
 - `packages/db`: Drizzle schemas, Migrations, Seed data (5 students, 3 drivers, 6 routes, 3 trips, 5 subscriptions). audit_logs.details is JSONB.
@@ -38,6 +41,7 @@
   - Features: Tab navigation, offline banner, subscription cancellation with seat return, real GPS, route name display, trip lookup for tracking.
 
 ## [COMPLETED PHASES]
+
 - [x] Monorepo structure initialization.
 - [x] Core shared package (Zod schemas, i18n, theme, state machine).
 - [x] Database schema design (Drizzle + Supabase migrations).
@@ -94,10 +98,11 @@
 - [x] Deployment Automation Script.
 - [x] Production Documentation (README, API Reference, Architecture, Security).
 - [x] Clean admin globals.css (no gradient conflicts with MUI).
-- [x] .env.example with all required variables (including EXPO_PUBLIC_).
+- [x] .env.example with all required variables (including EXPO*PUBLIC*).
 - [x] snake_case column names in ALL Supabase queries and TypeScript types (database as source of truth).
 
 ## [ORPHANS & PENDING]
+
 - [ ] Phase 1 evaluation: Does the app work correctly with real data? Are TanStack Query / PowerSync / react-native-maps needed?
 - [ ] Rate limiter in-memory doesn't work across serverless instances (H1) - consider Supabase table or Redis
 - [ ] SERVICE_ROLE_KEY in Edge Functions bypasses RLS (H3) - strengthen validation
@@ -113,6 +118,7 @@
 - [ ] Real map in tracking screen (L10) - react-native-maps
 
 ## [TEST RESULTS]
+
 - Unit + Integration (vitest): 46 passed
 - E2E API (playwright): 13 passed (Edge Function security, RLS, data integrity)
 - Database: Seeded (9 profiles, 3 drivers, 6 routes, 3 trips, 5 subscriptions)

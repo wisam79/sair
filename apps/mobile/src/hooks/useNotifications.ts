@@ -58,7 +58,9 @@ export function useNotifications() {
           return;
         }
 
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user || !isMounted) return;
 
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -95,7 +97,7 @@ export function useNotifications() {
           const responseSub = Notifications.addNotificationResponseReceivedListener((response) => {
             console.warn(
               '[Notifications] Interaction:',
-              response.notification.request.content.body
+              response.notification.request.content.body,
             );
           });
 

@@ -80,12 +80,7 @@ export default function BookingScreen() {
           <Text style={styles.label}>المقاعد المتاحة</Text>
           <View style={styles.seatBadge}>
             <Ionicons name="people-outline" size={16} color={Colors.primary} />
-            <Text
-              style={[
-                styles.seatsValue,
-                route.available_seats <= 2 && styles.seatsWarning,
-              ]}
-            >
+            <Text style={[styles.seatsValue, route.available_seats <= 2 && styles.seatsWarning]}>
               {route.available_seats}
             </Text>
           </View>
@@ -93,7 +88,10 @@ export default function BookingScreen() {
       </View>
 
       <TouchableOpacity
-        style={[styles.bookButton, (isBooking || route.available_seats <= 0) && styles.bookButtonDisabled]}
+        style={[
+          styles.bookButton,
+          (isBooking || route.available_seats <= 0) && styles.bookButtonDisabled,
+        ]}
         onPress={handleBook}
         disabled={isBooking || route.available_seats <= 0}
         activeOpacity={0.85}
@@ -102,7 +100,12 @@ export default function BookingScreen() {
           <ActivityIndicator color={Colors.white} />
         ) : (
           <>
-            <Ionicons name="ticket-outline" size={20} color={Colors.white} style={{ position: 'absolute', right: Spacing.xl }} />
+            <Ionicons
+              name="ticket-outline"
+              size={20}
+              color={Colors.white}
+              style={{ position: 'absolute', right: Spacing.xl }}
+            />
             <Text style={styles.bookButtonText}>
               {route.available_seats <= 0 ? 'لا توجد مقاعد متاحة' : 'تفعيل الترخيص'}
             </Text>
