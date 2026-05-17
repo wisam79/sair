@@ -11,22 +11,62 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRoutes } from '../src/hooks/useRoutes';
+import { useSubscriptions } from '../src/hooks/useSubscriptions';
 import { useAuthStore } from '../src/hooks/useStore';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { useRouter } from 'expo-router';
 import { Route } from '@uniride/core';
 import { Colors, Typography, Spacing, BorderRadius, Shadow, FontFamily } from '../src/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { logger } from '../src/lib/logger';
+import { supabase } from '../src/lib/supabase';
 
 export default function DiscoveryPage() {
-  const { profile } = useAuthStore();
+  const { profile, role } = useAuthStore();
   const { routes, isLoading, error, refetch } = useRoutes(profile?.institution_id);
+  const { subscriptions, isLoading: subsLoading } = useSubscriptions();
   const { t, isRTL } = useTranslation();
   const router = useRouter();
 
+  const activeSubscription = subscriptions?.find((s) => s.status === 'active');
+  const isStudent = role === 'student';
+  const needsLicense = isStudent && !activeSubscription;
+
+  const activeSub = subscriptions.find((s) => s.status === 'active');
+  const isLoading = routesLoading || subsLoading;
+
+  const onRefresh = async () => {
+    await Promise.all([refetchRoutes(), refetchSubs()]);
+  };
+
+  const handleTrackActiveTrip = async () => {
+    if (!activeSub) return;
+    try {
+      const { data: activeTrip } = await supabase
+        .from('trips')
+        .select('id')
+        .eq('route_id', activeSub.route_id)
+        .in('status', ['driver_waiting', 'in_transit'])
+        .order('scheduled_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (activeTrip) {
+        router.push({
+          pathname: '/tracking/[tripId]',
+          params: { tripId: activeTrip.id },
+        });
+      } else {
+        router.push('/subscriptions');
+      }
+    } catch {
+      router.push('/subscriptions');
+    }
+  };
+
   const greeting = profile?.full_name
-    ? `مرحباً، ${profile.full_name.split(' ')[0]} 👋`
-    : 'مرحباً 👋';
+    ? `${t('hello')}، ${profile.full_name.split(' ')[0]} 👋`
+    : `${t('hello')} 👋`;
 
   const renderRoute = ({ item }: { item: Route }) => (
     <TouchableOpacity
@@ -65,13 +105,17 @@ export default function DiscoveryPage() {
           {item.departure_time && (
             <View style={styles.timeBadge}>
               <Ionicons name="sunny-outline" size={14} color={Colors.warning} />
-              <Text style={styles.timeText}>ذهاب: {item.departure_time.substring(0, 5)}</Text>
+              <Text style={styles.timeText}>
+                {t('departure')}: {item.departure_time.substring(0, 5)}
+              </Text>
             </View>
           )}
           {item.return_time && (
             <View style={styles.timeBadge}>
               <Ionicons name="moon-outline" size={14} color={Colors.secondary} />
-              <Text style={styles.timeText}>إياب: {item.return_time.substring(0, 5)}</Text>
+              <Text style={styles.timeText}>
+                {t('return')}: {item.return_time.substring(0, 5)}
+              </Text>
             </View>
           )}
         </View>
@@ -80,9 +124,13 @@ export default function DiscoveryPage() {
         <View style={styles.cardFooter}>
           <View style={styles.seatBadge}>
             <Ionicons name="people-outline" size={13} color={Colors.primary} />
-            <Text style={styles.seatText}>{item.available_seats} مقعد</Text>
+            <Text style={styles.seatText}>
+              {item.available_seats} {t('seat')}
+            </Text>
           </View>
-          <Text style={styles.price}>{item.price.toLocaleString()} د.ع</Text>
+          <Text style={styles.price}>
+            {item.price.toLocaleString()} {t('currency')}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -91,17 +139,17 @@ export default function DiscoveryPage() {
   const ListEmpty = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="bus-outline" size={64} color={Colors.border} />
-      <Text style={styles.emptyTitle}>لا توجد خطوط متاحة</Text>
-      <Text style={styles.emptySubtitle}>اسحب للأسفل للتحديث</Text>
+      <Text style={styles.emptyTitle}>{t('no_available_routes')}</Text>
+      <Text style={styles.emptySubtitle}>{t('pull_to_refresh')}</Text>
     </View>
   );
 
   const ListError = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="wifi-outline" size={64} color={Colors.error} />
-      <Text style={styles.emptyTitle}>تعذّر تحميل الخطوط</Text>
+      <Text style={styles.emptyTitle}>{t('failed_to_load_routes')}</Text>
       <TouchableOpacity style={styles.retryButton} onPress={refetch}>
-        <Text style={styles.retryText}>إعادة المحاولة</Text>
+        <Text style={styles.retryText}>{t('retry')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -126,7 +174,10 @@ export default function DiscoveryPage() {
       const data = await response.json();
       setSearchResults(data);
     } catch (error) {
-      console.warn('Geocoding error:', error);
+      logger.warn('Geocoding search failed', {
+        error: error instanceof Error ? error.message : String(error),
+        query: text,
+      });
     } finally {
       setIsSearching(false);
     }
@@ -140,7 +191,7 @@ export default function DiscoveryPage() {
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>{greeting}</Text>
-          <Text style={styles.headerSubtitle}>ابحث عن خط نقلك</Text>
+          <Text style={styles.headerSubtitle}>{t('search_routes_subtitle')}</Text>
         </View>
         <TouchableOpacity style={styles.profileButton} onPress={() => router.push('/profile')}>
           <Ionicons name="person-circle-outline" size={36} color={Colors.white} />
@@ -152,8 +203,8 @@ export default function DiscoveryPage() {
         <View style={styles.searchBar}>
           <Ionicons name="search-outline" size={18} color={Colors.textMuted} />
           <TextInput
-            style={styles.searchInput}
-            placeholder="إلى أين تريد الذهاب؟"
+            style={[styles.searchInput, { textAlign: isRTL ? 'right' : 'left' }]}
+            placeholder={t('search_routes_placeholder')}
             placeholderTextColor={Colors.textMuted}
             value={searchQuery}
             onChangeText={handleSearch}
@@ -174,7 +225,10 @@ export default function DiscoveryPage() {
                 }}
               >
                 <Ionicons name="location-outline" size={16} color={Colors.textMuted} />
-                <Text style={styles.searchResultText} numberOfLines={1}>
+                <Text
+                  style={[styles.searchResultText, { textAlign: isRTL ? 'right' : 'left' }]}
+                  numberOfLines={1}
+                >
                   {result.display_name}
                 </Text>
               </TouchableOpacity>
@@ -183,22 +237,55 @@ export default function DiscoveryPage() {
         )}
       </View>
 
-      {/* License Banner */}
-      <View style={{ paddingHorizontal: 20, marginBottom: 10 }}>
-        <TouchableOpacity
-          style={styles.licenseBanner}
-          onPress={() => router.push('/activate')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.licenseBannerContent}>
-            <Ionicons name="card-outline" size={24} color={Colors.primary} />
-            <View>
-              <Text style={styles.licenseBannerTitle}>تفعيل ترخيص جديد</Text>
-              <Text style={styles.licenseBannerSubtitle}>أدخل الكود لتفعيل اشتراكك</Text>
+      {/* Subscription / License Section */}
+      <View style={{ paddingHorizontal: 20, marginBottom: 15 }}>
+        {activeSub ? (
+          <TouchableOpacity
+            style={[styles.activeSubCard, isRTL && { flexDirection: 'row-reverse' }]}
+            onPress={() => router.push('/subscriptions')}
+            activeOpacity={0.9}
+          >
+            <View style={styles.activeSubIcon}>
+              <Ionicons name="checkmark-circle" size={28} color={Colors.success} />
             </View>
-          </View>
-          <Ionicons name="chevron-back" size={20} color={Colors.border} />
-        </TouchableOpacity>
+            <View style={[styles.activeSubInfo, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+              <Text style={styles.activeSubTitle}>{t('active_subscription')}</Text>
+              <Text style={styles.activeSubRoute} numberOfLines={1}>
+                {activeSub.routes?.title || t('route')}
+              </Text>
+              <View style={[styles.activeSubFooter, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Text style={styles.activeSubDate}>
+                  {t('expires')}: {new Date(activeSub.end_date).toLocaleDateString(language === 'ar' ? 'ar-IQ' : 'en-US')}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity 
+              style={styles.trackMiniButton}
+              onPress={handleTrackActiveTrip}
+            >
+              <Ionicons name="navigate" size={20} color={Colors.white} />
+            </TouchableOpacity>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.licenseBanner}
+            onPress={() => router.push('/activate')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.licenseBannerContent}>
+              <Ionicons name="card-outline" size={24} color={Colors.primary} />
+              <View>
+                <Text style={styles.licenseBannerTitle}>{t('activate_new_license')}</Text>
+                <Text style={styles.licenseBannerSubtitle}>{t('activate_license_description')}</Text>
+              </View>
+            </View>
+            <Ionicons
+              name={isRTL ? 'chevron-back' : 'chevron-forward'}
+              size={20}
+              color={Colors.border}
+            />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Routes List */}
@@ -210,7 +297,7 @@ export default function DiscoveryPage() {
         refreshControl={
           <RefreshControl
             refreshing={isLoading}
-            onRefresh={refetch}
+            onRefresh={onRefresh}
             colors={[Colors.primary]}
             tintColor={Colors.primary}
           />
@@ -218,7 +305,9 @@ export default function DiscoveryPage() {
         ListEmptyComponent={error ? <ListError /> : <ListEmpty />}
         ListHeaderComponent={
           routes.length > 0 ? (
-            <Text style={styles.sectionTitle}>{routes.length} خط متاح</Text>
+            <Text style={styles.sectionTitle}>
+              {routes.length} {t('available_routes_count')}
+            </Text>
           ) : null
         }
         showsVerticalScrollIndicator={false}
@@ -300,14 +389,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.text,
     flex: 1,
-    textAlign: 'right',
   },
   searchInput: {
     flex: 1,
     fontFamily: FontFamily.medium,
     fontSize: 15,
     color: Colors.text,
-    textAlign: 'right',
     paddingHorizontal: Spacing.md,
   },
   // License Banner
@@ -338,6 +425,61 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textSecondary,
     textAlign: 'right',
+  },
+  // Active Sub Card
+  activeSubCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1.5,
+    borderColor: Colors.success,
+    ...Shadow.md,
+  },
+  activeSubIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.successSurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: Spacing.sm,
+  },
+  activeSubInfo: {
+    flex: 1,
+    paddingHorizontal: Spacing.xs,
+  },
+  activeSubTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 12,
+    color: Colors.success,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  activeSubRoute: {
+    fontFamily: FontFamily.bold,
+    fontSize: 16,
+    color: Colors.text,
+    marginVertical: 2,
+  },
+  activeSubFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  activeSubDate: {
+    fontFamily: FontFamily.medium,
+    fontSize: 11,
+    color: Colors.textMuted,
+  },
+  trackMiniButton: {
+    backgroundColor: Colors.primary,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadow.sm,
   },
   // List
   listContent: {
