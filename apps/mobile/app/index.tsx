@@ -20,6 +20,9 @@ import { Colors, Typography, Spacing, BorderRadius, Shadow, FontFamily } from '.
 import { Ionicons } from '@expo/vector-icons';
 import { logger } from '../src/lib/logger';
 import { supabase } from '../src/lib/supabase';
+import { RouteCard } from '../src/components/RouteCard';
+import { ActiveSubscriptionCard } from '../src/components/ActiveSubscriptionCard';
+import { LicenseActivationBanner } from '../src/components/LicenseActivationBanner';
 
 export default function DiscoveryPage() {
   const { profile, role } = useAuthStore();
@@ -70,73 +73,7 @@ export default function DiscoveryPage() {
     ? `${t('hello')}، ${profile.full_name.split(' ')[0]} 👋`
     : `${t('hello')} 👋`;
 
-  const renderRoute = ({ item }: { item: Route }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => router.push({ pathname: '/booking', params: { routeId: item.id } })}
-      activeOpacity={0.85}
-    >
-      {/* Orange accent bar */}
-      <View style={styles.cardAccent} />
-
-      <View style={styles.cardContent}>
-        {/* Route Name */}
-        <Text style={styles.routeName} numberOfLines={1}>
-          {item.title}
-        </Text>
-
-        {/* From → To */}
-        <View style={styles.routePath}>
-          <View style={styles.routeStop}>
-            <Ionicons name="radio-button-on" size={12} color={Colors.primary} />
-            <Text style={styles.routeStopText} numberOfLines={1}>
-              {item.start_location}
-            </Text>
-          </View>
-          <View style={styles.routeLine} />
-          <View style={styles.routeStop}>
-            <Ionicons name="location" size={12} color={Colors.secondary} />
-            <Text style={styles.routeStopText} numberOfLines={1}>
-              {item.end_location}
-            </Text>
-          </View>
-        </View>
-
-        {/* Schedule */}
-        <View style={styles.scheduleRow}>
-          {item.departure_time && (
-            <View style={styles.timeBadge}>
-              <Ionicons name="sunny-outline" size={14} color={Colors.warning} />
-              <Text style={styles.timeText}>
-                {t('departure')}: {item.departure_time.substring(0, 5)}
-              </Text>
-            </View>
-          )}
-          {item.return_time && (
-            <View style={styles.timeBadge}>
-              <Ionicons name="moon-outline" size={14} color={Colors.secondary} />
-              <Text style={styles.timeText}>
-                {t('return')}: {item.return_time.substring(0, 5)}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Footer */}
-        <View style={styles.cardFooter}>
-          <View style={styles.seatBadge}>
-            <Ionicons name="people-outline" size={13} color={Colors.primary} />
-            <Text style={styles.seatText}>
-              {item.available_seats} {t('seat')}
-            </Text>
-          </View>
-          <Text style={styles.price}>
-            {item.price.toLocaleString()} {t('currency')}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderRoute = ({ item }: { item: Route }) => <RouteCard item={item} />;
 
   const ListEmpty = () => (
     <View style={styles.emptyContainer}>
@@ -242,51 +179,9 @@ export default function DiscoveryPage() {
       {/* Subscription / License Section */}
       <View style={{ paddingHorizontal: 20, marginBottom: 15 }}>
         {subsLoading ? null : activeSub ? (
-          <TouchableOpacity
-            style={[styles.activeSubCard, isRTL && { flexDirection: 'row-reverse' }]}
-            onPress={() => router.push('/subscriptions')}
-            activeOpacity={0.9}
-          >
-            <View style={styles.activeSubIcon}>
-              <Ionicons name="checkmark-circle" size={28} color={Colors.success} />
-            </View>
-            <View style={[styles.activeSubInfo, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-              <Text style={styles.activeSubTitle}>{t('active_subscription')}</Text>
-              <Text style={styles.activeSubRoute} numberOfLines={1}>
-                {activeSub.routes?.title || t('route')}
-              </Text>
-              <View style={[styles.activeSubFooter, isRTL && { flexDirection: 'row-reverse' }]}>
-                <Text style={styles.activeSubDate}>
-                  {t('expires')}: {new Date(activeSub.end_date).toLocaleDateString(language === 'ar' ? 'ar-IQ' : 'en-US')}
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity 
-              style={styles.trackMiniButton}
-              onPress={handleTrackActiveTrip}
-            >
-              <Ionicons name="navigate" size={20} color={Colors.white} />
-            </TouchableOpacity>
-          </TouchableOpacity>
+          <ActiveSubscriptionCard activeSub={activeSub} onTrackTrip={handleTrackActiveTrip} />
         ) : role === 'student' ? (
-          <TouchableOpacity
-            style={styles.licenseBanner}
-            onPress={() => router.push('/activate')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.licenseBannerContent}>
-              <Ionicons name="card-outline" size={24} color={Colors.primary} />
-              <View>
-                <Text style={styles.licenseBannerTitle}>{t('activate_new_license')}</Text>
-                <Text style={styles.licenseBannerSubtitle}>{t('activate_license_description')}</Text>
-              </View>
-            </View>
-            <Ionicons
-              name={isRTL ? 'chevron-back' : 'chevron-forward'}
-              size={20}
-              color={Colors.border}
-            />
-          </TouchableOpacity>
+          <LicenseActivationBanner />
         ) : null}
       </View>
 
@@ -313,6 +208,10 @@ export default function DiscoveryPage() {
           ) : null
         }
         showsVerticalScrollIndicator={false}
+        initialNumToRender={5}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={true}
       />
     </View>
   );
@@ -399,90 +298,6 @@ const styles = StyleSheet.create({
     color: Colors.text,
     paddingHorizontal: Spacing.md,
   },
-  // License Banner
-  licenseBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.surface,
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    ...Shadow.sm,
-  },
-  licenseBannerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  licenseBannerTitle: {
-    fontFamily: FontFamily.bold,
-    fontSize: 15,
-    color: Colors.text,
-    textAlign: 'right',
-  },
-  licenseBannerSubtitle: {
-    fontFamily: FontFamily.regular,
-    fontSize: 13,
-    color: Colors.textSecondary,
-    textAlign: 'right',
-  },
-  // Active Sub Card
-  activeSubCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1.5,
-    borderColor: Colors.success,
-    ...Shadow.md,
-  },
-  activeSubIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.successSurface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: Spacing.sm,
-  },
-  activeSubInfo: {
-    flex: 1,
-    paddingHorizontal: Spacing.xs,
-  },
-  activeSubTitle: {
-    fontFamily: FontFamily.bold,
-    fontSize: 12,
-    color: Colors.success,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  activeSubRoute: {
-    fontFamily: FontFamily.bold,
-    fontSize: 16,
-    color: Colors.text,
-    marginVertical: 2,
-  },
-  activeSubFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  activeSubDate: {
-    fontFamily: FontFamily.medium,
-    fontSize: 11,
-    color: Colors.textMuted,
-  },
-  trackMiniButton: {
-    backgroundColor: Colors.primary,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Shadow.sm,
-  },
   // List
   listContent: {
     paddingHorizontal: Spacing.lg,
@@ -494,105 +309,6 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     marginBottom: Spacing.md,
     textAlign: 'right',
-  },
-  // Card
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.md,
-    flexDirection: 'row',
-    overflow: 'hidden',
-    ...Shadow.md,
-  },
-  cardAccent: {
-    width: 4,
-    backgroundColor: Colors.primary,
-  },
-  cardContent: {
-    flex: 1,
-    padding: Spacing.md,
-  },
-  routeName: {
-    fontFamily: FontFamily.bold,
-    fontSize: 15,
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-    textAlign: 'right',
-  },
-  routePath: {
-    marginBottom: Spacing.sm,
-    gap: Spacing.xs,
-  },
-  routeStop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-    justifyContent: 'flex-end',
-  },
-  routeStopText: {
-    fontFamily: FontFamily.regular,
-    fontSize: 13,
-    color: Colors.textSecondary,
-    flex: 1,
-    textAlign: 'right',
-  },
-  routeLine: {
-    width: 1.5,
-    height: 10,
-    backgroundColor: Colors.border,
-    marginRight: 5,
-    alignSelf: 'flex-end',
-  },
-  scheduleRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-    marginTop: Spacing.xs,
-    justifyContent: 'flex-end',
-  },
-  timeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.surface,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  timeText: {
-    fontFamily: FontFamily.medium,
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingTop: Spacing.sm,
-    marginTop: Spacing.xs,
-  },
-  seatBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-    backgroundColor: Colors.primarySurface,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-    borderRadius: BorderRadius.pill,
-  },
-  seatText: {
-    fontFamily: FontFamily.medium,
-    fontSize: 12,
-    color: Colors.primary,
-  },
-  price: {
-    fontFamily: FontFamily.bold,
-    fontSize: 15,
-    color: Colors.success,
   },
   // Empty / Error
   emptyContainer: {
