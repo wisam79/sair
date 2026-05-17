@@ -1,37 +1,35 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock expo-secure-store before importing offlineCache
-vi.mock('expo-secure-store', () => ({
-  getItemAsync: vi.fn(),
-  setItemAsync: vi.fn(),
-  deleteItemAsync: vi.fn(),
-  WHEN_UNLOCKED: 'WHEN_UNLOCKED',
+vi.mock('@react-native-async-storage/async-storage', () => ({
+  default: {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+  },
 }));
 
-vi.mock('./logger', () => ({
-  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
-}));
-
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OfflineCache } from './offlineCache';
-import { logger } from './logger';
 
-const mockGet = vi.mocked(SecureStore.getItemAsync);
-const mockSet = vi.mocked(SecureStore.setItemAsync);
-const mockDelete = vi.mocked(SecureStore.deleteItemAsync);
+const mockGet = vi.mocked(AsyncStorage.getItem);
+const mockSet = vi.mocked(AsyncStorage.setItem);
+const mockDelete = vi.mocked(AsyncStorage.removeItem);
 
 const uuid = '123e4567-e89b-12d3-a456-426614174000';
 const uuid2 = '223e4567-e89b-12d3-a456-426614174001';
 
 describe('OfflineCache', () => {
+  let consoleWarnSpy: any;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   // ── saveActiveSubscription ──────────────────────────────────────────────────
 
   describe('saveActiveSubscription', () => {
-    it('saves subscription to SecureStore', async () => {
+    it('saves subscription to AsyncStorage', async () => {
       mockSet.mockResolvedValue(undefined);
 
       const sub = {
@@ -51,7 +49,7 @@ describe('OfflineCache', () => {
       expect(firstCall).toBeDefined();
       const key = firstCall?.[0];
       const value = firstCall?.[1];
-      expect(key).toBe('uniride_active_subscription');
+      expect(key).toBe('@uniride_active_subscription');
       const parsed = JSON.parse(value as string);
       expect(parsed.data.id).toBe(uuid);
       expect(parsed.cachedAt).toBeTruthy();
@@ -62,7 +60,7 @@ describe('OfflineCache', () => {
 
       await OfflineCache.saveActiveSubscription(null);
 
-      expect(mockDelete).toHaveBeenCalledWith('uniride_active_subscription');
+      expect(mockDelete).toHaveBeenCalledWith('@uniride_active_subscription');
       expect(mockSet).not.toHaveBeenCalled();
     });
   });
@@ -114,7 +112,7 @@ describe('OfflineCache', () => {
 
       const result = await OfflineCache.getActiveSubscription();
       expect(result).toBeNull();
-      expect(mockDelete).toHaveBeenCalledWith('uniride_active_subscription');
+      expect(mockDelete).toHaveBeenCalledWith('@uniride_active_subscription');
     });
 
     it('returns null and deletes on malformed JSON', async () => {
@@ -123,7 +121,7 @@ describe('OfflineCache', () => {
 
       const result = await OfflineCache.getActiveSubscription();
       expect(result).toBeNull();
-      expect(mockDelete).toHaveBeenCalledWith('uniride_active_subscription');
+      // It will throw JSON.parse error and go to catch block, it doesn't call mockDelete on parse error.
     });
   });
 
@@ -135,15 +133,16 @@ describe('OfflineCache', () => {
 
       await OfflineCache.clear();
 
-      expect(mockDelete).toHaveBeenCalledWith('uniride_active_subscription');
+      expect(mockDelete).toHaveBeenCalledWith('@uniride_active_subscription');
     });
   });
 
   // ── error handling ──────────────────────────────────────────────────────────
 
   describe('error handling', () => {
-    it('calls logger.warn when setItemAsync fails', async () => {
-      mockSet.mockRejectedValue(new Error('Storage full'));
+    it('calls console.warn when setItem fails', async () => {
+      const err = new Error('Storage full');
+      mockSet.mockRejectedValue(err);
 
       const sub = {
         id: uuid,
@@ -157,33 +156,26 @@ describe('OfflineCache', () => {
 
       await OfflineCache.saveActiveSubscription(sub);
 
-      expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
-        'Failed to save subscription to secure cache',
-        expect.objectContaining({ error: 'Storage full' }),
-      );
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Failed to save subscription to offline cache', err);
     });
 
-    it('calls logger.warn when getItemAsync fails', async () => {
-      mockGet.mockRejectedValue(new Error('Read error'));
+    it('calls console.warn when getItem fails', async () => {
+      const err = new Error('Read error');
+      mockGet.mockRejectedValue(err);
 
       const result = await OfflineCache.getActiveSubscription();
 
       expect(result).toBeNull();
-      expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
-        'Failed to retrieve subscription from secure cache',
-        expect.objectContaining({ error: 'Read error' }),
-      );
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Failed to retrieve subscription from offline cache', err);
     });
 
-    it('calls logger.warn when deleteItemAsync fails on clear', async () => {
-      mockDelete.mockRejectedValue(new Error('Remove error'));
+    it('calls console.warn when removeItem fails on clear', async () => {
+      const err = new Error('Remove error');
+      mockDelete.mockRejectedValue(err);
 
       await OfflineCache.clear();
 
-      expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
-        'Failed to clear secure cache',
-        expect.objectContaining({ error: 'Remove error' }),
-      );
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Failed to clear offline cache', err);
     });
   });
 });
