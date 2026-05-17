@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -11,10 +11,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRoutes } from '../src/hooks/useRoutes';
-import { useSubscriptions } from '../src/hooks/useSubscriptions';
+import { useSubscriptions } from '../src/hooks/useTrips';
 import { useAuthStore } from '../src/hooks/useStore';
 import { useTranslation } from '../src/hooks/useTranslation';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Route } from '@uniride/core';
 import { Colors, Typography, Spacing, BorderRadius, Shadow, FontFamily } from '../src/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,14 +23,16 @@ import { supabase } from '../src/lib/supabase';
 
 export default function DiscoveryPage() {
   const { profile, role } = useAuthStore();
-  const { routes, isLoading, error, refetch } = useRoutes(profile?.institution_id);
-  const { subscriptions, isLoading: subsLoading } = useSubscriptions();
-  const { t, isRTL } = useTranslation();
+  const { routes, isLoading: routesLoading, error, refetch: refetchRoutes } = useRoutes(profile?.institution_id);
+  const { subscriptions, isLoading: subsLoading, refetch: refetchSubs } = useSubscriptions();
+  const { t, isRTL, language } = useTranslation();
   const router = useRouter();
 
-  const activeSubscription = subscriptions?.find((s) => s.status === 'active');
-  const isStudent = role === 'student';
-  const needsLicense = isStudent && !activeSubscription;
+  useFocusEffect(
+    useCallback(() => {
+      refetchSubs();
+    }, [refetchSubs])
+  );
 
   const activeSub = subscriptions.find((s) => s.status === 'active');
   const isLoading = routesLoading || subsLoading;
@@ -148,7 +150,7 @@ export default function DiscoveryPage() {
     <View style={styles.emptyContainer}>
       <Ionicons name="wifi-outline" size={64} color={Colors.error} />
       <Text style={styles.emptyTitle}>{t('failed_to_load_routes')}</Text>
-      <TouchableOpacity style={styles.retryButton} onPress={refetch}>
+      <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
         <Text style={styles.retryText}>{t('retry')}</Text>
       </TouchableOpacity>
     </View>
@@ -239,7 +241,7 @@ export default function DiscoveryPage() {
 
       {/* Subscription / License Section */}
       <View style={{ paddingHorizontal: 20, marginBottom: 15 }}>
-        {activeSub ? (
+        {subsLoading ? null : activeSub ? (
           <TouchableOpacity
             style={[styles.activeSubCard, isRTL && { flexDirection: 'row-reverse' }]}
             onPress={() => router.push('/subscriptions')}
@@ -266,7 +268,7 @@ export default function DiscoveryPage() {
               <Ionicons name="navigate" size={20} color={Colors.white} />
             </TouchableOpacity>
           </TouchableOpacity>
-        ) : (
+        ) : role === 'student' ? (
           <TouchableOpacity
             style={styles.licenseBanner}
             onPress={() => router.push('/activate')}
@@ -285,7 +287,7 @@ export default function DiscoveryPage() {
               color={Colors.border}
             />
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
 
       {/* Routes List */}
