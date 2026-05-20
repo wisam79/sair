@@ -1,0 +1,5 @@
+{
+  "buildCommand": "pnpm --filter admin-dashboard build",
+  "outputDirectory": "apps/admin/.next",
+  "framework": "nextjs"
+}

@@ -16,11 +16,11 @@ export const TripStatus = z.enum([
 export type TripStatus = z.infer<typeof TripStatus>;
 
 export const ValidTransitions: Record<TripStatus, TripStatus[]> = {
-  scheduled: ['driver_waiting', 'cancelled'],
-  driver_waiting: ['in_transit', 'cancelled'],
-  in_transit: ['completed', 'absent'],
+  scheduled: ['driver_waiting', 'absent', 'cancelled'],
+  driver_waiting: ['in_transit', 'absent', 'cancelled'],
+  in_transit: ['completed', 'cancelled'],
   completed: [],
-  absent: [],
+  absent: ['cancelled'],
   cancelled: [],
 };
 
@@ -34,26 +34,26 @@ export const GeoCoordinates = z.object({
 });
 
 export const BookingRequest = z.object({
-  routeId: z.string().uuid(),
-  studentId: z.string().uuid(),
+  route_id: z.string().uuid(),
+  student_id: z.string().uuid(),
 });
 export type BookingRequest = z.infer<typeof BookingRequest>;
 
 export const CheckoutRequest = z.object({
-  routeId: z.string().uuid(),
+  route_id: z.string().uuid(),
 });
 export type CheckoutRequest = z.infer<typeof CheckoutRequest>;
 
 export const NotificationRequest = z
   .object({
-    targetUserId: z.string().uuid().optional(),
-    targetRole: z.enum(['all', 'student', 'driver']).optional(),
+    target_user_id: z.string().uuid().optional(),
+    target_role: z.enum(['all', 'student', 'driver']).optional(),
     title: z.string().min(1),
     body: z.string().min(1),
     data: z.record(z.unknown()).optional(),
   })
-  .refine((data) => data.targetUserId || data.targetRole, {
-    message: 'Must provide either targetUserId or targetRole',
+  .refine((data) => data.target_user_id || data.target_role, {
+    message: 'Must provide either target_user_id or target_role',
   });
 export type NotificationRequest = z.infer<typeof NotificationRequest>;
 
@@ -63,8 +63,8 @@ export const ZainCashWebhookRequest = z.object({
 export type ZainCashWebhookRequest = z.infer<typeof ZainCashWebhookRequest>;
 
 export const TripUpdateRequest = z.object({
-  tripId: z.string().uuid(),
-  newStatus: TripStatus,
+  trip_id: z.string().uuid(),
+  new_status: TripStatus,
   lat: z.number().min(-90).max(90).optional().nullable(),
   lng: z.number().min(-180).max(180).optional().nullable(),
 });
@@ -143,7 +143,7 @@ export const LicenseSchema = z.object({
   id: z.string().uuid(),
   batch_id: z.string().uuid(),
   route_id: z.string().uuid(),
-  code: z.string(),
+  code: z.string().length(8),
   status: LicenseStatus,
   used_by: z.string().uuid().nullable().optional(),
   used_at: z.string().nullable().optional(),
@@ -189,6 +189,17 @@ export const ProfileSchema = z.object({
   updated_at: z.string(),
 });
 export type Profile = z.infer<typeof ProfileSchema>;
+
+export const LoginSchema = z.object({
+  email: z.string().email('invalid_email'),
+  password: z.string().min(6, 'password_min_length'),
+});
+export type LoginRequest = z.infer<typeof LoginSchema>;
+
+export const SignupSchema = LoginSchema.extend({
+  full_name: z.string().min(3, 'full_name_min_length'),
+});
+export type SignupRequest = z.infer<typeof SignupSchema>;
 
 export const Languages = z.enum(['ar', 'en']);
 export type Language = z.infer<typeof Languages>;
@@ -308,7 +319,9 @@ export const Translations: Record<Language, Record<string, string>> = {
     invalid_license: 'كود التفعيل غير صالح',
     activation_success: 'تم تفعيل الاشتراك بنجاح!',
     license_code: 'كود الترخيص',
-    enter_license_code: 'أدخل كود الترخيص المكون من 12 رمزاً',
+    enter_license_code: 'أدخل كود الترخيص المكون من 8 رموز',
+    license_code_subtitle:
+      'الرجاء إدخال الكود المكون من 8 أحرف وأرقام الذي حصلت عليه لتفعيل اشتراكك',
     confirm_payout: 'تأكيد عملية الدفع',
     payout_submitted: 'تم إرسال طلب الدفع',
     status: 'الحالة',
@@ -321,8 +334,8 @@ export const Translations: Record<Language, Record<string, string>> = {
     enter_full_name: 'أدخل اسمك الكامل',
     success: 'نجاح',
     ok: 'حسناً',
-    license_placeholder: 'مثال: A1B2C3D4E5F6',
-    invalid_code_length: 'يرجى إدخال كود ترخيص صحيح (12 رمزاً)',
+    license_placeholder: 'مثال: A1B2C3D4',
+    invalid_code_length: 'يرجى إدخال كود ترخيص صحيح (8 رموز)',
     activation_failed: 'فشل التفعيل',
     invalid_code_error: 'الكود غير صالح أو مستخدم مسبقاً',
     trip_opened_success: 'تم فتح الرحلة واستقبال الطلاب بنجاح',
@@ -376,6 +389,90 @@ export const Translations: Record<Language, Record<string, string>> = {
     start_chat_from_trip: 'ابدأ محادثة من رحلتك النشطة',
     chat_tap_to_open: 'انقر لفتح المحادثة',
     type_message: 'اكتب رسالة...',
+    personal_info: 'المعلومات الشخصية',
+    save_changes: 'حفظ التغييرات',
+    logout_question: 'هل تريد تسجيل الخروج؟',
+    invalid_email: 'البريد الإلكتروني غير صالح',
+    password_min_length: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
+    full_name_min_length: 'الاسم يجب أن يكون 3 أحرف على الأقل',
+    role_assignment_note: 'سيتم تحديد دورك من قبل الإدارة',
+    language_change_restart: 'سيتم إعادة تشغيل التطبيق لتطبيق اللغة الجديدة',
+    onboarding_1_title: 'نقل جامعي ذكي',
+    payout_completed: 'تم الصرف',
+    payout_history: 'سجل عمليات السحب',
+    payout_pending: 'قيد المراجعة',
+    payout_rejected: 'مرفوض',
+    route: 'الخط',
+    trip_date: 'تاريخ الرحلة',
+    mock_payment_success:
+      'عملية الدفع وهمية ناجحة! في نظام حقيقي سيتم تحديث الاشتراك بواسطة ZainCash.',
+    initializing_zaincash: 'جاري تهيئة الدفع عبر ZainCash...',
+    zaincash_checkout: 'دفع ZainCash',
+    simulate_success: 'محاكاة دفع ناجح',
+    redirecting_to_zaincash: 'جاري التوجيه إلى بوابة دفع ZainCash...',
+    support: 'الدعم والمساعدة',
+    help_center: 'مركز المساعدة والأسئلة الشائعة',
+    search_placeholder: 'ابحث عن سؤال أو كلمة مفتاحية...',
+    faq_general: 'عام',
+    faq_booking: 'الحجوزات والخطوط',
+    faq_driver: 'خدمات السائقين',
+    how_to_book_title: 'كيف يمكنني حجز خط رحلة؟',
+    how_to_book_answer:
+      'يمكنك تصفح الخطوط المتاحة في الصفحة الرئيسية، واختيار الخط المناسب لك، ثم تفعيل رمز الترخيص المكون من 8 رموز للاشتراك فيه.',
+    how_to_pay_title: 'كيف أشحن رصيدي لشراء الترخيص؟',
+    how_to_pay_answer:
+      'يمكنك شراء أكواد التراخيص مباشرة من خلال نقاط البيع المعتمدة أو الدفع الإلكتروني المتاح في التطبيق.',
+    driver_payout_title: 'كيف يمكن للسائق سحب أرباحه؟',
+    driver_payout_answer:
+      'من خلال الدخول لصفحة حسابك ثم النقر على "طلبات السحب"، يمكنك طلب تحويل أرباحك عندما تتجاوز الحد الأدنى للسحب.',
+    sos_usage_title: 'متى يجب استخدام زر الطوارئ SOS؟',
+    sos_usage_answer:
+      'زر SOS مخصص للحالات الطارئة فقط أثناء الرحلة النشطة (مثل الحوادث أو الأعطال). سيقوم بإرسال موقعك الفوري للإدارة للمساعدة العاجلة.',
+    cancel_sub_info_title: 'هل يمكنني إلغاء اشتراكي في الخط؟',
+    cancel_sub_info_answer:
+      'نعم، يمكنك إلغاء اشتراكك من شاشة "اشتراكاتي" بالضغط على زر "إلغاء". سيتم معالجة الإلغاء فوراً.',
+    favorite_added: 'تمت الإضافة للمواقع المفضلة!',
+    favorite_removed: 'تمت الإزالة من المواقع المفضلة!',
+    no_favorites_yet: 'لا توجد مواقع مفضلة بعد',
+    save_current_location: 'حفظ كموقع مفضل',
+    select_favorite_tags: 'وسوم التقييم السريع',
+    driver_vehicle_details: 'تفاصيل السائق والمركبة',
+    vehicle_plate: 'رقم اللوحة',
+    vehicle_model: 'موديل الحافلة',
+    vehicle_capacity: 'الحمولة',
+    features: 'المميزات',
+    ac_active: 'تكييف نشط',
+    wifi_free: 'إنترنت مجاني',
+    completed_trips_count: 'رحلة مكتملة',
+    driver_rating_label: 'تقييم السائق',
+    subscribed: 'مشترك',
+    update_required: 'تحديث مطلوب',
+    update_required_desc: 'أطلقنا نسخة جديدة مليئة بالتحسينات! يرجى تحديث التطبيق للمتابعة.',
+    update_now: 'تحديث الآن',
+    pay_with_zaincash: 'الدفع بواسطة زين كاش',
+    favorites: 'المفضلة:',
+    view_details: 'عرض التفاصيل',
+    all: 'الكل',
+    no_matching_questions: 'لا توجد نتائج تطابق بحثك',
+    safe_driving: 'سياقة آمنة',
+    clean_bus: 'حافلة نظيفة',
+    on_time: 'مواعيد دقيقة',
+    friendly_driver: 'سائق ودود',
+    insured_trip: 'رحلة مؤمنة',
+    seats_unit: 'راكب',
+    sos_button: 'طوارئ SOS',
+    sos_hint: 'اضغط مطولاً لـ 3 ثوانٍ للتبليغ',
+    emergency_failed_call_directly: 'فشل التبليغ التلقائي، اتصل بالطوارئ مباشرة',
+    trip_not_found: 'لم يتم العثور على الرحلة',
+    share_trip_message:
+      'أنا الآن على متن رحلة يونيرايد 🚌\nالخط: {{route}}\nالسائق: {{driver}}\nتتبع رحلتي هنا!',
+    share_failed: 'فشل في مشاركة الرحلة',
+    chat_open_error: 'حدث خطأ أثناء فتح المحادثة',
+    no_coordinates: 'إحداثيات الخط غير متوفرة',
+    departure_time: 'وقت الانطلاق',
+    arrival_time: 'وقت الوصول',
+    current_driver_hint: 'السائق الحالي (انقر للتفاصيل)',
+    driver_uniride: 'سائق يونيرايد',
   },
   en: {
     welcome: 'Welcome to UniRide',
@@ -440,6 +537,8 @@ export const Translations: Record<Language, Record<string, string>> = {
     forgot_password: 'Forgot Password?',
     already_have_account: 'Already have an account? ',
     dont_have_account: "Don't have an account? ",
+    route: 'Route',
+    language_change_restart: 'The application will restart to apply the new language',
     account_created: 'Account created successfully!',
     enter_email_first: 'Please enter your email first',
     reset_link_sent: 'A password reset link has been sent to your email',
@@ -491,7 +590,9 @@ export const Translations: Record<Language, Record<string, string>> = {
     invalid_license: 'Invalid license code',
     activation_success: 'Subscription activated successfully!',
     license_code: 'License Code',
-    enter_license_code: 'Enter 12-digit license code',
+    enter_license_code: 'Enter 8-character license code',
+    license_code_subtitle:
+      'Please enter the 8-character code you received to activate your subscription',
     confirm_payout: 'Confirm Payout',
     payout_submitted: 'Payout request submitted',
     status: 'Status',
@@ -504,8 +605,8 @@ export const Translations: Record<Language, Record<string, string>> = {
     enter_full_name: 'Enter your full name',
     success: 'Success',
     ok: 'OK',
-    license_placeholder: 'e.g., A1B2C3D4E5F6',
-    invalid_code_length: 'Please enter a valid 12-digit license code',
+    license_placeholder: 'e.g., A1B2C3D4',
+    invalid_code_length: 'Please enter a valid 8-character license code',
     activation_failed: 'Activation Failed',
     invalid_code_error: 'Invalid or already used code',
     trip_opened_success: 'Trip started and accepting students successfully',
@@ -526,6 +627,7 @@ export const Translations: Record<Language, Record<string, string>> = {
     available_balance: 'Available balance for withdrawal',
     withdraw_request: 'Withdraw Request',
     no_scheduled_trips: 'No scheduled trips currently',
+    onboarding_1_title: 'Smart University Transit',
     onboarding_1_desc: 'Book your seat in university transit lines easily from your mobile phone.',
     onboarding_2_title: 'Live Trip Tracking',
     onboarding_2_desc: 'No need to wait long, follow the driver’s movement live on the map.',
@@ -560,6 +662,89 @@ export const Translations: Record<Language, Record<string, string>> = {
     start_chat_from_trip: 'Start a chat from your active trip',
     chat_tap_to_open: 'Tap to open chat',
     type_message: 'Type a message...',
+    personal_info: 'Personal Information',
+    save_changes: 'Save Changes',
+    logout_question: 'Do you want to logout?',
+    invalid_email: 'Invalid email address',
+    password_min_length: 'Password must be at least 6 characters',
+    full_name_min_length: 'Name must be at least 3 characters',
+    role_assignment_note: 'Your role will be determined by administration',
+    trip_date: 'Trip Date',
+    payout_history: 'Payout History',
+    payout_pending: 'Pending',
+    payout_completed: 'Completed',
+    payout_rejected: 'Rejected',
+    mock_payment_success:
+      'Mock Payment Successful! In a real scenario, ZainCash webhook would update the subscription.',
+    initializing_zaincash: 'Initializing ZainCash...',
+    zaincash_checkout: 'ZainCash Checkout',
+    simulate_success: 'Simulate Successful Payment',
+    redirecting_to_zaincash: 'Redirecting to ZainCash Web Portal...',
+    support: 'Support & Help',
+    help_center: 'Help Center & FAQs',
+    search_placeholder: 'Search for questions or keywords...',
+    faq_general: 'General',
+    faq_booking: 'Bookings & Routes',
+    faq_driver: 'Driver Services',
+    how_to_book_title: 'How do I book a route?',
+    how_to_book_answer:
+      'You can browse available routes on the homepage, select the suitable route, and activate your 8-digit license code to subscribe.',
+    how_to_pay_title: 'How do I recharge my balance to buy a license?',
+    how_to_pay_answer:
+      'You can buy license codes directly from authorized points of sale or via the electronic payment option inside the app.',
+    driver_payout_title: 'How can a driver withdraw earnings?',
+    driver_payout_answer:
+      'By accessing your profile page and tapping "Withdraw Requests", you can request to transfer your earnings once they exceed the minimum limit.',
+    sos_usage_title: 'When should I use the emergency SOS button?',
+    sos_usage_answer:
+      'The SOS button is for emergency use only during an active trip (e.g., accidents or breakdowns). It will send your real-time location to the admin for urgent help.',
+    cancel_sub_info_title: 'Can I cancel my route subscription?',
+    cancel_sub_info_answer:
+      'Yes, you can cancel your subscription from the "My Subscriptions" screen by pressing the "Cancel" button. It will be processed immediately.',
+    favorite_added: 'Added to favorite locations!',
+    favorite_removed: 'Removed from favorite locations!',
+    no_favorites_yet: 'No favorite locations yet',
+    save_current_location: 'Save as favorite',
+    select_favorite_tags: 'Quick feedback tags',
+    driver_vehicle_details: 'Driver & Vehicle Details',
+    vehicle_plate: 'Plate Number',
+    vehicle_model: 'Vehicle Model',
+    vehicle_capacity: 'Capacity',
+    features: 'Features',
+    ac_active: 'AC Active',
+    wifi_free: 'Free Wi-Fi',
+    completed_trips_count: 'completed trips',
+    driver_rating_label: 'Driver Rating',
+    subscribed: 'Subscribed',
+    update_required: 'Update Required',
+    update_required_desc:
+      'We released a new version packed with improvements! Please update the app to continue.',
+    update_now: 'Update Now',
+    pay_with_zaincash: 'Pay with ZainCash',
+    favorites: 'Favorites:',
+    view_details: 'View Details',
+    all: 'All',
+    no_matching_questions: 'No matching questions found',
+    safe_driving: 'Safe Driving',
+    clean_bus: 'Clean Bus',
+    on_time: 'On Time',
+    friendly_driver: 'Friendly Driver',
+    insured_trip: 'Insured Trip',
+    seats_unit: 'Seats',
+    sos_button: 'SOS Emergency',
+    sos_hint: 'Press and hold for 3 seconds to report',
+    emergency_failed_call_directly:
+      'Failed to report automatically, please call emergency directly',
+    trip_not_found: 'Trip not found',
+    share_trip_message:
+      'I am now on a UniRide trip 🚌\nRoute: {{route}}\nDriver: {{driver}}\nTrack my trip here!',
+    share_failed: 'Failed to share trip',
+    chat_open_error: 'Failed to open chat conversation',
+    no_coordinates: 'Route coordinates unavailable',
+    departure_time: 'Departure Time',
+    arrival_time: 'Arrival Time',
+    current_driver_hint: 'Current Driver (Tap for details)',
+    driver_uniride: 'UniRide Driver',
   },
 };
 

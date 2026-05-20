@@ -1,9 +1,20 @@
 'use client';
 
 import { Create, useAutocomplete } from '@refinedev/mui';
-import { Box, TextField, Checkbox, FormControlLabel, Autocomplete } from '@mui/material';
+import {
+  Box,
+  TextField,
+  Checkbox,
+  FormControlLabel,
+  Autocomplete,
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+} from '@mui/material';
 import { useForm } from '@refinedev/react-hook-form';
 import { Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import { BaseRecord, HttpError } from '@refinedev/core';
 
@@ -16,7 +27,14 @@ interface DriverFormValues {
   is_verified: boolean;
 }
 
+interface ProfileOption {
+  id: string | number;
+  full_name?: string;
+  phone?: string;
+}
+
 export default function DriverCreate() {
+  const { t } = useTranslation();
   const {
     saveButtonProps,
     refineCore: { formLoading },
@@ -30,104 +48,144 @@ export default function DriverCreate() {
   });
 
   return (
-    <Create isLoading={formLoading} saveButtonProps={saveButtonProps}>
-      <Box component="form" sx={{ display: 'flex', flexDirection: 'column' }} autoComplete="off">
-        <Controller
-          control={control}
-          name="user_id"
-          rules={{ required: 'This field is required' }}
-          render={({ field }) => (
-            <Autocomplete
-              {...profileAutocompleteProps}
-              {...field}
-              onChange={(_, value) => {
-                field.onChange(value?.id ?? value);
-              }}
-              getOptionLabel={(item) => {
-                return (
-                  profileAutocompleteProps?.options?.find(
-                    (p) => p?.id?.toString() === (item?.id ?? item)?.toString(),
-                  )?.full_name ?? ''
-                );
-              }}
-              isOptionEqualToValue={(option, value) =>
-                value === undefined || option?.id?.toString() === (value?.id ?? value)?.toString()
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="User Profile"
-                  margin="normal"
-                  variant="outlined"
-                  error={!!errors?.user_id}
-                  helperText={
-                    errors?.user_id?.message ||
-                    'Select a user profile (preferably with driver role)'
-                  }
-                  required
+    <Create
+      isLoading={formLoading}
+      saveButtonProps={saveButtonProps}
+      title={t('drivers.titles.create', 'Create Driver')}
+    >
+      <Box component="form" sx={{ mt: 2 }} autoComplete="off">
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="subtitle2" gutterBottom color="primary">
+                  {t('drivers.fields.userProfile', 'User Profile Selection')}
+                </Typography>
+                <Controller
+                  control={control}
+                  name="user_id"
+                  rules={{ required: t('validation.required', 'This field is required') }}
+                  render={({ field: { onChange, value } }) => (
+                    <Autocomplete
+                      {...profileAutocompleteProps}
+                      value={
+                        ((profileAutocompleteProps?.options || []) as ProfileOption[]).find(
+                          (p) => p?.id?.toString() === value?.toString(),
+                        ) ?? null
+                      }
+                      onChange={(_, newValue) => {
+                        const val = newValue as ProfileOption | null;
+                        onChange(val?.id ?? null);
+                      }}
+                      getOptionLabel={(option) => {
+                        const p = option as ProfileOption;
+                        return p?.full_name
+                          ? `${p.full_name} (${p.phone || ''})`
+                          : '';
+                      }}
+                      isOptionEqualToValue={(option, val) => {
+                        const o = option as ProfileOption;
+                        const v = val as ProfileOption | string | number | null;
+                        const optionId = o?.id?.toString();
+                        let valId = '';
+                        if (typeof v === 'object' && v !== null) {
+                          valId = v.id?.toString() || '';
+                        } else if (typeof v === 'string') {
+                          valId = v;
+                        } else if (typeof v === 'number') {
+                          valId = v.toString();
+                        }
+                        return optionId === valId;
+                      }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label={t('drivers.fields.userProfile', 'User Profile')}
+                          margin="normal"
+                          variant="outlined"
+                          error={!!errors?.user_id}
+                          helperText={
+                            errors?.user_id?.message ||
+                            t(
+                              'drivers.hints.selectProfile',
+                              'Select a user profile (preferably with driver role)',
+                            )
+                          }
+                          required
+                        />
+                      )}
+                    />
+                  )}
                 />
-              )}
-            />
-          )}
-        />
-        <TextField
-          {...register('license_number', {
-            required: 'This field is required',
-          })}
-          error={!!errors?.license_number}
-          helperText={errors?.license_number?.message}
-          margin="normal"
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-          type="text"
-          label="License Number"
-          name="license_number"
-        />
-        <TextField
-          {...register('vehicle_model', {
-            required: 'This field is required',
-          })}
-          error={!!errors?.vehicle_model}
-          helperText={errors?.vehicle_model?.message}
-          margin="normal"
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-          type="text"
-          label="Vehicle Model"
-          name="vehicle_model"
-        />
-        <TextField
-          {...register('vehicle_plate', {
-            required: 'This field is required',
-          })}
-          error={!!errors?.vehicle_plate}
-          helperText={errors?.vehicle_plate?.message}
-          margin="normal"
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-          type="text"
-          label="Vehicle Plate"
-          name="vehicle_plate"
-        />
-        <TextField
-          {...register('capacity', {
-            required: 'This field is required',
-            valueAsNumber: true,
-            validate: (value) => value >= 1 || 'Capacity must be at least 1',
-          })}
-          error={!!errors?.capacity}
-          helperText={errors?.capacity?.message}
-          margin="normal"
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-          type="number"
-          label="Capacity"
-          name="capacity"
-        />
-        <FormControlLabel
-          control={<Checkbox {...register('is_verified')} name="is_verified" />}
-          label="Is Verified"
-        />
+                <Controller
+                  control={control}
+                  name="is_verified"
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={<Checkbox {...field} checked={!!field.value} />}
+                      label={t('drivers.fields.isVerified', 'Is Verified')}
+                      sx={{ mt: 1 }}
+                    />
+                  )}
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="subtitle2" gutterBottom color="secondary">
+                  {t('drivers.fields.vehicleInfo', 'Vehicle Information')}
+                </Typography>
+                <TextField
+                  {...register('vehicle_model', {
+                    required: t('validation.required', 'This field is required'),
+                  })}
+                  error={!!errors?.vehicle_model}
+                  helperText={errors?.vehicle_model?.message}
+                  margin="normal"
+                  fullWidth
+                  label={t('drivers.fields.vehicleModel', 'Vehicle Model')}
+                />
+                <TextField
+                  {...register('vehicle_plate', {
+                    required: t('validation.required', 'This field is required'),
+                  })}
+                  error={!!errors?.vehicle_plate}
+                  helperText={errors?.vehicle_plate?.message}
+                  margin="normal"
+                  fullWidth
+                  label={t('drivers.fields.vehiclePlate', 'Vehicle Plate')}
+                />
+                <TextField
+                  {...register('license_number', {
+                    required: t('validation.required', 'This field is required'),
+                  })}
+                  error={!!errors?.license_number}
+                  helperText={errors?.license_number?.message}
+                  margin="normal"
+                  fullWidth
+                  label={t('drivers.fields.licenseNumber', 'License Number')}
+                />
+                <TextField
+                  {...register('capacity', {
+                    required: t('validation.required', 'This field is required'),
+                    valueAsNumber: true,
+                    validate: (value) =>
+                      value >= 1 || t('validation.minCapacity', 'Capacity must be at least 1'),
+                  })}
+                  error={!!errors?.capacity}
+                  helperText={errors?.capacity?.message}
+                  margin="normal"
+                  fullWidth
+                  type="number"
+                  label={t('drivers.fields.capacity', 'Capacity')}
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
       </Box>
     </Create>
   );

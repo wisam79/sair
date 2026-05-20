@@ -1,9 +1,9 @@
 'use client';
 
 import { Create } from '@refinedev/mui';
-import { Box, TextField, MenuItem, Autocomplete, Alert } from '@mui/material';
+import { Box, TextField, MenuItem, Alert } from '@mui/material';
 import { useForm } from '@refinedev/react-hook-form';
-import { useSelect, useApiUrl, useCustomMutation, BaseRecord, HttpError } from '@refinedev/core';
+import { useSelect, useNavigation, BaseRecord, HttpError } from '@refinedev/core';
 import { supabaseClient } from '../../../providers/supabaseClient';
 
 interface LicenseBatchFormValues {
@@ -15,27 +15,25 @@ interface LicenseBatchFormValues {
 }
 
 export default function LicenseBatchCreate() {
+  const { list } = useNavigation();
   const {
     saveButtonProps,
-    refineCore: { formLoading, onFinish },
+    refineCore: { formLoading },
     register,
     handleSubmit,
-    control,
     formState: { errors },
   } = useForm<BaseRecord, HttpError, LicenseBatchFormValues>();
 
-  const { options: routeOptions } = useSelect({
+  const { options: rawRouteOptions } = useSelect({
     resource: 'routes',
     optionLabel: 'title',
     optionValue: 'id',
   });
-
-  const { mutate } = useCustomMutation();
+  const routeOptions = rawRouteOptions as { label: string; value: string }[] | undefined;
 
   const handleCustomSubmit = async (data: LicenseBatchFormValues) => {
-    // Call the RPC to create a batch securely and generate the codes
     try {
-      const { data: batchId, error } = await supabaseClient.rpc('create_license_batch', {
+      const { error } = await supabaseClient.rpc('create_license_batch', {
         p_route_id: data.route_id,
         p_batch_name: data.batch_name,
         p_quantity: Number(data.quantity),
@@ -48,8 +46,8 @@ export default function LicenseBatchCreate() {
         return;
       }
 
-      // Redirect back manually since we used custom mutation
-      window.location.href = '/license_batches';
+      // Redirect back using Refine navigation to prevent full page reload
+      list('license_batches');
     } catch (e: unknown) {
       if (e instanceof Error) {
         alert(`Error: ${e.message}`);
@@ -61,7 +59,13 @@ export default function LicenseBatchCreate() {
 
   return (
     <Create
-      saveButtonProps={{ ...saveButtonProps, onClick: handleSubmit(handleCustomSubmit) }}
+      saveButtonProps={{
+        ...saveButtonProps,
+        onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+          e.preventDefault();
+          void handleSubmit(handleCustomSubmit)();
+        },
+      }}
       isLoading={formLoading}
     >
       <Box component="form" sx={{ display: 'flex', flexDirection: 'column' }} autoComplete="off">

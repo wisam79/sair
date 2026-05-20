@@ -28,6 +28,13 @@ vi.mock('expo-modules-core', () => ({
   Platform: { OS: 'ios' },
 }));
 
+vi.mock('expo-secure-store', () => ({
+  getItemAsync: vi.fn(),
+  setItemAsync: vi.fn(),
+  deleteItemAsync: vi.fn(),
+  AFTER_FIRST_UNLOCK: 0,
+}));
+
 import React from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 

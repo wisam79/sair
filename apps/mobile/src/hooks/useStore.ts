@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserRole, TripStatus, Language } from '@uniride/core';
+import { OfflineCache } from '../lib/offlineCache';
 
 interface AuthUser {
   id: string;
@@ -14,6 +15,8 @@ interface AuthState {
   role: UserRole | null;
   profile: { full_name: string; phone: string; institution_id?: string | null } | null;
   initialized: boolean;
+  hasHydrated: boolean;
+  hasSeenOnboarding: boolean;
   setAuth: (user: AuthUser | null, role: UserRole | null) => void;
   setProfile: (profile: {
     full_name: string;
@@ -21,6 +24,8 @@ interface AuthState {
     institution_id?: string | null;
   }) => void;
   setInitialized: (initialized: boolean) => void;
+  setHasHydrated: (state: boolean) => void;
+  setHasSeenOnboarding: (val: boolean) => void;
   logout: () => void;
 }
 
@@ -31,15 +36,29 @@ export const useAuthStore = create<AuthState>()(
       role: null,
       profile: null,
       initialized: false,
+      hasHydrated: false,
+      hasSeenOnboarding: false,
+      setHasSeenOnboarding: (val) => set({ hasSeenOnboarding: val }),
       setAuth: (user, role) => set({ user, role }),
       setProfile: (profile) => set({ profile }),
       setInitialized: (initialized) => set({ initialized }),
-      logout: () => set({ user: null, role: null, profile: null }),
+      setHasHydrated: (state) => set({ hasHydrated: state }),
+      logout: () => {
+        OfflineCache.clear();
+        set({ user: null, role: null, profile: null });
+      },
     }),
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ role: state.role, profile: state.profile }),
+      partialize: (state) => ({
+        role: state.role,
+        profile: state.profile,
+        hasSeenOnboarding: state.hasSeenOnboarding,
+      }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     },
   ),
 );

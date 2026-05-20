@@ -1,0 +1,132 @@
+(globalThis.TURBOPACK || (globalThis.TURBOPACK = [])).push([
+  'object' == typeof document ? document.currentScript : void 0,
+  88761,
+  (e) => {
+    'use strict';
+    var r = e.i(37479),
+      i = e.i(78090),
+      a = e.i(24644),
+      t = e.i(23786),
+      l = e.i(20982),
+      s = e.i(81352),
+      n = e.i(85424);
+    e.s([
+      'default',
+      0,
+      function () {
+        let {
+          saveButtonProps: e,
+          refineCore: { formLoading: o },
+          register: d,
+          watch: u,
+          formState: { errors: c },
+        } = (0, n.useForm)();
+        return (0, r.jsx)(i.Create, {
+          isLoading: o,
+          saveButtonProps: e,
+          children: (0, r.jsxs)(a.Box, {
+            component: 'form',
+            sx: { display: 'flex', flexDirection: 'column' },
+            autoComplete: 'off',
+            children: [
+              (0, r.jsx)(t.TextField, {
+                ...d('driver_id', { required: 'This field is required' }),
+                error: !!c?.driver_id,
+                helperText: c?.driver_id?.message || 'Enter driver UUID from Drivers list',
+                margin: 'normal',
+                fullWidth: !0,
+                InputLabelProps: { shrink: !0 },
+                type: 'text',
+                label: 'Driver ID (UUID)',
+                name: 'driver_id',
+                placeholder: 'e.g., 550e8400-e29b-41d4-a716-446655440000',
+              }),
+              (0, r.jsx)(t.TextField, {
+                ...d('title', { required: 'This field is required' }),
+                error: !!c?.title,
+                helperText: c?.title?.message,
+                margin: 'normal',
+                fullWidth: !0,
+                InputLabelProps: { shrink: !0 },
+                type: 'text',
+                label: 'Title',
+                name: 'title',
+              }),
+              (0, r.jsx)(t.TextField, {
+                ...d('start_location', { required: 'This field is required' }),
+                error: !!c?.start_location,
+                helperText: c?.start_location?.message,
+                margin: 'normal',
+                fullWidth: !0,
+                InputLabelProps: { shrink: !0 },
+                type: 'text',
+                label: 'Start Location',
+                name: 'start_location',
+              }),
+              (0, r.jsx)(t.TextField, {
+                ...d('end_location', { required: 'This field is required' }),
+                error: !!c?.end_location,
+                helperText: c?.end_location?.message,
+                margin: 'normal',
+                fullWidth: !0,
+                InputLabelProps: { shrink: !0 },
+                type: 'text',
+                label: 'End Location',
+                name: 'end_location',
+              }),
+              (0, r.jsx)(t.TextField, {
+                ...d('price', {
+                  required: 'This field is required',
+                  valueAsNumber: !0,
+                  validate: (e) => e > 0 || 'Price must be greater than 0',
+                }),
+                error: !!c?.price,
+                helperText: c?.price?.message,
+                margin: 'normal',
+                fullWidth: !0,
+                InputLabelProps: { shrink: !0 },
+                type: 'number',
+                label: 'Price (IQD)',
+                name: 'price',
+              }),
+              (0, r.jsx)(t.TextField, {
+                ...d('capacity', {
+                  required: 'This field is required',
+                  valueAsNumber: !0,
+                  validate: (e) => e >= 1 || 'Capacity must be at least 1',
+                }),
+                error: !!c?.capacity,
+                helperText: c?.capacity?.message,
+                margin: 'normal',
+                fullWidth: !0,
+                InputLabelProps: { shrink: !0 },
+                type: 'number',
+                label: 'Capacity',
+                name: 'capacity',
+              }),
+              (0, r.jsx)(t.TextField, {
+                ...d('available_seats', {
+                  required: 'This field is required',
+                  valueAsNumber: !0,
+                  validate: (e) => e <= u('capacity') || 'Available seats cannot exceed capacity',
+                }),
+                error: !!c?.available_seats,
+                helperText: c?.available_seats?.message || 'Must be less than or equal to capacity',
+                margin: 'normal',
+                fullWidth: !0,
+                InputLabelProps: { shrink: !0 },
+                type: 'number',
+                label: 'Available Seats',
+                name: 'available_seats',
+              }),
+              (0, r.jsx)(s.FormControlLabel, {
+                control: (0, r.jsx)(l.Checkbox, { ...d('is_active'), name: 'is_active' }),
+                label: 'Is Active',
+              }),
+            ],
+          }),
+        });
+      },
+    ]);
+  },
+]);

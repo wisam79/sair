@@ -1,0 +1,104 @@
+version: "2"
+type: frontend
+tech_stack:
+  - language: TypeScript
+  - framework: Next.js 16 (admin), Expo 54/React Native (mobile)
+  - ui_library: MUI (Material-UI) for admin, React Native components for mobile
+  - other: React 19, Refine, Supabase, Zustand, React Hook Form, i18next
+routes:
+  - path: /login
+    file: apps/admin/src/app/login/page.tsx
+    auth_required: false
+    description: Admin login page with email/password authentication
+  - path: /
+    file: apps/admin/src/app/page.tsx
+    auth_required: true
+    description: Admin dashboard with statistics overview
+  - path: /drivers
+    file: apps/admin/src/app/drivers/page.tsx
+    auth_required: true
+    description: Driver management list page
+  - path: /trips
+    file: apps/admin/src/app/trips/page.tsx
+    auth_required: true
+    description: Trip management list page
+  - path: /routes
+    file: apps/admin/src/app/routes/page.tsx
+    auth_required: true
+    description: Route management list page
+  - path: /subscriptions
+    file: apps/admin/src/app/subscriptions/page.tsx
+    auth_required: true
+    description: Subscription management page
+  - path: /license_batches
+    file: apps/admin/src/app/license_batches/page.tsx
+    auth_required: true
+    description: License batch management page
+  - path: /settings
+    file: apps/admin/src/app/settings/page.tsx
+    auth_required: true
+    description: Admin settings page
+  - path: /analytics
+    file: apps/admin/src/app/analytics/page.tsx
+    auth_required: true
+    description: Analytics dashboard
+  - path: /activity-log
+    file: apps/admin/src/app/activity-log/page.tsx
+    auth_required: true
+    description: Activity log viewer
+  - path: /
+    file: apps/mobile/app/(tabs)/index.tsx
+    auth_required: true
+    description: Mobile home screen with tabs
+  - path: /login
+    file: apps/mobile/app/login.tsx
+    auth_required: false
+    description: Mobile login/signup page
+  - path: /booking
+    file: apps/mobile/app/booking.tsx
+    auth_required: true
+    description: Trip booking page
+  - path: /tracking/\$tripId]
+    file: apps/mobile/app/tracking/[tripId].tsx
+    auth_required: true
+    description: Real-time trip tracking page
+  - path: /payment
+    file: apps/mobile/app/payment.tsx
+    auth_required: true
+    description: Payment processing page
+  - path: /trip-history
+    file: apps/mobile/app/trip-history.tsx
+    auth_required: true
+    description: User trip history
+  - path: /activate
+    file: apps/mobile/app/activate.tsx
+    auth_required: true
+    description: License activation page
+features:
+  - name: User Login
+    description: Login with email and password credentials via Supabase auth
+    files:
+      - apps/admin/src/app/login/page.tsx
+    entry_route: /login
+    user_interactions:
+      - Fill email input field
+      - Fill password input field
+      - Click Sign in button to submit
+      - See error message on invalid credentials
+    api_calls:
+      - method: POST
+        endpoint: /api/auth/login
+    auth_required: false
+
+  - name: Admin Dashboard
+    description: Dashboard showing platform statistics and metrics
+    files:
+      - apps/admin/src/app/page.tsx
+      - apps/admin/src/components/DashboardClient.tsx
+    entry_route: /
+    user_interactions:
+      - View dashboard statistics cards
+      - See total users, drivers, trips counts
+      - View monthly revenue
+    auth_required: true
+known_limitations: []

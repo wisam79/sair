@@ -22,7 +22,6 @@ export default function RouteEdit() {
     refineCore: { queryResult, formLoading },
     register,
     control,
-    setValue,
     watch,
     formState: { errors },
   } = useForm<BaseRecord, HttpError, FormValues>();

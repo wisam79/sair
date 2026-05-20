@@ -1,0 +1,199 @@
+import React, { useEffect, useRef } from 'react';
+import { Tabs, useRouter } from 'expo-router';
+import { View, Animated, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuthStore } from '../../src/hooks/useStore';
+import { useTranslation } from '../../src/hooks/useTranslation';
+import { useUnreadCount } from '../../src/hooks/useUnreadCount';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors, FontFamily, Shadow, Spacing } from '../../src/theme';
+
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
+interface AnimatedTabIconProps {
+  name: IoniconsName;
+  color: string;
+  focused: boolean;
+}
+
+function AnimatedTabIcon({ name, color, focused }: AnimatedTabIconProps) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (focused) {
+      Animated.sequence([
+        Animated.spring(scale, { toValue: 1.15, useNativeDriver: true, speed: 45, bounciness: 8 }),
+        Animated.spring(scale, { toValue: 1.0, useNativeDriver: true, speed: 25, bounciness: 4 }),
+      ]).start();
+    }
+  }, [focused, scale]);
+
+  return (
+    <View style={[tabStyles.iconWrapper, focused && tabStyles.activeWrapper]}>
+      <Animated.View style={{ transform: [{ scale }] }}>
+        <Ionicons name={name} size={20} color={focused ? Colors.primary : Colors.textMuted} />
+      </Animated.View>
+    </View>
+  );
+}
+
+const tabStyles = StyleSheet.create({
+  iconWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 48,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'transparent',
+  },
+  activeWrapper: {
+    backgroundColor: Colors.primarySurface,
+  },
+});
+
+export default function TabLayout() {
+  const { role } = useAuthStore();
+  const { t, isRTL } = useTranslation();
+  const unreadCount = useUnreadCount();
+  const { bottom } = useSafeAreaInsets();
+  const router = useRouter();
+
+  const isDriver = role === 'driver';
+
+  const screens = [
+    {
+      name: 'index',
+      options: {
+        title: t('home'),
+        href: isDriver ? null : ('/(tabs)' as any),
+        tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+          <AnimatedTabIcon name="home-outline" color={color} focused={focused} />
+        ),
+      },
+    },
+    {
+      name: 'driver',
+      options: {
+        title: t('driver_dashboard'),
+        headerShown: false,
+        href: isDriver ? ('/(tabs)/driver' as any) : null,
+        tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+          <AnimatedTabIcon name="car-outline" color={color} focused={focused} />
+        ),
+      },
+    },
+    {
+      name: 'subscriptions',
+      options: {
+        title: t('my_subscriptions'),
+        href: isDriver ? null : ('/(tabs)/subscriptions' as any),
+        tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+          <AnimatedTabIcon name="card-outline" color={color} focused={focused} />
+        ),
+      },
+    },
+    {
+      name: 'chat',
+      options: {
+        title: t('messages'),
+        tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+        tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+          <AnimatedTabIcon name="chatbubbles-outline" color={color} focused={focused} />
+        ),
+      },
+    },
+    {
+      name: 'profile',
+      options: {
+        title: t('account'),
+        headerShown: false,
+        tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+          <AnimatedTabIcon name="person-outline" color={color} focused={focused} />
+        ),
+      },
+    },
+  ];
+
+  const orderedScreens = isRTL ? [...screens].reverse() : screens;
+
+  return (
+    <Tabs
+      screenOptions={{
+        headerShown: true,
+        tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: Colors.textMuted,
+        tabBarStyle: {
+          backgroundColor: Colors.white,
+          borderTopWidth: 1.5,
+          borderTopColor: Colors.surfaceMuted,
+          height: 60 + bottom,
+          paddingBottom: bottom + 8,
+          paddingTop: 8,
+          ...Shadow.sm,
+        },
+        tabBarLabelStyle: {
+          fontFamily: FontFamily.medium,
+          fontSize: 11,
+          marginTop: 2,
+        },
+        headerStyle: {
+          backgroundColor: Colors.white,
+          borderBottomWidth: 1,
+          borderBottomColor: Colors.surfaceMuted,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        headerTitleStyle: {
+          fontFamily: FontFamily.bold,
+          color: Colors.secondary,
+          fontSize: 18,
+        },
+        headerShadowVisible: false,
+        headerRight: () => (
+          <TouchableOpacity
+            style={isRTL ? { marginLeft: Spacing.lg } : { marginRight: Spacing.lg }}
+            onPress={() => router.push('/notifications')}
+            activeOpacity={0.7}
+          >
+            <View style={{ position: 'relative', padding: 4 }}>
+              <Ionicons name="notifications-outline" size={24} color={Colors.secondary} />
+              {unreadCount > 0 && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 2,
+                    right: 2,
+                    backgroundColor: Colors.error,
+                    borderRadius: 8,
+                    minWidth: 16,
+                    height: 16,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingHorizontal: 3,
+                    borderWidth: 2,
+                    borderColor: Colors.white,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: Colors.white,
+                      fontSize: 8,
+                      fontFamily: FontFamily.bold,
+                      lineHeight: 10,
+                    }}
+                  >
+                    {unreadCount}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        ),
+      }}
+    >
+      {orderedScreens.map((screen) => (
+        <Tabs.Screen key={screen.name} name={screen.name} options={screen.options as any} />
+      ))}
+    </Tabs>
+  );
+}

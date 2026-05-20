@@ -13,7 +13,7 @@ export default defineConfig({
   projects: [
     {
       name: 'api-tests',
-      testMatch: /api-flow\.test\.ts/,
+      testMatch: /.*\.test\.ts/,
       use: {},
     },
   ],

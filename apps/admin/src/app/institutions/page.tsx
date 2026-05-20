@@ -8,11 +8,13 @@ import {
   DeleteButton,
   CreateButton,
 } from '@refinedev/mui';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import React from 'react';
 import { Stack } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 export default function InstitutionList() {
+  const { t } = useTranslation();
   const { dataGridProps } = useDataGrid({
     resource: 'institutions',
   });
@@ -21,42 +23,44 @@ export default function InstitutionList() {
     () => [
       {
         field: 'id',
-        headerName: 'ID',
+        headerName: t('common.id', 'ID'),
         type: 'string',
         minWidth: 100,
         flex: 1,
       },
       {
         field: 'name',
-        headerName: 'Name',
+        headerName: t('institutions.fields.name', 'Name'),
         type: 'string',
         minWidth: 220,
         flex: 1,
       },
       {
         field: 'city',
-        headerName: 'City',
+        headerName: t('institutions.fields.city', 'City'),
         type: 'string',
         minWidth: 150,
         flex: 1,
         renderCell: function render({ value }) {
-          return value ?? '-';
+          return typeof value === 'string' ? value : '-';
         },
       },
       {
         field: 'created_at',
-        headerName: 'Created',
+        headerName: t('institutions.fields.created', 'Created'),
         minWidth: 160,
         flex: 1,
         renderCell: function render({ value }) {
-          return value ? new Date(value).toLocaleDateString() : '-';
+          return typeof value === 'string' || typeof value === 'number'
+            ? new Date(value).toLocaleDateString()
+            : '-';
         },
       },
       {
         field: 'actions',
-        headerName: 'Actions',
+        headerName: t('actions.actions', 'Actions'),
         sortable: false,
-        renderCell: function render({ row }) {
+        renderCell: function render({ row }: { row: { id: string | number } }) {
           return (
             <Stack
               direction="row"
@@ -76,12 +80,24 @@ export default function InstitutionList() {
         minWidth: 150,
       },
     ],
-    [],
+    [t],
   );
 
   return (
-    <List headerButtons={<CreateButton />}>
-      <DataGrid {...dataGridProps} columns={columns} autoHeight />
+    <List breadcrumb={null} headerButtons={<CreateButton />}>
+      <DataGrid
+        {...dataGridProps}
+        columns={columns}
+        autoHeight
+        density="comfortable"
+        slots={{ toolbar: GridToolbar }}
+        slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
+        sx={{
+          border: 'none',
+          '& .MuiDataGrid-cell:focus': { outline: 'none' },
+          '& .MuiDataGrid-cell:focus-within': { outline: 'none' },
+        }}
+      />
     </List>
   );
 }

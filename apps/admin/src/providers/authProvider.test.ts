@@ -204,3 +204,51 @@ describe('authProvider.getPermissions', () => {
     expect(role).toBeNull();
   });
 });
+
+describe('authProvider.getIdentity', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns user with name from email', async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: 'u1', email: 'admin@test.com' } },
+      error: null,
+    } as any);
+
+    const identity = await authProvider.getIdentity?.({});
+    expect(identity).toMatchObject({
+      id: 'u1',
+      name: 'admin@test.com',
+    });
+  });
+
+  it('returns null when no user', async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: null },
+      error: null,
+    } as any);
+
+    const identity = await authProvider.getIdentity?.({});
+    expect(identity).toBeNull();
+  });
+});
+
+describe('authProvider.onError', () => {
+  it('triggers logout on 401', async () => {
+    const result = await authProvider.onError?.({ status: 401 });
+    expect(result?.logout).toBe(true);
+  });
+
+  it('passes through other errors', async () => {
+    const error = { status: 500, message: 'Server error' };
+    const result = await authProvider.onError?.(error);
+    expect(result?.error).toBe(error);
+    expect(result?.logout).toBeUndefined();
+  });
+
+  it('handles null error gracefully', async () => {
+    const result = await authProvider.onError?.(null as any);
+    expect(result?.error).toBeNull();
+  });
+});

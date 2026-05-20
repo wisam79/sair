@@ -1,13 +1,25 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const ALLOWED_ORIGINS = [
+  Deno.env.get('ADMIN_URL') || 'http://localhost:3000',
+  'exp://localhost:8081',
+  'http://localhost:8081',
+].join(',');
 
-const jsonResponse = (body: unknown, status = 200) =>
+function resolveOrigin(origin: string | null): string {
+  const allowed = ALLOWED_ORIGINS.split(',');
+  if (origin && allowed.includes(origin)) return origin;
+  return allowed[0];
+}
+
+const corsHeaders = (req: Request) => ({
+  'Access-Control-Allow-Origin': resolveOrigin(req.headers.get('Origin')),
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+});
+
+const jsonResponse = (req: Request, body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
     status,
   });
 
@@ -21,7 +33,7 @@ async function fetchWithRetry(
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const res = await fetch(url, options);
-      if (res.ok || res.status < 500) return res; // don't retry 4xx
+      if (res.ok || res.status < 500) return res;
       if (attempt < maxRetries) {
         await new Promise((r) => setTimeout(r, 1000 * attempt));
       }
@@ -38,7 +50,7 @@ async function fetchWithRetry(
 // ─── Handler ──────────────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders(req) });
   }
 
   try {
@@ -47,9 +59,8 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    // ── 1. Authenticate caller ────────────────────────────────────────────────
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) return jsonResponse({ error: 'Unauthorized' }, 401);
+    if (!authHeader) return jsonResponse(req, { error: 'Unauthorized' }, 401);
 
     const token = authHeader.replace('Bearer ', '');
     const {
@@ -57,22 +68,42 @@ Deno.serve(async (req: Request) => {
       error: authError,
     } = await supabaseAdmin.auth.getUser(token);
 
-    if (authError || !user) return jsonResponse({ error: 'Invalid token' }, 401);
+    if (authError || !user) return jsonResponse(req, { error: 'Invalid token' }, 401);
 
-    // ── 2. Role check — only admin or driver may send notifications ───────────
     const role = user.app_metadata?.role as string | undefined;
     if (!role || !['admin', 'driver'].includes(role)) {
-      return jsonResponse({ error: 'Only admins and drivers can send notifications' }, 403);
+      return jsonResponse(req, { error: 'Only admins and drivers can send notifications' }, 403);
     }
 
-    // ── 3. Parse & validate body ──────────────────────────────────────────────
-    const { targetUserId, title, body, data } = await req.json();
-    if (!targetUserId || !title || !body) {
-      return jsonResponse({ error: 'Missing required fields: targetUserId, title, body' }, 400);
+    const { data: rateLimitOk, error: rateLimitError } = await supabaseAdmin.rpc(
+      'check_rate_limit',
+      {
+        p_user_id: user.id,
+        p_action: 'send_notification',
+        p_limit: 10,
+        p_window_seconds: 60,
+      },
+    );
+
+    if (rateLimitError || !rateLimitOk) {
+      return jsonResponse(req, { error: 'Too many requests. Please try again later.' }, 429);
     }
 
-    // ── 4. Driver scope check — can only notify students on their own routes ──
+    const { NotificationRequest } = await import('../../../packages/core/index.ts');
+    const payload = await req.json();
+    const parsed = NotificationRequest.safeParse(payload);
+
+    if (!parsed.success) {
+      return jsonResponse(req, { error: parsed.error.message }, 400);
+    }
+
+    const { target_user_id, target_role, title, body, data } = parsed.data;
+
     if (role === 'driver') {
+      if (target_role) {
+        return jsonResponse(req, { error: 'Drivers cannot send broadcast notifications' }, 403);
+      }
+
       const { data: driverRow } = await supabaseAdmin
         .from('drivers')
         .select('id')
@@ -80,38 +111,66 @@ Deno.serve(async (req: Request) => {
         .single();
 
       if (!driverRow) {
-        return jsonResponse({ error: 'Driver profile not found' }, 403);
+        return jsonResponse(req, { error: 'Driver profile not found' }, 403);
       }
 
-      // Verify targetUserId is a student subscribed to one of this driver's routes
       const { data: match } = await supabaseAdmin
         .from('subscriptions')
         .select('id, routes!inner(driver_id)')
-        .eq('student_id', targetUserId)
+        .eq('student_id', target_user_id)
         .eq('routes.driver_id', driverRow.id)
         .eq('status', 'active')
         .limit(1);
 
       if (!match || match.length === 0) {
-        return jsonResponse({ error: 'Cannot send notification to this user' }, 403);
+        return jsonResponse(req, { error: 'Cannot send notification to this user' }, 403);
       }
     }
 
-    // ── 5. Fetch push token ───────────────────────────────────────────────────
-    const { data: pushTokens, error: tokenError } = await supabaseAdmin
-      .from('push_tokens')
-      .select('token')
-      .eq('user_id', targetUserId);
+    // Fetch tokens based on target
+    let tokensQuery = supabaseAdmin.from('push_tokens').select('token');
+
+    if (target_user_id) {
+      tokensQuery = tokensQuery.eq('user_id', target_user_id);
+    } else if (target_role === 'student' || target_role === 'driver') {
+      // Need to get user IDs for the specific role
+      const { data: usersWithRole } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('role', target_role);
+      const userIds = usersWithRole?.map((u) => u.id) || [];
+      if (userIds.length > 0) {
+        tokensQuery = tokensQuery.in('user_id', userIds);
+      } else {
+        return jsonResponse(
+          req,
+          { success: true, message: `No users found for role ${target_role}` },
+          200,
+        );
+      }
+    }
+
+    const { data: pushTokens, error: tokenError } = await tokensQuery;
 
     if (tokenError) throw tokenError;
 
     if (!pushTokens || pushTokens.length === 0) {
-      return jsonResponse({ success: false, message: 'User has no push token' }, 200);
+      return jsonResponse(
+        req,
+        { success: false, message: 'No valid push tokens found for target' },
+        200,
+      );
     }
 
-    const expoPushToken = pushTokens[0].token;
+    // Expo Push API allows sending up to 100 messages at once
+    const messages = pushTokens.map((pt) => ({
+      to: pt.token,
+      sound: 'default',
+      title,
+      body,
+      data: data || {},
+    }));
 
-    // ── 6. Send via Expo Push API (with retry) ────────────────────────────────
     const expoResponse = await fetchWithRetry('https://exp.host/--/api/v2/push/send', {
       method: 'POST',
       headers: {
@@ -119,20 +178,14 @@ Deno.serve(async (req: Request) => {
         'Accept-encoding': 'gzip, deflate',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        to: expoPushToken,
-        sound: 'default',
-        title,
-        body,
-        data: data || {},
-      }),
+      body: JSON.stringify(messages),
     });
 
     const expoResult = await expoResponse.json();
 
-    return jsonResponse({ success: true, expoResult });
+    return jsonResponse(req, { success: true, expoResult });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error';
-    return jsonResponse({ error: message }, 400);
+    return jsonResponse(req, { error: message }, 400);
   }
 });

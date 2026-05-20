@@ -1,11 +1,19 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { supabase } from '../src/lib/supabase';
 import { useAuthStore } from '../src/hooks/useStore';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { useNetworkStatus } from '../src/hooks/useNetworkStatus';
 import { useNotifications } from '../src/hooks/useNotifications';
-import { I18nManager, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  I18nManager,
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { Colors } from '../src/theme';
 import {
@@ -15,16 +23,31 @@ import {
   IBMPlexSansArabic_700Bold,
 } from '@expo-google-fonts/ibm-plex-sans-arabic';
 import * as SplashScreen from 'expo-splash-screen';
+import Constants from 'expo-constants';
+import { Ionicons } from '@expo/vector-icons';
+import { Linking } from 'react-native';
 
 // Keep the splash screen visible while fonts load
 SplashScreen.preventAutoHideAsync();
 
 export default function Layout() {
-  const { user, role, initialized, setAuth, setProfile, setInitialized } = useAuthStore();
+  const {
+    user,
+    role,
+    initialized,
+    hasHydrated,
+    hasSeenOnboarding,
+    setAuth,
+    setProfile,
+    setInitialized,
+  } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
   const { isRTL, t } = useTranslation();
   const { isOnline } = useNetworkStatus();
+  const { top } = useSafeAreaInsets();
+
+  const [forceUpdateRequired, setForceUpdateRequired] = useState(false);
 
   // Initialize push notifications globally
   useNotifications();
@@ -42,6 +65,24 @@ export default function Layout() {
       I18nManager.forceRTL(true);
     }
   }, [isRTL]);
+
+  // Phase 5: Force Update Check
+  useEffect(() => {
+    async function checkVersion() {
+      try {
+        const { data, error } = await supabase.rpc('get_app_config');
+        if (data && !error) {
+          const currentVersion = Constants.expoConfig?.version || '1.0.0';
+          if (data.min_version && currentVersion < data.min_version) {
+            setForceUpdateRequired(true);
+          }
+        }
+      } catch (e) {
+        // Ignore errors on version check
+      }
+    }
+    checkVersion();
+  }, []);
 
   // Auth listener
   useEffect(() => {
@@ -126,12 +167,16 @@ export default function Layout() {
 
   // Navigation guard
   useEffect(() => {
-    if (!initialized) return;
+    if (!initialized || !hasHydrated) return;
 
     const inAuthGroup = segments[0] === 'login' || segments[0] === 'onboarding';
 
     if (!user && !inAuthGroup) {
-      router.replace('/login');
+      if (!hasSeenOnboarding) {
+        router.replace('/onboarding');
+      } else {
+        router.replace('/login');
+      }
     } else if (user && inAuthGroup) {
       if (role === 'driver') {
         router.replace('/driver');
@@ -139,52 +184,71 @@ export default function Layout() {
         router.replace('/');
       }
     }
-  }, [initialized, segments, user]);
+  }, [initialized, hasHydrated, segments, user, hasSeenOnboarding]);
 
   // Hide splash screen once fonts are ready
+  const appIsReady = (fontsLoaded || fontError) && initialized && hasHydrated;
+
   const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded || fontError) {
+    if (appIsReady) {
       await SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError]);
+  }, [appIsReady]);
 
-  // Show brand-colored loading while fonts load
-  if (!fontsLoaded && !fontError) {
+  if (!appIsReady) {
+    return null;
+  }
+
+  if (forceUpdateRequired) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator color={Colors.primary} size="large" />
+      <View style={[styles.root, styles.updateContainer]} onLayout={onLayoutRootView}>
+        <Ionicons name="cloud-download-outline" size={80} color={Colors.primary} />
+        <Text style={styles.updateTitle}>{t('update_required') || 'تحديث مطلوب'}</Text>
+        <Text style={styles.updateSubtitle}>
+          {t('update_required_desc') ||
+            'أطلقنا نسخة جديدة مليئة بالتحسينات! يرجى تحديث التطبيق للمتابعة.'}
+        </Text>
+        <TouchableOpacity
+          style={styles.updateButton}
+          onPress={() => Linking.openURL('market://details?id=com.uniride.app')}
+        >
+          <Text style={styles.updateButtonText}>{t('update_now') || 'تحديث الآن'}</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
-  if (!initialized) return null;
-
   return (
-    <ErrorBoundary>
-      <View style={styles.root} onLayout={onLayoutRootView}>
-        {!isOnline && (
-          <View style={styles.offlineBanner}>
-            <Text style={styles.offlineText}>{t('no_internet')}</Text>
-          </View>
-        )}
-        <Stack screenOptions={{ headerShown: true, headerBackTitle: 'رجوع' }}>
-          <Stack.Screen name="index" options={{ title: 'الرئيسية', headerShown: false }} />
-          <Stack.Screen name="booking" options={{ title: 'حجز رحلة' }} />
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-          <Stack.Screen name="profile" options={{ title: 'الحساب' }} />
-          <Stack.Screen name="subscriptions" options={{ title: 'اشتراكاتي' }} />
-          <Stack.Screen name="tracking/[tripId]" options={{ title: 'تتبع الرحلة' }} />
-          <Stack.Screen name="activate" options={{ title: 'تفعيل اشتراك' }} />
-          <Stack.Screen name="create-trip" options={{ title: 'إنشاء رحلة' }} />
-          <Stack.Screen
-            name="rating/[tripId]"
-            options={{ title: 'تقييم الرحلة', headerShown: false }}
-          />
-          <Stack.Screen name="driver" options={{ title: 'لوحة السائق', headerShown: false }} />
-        </Stack>
-      </View>
-    </ErrorBoundary>
+    <SafeAreaProvider>
+      <ErrorBoundary>
+        <View style={styles.root} onLayout={onLayoutRootView}>
+          {!isOnline && (
+            <View style={[styles.offlineBanner, { paddingTop: top }]}>
+              <Text style={styles.offlineText}>{t('no_internet')}</Text>
+            </View>
+          )}
+          <Stack screenOptions={{ headerShown: true, headerBackTitle: t('go_back_short') }}>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="booking" options={{ headerShown: false }} />
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+            <Stack.Screen name="tracking/[tripId]" options={{ title: t('track_trip') }} />
+            <Stack.Screen name="activate" options={{ headerShown: false }} />
+            <Stack.Screen name="create-trip" options={{ headerShown: false }} />
+            <Stack.Screen name="payment" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="rating/[tripId]"
+              options={{ title: t('rating'), headerShown: false }}
+            />
+            <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="trip-history" options={{ headerShown: false }} />
+            <Stack.Screen name="payouts" options={{ headerShown: false }} />
+            <Stack.Screen name="notifications" options={{ headerShown: false }} />
+            <Stack.Screen name="help" options={{ headerShown: false }} />
+          </Stack>
+        </View>
+      </ErrorBoundary>
+    </SafeAreaProvider>
   );
 }
 
@@ -207,5 +271,40 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: 12,
     fontFamily: 'IBMPlexSansArabic_500Medium',
+  },
+  updateContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 30,
+    backgroundColor: Colors.background,
+  },
+  updateTitle: {
+    fontFamily: 'IBMPlexSansArabic_700Bold',
+    fontSize: 22,
+    color: Colors.text,
+    marginTop: 20,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  updateSubtitle: {
+    fontFamily: 'IBMPlexSansArabic_400Regular',
+    fontSize: 16,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 30,
+  },
+  updateButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center',
+  },
+  updateButtonText: {
+    fontFamily: 'IBMPlexSansArabic_700Bold',
+    fontSize: 16,
+    color: Colors.white,
   },
 });

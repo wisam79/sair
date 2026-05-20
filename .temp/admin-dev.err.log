@@ -1,0 +1,615 @@
+
+
+<--- Last few GCs --->
+<--- Last few GCs --->
+
+
+
+
+
+
+<--- Last few GCs --->
+<--- Last few GCs --->
+<--- Last few GCs --->
+[21424:000002489328B000]   190173 ms: Scavenge 17.2 (19.2) -> 16.4 (19.2) MB, pooled: 0 MB, 2.04 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+<--- Last few GCs --->
+[54192:00000228A7AEF000]     8634 ms: Scavenge 6.8 (8.9) -> 6.0 (8.6) MB, pooled: 0 MB, 3.98 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+
+
+[21424:000002489328B000]   196358 ms: Mark-Compact 17.0 (19.2) -> 15.0 (19.4) MB, pooled: 0 MB, 2378.95 / 0.00 ms  (+ 301.8 ms in 2 steps since start of marking, biggest step 301.7 ms, walltime since start of marking 5931 ms) (average mu = 0.986, current 
+
+[54192:00000228A7AEF000]     9435 ms: Scavenge 6.6 (8.6) -> 6.4 (10.8) MB, pooled: 0 MB, 223.14 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[46056:0000025A1AB00000]    32240 ms: Scavenge 9.6 (12.6) -> 8.5 (10.3) MB, pooled: 3 MB, 1.96 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[55144:000002BE22603000]    43613 ms: Scavenge 9.8 (11.6) -> 9.0 (10.6) MB, pooled: 2 MB, 2.57 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[31392:0000023A4474B000]   228972 ms: Scavenge 16.7 (18.7) -> 15.9 (18.7) MB, pooled: 0 MB, 1.00 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+FATAL ERROR: Zone Allocation failed - process out of memory
+[24064:000002607B4FF000]   184856 ms: Scavenge 14.1 (14.7) -> 13.8 (15.9) MB, pooled: 0 MB, 194.59 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[54192:00000228A7AEF000]    17423 ms: Scavenge 8.8 (11.6) -> 7.6 (9.3) MB, pooled: 3 MB, 1110.17 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[46056:0000025A1AB00000]    34022 ms: Scavenge 9.3 (10.3) -> 8.7 (12.1) MB, pooled: 1 MB, 64.60 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[55144:000002BE22603000]    50567 ms: Scavenge 10.3 (11.0) -> 9.6 (11.0) MB, pooled: 1 MB, 1.36 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[31392:0000023A4474B000]   229185 ms: Scavenge 16.9 (18.7) -> 16.0 (18.7) MB, pooled: 0 MB, 41.16 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+----- Native stack trace -----
+[24064:000002607B4FF000]   190696 ms: Scavenge 14.4 (15.9) -> 14.1 (15.4) MB, pooled: 1 MB, 240.57 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+[46056:0000025A1AB00000]    35669 ms: Scavenge 9.9 (12.3) -> 9.0 (12.6) MB, pooled: 1 MB, 513.68 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[55144:000002BE22603000]    52515 ms: Scavenge 10.5 (11.0) -> 9.9 (14.5) MB, pooled: 0 MB, 1157.38 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[31392:0000023A4474B000]   229336 ms: Scavenge 16.9 (18.7) -> 16.1 (18.7) MB, pooled: 0 MB, 1.00 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+
+
+
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+FATAL ERROR: Zone Allocation failed - process out of memory
+FATAL ERROR: Zone Allocation failed - process out of memory
+
+----- Native stack trace -----
+----- Native stack trace -----
+
+----- Native stack trace -----
+
+
+
+
+<--- Last few GCs --->
+
+
+
+
+
+
+ 1: 00007FF668B7403F 
+
+
+<--- Last few GCs --->
+<--- Last few GCs --->
+<--- Last few GCs --->
+<--- Last few GCs --->
+<--- Last few GCs --->
+<--- Last few GCs --->
+ 2: 00007FF6697BFAA7 
+
+
+[53404:0000025E39B2F000]    24167 ms: Scavenge 8.6 (9.6) -> 8.1 (11.1) MB, pooled: 1 MB, 2.05 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+ 1: 00007FF668B7403F node::OnFatalError+1343
+
+
+
+
+
+
+ 3: 00007FF669139986 
+#
+<--- Last few GCs --->
+ 1: 00007FF668B7403F 
+[53404:0000025E39B2F000]    25698 ms: Scavenge 9.2 (11.1) -> 8.6 (11.3) MB, pooled: 1 MB, 1.45 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[21612:000001228E1FF000]   213093 ms: Scavenge 12.8 (13.5) -> 12.3 (14.7) MB, pooled: 0 MB, 476.19 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+ 2: 00007FF6697BFAA7 v8::Function::NewInstance+423
+[55684:0000018C9E697000]    25175 ms: Scavenge 9.6 (12.3) -> 8.5 (10.1) MB, pooled: 3 MB, 3.07 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[42004:000002BD272CB000]   167529 ms: Scavenge 12.4 (13.0) -> 12.1 (13.5) MB, pooled: 1 MB, 31.13 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[33068:0000014EEB15C000]   191744 ms: Scavenge 12.4 (13.2) -> 12.0 (14.5) MB, pooled: 0 MB, 1694.73 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[31652:00000179CE472000]   155788 ms: Scavenge 11.7 (12.5) -> 11.0 (13.5) MB, pooled: 0 MB, 2.81 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[21624:000002516F82F000]   165399 ms: Scavenge 12.6 (13.5) -> 12.2 (14.5) MB, pooled: 0 MB, 1.27 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+ 4: 00007FF66A79DFC4 
+# Fatal error in , line 0
+
+[53404:0000025E39B2F000]    26738 ms: Scavenge 9.6 (11.6) -> 8.9 (11.8) MB, pooled: 0 MB, 46.87 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[21612:000001228E1FF000]   224711 ms: Scavenge 13.2 (14.7) -> 12.7 (14.2) MB, pooled: 1 MB, 979.91 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+ 3: 00007FF669139986 v8::SnapshotCreator::GetIsolate+56566
+ 2: 00007FF6697BFAA7 
+[55684:0000018C9E697000]    29577 ms: Scavenge 9.3 (10.1) -> 8.8 (11.8) MB, pooled: 1 MB, 1.37 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[42004:000002BD272CB000]   169926 ms: Scavenge 12.7 (13.5) -> 12.2 (14.7) MB, pooled: 0 MB, 2.49 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[33068:0000014EEB15C000]   196984 ms: Scavenge 12.8 (14.5) -> 12.3 (13.7) MB, pooled: 1 MB, 524.24 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[31652:00000179CE472000]   160935 ms: Scavenge 12.1 (14.0) -> 11.5 (13.0) MB, pooled: 1 MB, 114.17 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[21624:000002516F82F000]   183752 ms: Scavenge 13.0 (14.5) -> 12.5 (14.0) MB, pooled: 1 MB, 4.49 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+ 5: 00007FF66A790EE8 
+[20280:0000022CB735E000]   203691 ms: Scavenge 12.6 (13.2) -> 12.1 (13.7) MB, pooled: 1 MB, 8.28 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+
+ 4: 00007FF669F3B4D5 v8::base::ieee754::tanh+25653
+[55684:0000018C9E697000]    36026 ms: Scavenge 9.9 (11.8) -> 9.0 (10.6) MB, pooled: 2 MB, 1.60 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+ 3: 00007FF669139986 
+[42004:000002BD272CB000]   185756 ms: Scavenge 13.2 (14.7) -> 12.6 (14.0) MB, pooled: 1 MB, 6.21 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+# Out of memory: HashMap::Initialize
+
+
+ 6: 00007FF66A7913D8 
+[20280:0000022CB735E000]   208065 ms: Scavenge 13.0 (13.7) -> 12.5 (15.0) MB, pooled: 0 MB, 2.32 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+ 5: 00007FF669F37279 v8::base::ieee754::tanh+8665
+ 4: 00007FF66A74B869 
+
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+#
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+FATAL ERROR: Zone Allocation failed - process out of memory
+ 7: 00007FF66A792A7A 
+[20280:0000022CB735E000]   226095 ms: Scavenge 13.3 (15.0) -> 12.8 (14.2) MB, pooled: 1 MB, 3.62 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+ 6: 00007FF668F8E62F SSL_CTX_get_client_CA_list+186607
+ 5: 00007FF66A74AE0C 
+ 7: 00007FF668F8FCA3 SSL_CTX_get_client_CA_list+192355
+#
+----- Native stack trace -----
+----- Native stack trace -----
+----- Native stack trace -----
+FATAL ERROR: Zone Allocation failed - process out of memory
+
+ 8: 00007FF66A301308 
+----- Native stack trace -----
+----- Native stack trace -----
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+ 6: 00007FF66A2A36DD 
+
+#
+ 1: 00007FF668B7403F 
+
+
+----- Native stack trace -----
+ 9: 00007FF66A300EE5 
+
+ 8: 00007FF668FC55A8 SSL_CTX_get_client_CA_list+411752
+----- Native stack trace -----
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+ 7: 00007FF66A1DC5C9 
+
+#FailureMessage Object: 000000365BBF6A90
+
+10: 00007FF66A1BD187 
+ 9: 00007FF668F9AB0B SSL_CTX_get_client_CA_list+237003
+
+----- Native stack trace -----
+ 8: 00007FF66A2A3F88 
+ 2: 00007FF6697BFAA7 
+----- Native stack trace -----
+11: 00007FF66A1B3AA1 
+10: 00007FF669012C76 SSL_CTX_get_client_CA_list+728886
+
+ 9: 00007FF66A2A3C4C 
+ 3: 00007FF669139986 
+
+12: 00007FF66A1B2E33 
+11: 00007FF669011990 SSL_CTX_get_client_CA_list+724048
+10: 00007FF66A2A39B8 
+ 4: 00007FF66927EFCC 
+12: 00007FF66900F78A SSL_CTX_get_client_CA_list+715338
+13: 00007FF66973376F 
+11: 00007FF66A1DD297 
+ 5: 00007FF66927E6BA 
+14: 00007FF6696F87FD 
+13: 00007FF66973376F EVP_MD_CTX_set_update_fn+200559
+12: 00007FF66A1B64C0 
+ 6: 00007FF66927B66B 
+15: 00007FF6696F84F5 
+ 7: 00007FF66927A83E 
+13: 00007FF66A1B33BF 
+14: 00007FF66901126B SSL_CTX_get_client_CA_list+722219
+16: 00007FF669FA0C5F 
+15: 00007FF669FA0C5F v8::platform::DefaultJobHandle::UpdatePriority+591
+14: 00007FF66A1B2D0D 
+ 8: 00007FF66927A4F9 
+17: 00007FF668AC2E0E 
+16: 00007FF668AC2E0E node::GetNodeReport+90430
+15: 00007FF66973376F 
+ 9: 00007FF669282CC0 
+18: 00007FF669814A36 
+17: 00007FF669814A36 uv_thread_detach+150
+16: 00007FF6696F87FD 
+10: 00007FF669279F66 
+19: 00007FF66AA75A73 
+18: 00007FF66AA75A73 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2907235
+17: 00007FF6696F84F5 
+11: 00007FF66927B66B 
+20: 00007FFBEA9FE957 BaseThreadInitThunk+23
+19: 00007FFBEA9FE957 BaseThreadInitThunk+23
+12: 00007FF66927A83E 
+18: 00007FF669FA0C5F 
+20: 00007FFBEB86427C RtlUserThreadStart+44
+21: 00007FFBEB86427C RtlUserThreadStart+44
+19: 00007FF668AC2E0E 
+13: 00007FF66928C712 
+20: 00007FF669814A36 
+14: 00007FF66926C1E5 
+21: 00007FF66AA75A73 
+15: 00007FF669274DEB 
+22: 00007FFBEA9FE957 BaseThreadInitThunk+23
+16: 00007FF6692742EA 
+23: 00007FFBEB86427C RtlUserThreadStart+44
+17: 00007FF6692679E7 
+18: 00007FF669266BB4 
+19: 00007FF669265EA2 
+20: 00007FF669265B4A 
+ 1: 00007FF668B7403F node::OnFatalError+1343
+ 1: 00007FF668B7403F 
+21: 00007FF669261179 
+ 2: 00007FF6697BFAA7 v8::Function::NewInstance+423
+ 2: 00007FF6697BFAA7 
+22: 00007FF66973D4EF 
+ 3: 00007FF669139986 v8::SnapshotCreator::GetIsolate+56566
+ 3: 00007FF6695C04D7 
+23: 00007FF6697402F1 
+ 4: 00007FF669273068 EC_KEY_METHOD_set_verify+271416
+ 4: 00007FF669558EFB 
+24: 00007FF6697C8F63 
+ 5: 00007FF6692730BB EC_KEY_METHOD_set_verify+271499
+ 5: 00007FF66953094E 
+25: 00007FF668B91563 
+ 6: 00007FF66927B52E EC_KEY_METHOD_set_verify+305406
+ 6: 00007FF6695C2F72 
+26: 00007FF668B8FD0E 
+ 7: 00007FF66927A884 EC_KEY_METHOD_set_verify+302164
+ 7: 00007FF6695C1F27 
+27: 0000025E7210F64D 
+ 8: 00007FF66927A4F9 EC_KEY_METHOD_set_verify+301257
+ 8: 00007FF6695D2E52 
+ 9: 00007FF669282CC0 EC_KEY_METHOD_set_verify+336016
+ 9: 00007FF6695D297B 
+10: 00007FF669279F66 EC_KEY_METHOD_set_verify+299830
+10: 00007FF66AA5A2AD 
+11: 00007FF66927B66B EC_KEY_METHOD_set_verify+305723
+ 1: 00007FF668B7403F node::OnFatalError+1343
+11: 00007FF6695BDFA0 
+12: 00007FF66927A83E EC_KEY_METHOD_set_verify+302094
+12: 00007FF6695D87EA 
+ 2: 00007FF6697BFAA7 v8::Function::NewInstance+423
+13: 00007FF66928C712 EC_KEY_METHOD_set_verify+375522
+13: 00007FF6695E4C86 
+ 3: 00007FF669139986 v8::SnapshotCreator::GetIsolate+56566
+14: 00007FF66926C1E5 EC_KEY_METHOD_set_verify+243125
+14: 00007FF6691B69C7 
+ 4: 00007FF66A15F9D0 v8::base::DiyFp::Multiply+40368
+15: 00007FF669274DEB EC_KEY_METHOD_set_verify+278971
+15: 0000026037E77A10 
+ 5: 00007FF669F78ED9 v8::internal::compiler::CompilationDependencies::FieldTypeDependencyOffTheRecord+107193
+16: 00007FF6692742EA EC_KEY_METHOD_set_verify+276154
+ 1: 00007FF668B7403F node::OnFatalError+1343
+ 1: 00007FF668B7403F node::OnFatalError+1343
+ 1: 00007FF668B7403F 
+ 1: 00007FF668AC6F4D node::MultiIsolatePlatform::DisposeIsolate+5341
+ 6: 00007FF669031B46 X509_ACERT_get0_notBefore+1782
+17: 00007FF6692679E7 EC_KEY_METHOD_set_verify+224695
+ 2: 00007FF6697BFAA7 v8::Function::NewInstance+423
+ 2: 00007FF6697BFAA7 v8::Function::NewInstance+423
+ 2: 00007FF669F2E05F V8_Fatal+287
+ 2: 00007FF6697BFAA7 
+ 7: 00007FF66900F43F SSL_CTX_get_client_CA_list+714495
+18: 00007FF669266BB4 EC_KEY_METHOD_set_verify+221060
+ 3: 00007FF6695C04D7 v8::base::AddressSpaceReservation::AddressSpaceReservation+322071
+ 3: 00007FF669139986 v8::SnapshotCreator::GetIsolate+56566
+ 3: 00007FF6697BDB46 EVP_MD_CTX_set_update_fn+766790
+ 3: 00007FF669139986 
+ 8: 00007FF66973BDF3 EVP_MD_CTX_set_update_fn+234995
+19: 00007FF669265EA2 EC_KEY_METHOD_set_verify+217714
+ 4: 00007FF669558EFB v8::Platform::SystemClockTimeMillis+490523
+ 4: 00007FF6697A6AC6 EVP_MD_CTX_set_update_fn+672454
+ 4: 00007FF6697BD232 EVP_MD_CTX_set_update_fn+764466
+ 4: 00007FF669286B46 
+ 9: 00007FF66973DECA EVP_MD_CTX_set_update_fn+243402
+ 5: 00007FF66928D681 
+ 5: 00007FF66953094E v8::Platform::SystemClockTimeMillis+325230
+ 5: 00007FF66924BADC EC_KEY_METHOD_set_verify+110252
+ 5: 00007FF6697BD060 EVP_MD_CTX_set_update_fn+764000
+20: 00007FF669265B4A EC_KEY_METHOD_set_verify+216858
+10: 00007FF6691BFF01 v8::String::Utf8Value::~Utf8Value+182401
+21: 00007FF669261179 EC_KEY_METHOD_set_verify+197961
+ 6: 00007FF6695C2F72 v8::base::AddressSpaceReservation::AddressSpaceReservation+332978
+ 6: 00007FF66925E20E EC_KEY_METHOD_set_verify+185822
+ 6: 00007FF66924434F EC_KEY_METHOD_set_verify+79647
+ 6: 00007FF669288E3E 
+11: 00007FF6691BDFFF v8::String::Utf8Value::~Utf8Value+174463
+ 1: 00007FF668B7403F node::OnFatalError+1343
+ 1: 00007FF668B7403F node::OnFatalError+1343
+ 1: 00007FF668B7403F node::OnFatalError+1343
+ 1: 00007FF668B7403F node::OnFatalError+1343
+22: 00007FF66973D4EF EVP_MD_CTX_set_update_fn+240879
+ 7: 00007FF6695C1F27 v8::base::AddressSpaceReservation::AddressSpaceReservation+328807
+ 7: 00007FF66925D9C4 EC_KEY_METHOD_set_verify+183700
+ 7: 00007FF66928C4AB EC_KEY_METHOD_set_verify+374907
+ 7: 00007FF669274DEB 
+12: 00000248CBA375FA 
+ 2: 00007FF6697BFAA7 v8::Function::NewInstance+423
+ 2: 00007FF6697BFAA7 v8::Function::NewInstance+423
+ 2: 00007FF6697BFAA7 v8::Function::NewInstance+423
+ 2: 00007FF6697BFAA7 v8::Function::NewInstance+423
+23: 00007FF6697402F1 EVP_MD_CTX_set_update_fn+252657
+ 8: 00007FF6695D2E52 v8::internal::StrongRootAllocatorBase::deallocate_impl+15858
+ 8: 00007FF66926C1E5 EC_KEY_METHOD_set_verify+243125
+ 8: 00007FF66926A82A 
+ 3: 00007FF6695C04D7 v8::base::AddressSpaceReservation::AddressSpaceReservation+322071
+ 3: 00007FF6695C04D7 v8::base::AddressSpaceReservation::AddressSpaceReservation+322071
+ 3: 00007FF6695C04D7 v8::base::AddressSpaceReservation::AddressSpaceReservation+322071
+ 3: 00007FF6695C04D7 v8::base::AddressSpaceReservation::AddressSpaceReservation+322071
+24: 00007FF6697C8F63 v8::ScriptCompiler::CompileFunction+1011
+ 9: 00007FF6695D297B v8::internal::StrongRootAllocatorBase::deallocate_impl+14619
+ 9: 00007FF669285288 EC_KEY_METHOD_set_verify+345688
+ 9: 00007FF66927B560 
+ 4: 00007FF669558EFB v8::Platform::SystemClockTimeMillis+490523
+ 8: 00007FF66925A7E5 EC_KEY_METHOD_set_verify+170933
+ 4: 00007FF669558EFB v8::Platform::SystemClockTimeMillis+490523
+ 4: 00007FF669558EFB v8::Platform::SystemClockTimeMillis+490523
+ 4: 00007FF669558EFB v8::Platform::SystemClockTimeMillis+490523
+25: 00007FF668B91563 node::GetCurrentEnvironment+20883
+10: 00007FF66AA5A2AD v8::base::UnsignedDivisionByConstant<unsigned __int64>+2794653
+10: 00007FF669286FBB EC_KEY_METHOD_set_verify+353163
+10: 00007FF66927A884 
+ 5: 00007FF66953094E v8::Platform::SystemClockTimeMillis+325230
+ 9: 00007FF66924BD53 EC_KEY_METHOD_set_verify+110883
+ 5: 00007FF66953094E v8::Platform::SystemClockTimeMillis+325230
+ 5: 00007FF66953094E v8::Platform::SystemClockTimeMillis+325230
+ 5: 00007FF66953094E v8::Platform::SystemClockTimeMillis+325230
+26: 00007FF668B8FD0E node::GetCurrentEnvironment+14654
+11: 00007FF6695BDFA0 v8::base::AddressSpaceReservation::AddressSpaceReservation+312544
+11: 00007FF669285288 EC_KEY_METHOD_set_verify+345688
+11: 00007FF66927A4F9 
+ 6: 00007FF6695C2F72 v8::base::AddressSpaceReservation::AddressSpaceReservation+332978
+10: 00007FF66924B37D EC_KEY_METHOD_set_verify+108365
+ 6: 00007FF6695C2F72 v8::base::AddressSpaceReservation::AddressSpaceReservation+332978
+ 6: 00007FF6695C2F72 v8::base::AddressSpaceReservation::AddressSpaceReservation+332978
+ 6: 00007FF6695C2F72 v8::base::AddressSpaceReservation::AddressSpaceReservation+332978
+27: 0000025A531CF64D 
+12: 00007FF6695D87EA X509_STORE_set_cleanup+5098
+12: 00007FF669287A80 EC_KEY_METHOD_set_verify+355920
+12: 00007FF669282CC0 
+ 7: 00007FF6695C1F27 v8::base::AddressSpaceReservation::AddressSpaceReservation+328807
+11: 00007FF66924AB3B EC_KEY_METHOD_set_verify+106251
+12: 00007FF669254409 EC_KEY_METHOD_set_verify+145369
+ 7: 00007FF6695C1F27 v8::base::AddressSpaceReservation::AddressSpaceReservation+328807
+ 7: 00007FF6695C1F27 v8::base::AddressSpaceReservation::AddressSpaceReservation+328807
+13: 00007FF6695E4C86 uv_timer_set_repeat+20694
+13: 00007FF669274DEB EC_KEY_METHOD_set_verify+278971
+13: 00007FF669279F66 
+ 8: 00007FF6695D2E52 v8::internal::StrongRootAllocatorBase::deallocate_impl+15858
+ 7: 00007FF6695C1F27 v8::base::AddressSpaceReservation::AddressSpaceReservation+328807
+ 8: 00007FF6695D2E52 v8::internal::StrongRootAllocatorBase::deallocate_impl+15858
+ 8: 00007FF6695D2E52 v8::internal::StrongRootAllocatorBase::deallocate_impl+15858
+ 8: 00007FF6695D2E52 v8::internal::StrongRootAllocatorBase::deallocate_impl+15858
+14: 00007FF6691B69C7 v8::String::Utf8Value::~Utf8Value+144199
+14: 00007FF66926A82A EC_KEY_METHOD_set_verify+236538
+14: 00007FF66927B66B 
+ 9: 00007FF6695D297B v8::internal::StrongRootAllocatorBase::deallocate_impl+14619
+13: 00007FF669252490 EC_KEY_METHOD_set_verify+137312
+ 9: 00007FF6695D297B v8::internal::StrongRootAllocatorBase::deallocate_impl+14619
+ 9: 00007FF6695D297B v8::internal::StrongRootAllocatorBase::deallocate_impl+14619
+ 9: 00007FF6695D297B v8::internal::StrongRootAllocatorBase::deallocate_impl+14619
+15: 00000122C68F75FA 
+15: 00007FF66927A83E 
+10: 00007FF66AA5A2AD v8::base::UnsignedDivisionByConstant<unsigned __int64>+2794653
+14: 00007FF669251BAD EC_KEY_METHOD_set_verify+135037
+10: 00007FF66AA5A2AD v8::base::UnsignedDivisionByConstant<unsigned __int64>+2794653
+15: 00007FF66927B560 EC_KEY_METHOD_set_verify+305456
+10: 00007FF66AA5A2AD v8::base::UnsignedDivisionByConstant<unsigned __int64>+2794653
+10: 00007FF66AA5A2AD v8::base::UnsignedDivisionByConstant<unsigned __int64>+2794653
+16: 00007FF66928C712 
+11: 00007FF6695BDFA0 v8::base::AddressSpaceReservation::AddressSpaceReservation+312544
+15: 00007FF66925058A EC_KEY_METHOD_set_verify+129370
+11: 00007FF6695BDFA0 v8::base::AddressSpaceReservation::AddressSpaceReservation+312544
+16: 00007FF66927A884 EC_KEY_METHOD_set_verify+302164
+11: 00007FF6695BDFA0 v8::base::AddressSpaceReservation::AddressSpaceReservation+312544
+11: 00007FF6695BDFA0 v8::base::AddressSpaceReservation::AddressSpaceReservation+312544
+17: 00007FF66926C1E5 
+12: 00007FF6695D87EA X509_STORE_set_cleanup+5098
+16: 00007FF66925B6C4 EC_KEY_METHOD_set_verify+174740
+12: 00007FF6695D87EA X509_STORE_set_cleanup+5098
+17: 00007FF66928C712 EC_KEY_METHOD_set_verify+375522
+12: 00007FF6695D87EA X509_STORE_set_cleanup+5098
+12: 00007FF6695D87EA X509_STORE_set_cleanup+5098
+18: 00007FF669274DEB 
+13: 00007FF6695E4648 uv_timer_set_repeat+19096
+17: 00007FF66924BD9C EC_KEY_METHOD_set_verify+110956
+13: 00007FF6695E4648 uv_timer_set_repeat+19096
+18: 00007FF66926C1E5 EC_KEY_METHOD_set_verify+243125
+13: 00007FF6695E4C86 uv_timer_set_repeat+20694
+13: 00007FF6695E4648 uv_timer_set_repeat+19096
+19: 00007FF6692742EA 
+14: 00007FF6695FC367 uv_timer_set_repeat+116663
+18: 00007FF66924B37D EC_KEY_METHOD_set_verify+108365
+14: 00007FF6695FC03C uv_timer_set_repeat+115852
+19: 00007FF669274DEB EC_KEY_METHOD_set_verify+278971
+14: 00007FF6691B69C7 v8::String::Utf8Value::~Utf8Value+144199
+14: 00007FF6695FF854 uv_timer_set_repeat+130212
+20: 00007FF6692679E7 
+15: 00007FF6695F0A0C uv_timer_set_repeat+69212
+19: 00007FF669249AAB EC_KEY_METHOD_set_verify+102011
+15: 00007FF6695FBFD5 uv_timer_set_repeat+115749
+20: 00007FF6692742EA EC_KEY_METHOD_set_verify+276154
+15: 0000022CEFA77A10 
+15: 00007FF6695FF72C uv_timer_set_repeat+129916
+21: 00007FF669266BB4 
+16: 00007FF6695F0849 uv_timer_set_repeat+68761
+20: 00007FF669248DE6 EC_KEY_METHOD_set_verify+98742
+16: 00007FF6692DC46E v8::RegExp::GetFlags+77118
+21: 00007FF6692679E7 EC_KEY_METHOD_set_verify+224695
+16: 00007FF668D22D4E v8::internal::Version::GetVersion+102990
+22: 00007FF669265EA2 
+17: 00007FF6691B321C v8::String::Utf8Value::~Utf8Value+129948
+21: 00007FF669273948 EC_KEY_METHOD_set_verify+273688
+17: 00007FF6692DC9DD v8::RegExp::GetFlags+78509
+22: 00007FF669266BB4 EC_KEY_METHOD_set_verify+221060
+17: 00007FF6697ECFF8 v8::String::ValueView::ValueView+456
+23: 00007FF669265B4A 
+18: 00007FF6691B32E6 v8::String::Utf8Value::~Utf8Value+130150
+22: 00007FF669267960 EC_KEY_METHOD_set_verify+224560
+18: 00007FF6692DD0AB v8::RegExp::GetFlags+80251
+23: 00007FF669265EA2 EC_KEY_METHOD_set_verify+217714
+18: 00007FF66898265B SSL_COMP_get_id+310091
+24: 00007FF669261179 
+19: 00007FF6691B1DB7 v8::String::Utf8Value::~Utf8Value+124727
+23: 00007FF66928BEE3 EC_KEY_METHOD_set_verify+373427
+19: 00007FF6691AAF33 v8::String::Utf8Value::~Utf8Value+96435
+24: 00007FF669265B4A EC_KEY_METHOD_set_verify+216858
+19: 00007FF6689829A9 SSL_COMP_get_id+310937
+25: 00007FF66973D4EF 
+20: 000002512FE775FA 
+24: 00007FF66926C354 EC_KEY_METHOD_set_verify+243492
+20: 000002BD5FA775FA 
+25: 00007FF669261179 EC_KEY_METHOD_set_verify+197961
+20: 00007FF668B54C59 DSA_meth_get_flags+71529
+26: 00007FF6697402F1 
+25: 00007FF669274DEB EC_KEY_METHOD_set_verify+278971
+26: 00007FF66973D4EF EVP_MD_CTX_set_update_fn+240879
+21: 000001799FDCF77E 
+27: 00007FF6697C8F63 
+26: 00007FF6692742EA EC_KEY_METHOD_set_verify+276154
+27: 00007FF6697402F1 EVP_MD_CTX_set_update_fn+252657
+28: 00007FF668B91563 
+27: 00007FF6692679E7 EC_KEY_METHOD_set_verify+224695
+28: 00007FF6697C8F63 v8::ScriptCompiler::CompileFunction+1011
+29: 00007FF668B8FD0E 
+28: 00007FF669266BB4 EC_KEY_METHOD_set_verify+221060
+29: 00007FF668B91563 node::GetCurrentEnvironment+20883
+30: 0000018CD6D0F64D 
+29: 00007FF669265EA2 EC_KEY_METHOD_set_verify+217714
+30: 00007FF668B8FD0E node::GetCurrentEnvironment+14654
+30: 00007FF669265B4A EC_KEY_METHOD_set_verify+216858
+31: 000001F51FDCF64D 
+31: 00007FF669261179 EC_KEY_METHOD_set_verify+197961
+32: 00007FF66973D4EF EVP_MD_CTX_set_update_fn+240879
+33: 00007FF6697402F1 EVP_MD_CTX_set_update_fn+252657
+34: 00007FF6697C8F63 v8::ScriptCompiler::CompileFunction+1011
+35: 00007FF668B91563 node::GetCurrentEnvironment+20883
+36: 00007FF668B8FD0E node::GetCurrentEnvironment+14654
+37: 0000014EA7DCF64D 
+
+<--- Last few GCs --->
+
+
+
+[47076:000001C2AA7DF000]   197576 ms: Scavenge 17.0 (18.7) -> 16.2 (18.7) MB, pooled: 2 MB, 1.10 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+#
+[47076:000001C2AA7DF000]   203436 ms: Scavenge 17.1 (18.7) -> 16.3 (17.7) MB, pooled: 3 MB, 2023.07 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+# Fatal error in , line 0
+
+
+<--- Last few GCs --->
+
+
+# Out of memory: HashMap::Initialize
+FATAL ERROR: Zone Allocation failed - process out of memory
+[49840:0000019C81D91000]   216143 ms: Scavenge (interleaved) 17.1 (18.9) -> 16.4 (19.9) MB, pooled: 0 MB, 1.25 / 0.00 ms  (average mu = 0.994, current mu = 0.994) allocation failure; 
+<--- Last few GCs --->
+#
+----- Native stack trace -----
+[49840:0000019C81D91000]   220207 ms: Scavenge (interleaved) 17.3 (20.2) -> 16.7 (19.2) MB, pooled: 1 MB, 1.48 / 0.00 ms  (average mu = 0.994, current mu = 0.994) allocation failure; 
+
+#
+
+
+[51396:000001C7C500D000]   208387 ms: Scavenge 14.1 (14.9) -> 13.8 (15.9) MB, pooled: 0 MB, 250.89 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+#
+[51396:000001C7C500D000]   211793 ms: Scavenge 14.4 (16.2) -> 14.1 (15.4) MB, pooled: 1 MB, 18.50 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+#FailureMessage Object: 0000005794DF9DF0
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+
+----- Native stack trace -----
+----- Native stack trace -----
+
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+
+----- Native stack trace -----
+
+ 1: 00007FF668B7403F node::OnFatalError+1343
+ 2: 00007FF6697BFAA7 v8::Function::NewInstance+423
+ 3: 00007FF6695C04D7 v8::base::AddressSpaceReservation::AddressSpaceReservation+322071
+ 4: 00007FF669558EFB v8::Platform::SystemClockTimeMillis+490523
+ 5: 00007FF66953094E v8::Platform::SystemClockTimeMillis+325230
+ 6: 00007FF6695C2F72 v8::base::AddressSpaceReservation::AddressSpaceReservation+332978
+ 7: 00007FF6695C1F27 v8::base::AddressSpaceReservation::AddressSpaceReservation+328807
+ 8: 00007FF6695D2E52 v8::internal::StrongRootAllocatorBase::deallocate_impl+15858
+ 9: 00007FF6695D297B v8::internal::StrongRootAllocatorBase::deallocate_impl+14619
+10: 00007FF66AA5A2AD v8::base::UnsignedDivisionByConstant<unsigned __int64>+2794653
+11: 00007FF6695BDFA0 v8::base::AddressSpaceReservation::AddressSpaceReservation+312544
+12: 00007FF6695D87EA X509_STORE_set_cleanup+5098
+13: 00007FF6695E4648 uv_timer_set_repeat+19096
+14: 00007FF6695FF854 uv_timer_set_repeat+130212
+15: 00007FF6695FF72C uv_timer_set_repeat+129916
+16: 00007FF668D22D4E v8::internal::Version::GetVersion+102990
+17: 00007FF669194D16 v8::String::Utf8Value::~Utf8Value+5782
+18: 0000019CBA4F75FA 
+ 1: 00007FF668AC6F4D node::MultiIsolatePlatform::DisposeIsolate+5341
+ 2: 00007FF669F2E05F V8_Fatal+287
+ 3: 00007FF6697BDB46 EVP_MD_CTX_set_update_fn+766790
+ 4: 00007FF6697BD232 EVP_MD_CTX_set_update_fn+764466
+ 5: 00007FF6697BD060 EVP_MD_CTX_set_update_fn+764000
+ 6: 00007FF66924434F EC_KEY_METHOD_set_verify+79647
+ 7: 00007FF669264F76 EC_KEY_METHOD_set_verify+213830
+ 8: 00007FF66927B66B EC_KEY_METHOD_set_verify+305723
+ 9: 00007FF66927A83E EC_KEY_METHOD_set_verify+302094
+10: 00007FF66927A4F9 EC_KEY_METHOD_set_verify+301257
+11: 00007FF6692798D1 EC_KEY_METHOD_set_verify+298145
+ 1: 00007FF668B7403F node::OnFatalError+1343
+12: 00007FF66927B66B EC_KEY_METHOD_set_verify+305723
+ 2: 00007FF6697BFAA7 v8::Function::NewInstance+423
+13: 00007FF66927A83E EC_KEY_METHOD_set_verify+302094
+ 3: 00007FF669139986 v8::SnapshotCreator::GetIsolate+56566
+ 1: 00007FF668B7403F 
+14: 00007FF66927A4F9 EC_KEY_METHOD_set_verify+301257
+ 4: 00007FF66A79CC52 v8::platform::DelayedTaskQueue::Terminate+5816098
+15: 00007FF6692798D1 EC_KEY_METHOD_set_verify+298145
+ 2: 00007FF6697BFAA7 
+ 5: 00007FF66A79C81D v8::platform::DelayedTaskQueue::Terminate+5815021
+16: 00007FF66927B66B EC_KEY_METHOD_set_verify+305723
+ 3: 00007FF6695C04D7 
+ 6: 00007FF66A301D88 v8::platform::DelayedTaskQueue::Terminate+987224
+17: 00007FF66927A83E EC_KEY_METHOD_set_verify+302094
+ 4: 00007FF669558EFB 
+ 7: 00007FF66A300F86 v8::platform::DelayedTaskQueue::Terminate+983638
+18: 00007FF66927A4F9 EC_KEY_METHOD_set_verify+301257
+ 5: 00007FF66953094E 
+ 8: 00007FF66A1BD187 v8::base::DiyFp::Multiply+423271
+19: 00007FF669282CC0 EC_KEY_METHOD_set_verify+336016
+ 6: 00007FF6695C2F72 
+ 9: 00007FF66A1B3AA1 v8::base::DiyFp::Multiply+384641
+20: 00007FF669279F66 EC_KEY_METHOD_set_verify+299830
+ 7: 00007FF6695C1F27 
+10: 00007FF66A1B2E33 v8::base::DiyFp::Multiply+381459
+21: 00007FF66927B66B EC_KEY_METHOD_set_verify+305723
+ 8: 00007FF6695D2E52 
+11: 00007FF66973376F EVP_MD_CTX_set_update_fn+200559
+22: 00007FF66927A83E EC_KEY_METHOD_set_verify+302094
+ 9: 00007FF6695D297B 
+12: 00007FF6696F87FD v8::internal::OptimizingCompileInputQueue::Prioritize+1773
+23: 00007FF66927A4F9 EC_KEY_METHOD_set_verify+301257
+10: 00007FF66AA5A2AD 
+13: 00007FF6696F84F5 v8::internal::OptimizingCompileInputQueue::Prioritize+997
+24: 00007FF669282CC0 EC_KEY_METHOD_set_verify+336016
+11: 00007FF6695BDFA0 
+14: 00007FF669FA0C5F v8::platform::DefaultJobHandle::UpdatePriority+591
+25: 00007FF669279F66 EC_KEY_METHOD_set_verify+299830
+12: 00007FF6695D87EA 
+15: 00007FF668AC2E0E node::GetNodeReport+90430
+26: 00007FF66927B66B EC_KEY_METHOD_set_verify+305723
+13: 00007FF6695E4648 
+16: 00007FF669814A36 uv_thread_detach+150
+27: 00007FF66927A83E EC_KEY_METHOD_set_verify+302094
+14: 00007FF6695FBB4C 
+17: 00007FF66AA75A73 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2907235
+28: 00007FF66928C712 EC_KEY_METHOD_set_verify+375522
+15: 00007FF6693DD530 
+18: 00007FFBEA9FE957 BaseThreadInitThunk+23
+29: 00007FF66926C1E5 EC_KEY_METHOD_set_verify+243125
+16: 00007FF66930FBB4 
+19: 00007FFBEB86427C RtlUserThreadStart+44
+17: 00007FF66930F1E4 
+30: 00007FF669274DEB EC_KEY_METHOD_set_verify+278971
+31: 00007FF6692742EA EC_KEY_METHOD_set_verify+276154
+18: 00007FF66930CFFA 
+32: 00007FF6692679E7 EC_KEY_METHOD_set_verify+224695
+19: 00007FF6691B9313 
+33: 00007FF669266BB4 EC_KEY_METHOD_set_verify+221060
+20: 000001C7FD8775FA 
+34: 00007FF669265EA2 EC_KEY_METHOD_set_verify+217714
+35: 00007FF669265B4A EC_KEY_METHOD_set_verify+216858
+36: 00007FF669261179 EC_KEY_METHOD_set_verify+197961
+37: 00007FF66973D4EF EVP_MD_CTX_set_update_fn+240879
+38: 00007FF6697402F1 EVP_MD_CTX_set_update_fn+252657
+39: 00007FF6697C8F63 v8::ScriptCompiler::CompileFunction+1011
+40: 00007FF668B91563 node::GetCurrentEnvironment+20883
+41: 00007FF668B8FD0E node::GetCurrentEnvironment+14654
+42: 0000017B5858F64D 

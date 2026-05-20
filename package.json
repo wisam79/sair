@@ -16,23 +16,27 @@
     "format": "pnpm format:write",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "lint": "eslint \"**/*.{ts,tsx}\" --max-warnings=0",
     "prepare": "husky"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",
+    "@expo/ngrok": "^4.1.3",
     "@playwright/test": "^1.59.1",
+    "@react-native/debugger-frontend": "^0.85.3",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/release-notes-generator": "^14.1.1",
+    "@typescript-eslint/eslint-plugin": "^8.59.3",
+    "@typescript-eslint/parser": "^8.59.3",
     "@vitest/coverage-v8": "^1.6.0",
+    "eslint": "^8.57.0",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "lint-staged": "^17.0.3",
     "prettier": "^3.2.5",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
     "semantic-release": "^25.0.3",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0"
@@ -40,5 +44,20 @@
   "engines": {
     "node": ">=22.0.0"
   },
-  "packageManager": "pnpm@10.0.0"
+  "packageManager": "pnpm@10.0.0",
+  "pnpm": {
+    "overrides": {
+      "react": "19.1.0",
+      "react-dom": "19.1.0"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix --max-warnings=0",
+      "prettier --write"
+    ],
+    "*.{js,jsx,json,md}": [
+      "prettier --write"
+    ]
+  }
 }
