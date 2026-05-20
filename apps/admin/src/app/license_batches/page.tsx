@@ -50,7 +50,8 @@ export default function LicenseBatchesList() {
             return t('common.loading', 'Loading...');
           }
           const route = routesData?.data?.find((item) => item.id === value);
-          return route ? route.title : value;
+          const title = route && 'title' in route ? String(route.title) : '';
+          return title || (typeof value === 'string' ? value : '');
         },
       },
       {
@@ -80,7 +81,8 @@ export default function LicenseBatchesList() {
         minWidth: 200,
         flex: 1,
         renderCell: function render({ value }) {
-          return <DateField value={value} />;
+          const val = typeof value === 'string' || typeof value === 'number' || value instanceof Date ? value : null;
+          return val ? <DateField value={val} /> : null;
         },
       },
     ],

@@ -24,11 +24,12 @@ export default function LicenseBatchCreate() {
     formState: { errors },
   } = useForm<BaseRecord, HttpError, LicenseBatchFormValues>();
 
-  const { options: routeOptions } = useSelect({
+  const { options: rawRouteOptions } = useSelect({
     resource: 'routes',
     optionLabel: 'title',
     optionValue: 'id',
   });
+  const routeOptions = rawRouteOptions as { label: string; value: string }[] | undefined;
 
   const handleCustomSubmit = async (data: LicenseBatchFormValues) => {
     try {
@@ -60,8 +61,9 @@ export default function LicenseBatchCreate() {
     <Create
       saveButtonProps={{
         ...saveButtonProps,
-        onClick: (e) => {
-          void handleSubmit(handleCustomSubmit)(e);
+        onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+          e.preventDefault();
+          void handleSubmit(handleCustomSubmit)();
         },
       }}
       isLoading={formLoading}

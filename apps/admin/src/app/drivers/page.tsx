@@ -38,31 +38,36 @@ export default function DriverList() {
         // MUI DataGrid v7: valueGetter receives (value, row) not (params)
         valueGetter: (_value: unknown, row: Record<string, unknown>) =>
           (row?.profiles as Record<string, unknown>)?.full_name,
-        renderCell: (params: import('@mui/x-data-grid').GridRenderCellParams) => (
-          <Box>
-            <Typography variant="body2" fontWeight="medium">
-              {((params?.row?.profiles as Record<string, unknown>)?.full_name as string) ||
-                t('common.unknown', 'Unknown')}
-            </Typography>
-            <Typography variant="caption" color="textSecondary">
-              {(params?.row?.profiles as Record<string, unknown>)?.phone as string}
-            </Typography>
-          </Box>
-        ),
+        renderCell: (params: import('@mui/x-data-grid').GridRenderCellParams) => {
+          const profiles = (params?.row as Record<string, unknown>)?.profiles as Record<string, unknown>;
+          return (
+            <Box>
+              <Typography variant="body2" fontWeight="medium">
+                {(profiles?.full_name as string) || t('common.unknown', 'Unknown')}
+              </Typography>
+              <Typography variant="caption" color="textSecondary">
+                {profiles?.phone as string}
+              </Typography>
+            </Box>
+          );
+        },
       },
       {
         field: 'vehicle_model',
         headerName: t('drivers.fields.vehicleModel', 'Vehicle'),
         minWidth: 180,
         flex: 1.5,
-        renderCell: (params: import('@mui/x-data-grid').GridRenderCellParams) => (
-          <Box>
-            <Typography variant="body2">{params?.row?.vehicle_model as string}</Typography>
-            <Typography variant="caption" color="primary">
-              {params?.row?.vehicle_plate as string}
-            </Typography>
-          </Box>
-        ),
+        renderCell: (params: import('@mui/x-data-grid').GridRenderCellParams) => {
+          const row = params?.row as Record<string, unknown>;
+          return (
+            <Box>
+              <Typography variant="body2">{row?.vehicle_model as string}</Typography>
+              <Typography variant="caption" color="primary">
+                {row?.vehicle_plate as string}
+              </Typography>
+            </Box>
+          );
+        },
       },
       {
         field: 'capacity',
@@ -77,11 +82,12 @@ export default function DriverList() {
         headerName: t('drivers.fields.verified', 'Verified'),
         minWidth: 100,
         renderCell: (params: import('@mui/x-data-grid').GridRenderCellParams) => {
+          const row = params?.row as Record<string, unknown>;
           return (
             <Switch
-              checked={!!params?.row?.is_verified}
+              checked={!!row?.is_verified}
               onChange={() =>
-                handleVerifyToggle(params?.row?.id as string, !!params?.row?.is_verified)
+                handleVerifyToggle(row?.id as string, !!row?.is_verified)
               }
               color="success"
               size="small"
@@ -93,10 +99,11 @@ export default function DriverList() {
         field: 'created_at',
         headerName: t('drivers.fields.registeredAt', 'Registered At'),
         minWidth: 160,
-        renderCell: (params) => {
+        renderCell: (params: import('@mui/x-data-grid').GridRenderCellParams) => {
+          const val = typeof params?.value === 'string' || typeof params?.value === 'number' || params?.value instanceof Date ? params.value : null;
           return (
             <Typography variant="caption">
-              <DateField value={params?.value} format="LLL" />
+              {val ? <DateField value={val} format="LLL" /> : '-'}
             </Typography>
           );
         },

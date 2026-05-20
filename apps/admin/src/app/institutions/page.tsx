@@ -42,7 +42,7 @@ export default function InstitutionList() {
         minWidth: 150,
         flex: 1,
         renderCell: function render({ value }) {
-          return value ?? '-';
+          return typeof value === 'string' ? value : '-';
         },
       },
       {
@@ -51,14 +51,16 @@ export default function InstitutionList() {
         minWidth: 160,
         flex: 1,
         renderCell: function render({ value }) {
-          return value ? new Date(value).toLocaleDateString() : '-';
+          return typeof value === 'string' || typeof value === 'number'
+            ? new Date(value).toLocaleDateString()
+            : '-';
         },
       },
       {
         field: 'actions',
         headerName: t('actions.actions', 'Actions'),
         sortable: false,
-        renderCell: function render({ row }) {
+        renderCell: function render({ row }: { row: { id: string | number } }) {
           return (
             <Stack
               direction="row"

@@ -41,19 +41,20 @@ export default function PayoutsPage() {
         headerName: t('common.status', 'Status'),
         minWidth: 120,
         flex: 0.5,
-        renderCell: ({ value }) => (
-          <Chip
-            label={
-              value
-                ? String(
-                    t(`payouts.status.${value}`, value.charAt(0).toUpperCase() + value.slice(1)),
-                  )
-                : '-'
-            }
-            color={PAYOUT_COLORS[value] || 'default'}
-            size="small"
-          />
-        ),
+        renderCell: ({ value }) => {
+          const valStr = typeof value === 'string' ? value : '';
+          return (
+            <Chip
+              label={
+                valStr
+                  ? t(`payouts.status.${valStr}`, valStr.charAt(0).toUpperCase() + valStr.slice(1))
+                  : '-'
+              }
+              color={PAYOUT_COLORS[valStr] || 'default'}
+              size="small"
+            />
+          );
+        },
       },
       {
         field: 'reference_note',
@@ -67,14 +68,20 @@ export default function PayoutsPage() {
         headerName: t('payouts.fields.requested', 'Requested'),
         minWidth: 160,
         flex: 1,
-        renderCell: ({ value }) => (value ? new Date(value).toLocaleDateString() : '-'),
+        renderCell: ({ value }) =>
+          typeof value === 'string' || typeof value === 'number'
+            ? new Date(value).toLocaleDateString()
+            : '-',
       },
       {
         field: 'updated_at',
         headerName: t('payouts.fields.updated', 'Updated'),
         minWidth: 160,
         flex: 1,
-        renderCell: ({ value }) => (value ? new Date(value).toLocaleDateString() : '-'),
+        renderCell: ({ value }) =>
+          typeof value === 'string' || typeof value === 'number'
+            ? new Date(value).toLocaleDateString()
+            : '-',
       },
     ],
     [t],

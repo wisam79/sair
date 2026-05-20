@@ -9,7 +9,7 @@ export default function InstitutionShow() {
   const { t } = useTranslation();
   const { queryResult } = useShow();
   const { data, isLoading } = queryResult;
-  const record = data?.data;
+  const record = data?.data as Record<string, unknown> | undefined;
 
   return (
     <Show isLoading={isLoading} title={t('institutions.titles.show', 'Institution Details')}>
@@ -33,7 +33,11 @@ export default function InstitutionShow() {
           {t('institutions.fields.createdAt', 'Created At')}
         </Typography>
         <TextFieldComponent
-          value={record?.created_at ? new Date(record.created_at).toLocaleString() : '-'}
+          value={
+            typeof record?.created_at === 'string' || typeof record?.created_at === 'number'
+              ? new Date(record.created_at).toLocaleString()
+              : '-'
+          }
         />
       </Stack>
     </Show>

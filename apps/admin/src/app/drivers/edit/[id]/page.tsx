@@ -35,8 +35,8 @@ export default function DriverEdit() {
     formState: { errors },
   } = useForm<BaseRecord, HttpError, DriverEditFormValues>();
 
-  const driverData = queryResult?.data?.data;
-  const currentUserId = driverData?.user_id;
+  const driverData = queryResult?.data?.data as Record<string, unknown> | undefined;
+  const currentUserId = typeof driverData?.user_id === 'string' ? driverData.user_id : '';
 
   return (
     <Edit

@@ -42,7 +42,7 @@ export default function NotificationsPage() {
     setResult(null);
 
     try {
-      const { data, error } = await supabaseClient.functions.invoke('send-notification', {
+      const response = await supabaseClient.functions.invoke('send-notification', {
         body: {
           title,
           body,
@@ -50,12 +50,15 @@ export default function NotificationsPage() {
         },
       });
 
-      if (error) {
-        setResult({ success: false, message: error.message });
+      if (response.error) {
+        const errorMsg = response.error instanceof Error ? response.error.message : String(response.error);
+        setResult({ success: false, message: errorMsg });
       } else {
+        const responseData = response.data as Record<string, unknown> | null;
+        const sentCount = typeof responseData?.sent_count === 'number' ? responseData.sent_count : 0;
         setResult({
           success: true,
-          message: `${t('notifications.sentCount', 'Notification sent to')} ${data?.sent_count || 0} ${t('notifications.targetAll', 'users')}`,
+          message: `${t('notifications.sentCount', 'Notification sent to')} ${sentCount} ${t('notifications.targetAll', 'users')}`,
         });
         setTitle('');
         setBody('');
@@ -130,7 +133,9 @@ export default function NotificationsPage() {
 
             <Button
               variant="contained"
-              onClick={handleSend}
+              onClick={() => {
+                void handleSend();
+              }}
               disabled={sending || !title.trim() || !body.trim()}
               size="large"
             >
