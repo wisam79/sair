@@ -100,7 +100,7 @@ export const authProvider: AuthBindings = {
       return Promise.resolve({ logout: true });
     }
     return Promise.resolve({
-      error: error instanceof Error ? error : new Error(String(error || 'Unknown error')),
+      error: error as unknown,
     });
   },
 };
