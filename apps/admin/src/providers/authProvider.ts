@@ -2,10 +2,14 @@ import { AuthBindings } from '@refinedev/core';
 import { supabaseClient } from './supabaseClient';
 
 export const authProvider: AuthBindings = {
-  login: async ({ email, password }) => {
+  login: async (params) => {
+    const { email, password } = (params || {}) as Record<string, unknown>;
+    const emailStr = typeof email === 'string' ? email : '';
+    const passwordStr = typeof password === 'string' ? password : '';
+    
     const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password,
+      email: emailStr,
+      password: passwordStr,
     });
 
     if (error) {
@@ -17,7 +21,7 @@ export const authProvider: AuthBindings = {
 
     if (data?.session) {
       // Only allow admins - use app_metadata (not user_metadata which is client-writable)
-      const role = data.user?.app_metadata?.role;
+      const role = data.user?.app_metadata?.role as string | undefined;
       if (role !== 'admin') {
         await supabaseClient.auth.signOut();
         return {
@@ -63,7 +67,7 @@ export const authProvider: AuthBindings = {
         return { authenticated: false, redirectTo: '/login' };
       }
 
-      const role = session.user?.app_metadata?.role;
+      const role = session.user?.app_metadata?.role as string | undefined;
       if (role !== 'admin') {
         return { authenticated: false, redirectTo: '/login', logout: true };
       }
@@ -76,7 +80,7 @@ export const authProvider: AuthBindings = {
   getPermissions: async () => {
     const { data } = await supabaseClient.auth.getUser();
     if (data?.user) {
-      return data.user.app_metadata?.role;
+      return (data.user.app_metadata?.role as string | null | undefined) ?? null;
     }
     return null;
   },
@@ -90,10 +94,13 @@ export const authProvider: AuthBindings = {
     }
     return null;
   },
-  onError: async (error) => {
-    if (error?.status === 401) {
-      return { logout: true };
+  onError: (error) => {
+    const err = error as { status?: number } | null | undefined;
+    if (err?.status === 401) {
+      return Promise.resolve({ logout: true });
     }
-    return { error };
+    return Promise.resolve({
+      error: error instanceof Error ? error : new Error(String(error || 'Unknown error')),
+    });
   },
 };
