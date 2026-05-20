@@ -14,9 +14,12 @@ SELECT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin');
 In **v2**, we inject the user's role directly into the Supabase Auth JWT token during sign-up/login. Our RLS policies simply decode the token:
 
 ```sql
--- GOOD (v2): Zero database reads required
+-- GOOD (v2): Zero database reads required — app_metadata is admin-only (not client-writable)
 CREATE OR REPLACE FUNCTION get_my_role() RETURNS text AS $$
-  SELECT auth.jwt() -> 'user_metadata' ->> 'role';
+  SELECT COALESCE(
+    auth.jwt() -> 'app_metadata' ->> 'role',
+    'student'
+  );
 $$ LANGUAGE sql STABLE;
 ```
 

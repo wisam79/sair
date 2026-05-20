@@ -16,6 +16,7 @@ import { supabase } from '../src/lib/supabase';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../src/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../src/hooks/useTranslation';
+import * as Haptics from 'expo-haptics';
 
 export default function ActivateLicenseScreen() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export default function ActivateLicenseScreen() {
 
   const handleActivate = async () => {
     if (!code.trim() || code.trim().length !== 8) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       Alert.alert(t('error'), t('invalid_code_length'));
       return;
     }
@@ -37,11 +39,13 @@ export default function ActivateLicenseScreen() {
 
       if (error) throw error;
 
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert(t('success'), t('activation_success'), [
         { text: t('ok'), onPress: () => router.push('/') },
       ]);
-    } catch (err: any) {
-      Alert.alert(t('activation_failed'), err.message || t('invalid_code_error'));
+    } catch (err: unknown) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert(t('error'), err instanceof Error ? err.message : t('activation_failed'));
     } finally {
       setIsLoading(false);
     }
@@ -56,7 +60,13 @@ export default function ActivateLicenseScreen() {
 
       {/* Header */}
       <View style={[styles.header, isRTL && { flexDirection: 'row-reverse' }]}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.back();
+          }}
+        >
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('activate_subscription')}</Text>
@@ -86,7 +96,10 @@ export default function ActivateLicenseScreen() {
 
         <TouchableOpacity
           style={[styles.button, (!code || code.length < 8 || isLoading) && styles.buttonDisabled]}
-          onPress={handleActivate}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            handleActivate();
+          }}
           disabled={!code || code.length < 8 || isLoading}
           activeOpacity={0.8}
         >

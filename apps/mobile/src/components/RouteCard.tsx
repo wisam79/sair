@@ -1,93 +1,151 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { StyleSheet, Text, View, Animated, Pressable } from 'react-native';
 import { Route } from '@uniride/core';
 import { Colors, Spacing, BorderRadius, Shadow, FontFamily } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../hooks/useTranslation';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 
 interface RouteCardProps {
   item: Route;
+  isSubscribed?: boolean;
+  driverRating?: number;
 }
 
-export const RouteCard: React.FC<RouteCardProps> = ({ item }) => {
-  const { t, isRTL } = useTranslation();
-  const router = useRouter();
+export const RouteCard: React.FC<RouteCardProps> = React.memo(
+  ({ item, isSubscribed, driverRating }) => {
+    const { t, isRTL } = useTranslation();
+    const router = useRouter();
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(16)).current;
+    const scale = useRef(new Animated.Value(1)).current;
 
-  return (
-    <TouchableOpacity
-      style={[styles.card, isRTL && styles.cardRTL]}
-      onPress={() => router.push({ pathname: '/booking', params: { routeId: item.id } })}
-      activeOpacity={0.85}
-    >
-      {/* Orange accent bar */}
-      <View style={styles.cardAccent} />
+    useEffect(() => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 0, duration: 350, useNativeDriver: true }),
+      ]).start();
+    }, [fadeAnim, slideAnim]);
 
-      <View style={styles.cardContent}>
-        {/* Route Name */}
-        <Text style={[styles.routeName, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-          {item.title}
-        </Text>
+    const handlePressIn = () => {
+      Animated.spring(scale, {
+        toValue: 0.98,
+        useNativeDriver: true,
+        tension: 150,
+        friction: 12,
+      }).start();
+    };
 
-        {/* From → To */}
-        <View style={styles.routePath}>
-          <View style={[styles.routeStop, isRTL && { flexDirection: 'row-reverse' }]}>
-            <Ionicons name="radio-button-on" size={12} color={Colors.primary} />
-            <Text
-              style={[styles.routeStopText, { textAlign: isRTL ? 'right' : 'left' }]}
-              numberOfLines={1}
-            >
-              {item.start_location}
-            </Text>
-          </View>
-          <View style={[styles.routeLine, { alignSelf: isRTL ? 'flex-end' : 'flex-start', marginHorizontal: 5 }]} />
-          <View style={[styles.routeStop, isRTL && { flexDirection: 'row-reverse' }]}>
-            <Ionicons name="location" size={12} color={Colors.secondary} />
-            <Text
-              style={[styles.routeStopText, { textAlign: isRTL ? 'right' : 'left' }]}
-              numberOfLines={1}
-            >
-              {item.end_location}
-            </Text>
-          </View>
-        </View>
+    const handlePressOut = () => {
+      Animated.spring(scale, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 150,
+        friction: 12,
+      }).start();
+    };
 
-        {/* Schedule */}
-        <View style={[styles.scheduleRow, isRTL && { flexDirection: 'row-reverse' }]}>
-          {item.departure_time && (
-            <View style={[styles.timeBadge, isRTL && { flexDirection: 'row-reverse' }]}>
-              <Ionicons name="sunny-outline" size={14} color={Colors.warning} />
-              <Text style={styles.timeText}>
-                {t('departure')}: {item.departure_time.substring(0, 5)}
-              </Text>
+    const handlePress = () => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      router.push({ pathname: '/booking', params: { routeId: item.id } });
+    };
+
+    return (
+      <Animated.View
+        style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }, { scale }] }}
+      >
+        <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} onPress={handlePress}>
+          <View style={[styles.card, isRTL && styles.cardRTL]}>
+            {/* Orange accent bar */}
+            <View style={styles.cardAccent} />
+
+            <View style={styles.cardContent}>
+              {/* Header: Title + Badges */}
+              <View style={[styles.cardHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Text
+                  style={[styles.routeName, { textAlign: isRTL ? 'right' : 'left', flex: 1 }]}
+                  numberOfLines={1}
+                >
+                  {item.title}
+                </Text>
+                {isSubscribed && (
+                  <View style={styles.subscribedBadge}>
+                    <Ionicons name="checkmark-circle" size={12} color={Colors.white} />
+                    <Text style={styles.subscribedText}>{t('subscribed')}</Text>
+                  </View>
+                )}
+                {driverRating && (
+                  <View style={styles.ratingBadge}>
+                    <Ionicons name="star" size={12} color={Colors.warning} />
+                    <Text style={styles.ratingText}>{driverRating}</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* From → To Timeline Path */}
+              <View style={[styles.routePathContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={styles.timelineTrack}>
+                  <Ionicons name="radio-button-on" size={13} color={Colors.primary} />
+                  <View style={styles.verticalConnector} />
+                  <Ionicons name="location" size={13} color={Colors.secondary} />
+                </View>
+                <View style={styles.routeDetails}>
+                  <Text
+                    style={[styles.routeStopText, { textAlign: isRTL ? 'right' : 'left' }]}
+                    numberOfLines={1}
+                  >
+                    {item.start_location}
+                  </Text>
+                  <View style={{ height: Spacing.xs }} />
+                  <Text
+                    style={[styles.routeStopText, { textAlign: isRTL ? 'right' : 'left' }]}
+                    numberOfLines={1}
+                  >
+                    {item.end_location}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Schedule */}
+              <View style={[styles.scheduleRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                {item.departure_time && (
+                  <View style={[styles.timeBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+                    <Ionicons name="sunny-outline" size={14} color={Colors.warning} />
+                    <Text style={styles.timeText}>
+                      {t('departure')}: {item.departure_time.substring(0, 5)}
+                    </Text>
+                  </View>
+                )}
+                {item.return_time && (
+                  <View style={[styles.timeBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+                    <Ionicons name="moon-outline" size={14} color={Colors.secondary} />
+                    <Text style={styles.timeText}>
+                      {t('return')}: {item.return_time.substring(0, 5)}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Footer */}
+              <View style={[styles.cardFooter, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={[styles.seatBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <Ionicons name="people-outline" size={13} color={Colors.primary} />
+                  <Text style={styles.seatText}>
+                    {item.available_seats} {t('seat')}
+                  </Text>
+                </View>
+                <Text style={styles.price}>
+                  {item.price.toLocaleString()} {t('currency')}
+                </Text>
+              </View>
             </View>
-          )}
-          {item.return_time && (
-            <View style={[styles.timeBadge, isRTL && { flexDirection: 'row-reverse' }]}>
-              <Ionicons name="moon-outline" size={14} color={Colors.secondary} />
-              <Text style={styles.timeText}>
-                {t('return')}: {item.return_time.substring(0, 5)}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Footer */}
-        <View style={[styles.cardFooter, isRTL && { flexDirection: 'row-reverse' }]}>
-          <View style={[styles.seatBadge, isRTL && { flexDirection: 'row-reverse' }]}>
-            <Ionicons name="people-outline" size={13} color={Colors.primary} />
-            <Text style={styles.seatText}>
-              {item.available_seats} {t('seat')}
-            </Text>
           </View>
-          <Text style={styles.price}>
-            {item.price.toLocaleString()} {t('currency')}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
+        </Pressable>
+      </Animated.View>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   card: {
@@ -96,6 +154,8 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
     flexDirection: 'row',
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E6E3DE',
     ...Shadow.md,
   },
   cardRTL: {
@@ -111,29 +171,73 @@ const styles = StyleSheet.create({
   },
   routeName: {
     fontFamily: FontFamily.bold,
-    fontSize: 15,
+    fontSize: 16,
     color: Colors.text,
-    marginBottom: Spacing.sm,
   },
-  routePath: {
-    marginBottom: Spacing.sm,
-    gap: Spacing.xs,
-  },
-  routeStop: {
+  cardHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  subscribedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.sm,
+    gap: 2,
+  },
+  subscribedText: {
+    color: Colors.white,
+    fontFamily: FontFamily.bold,
+    fontSize: 10,
+  },
+  ratingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.warningSurface,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.sm,
+    gap: 2,
+    borderWidth: 1,
+    borderColor: Colors.warning + '30',
+  },
+  ratingText: {
+    color: Colors.warning,
+    fontFamily: FontFamily.bold,
+    fontSize: 10,
+  },
+  routePathContainer: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    marginVertical: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  timelineTrack: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 2,
+    width: 16,
+  },
+  verticalConnector: {
+    width: 1.5,
+    flex: 1,
+    backgroundColor: Colors.border,
+    marginVertical: 2,
+  },
+  routeDetails: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingVertical: 1,
   },
   routeStopText: {
     fontFamily: FontFamily.regular,
     fontSize: 13,
     color: Colors.textSecondary,
     flex: 1,
-  },
-  routeLine: {
-    width: 1.5,
-    height: 10,
-    backgroundColor: Colors.border,
   },
   scheduleRow: {
     flexDirection: 'row',
@@ -145,7 +249,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceMuted,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,

@@ -1,83 +1,76 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { dataProvider as supabaseDataProvider } from '@refinedev/supabase';
 import { supabaseClient } from './supabaseClient';
+import type { DataProvider, HttpError } from '@refinedev/core';
 
-// ─── snake_case ↔ camelCase helpers ───────────────────────────────────────────
+const baseDataProvider = supabaseDataProvider(supabaseClient);
 
-function toCamelCase(str: string): string {
-  return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-}
-
-function toSnakeCase(str: string): string {
-  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
-}
-
-function transformKeys(obj: unknown, transform: (key: string) => string): unknown {
-  if (Array.isArray(obj)) {
-    return obj.map((item) => transformKeys(item, transform));
+function sanitizeError(err: unknown): HttpError | Error {
+  if (err instanceof Error) {
+    return err;
   }
-  if (obj !== null && typeof obj === 'object') {
-    return Object.keys(obj as Record<string, unknown>).reduce(
-      (acc, key) => {
-        acc[transform(key)] = transformKeys((obj as Record<string, unknown>)[key], transform);
-        return acc;
-      },
-      {} as Record<string, unknown>,
-    );
+  if (typeof err === 'object' && err !== null) {
+    const objErr = err as { message?: string; details?: string; status?: number };
+    return {
+      message: objErr.message || objErr.details || 'An unknown network error occurred',
+      statusCode: objErr.status || 500,
+    };
   }
-  return obj;
+  return new Error(String(err));
 }
 
-const snakeToCamel = (obj: unknown) => transformKeys(obj, toCamelCase);
-const camelToSnake = (obj: unknown) => transformKeys(obj, toSnakeCase);
-
-// ─── Wrapped dataProvider ──────────────────────────────────────────────────────
-
-const base = supabaseDataProvider(supabaseClient);
-
-export const dataProvider: typeof base = {
-  ...base,
-
+export const dataProvider: DataProvider = {
+  ...baseDataProvider,
   getList: async (params) => {
-    const result = await base.getList(params);
-    return { ...result, data: snakeToCamel(result.data) as any };
+    try {
+      return await baseDataProvider.getList(params);
+    } catch (error) {
+      throw sanitizeError(error);
+    }
   },
-
-  getMany: base.getMany
+  getOne: async (params) => {
+    try {
+      return await baseDataProvider.getOne(params);
+    } catch (error) {
+      throw sanitizeError(error);
+    }
+  },
+  getMany: baseDataProvider.getMany
     ? async (params) => {
-        const result = await base.getMany!(params);
-        return { ...result, data: snakeToCamel(result.data) as any };
+        try {
+          return await baseDataProvider.getMany!(params);
+        } catch (error) {
+          throw sanitizeError(error);
+        }
       }
     : undefined,
-
-  getOne: async (params) => {
-    const result = await base.getOne(params);
-    return { ...result, data: snakeToCamel(result.data) as any };
-  },
-
   create: async (params) => {
-    const snakeVariables = camelToSnake(params.variables);
-    const result = await base.create({ ...params, variables: snakeVariables });
-    return { ...result, data: snakeToCamel(result.data) as any };
+    try {
+      return await baseDataProvider.create(params);
+    } catch (error) {
+      throw sanitizeError(error);
+    }
   },
-
   update: async (params) => {
-    const snakeVariables = camelToSnake(params.variables);
-    const result = await base.update({ ...params, variables: snakeVariables });
-    return { ...result, data: snakeToCamel(result.data) as any };
+    try {
+      return await baseDataProvider.update(params);
+    } catch (error) {
+      throw sanitizeError(error);
+    }
   },
-
   deleteOne: async (params) => {
-    const result = await base.deleteOne(params);
-    return { ...result, data: snakeToCamel(result.data) as any };
+    try {
+      return await baseDataProvider.deleteOne(params);
+    } catch (error) {
+      throw sanitizeError(error);
+    }
   },
-
-  getApiUrl: () => base.getApiUrl(),
-
-  custom: base.custom
+  custom: baseDataProvider.custom
     ? async (params) => {
-        const result = await base.custom!(params);
-        return { ...result, data: snakeToCamel(result.data) as any };
+        try {
+          return await baseDataProvider.custom!(params);
+        } catch (error) {
+          throw sanitizeError(error);
+        }
       }
     : undefined,
 };

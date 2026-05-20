@@ -32,7 +32,7 @@
 | **Admin**   | Next.js + React + MUI + Refine    | Next.js 16.2.6, React 19        |
 | **Mobile**  | Expo + React Native + Expo Router | Expo 54, RN 0.81.5              |
 | **Core**    | Zod schemas, i18n                 | TypeScript 5.4.5                |
-| **DB**      | Drizzle ORM + Supabase PostgreSQL | -                               |
+| **DB**      | Supabase PostgreSQL (Production)  | -                               |
 | **Testing** | Vitest (unit) + Playwright (E2E)  | Vitest 1.6.0, Playwright 1.59.1 |
 
 ### 1.3 أدوار المستخدمين
@@ -46,18 +46,25 @@
 ### 1.4 حالات الرحلة (Trip State Machine)
 
 ```
-scheduled ──────► driver_waiting ──────► in_transit ──────► completed
-    │                   │                     │
-    ▼                   ▼                     ▼
-cancelled           cancelled             absent
+       scheduled ────────► driver_waiting ────────► in_transit ────────► completed
+         │                      │                       │
+         ├──────────────────────┼───────────────────────┼──────────────► cancelled
+         │                      │
+         ▼                      ▼
+       absent                 absent
+         │
+         ▼
+     cancelled
 ```
 
 الانتقالات المسموحة:
 
-- `scheduled` → `driver_waiting`, `cancelled`
-- `driver_waiting` → `in_transit`, `cancelled`
-- `in_transit` → `completed`, `absent`
-- `completed`, `absent`, `cancelled` → (نهاية، لا انتقالات)
+- `scheduled` → `driver_waiting`, `absent`, `cancelled`
+- `driver_waiting` → `in_transit`, `absent`, `cancelled`
+- `in_transit` → `completed`, `cancelled` (يسمح بإلغاء الرحلة أثناء السير لحالات الطوارئ)
+- `absent` → `cancelled`
+- `completed`, `cancelled` → (حالة نهائية، لا توجد انتقالات إضافية)
+- **ملاحظة:** يمنع منعاً باتاً الانتقال المباشر من `in_transit` إلى `absent`.
 
 ---
 
@@ -84,12 +91,8 @@ uniride/
 │       │   └── stores/         # Zustand stores
 │       └── ...
 ├── packages/
-│   ├── core/                    # schemas, i18n, theme
-│   │   └── index.ts            # UserRole, TripStatus, Translations...
-│   └── db/                     # Drizzle ORM schema + seed
-│       ├── schema/             # جداول قاعدة البيانات
-│       ├── migrations/        # Drizzle snapshots
-│       └── drizzle.config.ts
+│   └── core/                    # schemas, i18n, theme
+│       └── index.ts            # UserRole, TripStatus, Translations...
 ├── supabase/
 │   ├── functions/             # Edge Functions (Deno)
 │   │   ├── trip-engine/       # تحديث حالة الرحلة + GPS
@@ -138,14 +141,12 @@ uniride/
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 2.3 الفرق بين Drizzle و Supabase Migrations
+### 2.3 مصدر الحقيقة لقاعدة البيانات (Supabase Migrations)
 
-| النظام                  | الغرض                          | المصدر؟                   |
-| ----------------------- | ------------------------------ | ------------------------- |
-| **Drizzle Kit**         | توليد Typescript types محلي    | تطوير فقط                 |
-| **Supabase Migrations** | التطبيق الحقيقي على production | **المصدر الوحيد للحقيقة** |
+تمت إزالة `packages/db` و Drizzle ORM بالكامل من المشروع لتبسيط البنية البرمجية ومنع تشتت منطق البيانات.
 
-> **مهم:** لا يتم رفع migraitons Drizzle إلى production. فقط `supabase/migrations/*.sql` هي التي تُنشر.
+- **Supabase Migrations هي المصدر الوحيد للحقيقة:** تتم إدارة وتعديل هيكل قاعدة البيانات بالكامل عبر ملفات SQL في مجلد `supabase/migrations/` بالنمط `YYYYMMDDNN_description.sql`.
+- يتم دفع التغييرات للإنتاج باستخدام الأمر `supabase db push`.
 
 ---
 
@@ -273,11 +274,13 @@ auth.users
 
 ### 3.4 الـ Triggers
 
-| Trigger                  | الجدول          | الوظيفة                                         |
-| ------------------------ | --------------- | ----------------------------------------------- |
-| `set_trips_updated_at`   | `trips`         | تحديث `updated_at` تلقائياً عند أي تغيير        |
-| `on_subscription_cancel` | `subscriptions` | إعادة المقاعد المتاحة للخط عند الإلغاء/الانتهاء |
-| `on_profile_update`      | `profiles`      | مزامنة الاسم إلى auth metadata                  |
+| Trigger                  | الجدول          | الوظيفة                                                                                     |
+| ------------------------ | --------------- | ------------------------------------------------------------------------------------------- |
+| `set_trips_updated_at`   | `trips`         | تحديث `updated_at` تلقائياً عند أي تغيير                                                    |
+| `on_subscription_cancel` | `subscriptions` | إعادة المقاعد المتاحة للخط عند الإلغاء/الانتهاء                                             |
+| `on_profile_update`      | `profiles`      | مزامنة الاسم إلى auth metadata                                                              |
+| `on_driver_created`      | `drivers`       | ترقية دور المستخدم تلقائياً إلى `driver` في `profiles` و `app_metadata` عند إضافة سجل سائق. |
+| `on_driver_deleted`      | `drivers`       | إعادة دور المستخدم إلى `student` تلقائياً عند حذف سجل السائق للحفاظ على تناسق الصلاحيات.    |
 
 ### 3.5 الفهارس (Indexes)
 

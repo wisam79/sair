@@ -1,9 +1,10 @@
 'use client';
 
-import { useDataGrid, List, EditButton, ShowButton } from '@refinedev/mui';
+import { useDataGrid, List, ShowButton } from '@refinedev/mui';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import React from 'react';
 import { Stack, Chip } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 const ROLE_COLORS: Record<
   string,
@@ -15,6 +16,7 @@ const ROLE_COLORS: Record<
 };
 
 export default function ProfileList() {
+  const { t } = useTranslation();
   const { dataGridProps } = useDataGrid({
     resource: 'profiles',
   });
@@ -23,28 +25,28 @@ export default function ProfileList() {
     () => [
       {
         field: 'id',
-        headerName: 'ID',
+        headerName: t('common.id', 'ID'),
         type: 'string',
         minWidth: 100,
         flex: 1,
       },
       {
         field: 'full_name',
-        headerName: 'Full Name',
+        headerName: t('profiles.fields.fullName', 'Full Name'),
         type: 'string',
         minWidth: 180,
         flex: 1,
       },
       {
         field: 'phone',
-        headerName: 'Phone',
+        headerName: t('profiles.fields.phone', 'Phone'),
         type: 'string',
         minWidth: 150,
         flex: 1,
       },
       {
         field: 'role',
-        headerName: 'Role',
+        headerName: t('profiles.fields.role', 'Role'),
         type: 'string',
         minWidth: 120,
         flex: 0.5,
@@ -54,7 +56,7 @@ export default function ProfileList() {
       },
       {
         field: 'created_at',
-        headerName: 'Joined',
+        headerName: t('profiles.fields.joined', 'Joined'),
         minWidth: 180,
         flex: 1,
         renderCell: function render({ value }) {
@@ -63,7 +65,7 @@ export default function ProfileList() {
       },
       {
         field: 'actions',
-        headerName: 'Actions',
+        headerName: t('actions.actions', 'Actions'),
         sortable: false,
         renderCell: function render({ row }) {
           return (
@@ -83,11 +85,11 @@ export default function ProfileList() {
         minWidth: 80,
       },
     ],
-    [],
+    [t],
   );
 
   return (
-    <List>
+    <List breadcrumb={null}>
       <DataGrid {...dataGridProps} columns={columns} autoHeight />
     </List>
   );

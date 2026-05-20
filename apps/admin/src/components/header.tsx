@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useGetIdentity } from '@refinedev/core';
-import { AppBar, Avatar, Box, IconButton, Stack, Toolbar, Typography } from '@mui/material';
+import { AppBar, Avatar, IconButton, Stack, Toolbar, Typography } from '@mui/material';
 import { HamburgerMenu } from '@refinedev/mui';
 import TranslateIcon from '@mui/icons-material/Translate';
 import { useTranslation } from 'react-i18next';
@@ -17,7 +17,7 @@ export const Header: React.FC = () => {
 
   const toggleLanguage = () => {
     const nextLang = i18n.language === 'ar' ? 'en' : 'ar';
-    i18n.changeLanguage(nextLang);
+    void i18n.changeLanguage(nextLang);
     document.documentElement.lang = nextLang;
     document.documentElement.dir = nextLang === 'ar' ? 'rtl' : 'ltr';
   };

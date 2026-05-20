@@ -144,7 +144,8 @@ describe('Trip status transitions (core integration)', () => {
     expect(canTransition('scheduled', 'driver_waiting')).toBe(true);
     expect(canTransition('driver_waiting', 'in_transit')).toBe(true);
     expect(canTransition('in_transit', 'completed')).toBe(true);
-    expect(canTransition('in_transit', 'absent')).toBe(true);
+    expect(canTransition('in_transit', 'cancelled')).toBe(true);
+    expect(canTransition('in_transit', 'absent')).toBe(false);
 
     // These should be blocked
     expect(canTransition('completed', 'scheduled')).toBe(false);

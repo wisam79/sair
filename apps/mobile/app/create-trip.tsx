@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -38,7 +38,8 @@ export default function CreateTripScreen() {
           .select('id')
           .eq('user_id', user.id)
           .single();
-        if (driverError || !driverData) throw driverError || new Error('Driver profile not found');
+        if (driverError || !driverData)
+          throw driverError || new Error(t('driver_profile_not_found'));
 
         // Fetch routes assigned to this driver
         const { data, error } = await supabase
@@ -49,8 +50,8 @@ export default function CreateTripScreen() {
 
         if (error) throw error;
         setRoutes((data as Route[]) || []);
-      } catch (err: any) {
-        Alert.alert(t('error'), err.message);
+      } catch (err: unknown) {
+        Alert.alert(t('error'), err instanceof Error ? err.message : t('unknown_error'));
       } finally {
         setIsLoading(false);
       }
@@ -76,8 +77,8 @@ export default function CreateTripScreen() {
       Alert.alert(t('success'), t('trip_opened_success'), [
         { text: t('ok'), onPress: () => router.back() },
       ]);
-    } catch (err: any) {
-      Alert.alert(t('trip_creation_error'), err.message || t('try_again'));
+    } catch (err: unknown) {
+      Alert.alert(t('trip_creation_error'), err instanceof Error ? err.message : t('try_again'));
     } finally {
       setIsSubmitting(false);
     }
@@ -90,6 +91,67 @@ export default function CreateTripScreen() {
       </View>
     );
   }
+
+  const renderRouteItem = useCallback(
+    ({ item }: { item: Route }) => {
+      const isSelected = selectedRouteId === item.id;
+      return (
+        <TouchableOpacity
+          style={[styles.routeCard, isSelected && styles.routeCardSelected]}
+          onPress={() => setSelectedRouteId(item.id)}
+          activeOpacity={0.8}
+        >
+          <View style={[styles.routeHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+            <Ionicons
+              name={isSelected ? 'radio-button-on' : 'radio-button-off'}
+              size={24}
+              color={isSelected ? Colors.primary : Colors.border}
+            />
+            <Text
+              style={[
+                styles.routeTitle,
+                isSelected && styles.routeTitleSelected,
+                { textAlign: isRTL ? 'right' : 'left' },
+              ]}
+            >
+              {item.title}
+            </Text>
+          </View>
+
+          <View
+            style={[
+              styles.routeDetails,
+              isRTL && { flexDirection: 'row-reverse', justifyContent: 'flex-end' },
+            ]}
+          >
+            <View style={[styles.detailItem, isRTL && { flexDirection: 'row-reverse' }]}>
+              <Ionicons name="people-outline" size={16} color={Colors.textSecondary} />
+              <Text style={styles.detailText}>
+                {item.capacity} {t(item.capacity === 1 ? 'passenger' : 'passengers')}
+              </Text>
+            </View>
+            <View style={[styles.detailItem, isRTL && { flexDirection: 'row-reverse' }]}>
+              <Ionicons name="cash-outline" size={16} color={Colors.textSecondary} />
+              <Text style={styles.detailText}>
+                {item.price} {t('currency')}
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      );
+    },
+    [selectedRouteId, isRTL, t],
+  );
+
+  const ListEmpty = useCallback(
+    () => (
+      <View style={styles.emptyContainer}>
+        <Ionicons name="bus-outline" size={48} color={Colors.border} />
+        <Text style={styles.emptyText}>{t('no_routes_assigned')}</Text>
+      </View>
+    ),
+    [t],
+  );
 
   return (
     <View style={styles.container}>
@@ -112,54 +174,8 @@ export default function CreateTripScreen() {
         data={routes}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => {
-          const isSelected = selectedRouteId === item.id;
-          return (
-            <TouchableOpacity
-              style={[styles.routeCard, isSelected && styles.routeCardSelected]}
-              onPress={() => setSelectedRouteId(item.id)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.routeHeader, isRTL && { flexDirection: 'row-reverse' }]}>
-                <Ionicons
-                  name={isSelected ? 'radio-button-on' : 'radio-button-off'}
-                  size={24}
-                  color={isSelected ? Colors.primary : Colors.border}
-                />
-                <Text
-                  style={[
-                    styles.routeTitle,
-                    isSelected && styles.routeTitleSelected,
-                    { textAlign: isRTL ? 'right' : 'left' },
-                  ]}
-                >
-                  {item.title}
-                </Text>
-              </View>
-
-              <View style={[styles.routeDetails, isRTL && { flexDirection: 'row-reverse' }]}>
-                <View style={[styles.detailItem, isRTL && { flexDirection: 'row-reverse' }]}>
-                  <Ionicons name="people-outline" size={16} color={Colors.textSecondary} />
-                  <Text style={styles.detailText}>
-                    {item.capacity} {t('passengers')}
-                  </Text>
-                </View>
-                <View style={[styles.detailItem, isRTL && { flexDirection: 'row-reverse' }]}>
-                  <Ionicons name="cash-outline" size={16} color={Colors.textSecondary} />
-                  <Text style={styles.detailText}>
-                    {item.price} {t('currency')}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          );
-        }}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="bus-outline" size={48} color={Colors.border} />
-            <Text style={styles.emptyText}>{t('no_routes_assigned')}</Text>
-          </View>
-        }
+        renderItem={renderRouteItem}
+        ListEmptyComponent={ListEmpty}
       />
 
       {/* Footer */}

@@ -3,8 +3,10 @@
 import { Show, TextFieldComponent as TextField } from '@refinedev/mui';
 import { Typography, Stack } from '@mui/material';
 import { useShow, useOne } from '@refinedev/core';
+import { useTranslation } from 'react-i18next';
 
 export default function RouteShow() {
+  const { t } = useTranslation();
   const { queryResult } = useShow();
   const { data, isLoading } = queryResult;
 
@@ -12,63 +14,63 @@ export default function RouteShow() {
 
   const { data: driverData, isLoading: driverIsLoading } = useOne({
     resource: 'drivers',
-    id: record?.driverId || '',
+    id: record?.driver_id || '',
     queryOptions: {
       enabled: !!record,
     },
   });
 
   return (
-    <Show isLoading={isLoading}>
+    <Show isLoading={isLoading} title={t('routes.titles.show', 'Route Details')}>
       <Stack gap={1}>
         <Typography variant="body1" fontWeight="bold">
-          ID
+          {t('common.id', 'ID')}
         </Typography>
         <TextField value={record?.id} />
 
         <Typography variant="body1" fontWeight="bold">
-          Title
+          {t('routes.fields.title', 'Title')}
         </Typography>
         <TextField value={record?.title} />
 
         <Typography variant="body1" fontWeight="bold">
-          Driver
+          {t('routes.fields.driver', 'Driver')}
         </Typography>
         {driverIsLoading ? (
-          <>Loading...</>
+          <Typography variant="body2">{t('common.loading', 'Loading...')}</Typography>
         ) : (
-          <TextField value={driverData?.data?.licenseNumber || record?.driverId} />
+          <TextField value={driverData?.data?.license_number || record?.driver_id} />
         )}
 
         <Typography variant="body1" fontWeight="bold">
-          Start Location
+          {t('routes.fields.startLocation', 'Start Location')}
         </Typography>
-        <TextField value={record?.startLocation} />
+        <TextField value={record?.start_location} />
 
         <Typography variant="body1" fontWeight="bold">
-          End Location
+          {t('routes.fields.endLocation', 'End Location')}
         </Typography>
-        <TextField value={record?.endLocation} />
+        <TextField value={record?.end_location} />
 
         <Typography variant="body1" fontWeight="bold">
-          Price
+          {t('routes.fields.price', 'Price')}
         </Typography>
         <TextField value={record?.price} />
 
         <Typography variant="body1" fontWeight="bold">
-          Capacity
+          {t('routes.fields.capacity', 'Capacity')}
         </Typography>
         <TextField value={record?.capacity} />
 
         <Typography variant="body1" fontWeight="bold">
-          Available Seats
+          {t('routes.fields.availableSeats', 'Available Seats')}
         </Typography>
-        <TextField value={record?.availableSeats} />
+        <TextField value={record?.available_seats} />
 
         <Typography variant="body1" fontWeight="bold">
-          Is Active
+          {t('routes.fields.active', 'Active')}
         </Typography>
-        <TextField value={record?.isActive ? 'Yes' : 'No'} />
+        <TextField value={record?.is_active ? t('common.yes', 'Yes') : t('common.no', 'No')} />
       </Stack>
     </Show>
   );

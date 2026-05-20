@@ -50,20 +50,28 @@ export const authProvider: AuthBindings = {
     return { success: true, redirectTo: '/login' };
   },
   check: async () => {
-    const { data } = await supabaseClient.auth.getSession();
-    const { session } = data;
+    try {
+      const { data, error } = await supabaseClient.auth.getSession();
 
-    if (!session) {
+      if (error) {
+        return { authenticated: false, redirectTo: '/login' };
+      }
+
+      const { session } = data;
+
+      if (!session) {
+        return { authenticated: false, redirectTo: '/login' };
+      }
+
+      const role = session.user?.app_metadata?.role;
+      if (role !== 'admin') {
+        return { authenticated: false, redirectTo: '/login', logout: true };
+      }
+
+      return { authenticated: true };
+    } catch {
       return { authenticated: false, redirectTo: '/login' };
     }
-
-    // Check if user is admin - use app_metadata for security
-    const role = session.user?.app_metadata?.role;
-    if (role !== 'admin') {
-      return { authenticated: false, redirectTo: '/login', logout: true };
-    }
-
-    return { authenticated: true };
   },
   getPermissions: async () => {
     const { data } = await supabaseClient.auth.getUser();

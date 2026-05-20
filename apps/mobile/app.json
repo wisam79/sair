@@ -41,6 +41,6 @@
     "updates": {
       "url": "https://u.expo.dev/28fa1803-2b1d-4c78-b4af-9b0fd8cce561"
     },
-    "plugins": ["expo-font"]
+    "plugins": ["expo-font", "expo-secure-store"]
   }
 }

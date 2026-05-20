@@ -13,6 +13,7 @@ import {
   Chip,
 } from '@mui/material';
 import { DirectionsBus, People, AttachMoney, Star, TrendingUp, Cancel } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 interface AnalyticsSummary {
   total_trips: number;
@@ -69,6 +70,7 @@ function KpiCard({ icon, label, value, color = '#1976d2' }: KpiCardProps) {
 }
 
 export default function AnalyticsPage() {
+  const { t } = useTranslation();
   const [data, setData] = useState<AnalyticsSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,13 +82,17 @@ export default function AnalyticsPage() {
         if (rpcError) throw rpcError;
         setData(result as AnalyticsSummary);
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Failed to load analytics');
+        setError(
+          err instanceof Error
+            ? err.message
+            : t('analytics.loadFailed', 'Failed to load analytics'),
+        );
       } finally {
         setIsLoading(false);
       }
     }
-    fetchAnalytics();
-  }, []);
+    void fetchAnalytics();
+  }, [t]);
 
   if (isLoading) {
     return (
@@ -115,7 +121,7 @@ export default function AnalyticsPage() {
   return (
     <Box p={3}>
       <Typography variant="h4" fontWeight="bold" gutterBottom>
-        Analytics — Last 30 Days
+        {t('analytics.title', 'Analytics — Last 30 Days')}
       </Typography>
 
       {/* KPI Row */}
@@ -123,7 +129,7 @@ export default function AnalyticsPage() {
         <Grid item xs={12} sm={6} md={3}>
           <KpiCard
             icon={<DirectionsBus />}
-            label="Total Trips"
+            label={t('dashboard.stats.total_trips', 'Total Trips')}
             value={data.total_trips}
             color="#1976d2"
           />
@@ -131,7 +137,7 @@ export default function AnalyticsPage() {
         <Grid item xs={12} sm={6} md={3}>
           <KpiCard
             icon={<People />}
-            label="Active Students"
+            label={t('revenue.activeStudents', 'Active Students')}
             value={data.active_students}
             color="#2e7d32"
           />
@@ -139,7 +145,7 @@ export default function AnalyticsPage() {
         <Grid item xs={12} sm={6} md={3}>
           <KpiCard
             icon={<AttachMoney />}
-            label="Revenue (IQD)"
+            label={t('revenue.revenueIqd', 'Revenue (IQD)')}
             value={data.total_revenue.toLocaleString()}
             color="#ed6c02"
           />
@@ -147,8 +153,8 @@ export default function AnalyticsPage() {
         <Grid item xs={12} sm={6} md={3}>
           <KpiCard
             icon={<Star />}
-            label="Avg Rating"
-            value={data.avg_rating ? `${data.avg_rating} / 5` : 'N/A'}
+            label={t('revenue.avgRating', 'Avg Rating')}
+            value={data.avg_rating ? `${data.avg_rating} / 5` : t('common.na', 'N/A')}
             color="#9c27b0"
           />
         </Grid>
@@ -161,27 +167,33 @@ export default function AnalyticsPage() {
           <Card elevation={2}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Trip Outcomes
+                {t('analytics.tripOutcomes', 'Trip Outcomes')}
               </Typography>
               <Box display="flex" flexDirection="column" gap={2} mt={1}>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                   <Box display="flex" alignItems="center" gap={1}>
                     <TrendingUp color="success" />
-                    <Typography variant="body2">Completion Rate</Typography>
+                    <Typography variant="body2">
+                      {t('analytics.completionRate', 'Completion Rate')}
+                    </Typography>
                   </Box>
                   <Chip label={`${completionRate}%`} color="success" size="small" />
                 </Box>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                   <Box display="flex" alignItems="center" gap={1}>
                     <Cancel color="error" />
-                    <Typography variant="body2">Cancellation Rate</Typography>
+                    <Typography variant="body2">
+                      {t('analytics.cancellationRate', 'Cancellation Rate')}
+                    </Typography>
                   </Box>
                   <Chip label={`${cancellationRate}%`} color="error" size="small" />
                 </Box>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                   <Box display="flex" alignItems="center" gap={1}>
                     <DirectionsBus color="primary" />
-                    <Typography variant="body2">Active Drivers</Typography>
+                    <Typography variant="body2">
+                      {t('dashboard.stats.active_drivers', 'Active Drivers')}
+                    </Typography>
                   </Box>
                   <Chip label={data.active_drivers} color="primary" size="small" />
                 </Box>
@@ -195,7 +207,7 @@ export default function AnalyticsPage() {
           <Card elevation={2}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Trips by Status
+                {t('analytics.tripsByStatus', 'Trips by Status')}
               </Typography>
               {data.trips_by_status &&
                 Object.entries(data.trips_by_status).map(([status, count]) => (
@@ -224,7 +236,7 @@ export default function AnalyticsPage() {
           <Card elevation={2}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Top Routes
+                {t('analytics.topRoutes', 'Top Routes')}
               </Typography>
               {data.top_routes?.slice(0, 7).map((route, index) => (
                 <Box
@@ -246,7 +258,11 @@ export default function AnalyticsPage() {
                   >
                     {route.title}
                   </Typography>
-                  <Chip label={`${route.subscriptions} subs`} size="small" variant="outlined" />
+                  <Chip
+                    label={`${route.subscriptions} ${t('analytics.subsCount', 'subs')}`}
+                    size="small"
+                    variant="outlined"
+                  />
                 </Box>
               ))}
             </CardContent>

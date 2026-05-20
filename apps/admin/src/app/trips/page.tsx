@@ -1,10 +1,11 @@
 'use client';
 
 import { useMany } from '@refinedev/core';
-import { List, useDataGrid, DateField, EditButton, ShowButton } from '@refinedev/mui';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { List, useDataGrid } from '@refinedev/mui';
+import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import React from 'react';
-import { Stack, Chip } from '@mui/material';
+import { Chip } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 const STATUS_COLORS: Record<
   string,
@@ -19,13 +20,16 @@ const STATUS_COLORS: Record<
 };
 
 export default function TripList() {
+  const { t } = useTranslation();
   const { dataGridProps } = useDataGrid({
     resource: 'trips',
   });
 
   const { data: routeData, isLoading: routeIsLoading } = useMany({
     resource: 'routes',
-    ids: dataGridProps?.rows?.map((item: any) => item?.route_id).filter(Boolean) ?? [],
+    ids:
+      dataGridProps?.rows?.map((item: { route_id?: string }) => item?.route_id).filter(Boolean) ??
+      [],
     queryOptions: {
       enabled: !!dataGridProps?.rows,
     },
@@ -35,26 +39,26 @@ export default function TripList() {
     () => [
       {
         field: 'id',
-        headerName: 'ID',
+        headerName: t('common.id', 'ID'),
         type: 'string',
         minWidth: 100,
         flex: 1,
       },
       {
         field: 'route_id',
-        headerName: 'Route',
+        headerName: t('trips.fields.route', 'Route'),
         type: 'string',
         minWidth: 200,
         flex: 1,
         renderCell: function render({ value }) {
-          if (routeIsLoading) return <>Loading...</>;
+          if (routeIsLoading) return <>{t('common.loading', 'Loading...')}</>;
           const route = routeData?.data?.find((item) => item.id === value);
           return route ? route.title : value;
         },
       },
       {
         field: 'status',
-        headerName: 'Status',
+        headerName: t('trips.fields.status', 'Status'),
         type: 'string',
         minWidth: 150,
         flex: 1,
@@ -70,7 +74,7 @@ export default function TripList() {
       },
       {
         field: 'scheduled_at',
-        headerName: 'Scheduled',
+        headerName: t('trips.fields.scheduled', 'Scheduled'),
         minWidth: 180,
         flex: 1,
         renderCell: function render({ value }) {
@@ -79,7 +83,7 @@ export default function TripList() {
       },
       {
         field: 'started_at',
-        headerName: 'Started',
+        headerName: t('trips.fields.started', 'Started'),
         minWidth: 180,
         flex: 1,
         renderCell: function render({ value }) {
@@ -88,7 +92,7 @@ export default function TripList() {
       },
       {
         field: 'ended_at',
-        headerName: 'Ended',
+        headerName: t('trips.fields.ended', 'Ended'),
         minWidth: 180,
         flex: 1,
         renderCell: function render({ value }) {
@@ -97,7 +101,7 @@ export default function TripList() {
       },
       {
         field: 'last_lat',
-        headerName: 'Lat',
+        headerName: t('trips.fields.lat', 'Lat'),
         type: 'string',
         minWidth: 100,
         flex: 0.5,
@@ -107,7 +111,7 @@ export default function TripList() {
       },
       {
         field: 'last_lng',
-        headerName: 'Lng',
+        headerName: t('trips.fields.lng', 'Lng'),
         type: 'string',
         minWidth: 100,
         flex: 0.5,
@@ -116,12 +120,24 @@ export default function TripList() {
         },
       },
     ],
-    [routeData?.data, routeIsLoading],
+    [routeData?.data, routeIsLoading, t],
   );
 
   return (
-    <List>
-      <DataGrid {...dataGridProps} columns={columns} autoHeight />
+    <List breadcrumb={null}>
+      <DataGrid
+        {...dataGridProps}
+        columns={columns}
+        autoHeight
+        density="comfortable"
+        slots={{ toolbar: GridToolbar }}
+        slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
+        sx={{
+          border: 'none',
+          '& .MuiDataGrid-cell:focus': { outline: 'none' },
+          '& .MuiDataGrid-cell:focus-within': { outline: 'none' },
+        }}
+      />
     </List>
   );
 }

@@ -1,9 +1,6 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { Authenticated, useLogout } from '@refinedev/core';
-import { Box, Card, CardContent, Typography, Grid, CircularProgress } from '@mui/material';
-import { supabaseClient } from '../providers/supabaseClient';
+import { createClient } from '../providers/supabase';
+import DashboardClient from '../components/DashboardClient';
+import { Box, Typography } from '@mui/material';
 
 interface DashboardStats {
   total_users: number;
@@ -17,119 +14,62 @@ interface DashboardStats {
   monthly_revenue: number;
 }
 
-function StatCard({
-  title,
-  value,
-  color,
-}: {
-  title: string;
-  value: string | number;
-  color: string;
-}) {
-  return (
-    <Card sx={{ height: '100%' }}>
-      <CardContent>
-        <Typography color="textSecondary" gutterBottom variant="overline">
-          {title}
-        </Typography>
-        <Typography variant="h4" sx={{ color, fontWeight: 'bold' }}>
-          {typeof value === 'number' ? value.toLocaleString() : value}
-        </Typography>
-      </CardContent>
-    </Card>
-  );
+async function getStats(): Promise<DashboardStats | null> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('get_dashboard_stats');
+
+    if (error) {
+      console.error('[DashboardPage] RPC error:', error);
+      return null;
+    }
+
+    return data as DashboardStats;
+  } catch (err) {
+    console.error('[DashboardPage] Error fetching stats:', err);
+    return null;
+  }
 }
 
-export default function Page() {
-  const { mutate: logout } = useLogout();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default async function Page() {
+  try {
+    const stats = await getStats();
 
-  useEffect(() => {
-    supabaseClient.rpc('get_dashboard_stats').then(({ data, error }) => {
-      if (error) {
-        setError(error.message);
-      } else if (data) {
-        setStats(data as DashboardStats);
-      }
-      setIsLoading(false);
-    });
-  }, []);
+    if (!stats) {
+      return (
+        <Box
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="400px"
+          gap={2}
+        >
+          <Typography>Failed to load dashboard statistics</Typography>
+          <Typography variant="caption" color="text.secondary">
+            Please check your database connection and try again
+          </Typography>
+        </Box>
+      );
+    }
 
-  if (isLoading || !stats) {
+    return <DashboardClient stats={stats} />;
+  } catch (err) {
+    console.error('[DashboardPage] Error in Page component:', err);
     return (
-      <Box sx={{ p: 4 }}>
-        <Typography>Loading dashboard...</Typography>
+      <Box
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="400px"
+        gap={2}
+      >
+        <Typography>An unexpected error occurred</Typography>
+        <Typography variant="caption" color="text.secondary">
+          Please refresh the page or contact support if the problem persists
+        </Typography>
       </Box>
     );
   }
-
-  return (
-    <Authenticated key="dashboard" fallback={<div>Loading or redirecting...</div>}>
-      <Box sx={{ p: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-          <Typography variant="h4" fontWeight="bold">
-            UniRide Admin Dashboard
-          </Typography>
-          <button
-            onClick={() => logout()}
-            className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700"
-          >
-            Logout
-          </button>
-        </Box>
-
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard title="Total Users" value={stats.total_users} color="#007AFF" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard title="Active Drivers" value={stats.total_drivers} color="#34C759" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard title="Active Routes" value={stats.active_routes} color="#5856D6" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard title="Active Trips" value={stats.active_trips} color="#FF9500" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard title="Total Routes" value={stats.total_routes} color="#007AFF" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard title="Total Trips" value={stats.total_trips} color="#34C759" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Active Subscriptions"
-              value={stats.active_subscriptions}
-              color="#5856D6"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Monthly Revenue (IQD)"
-              value={stats.monthly_revenue.toLocaleString()}
-              color="#FF9500"
-            />
-          </Grid>
-        </Grid>
-
-        {stats.active_trips > 0 && (
-          <Box sx={{ mt: 4 }}>
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-              Live Trips
-            </Typography>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary">
-                  {stats.active_trips} trip(s) currently active. View details in the Trips section.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Box>
-        )}
-      </Box>
-    </Authenticated>
-  );
 }

@@ -14,8 +14,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl">
-      <body>
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
+      <body style={{ margin: 0 }} suppressHydrationWarning>
         <AppProvider>
           <AdminLayout>{children}</AdminLayout>
         </AppProvider>

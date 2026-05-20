@@ -2,9 +2,10 @@
 
 import { useMany } from '@refinedev/core';
 import { List, useDataGrid } from '@refinedev/mui';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import React from 'react';
 import { Chip } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 const STATUS_COLORS: Record<
   string,
@@ -17,13 +18,17 @@ const STATUS_COLORS: Record<
 };
 
 export default function SubscriptionList() {
+  const { t } = useTranslation();
   const { dataGridProps } = useDataGrid({
     resource: 'subscriptions',
   });
 
   const { data: studentData, isLoading: studentIsLoading } = useMany({
     resource: 'profiles',
-    ids: dataGridProps?.rows?.map((item: any) => item?.student_id).filter(Boolean) ?? [],
+    ids:
+      dataGridProps?.rows
+        ?.map((item: { student_id?: string }) => item?.student_id)
+        .filter(Boolean) ?? [],
     queryOptions: {
       enabled: !!dataGridProps?.rows,
     },
@@ -31,7 +36,9 @@ export default function SubscriptionList() {
 
   const { data: routeData, isLoading: routeIsLoading } = useMany({
     resource: 'routes',
-    ids: dataGridProps?.rows?.map((item: any) => item?.route_id).filter(Boolean) ?? [],
+    ids:
+      dataGridProps?.rows?.map((item: { route_id?: string }) => item?.route_id).filter(Boolean) ??
+      [],
     queryOptions: {
       enabled: !!dataGridProps?.rows,
     },
@@ -41,38 +48,38 @@ export default function SubscriptionList() {
     () => [
       {
         field: 'id',
-        headerName: 'ID',
+        headerName: t('common.id', 'ID'),
         type: 'string',
         minWidth: 100,
         flex: 1,
       },
       {
         field: 'student_id',
-        headerName: 'Student',
+        headerName: t('subscriptions.fields.student', 'Student'),
         type: 'string',
         minWidth: 180,
         flex: 1,
         renderCell: function render({ value }) {
-          if (studentIsLoading) return <>Loading...</>;
+          if (studentIsLoading) return <>{t('common.loading', 'Loading...')}</>;
           const student = studentData?.data?.find((item) => item.id === value);
           return student ? student.full_name : value;
         },
       },
       {
         field: 'route_id',
-        headerName: 'Route',
+        headerName: t('subscriptions.fields.route', 'Route'),
         type: 'string',
         minWidth: 180,
         flex: 1,
         renderCell: function render({ value }) {
-          if (routeIsLoading) return <>Loading...</>;
+          if (routeIsLoading) return <>{t('common.loading', 'Loading...')}</>;
           const route = routeData?.data?.find((item) => item.id === value);
           return route ? route.title : value;
         },
       },
       {
         field: 'status',
-        headerName: 'Status',
+        headerName: t('subscriptions.fields.status', 'Status'),
         type: 'string',
         minWidth: 120,
         flex: 0.5,
@@ -82,7 +89,7 @@ export default function SubscriptionList() {
       },
       {
         field: 'start_date',
-        headerName: 'Start',
+        headerName: t('subscriptions.fields.startDate', 'Start'),
         minWidth: 120,
         flex: 0.5,
         renderCell: function render({ value }) {
@@ -91,7 +98,7 @@ export default function SubscriptionList() {
       },
       {
         field: 'end_date',
-        headerName: 'End',
+        headerName: t('subscriptions.fields.endDate', 'End'),
         minWidth: 120,
         flex: 0.5,
         renderCell: function render({ value }) {
@@ -99,12 +106,24 @@ export default function SubscriptionList() {
         },
       },
     ],
-    [studentData?.data, studentIsLoading, routeData?.data, routeIsLoading],
+    [studentData?.data, studentIsLoading, routeData?.data, routeIsLoading, t],
   );
 
   return (
-    <List>
-      <DataGrid {...dataGridProps} columns={columns} autoHeight />
+    <List breadcrumb={null}>
+      <DataGrid
+        {...dataGridProps}
+        columns={columns}
+        autoHeight
+        density="comfortable"
+        slots={{ toolbar: GridToolbar }}
+        slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
+        sx={{
+          border: 'none',
+          '& .MuiDataGrid-cell:focus': { outline: 'none' },
+          '& .MuiDataGrid-cell:focus-within': { outline: 'none' },
+        }}
+      />
     </List>
   );
 }

@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import MapView, { Marker, Polyline, UrlTile, PROVIDER_DEFAULT } from 'react-native-maps';
+import MapView, { Marker, Polyline, UrlTile, PROVIDER_DEFAULT, LatLng } from 'react-native-maps';
 import { Colors } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface TripMapProps {
   startLat: number;
@@ -22,6 +23,34 @@ export const TripMap: React.FC<TripMapProps> = ({
   driverLng,
 }) => {
   const mapRef = useRef<MapView>(null);
+  const { t } = useTranslation();
+
+  // Cache OSRM route — fetch once, never re-fetch on driver location updates
+  const [routeCoords, setRouteCoords] = useState<LatLng[]>([]);
+  const routeFetched = useRef(false);
+
+  useEffect(() => {
+    if (routeFetched.current) return;
+    routeFetched.current = true;
+
+    const fetchRoute = async () => {
+      try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
+        const res = await fetch(url);
+        const json = await res.json();
+        if (json.routes?.[0]?.geometry?.coordinates) {
+          const coords: LatLng[] = json.routes[0].geometry.coordinates.map(
+            ([lng, lat]: [number, number]) => ({ latitude: lat, longitude: lng }),
+          );
+          setRouteCoords(coords);
+        }
+      } catch {
+        // Fallback: straight line (already rendered below)
+      }
+    };
+
+    fetchRoute();
+  }, [startLat, startLng, endLat, endLng]);
 
   useEffect(() => {
     if (mapRef.current) {
@@ -63,26 +92,30 @@ export const TripMap: React.FC<TripMapProps> = ({
           flipY={false}
         />
 
-        {/* Route Line */}
-        <Polyline
-          coordinates={[
-            { latitude: startLat, longitude: startLng },
-            { latitude: endLat, longitude: endLng },
-          ]}
-          strokeColor={Colors.primary}
-          strokeWidth={4}
-          lineDashPattern={[10, 5]}
-        />
+        {/* Route Line — OSRM or fallback straight line */}
+        {routeCoords.length > 1 ? (
+          <Polyline coordinates={routeCoords} strokeColor={Colors.primary} strokeWidth={4} />
+        ) : (
+          <Polyline
+            coordinates={[
+              { latitude: startLat, longitude: startLng },
+              { latitude: endLat, longitude: endLng },
+            ]}
+            strokeColor={Colors.primary}
+            strokeWidth={4}
+            lineDashPattern={[10, 5]}
+          />
+        )}
 
         {/* Start Point */}
-        <Marker coordinate={{ latitude: startLat, longitude: startLng }} title="نقطة الانطلاق">
+        <Marker coordinate={{ latitude: startLat, longitude: startLng }} title={t('start_point')}>
           <View style={[styles.markerCircle, { backgroundColor: Colors.primary }]}>
             <Ionicons name="radio-button-on" size={16} color={Colors.white} />
           </View>
         </Marker>
 
         {/* End Point */}
-        <Marker coordinate={{ latitude: endLat, longitude: endLng }} title="نقطة الوصول">
+        <Marker coordinate={{ latitude: endLat, longitude: endLng }} title={t('end_point')}>
           <View style={[styles.markerCircle, { backgroundColor: Colors.secondary }]}>
             <Ionicons name="flag" size={16} color={Colors.white} />
           </View>
@@ -90,7 +123,10 @@ export const TripMap: React.FC<TripMapProps> = ({
 
         {/* Driver Point */}
         {driverLat && driverLng && (
-          <Marker coordinate={{ latitude: driverLat, longitude: driverLng }} title="موقع السائق">
+          <Marker
+            coordinate={{ latitude: driverLat, longitude: driverLng }}
+            title={t('driver_location')}
+          >
             <View
               style={[
                 styles.markerCircle,

@@ -1,0 +1,14 @@
+node_modules
+.next
+.next_backup
+.expo
+apps/mobile
+packages/core/node_modules
+.gemini
+.git
+.kilo
+.kiro
+test-results
+coverage
+dist
+*.log

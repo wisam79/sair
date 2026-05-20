@@ -76,29 +76,18 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const { tripId, newStatus, lat, lng } = await req.json();
+    const { TripUpdateRequest } = await import('../../../packages/core/index.ts');
+    const payload = await req.json();
+    const parsed = TripUpdateRequest.safeParse(payload);
 
-    if (!tripId || !newStatus) {
-      return new Response(JSON.stringify({ error: 'Missing tripId or newStatus' }), {
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: parsed.error.message }), {
         status: 400,
         headers: responseHeaders,
       });
     }
 
-    const validStatuses = [
-      'scheduled',
-      'driver_waiting',
-      'in_transit',
-      'completed',
-      'absent',
-      'cancelled',
-    ];
-    if (!validStatuses.includes(newStatus)) {
-      return new Response(JSON.stringify({ error: 'Invalid status value' }), {
-        status: 400,
-        headers: responseHeaders,
-      });
-    }
+    const { trip_id: tripId, new_status: newStatus, lat, lng } = parsed.data;
 
     // lat/lng are optional — only relevant for certain transitions (e.g. driver_waiting)
     const validLat = typeof lat === 'number' ? lat : null;

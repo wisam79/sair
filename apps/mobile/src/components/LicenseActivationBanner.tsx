@@ -11,22 +11,22 @@ export const LicenseActivationBanner: React.FC = () => {
 
   return (
     <TouchableOpacity
-      style={styles.licenseBanner}
+      style={[styles.licenseBanner, isRTL && { flexDirection: 'row-reverse' }]}
       onPress={() => router.push('/activate')}
       activeOpacity={0.8}
     >
-      <View style={styles.licenseBannerContent}>
+      <View style={[styles.licenseBannerContent, isRTL && { flexDirection: 'row-reverse' }]}>
         <Ionicons name="card-outline" size={24} color={Colors.primary} />
         <View>
-          <Text style={styles.licenseBannerTitle}>{t('activate_new_license')}</Text>
-          <Text style={styles.licenseBannerSubtitle}>{t('activate_license_description')}</Text>
+          <Text style={[styles.licenseBannerTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('activate_new_license')}
+          </Text>
+          <Text style={[styles.licenseBannerSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('activate_license_description')}
+          </Text>
         </View>
       </View>
-      <Ionicons
-        name={isRTL ? 'chevron-back' : 'chevron-forward'}
-        size={20}
-        color={Colors.border}
-      />
+      <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={Colors.border} />
     </TouchableOpacity>
   );
 };
@@ -52,12 +52,10 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     fontSize: 15,
     color: Colors.text,
-    textAlign: 'right',
   },
   licenseBannerSubtitle: {
     fontFamily: FontFamily.regular,
     fontSize: 13,
     color: Colors.textSecondary,
-    textAlign: 'right',
   },
 });

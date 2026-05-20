@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { supabase } from '../lib/supabase';
+import { useRouter } from 'expo-router';
 
 /**
  * useNotifications — Safe for both Expo Go and Development Builds.
@@ -18,6 +19,7 @@ function isExpoGo(): boolean {
 
 export function useNotifications() {
   const cleanupRef = useRef<(() => void) | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     // Skip notifications entirely in Expo Go — they are not supported since SDK 53
@@ -99,6 +101,15 @@ export function useNotifications() {
               '[Notifications] Interaction:',
               response.notification.request.content.body,
             );
+            const data = response.notification.request.content.data;
+            if (data?.type === 'trip_update' && data.trip_id) {
+              router.push({
+                pathname: '/tracking/[tripId]',
+                params: { tripId: String(data.trip_id) },
+              });
+            } else if (data?.type === 'message' && data.conversation_id) {
+              router.push({ pathname: '/chat/[id]', params: { id: String(data.conversation_id) } });
+            }
           });
 
           cleanupRef.current = () => {
@@ -119,5 +130,5 @@ export function useNotifications() {
         cleanupRef.current();
       }
     };
-  }, []);
+  }, [router]);
 }

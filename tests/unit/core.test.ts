@@ -74,8 +74,8 @@ describe('Core Validation Logic', () => {
 
     it('should allow valid transitions from in_transit', () => {
       expect(canTransition('in_transit', 'completed')).toBe(true);
-      expect(canTransition('in_transit', 'absent')).toBe(true);
-      expect(canTransition('in_transit', 'cancelled')).toBe(false);
+      expect(canTransition('in_transit', 'cancelled')).toBe(true);
+      expect(canTransition('in_transit', 'absent')).toBe(false);
     });
 
     it('should not allow transitions from terminal states', () => {
@@ -105,29 +105,33 @@ describe('Core Validation Logic', () => {
     it('should validate booking requests', () => {
       expect(
         BookingRequest.safeParse({
-          routeId: '550e8400-e29b-41d4-a716-446655440000',
-          studentId: '550e8400-e29b-41d4-a716-446655440001',
+          route_id: '550e8400-e29b-41d4-a716-446655440000',
+          student_id: '550e8400-e29b-41d4-a716-446655440001',
         }).success,
       ).toBe(true);
       expect(
         BookingRequest.safeParse({
-          routeId: 'invalid',
-          studentId: '550e8400-e29b-41d4-a716-446655440001',
+          route_id: 'invalid',
+          student_id: '550e8400-e29b-41d4-a716-446655440001',
         }).success,
       ).toBe(false);
       expect(
-        BookingRequest.safeParse({ routeId: '550e8400-e29b-41d4-a716-446655440000' }).success,
+        BookingRequest.safeParse({ route_id: '550e8400-e29b-41d4-a716-446655440000' }).success,
       ).toBe(false);
     });
 
-    it('should reject empty routeId or studentId', () => {
+    it('should reject empty route_id or student_id', () => {
       expect(
-        BookingRequest.safeParse({ routeId: '', studentId: '550e8400-e29b-41d4-a716-446655440001' })
-          .success,
+        BookingRequest.safeParse({
+          route_id: '',
+          student_id: '550e8400-e29b-41d4-a716-446655440001',
+        }).success,
       ).toBe(false);
       expect(
-        BookingRequest.safeParse({ routeId: '550e8400-e29b-41d4-a716-446655440000', studentId: '' })
-          .success,
+        BookingRequest.safeParse({
+          route_id: '550e8400-e29b-41d4-a716-446655440000',
+          student_id: '',
+        }).success,
       ).toBe(false);
     });
   });
@@ -136,8 +140,8 @@ describe('Core Validation Logic', () => {
     it('should validate trip update requests', () => {
       expect(
         TripUpdateRequest.safeParse({
-          tripId: '550e8400-e29b-41d4-a716-446655440000',
-          newStatus: 'in_transit',
+          trip_id: '550e8400-e29b-41d4-a716-446655440000',
+          new_status: 'in_transit',
           lat: 33.3152,
           lng: 44.3661,
         }).success,
@@ -145,8 +149,8 @@ describe('Core Validation Logic', () => {
 
       expect(
         TripUpdateRequest.safeParse({
-          tripId: '550e8400-e29b-41d4-a716-446655440000',
-          newStatus: 'invalid',
+          trip_id: '550e8400-e29b-41d4-a716-446655440000',
+          new_status: 'invalid',
           lat: 33.3152,
           lng: 44.3661,
         }).success,
@@ -156,8 +160,8 @@ describe('Core Validation Logic', () => {
     it('should reject out-of-range coordinates', () => {
       expect(
         TripUpdateRequest.safeParse({
-          tripId: '550e8400-e29b-41d4-a716-446655440000',
-          newStatus: 'in_transit',
+          trip_id: '550e8400-e29b-41d4-a716-446655440000',
+          new_status: 'in_transit',
           lat: 200,
           lng: 44.3661,
         }).success,

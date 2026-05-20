@@ -154,7 +154,10 @@ describe('OfflineCache', () => {
 
       await OfflineCache.saveActiveSubscription(sub);
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith('Failed to save subscription to secure cache', err);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Failed to save subscription to secure cache',
+        err,
+      );
     });
 
     it('calls console.warn when getItem fails', async () => {
@@ -164,7 +167,10 @@ describe('OfflineCache', () => {
       const result = await OfflineCache.getActiveSubscription();
 
       expect(result).toBeNull();
-      expect(consoleWarnSpy).toHaveBeenCalledWith('Failed to retrieve subscription from secure cache', err);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Failed to retrieve subscription from secure cache',
+        err,
+      );
     });
 
     it('calls console.warn when deleteItem fails on clear', async () => {

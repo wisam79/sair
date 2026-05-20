@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { Trip, TripStatus, Subscription } from '@uniride/core';
+import { useAuthStore } from './useStore';
 
 const GPS_QUEUE_KEY = 'gps_offline_queue';
 const PAGE_SIZE = 20;
@@ -24,6 +25,7 @@ interface SubscriptionWithRoute extends Subscription {
 }
 
 import { OfflineCache } from '../lib/offlineCache';
+import { logger } from '../lib/logger';
 
 export function useSubscriptions(page = 0) {
   const [subscriptions, setSubscriptions] = useState<SubscriptionWithRoute[]>([]);
@@ -115,26 +117,62 @@ export function useActiveTrips() {
 
   useEffect(() => {
     let isMounted = true;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    fetchTrips();
+    const setupRealtime = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user || !isMounted) return;
 
-    const channel = supabase
-      .channel('trips-active-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'trips' }, () => {
-        if (!isMounted) return;
-        fetchTrips();
-      })
-      .subscribe((status) => {
-        // Auto-reconnect on channel error or timeout
-        if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') && isMounted) {
-          console.warn('[Realtime] trips-active channel error, re-fetching...', status);
-          fetchTrips();
-        }
-      });
+      fetchTrips();
+
+      channel = supabase
+        .channel(`trips-active-${user.id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'trips' }, (payload) => {
+          if (!isMounted) return;
+          const { eventType, new: newRow, old: oldRow } = payload;
+          if (eventType === 'INSERT') {
+            const inserted = newRow as Trip;
+            if (['driver_waiting', 'in_transit'].includes(inserted.status)) {
+              setTrips((prev) => {
+                if (prev.some((t) => t.id === inserted.id)) return prev;
+                return [inserted, ...prev];
+              });
+            }
+          } else if (eventType === 'UPDATE') {
+            const updated = newRow as Trip;
+            if (!['driver_waiting', 'in_transit'].includes(updated.status)) {
+              setTrips((prev) => prev.filter((t) => t.id !== updated.id));
+            } else {
+              setTrips((prev) => {
+                const exists = prev.some((t) => t.id === updated.id);
+                if (exists) {
+                  return prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t));
+                } else {
+                  return [updated, ...prev];
+                }
+              });
+            }
+          } else if (eventType === 'DELETE') {
+            const deletedId = (oldRow as { id?: string })?.id;
+            if (deletedId) {
+              setTrips((prev) => prev.filter((t) => t.id !== deletedId));
+            }
+          }
+        })
+        .subscribe((status) => {
+          if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') && isMounted) {
+            fetchTrips();
+          }
+        });
+    };
+
+    setupRealtime();
 
     return () => {
       isMounted = false;
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [fetchTrips]);
 
@@ -207,14 +245,24 @@ export function useTripTracking(tripId: string | null) {
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'trips', filter: `id=eq.${tripId}` },
-        () => {
-          // Re-fetch full trip with joins — ensures driver/route data stays fresh
-          fetchTrip();
+        (payload) => {
+          const updated = payload.new as Trip;
+          setTrip((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              status: updated.status,
+              last_lat: updated.last_lat,
+              last_lng: updated.last_lng,
+              started_at: updated.started_at,
+              ended_at: updated.ended_at,
+            };
+          });
         },
       )
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn('[Realtime] trip tracking reconnecting...', status);
+          logger.warn('[Realtime] trip tracking reconnecting...', { status });
           fetchTrip();
         }
       });
@@ -228,10 +276,11 @@ export function useTripTracking(tripId: string | null) {
 }
 
 export function useDriverTrips(page = 0) {
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [trips, setTrips] = useState<TripWithRoute[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
+  const driverIdRef = useRef<string | null>(null);
 
   const fetchTrips = useCallback(async () => {
     try {
@@ -253,6 +302,8 @@ export function useDriverTrips(page = 0) {
         throw new Error('Driver profile not found');
       }
 
+      driverIdRef.current = driverData.id;
+
       const from = page * PAGE_SIZE;
       const { data, error, count } = await supabase
         .from('trips')
@@ -262,7 +313,7 @@ export function useDriverTrips(page = 0) {
         .range(from, from + PAGE_SIZE - 1);
 
       if (error) throw error;
-      const newTrips = (data as Trip[]) || [];
+      const newTrips = (data as TripWithRoute[]) || [];
       setTrips(page === 0 ? newTrips : (prev) => [...prev, ...newTrips]);
       setHasMore(newTrips.length === PAGE_SIZE && (!count || from + PAGE_SIZE < count));
     } catch (err: unknown) {
@@ -277,12 +328,22 @@ export function useDriverTrips(page = 0) {
 
     const channel = supabase
       .channel('driver-trips-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'trips' }, () => {
-        fetchTrips();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trips' }, (payload) => {
+        const newTrip = payload.new as Trip | undefined;
+        const oldTrip = payload.old as Trip | undefined;
+        const currentDriverId = driverIdRef.current;
+
+        if (
+          currentDriverId &&
+          ((newTrip && newTrip.driver_id === currentDriverId) ||
+            (oldTrip && oldTrip.driver_id === currentDriverId))
+        ) {
+          fetchTrips();
+        }
       })
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn('[Realtime] driver-trips channel error, re-fetching...', status);
+          logger.warn('[Realtime] driver-trips channel error, re-fetching...', { status });
           fetchTrips();
         }
       });
@@ -316,41 +377,44 @@ async function flushGpsQueue() {
     } = await supabase.auth.getUser();
     if (!user) return;
 
-    const failed: QueuedLocation[] = [];
+    // Send the entire queue in a single RPC call to solve N+1 issue
+    const { error, data } = await supabase.rpc('bulk_update_trip_locations', {
+      p_locations: queue.map((q) => ({ tripId: q.tripId, lat: q.lat, lng: q.lng })),
+    });
 
-    for (const item of queue) {
-      try {
-        const { error } = await supabase.rpc('update_trip_location', {
-          p_trip_id: item.tripId,
-          p_lat: item.lat,
-          p_lng: item.lng,
+    if (error) {
+      // Network error or global failure: increment retries and keep the queue
+      const failed: QueuedLocation[] = queue
+        .map((item) => ({ ...item, retries: item.retries + 1 }))
+        .filter((item) => {
+          if (item.retries >= 3) {
+            logger.warn('[GPS Queue] Dropping item after 3 retries', { item });
+            return false;
+          }
+          return true;
         });
 
-        if (error) {
-          // فشل — أعد المحاولة إذا لم نتجاوز الحد
-          item.retries++;
-          if (item.retries < 3) {
-            failed.push(item);
-          } else {
-            console.warn('[GPS Queue] Dropping item after 3 retries:', item);
-          }
-        }
-        // ✅ نجح — لا نضيفه لـ failed (يُحذف تلقائياً)
-      } catch (err) {
-        item.retries++;
-        if (item.retries < 3) {
-          failed.push(item);
-        }
+      if (failed.length > 0) {
+        await AsyncStorage.setItem(GPS_QUEUE_KEY, JSON.stringify(failed));
+      } else {
+        await AsyncStorage.removeItem(GPS_QUEUE_KEY);
       }
+      return;
     }
 
-    if (failed.length > 0) {
-      await AsyncStorage.setItem(GPS_QUEUE_KEY, JSON.stringify(failed));
-    } else {
-      await AsyncStorage.removeItem(GPS_QUEUE_KEY);
+    // Success: check if there are specific failed items from the RPC
+    const responseData = data as { success_count: number; failed: unknown[] } | null;
+    if (responseData?.failed && responseData.failed.length > 0) {
+      logger.warn('[GPS Queue] Some locations were rejected by the server', {
+        failed: responseData.failed,
+      });
     }
+
+    // If the RPC succeeded, we can clear the queue. Business logic errors (e.g. invalid status)
+    // returned in responseData.failed should not be retried.
+    await AsyncStorage.removeItem(GPS_QUEUE_KEY);
   } catch (err) {
-    console.warn('Failed to flush GPS queue:', err);
+    logger.warn('Failed to flush GPS queue', { error: getErrorMessage(err) });
   }
 }
 
@@ -360,8 +424,14 @@ export { flushGpsQueue as flushGpsQueueForTest };
 async function queueLocationUpdate(tripId: string, lat: number, lng: number) {
   const item: QueuedLocation = { tripId, lat, lng, timestamp: Date.now(), retries: 0 };
   const existing = await AsyncStorage.getItem(GPS_QUEUE_KEY);
-  const queue: QueuedLocation[] = existing ? JSON.parse(existing) : [];
+  let queue: QueuedLocation[] = existing ? JSON.parse(existing) : [];
   queue.push(item);
+
+  // Phase 5: Memory optimization - Limit queue size to 100 items to prevent out-of-memory errors
+  if (queue.length > 100) {
+    queue = queue.slice(queue.length - 100);
+  }
+
   await AsyncStorage.setItem(GPS_QUEUE_KEY, JSON.stringify(queue));
 }
 
@@ -378,9 +448,10 @@ export function useLocationTracker() {
 
       watchRef.current = await Location.watchPositionAsync(
         {
-          accuracy: Location.Accuracy.High,
-          timeInterval: 5000,
-          distanceInterval: 10,
+          // Phase 5: Battery Optimization
+          accuracy: Location.Accuracy.Balanced,
+          timeInterval: 10000, // Update every 10s max
+          distanceInterval: 15, // Only if moved 15m
         },
         async (location) => {
           const { coords } = location;
@@ -423,4 +494,84 @@ export function useLocationTracker() {
   }, []);
 
   return { startTracking, stopTracking };
+}
+
+export function useTripHistory() {
+  const [trips, setTrips] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const user = useAuthStore((state) => state.user);
+
+  // Load cached trip history on mount
+  useEffect(() => {
+    if (!user) return;
+    const loadCached = async () => {
+      try {
+        const cached = await AsyncStorage.getItem(`cached_trip_history_${user.id}`);
+        if (cached) {
+          setTrips(JSON.parse(cached));
+          setLoading(false);
+        }
+      } catch (e) {
+        // Ignore cache load failure
+      }
+    };
+    loadCached();
+  }, [user]);
+
+  const fetchTrips = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      // Step 1: Get subscribed routes
+      const { data: subs, error: subsError } = await supabase
+        .from('subscriptions')
+        .select('route_id')
+        .eq('student_id', user.id)
+        .in('status', ['active', 'expired']);
+
+      if (subsError) throw subsError;
+
+      const routeIds = subs?.map((s) => s.route_id) || [];
+
+      if (routeIds.length === 0) {
+        setTrips([]);
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Get completed trips for these routes
+      const { data, error } = await supabase
+        .from('trips')
+        .select('id, status, ended_at, routes(title), drivers(profiles(full_name))')
+        .in('route_id', routeIds)
+        .eq('status', 'completed')
+        .order('ended_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      if (data) {
+        setTrips(data);
+        AsyncStorage.setItem(`cached_trip_history_${user.id}`, JSON.stringify(data)).catch(
+          () => {},
+        );
+      }
+    } catch (error) {
+      console.error('Error fetching trip history:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchTrips();
+  }, [fetchTrips]);
+
+  const refetch = () => {
+    setRefreshing(true);
+    fetchTrips();
+  };
+
+  return { trips, loading, refreshing, refetch };
 }

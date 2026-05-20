@@ -1,0 +1,1329 @@
+[
+  {
+    "id": "TC001",
+    "title": "Sign in on mobile with valid credentials",
+    "description": "A mobile user can authenticate with email and password and reach the authenticated home experience.",
+    "category": "Mobile Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the authenticated mobile experience is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the mobile home screen is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Sign in and reach the admin dashboard",
+    "description": "This verifies an admin can sign in with valid credentials and land on the protected dashboard home.",
+    "category": "User Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the admin dashboard is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dashboard statistics are visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Complete a trip booking",
+    "description": "A mobile rider can review trip options, submit a booking request, and see a booking confirmation.",
+    "category": "Trip Booking",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /booking"
+      },
+      {
+        "type": "action",
+        "description": "Review the available booking options"
+      },
+      {
+        "type": "action",
+        "description": "Select valid trip details"
+      },
+      {
+        "type": "action",
+        "description": "Submit the booking request"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a booking confirmation is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Complete a trip payment",
+    "description": "A mobile rider can review payment details, submit payment information, and see a payment confirmation.",
+    "category": "Payment Processing",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /payment"
+      },
+      {
+        "type": "action",
+        "description": "Review the payment details"
+      },
+      {
+        "type": "action",
+        "description": "Enter valid payment information"
+      },
+      {
+        "type": "action",
+        "description": "Submit the payment"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a payment confirmation is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Submit license activation",
+    "description": "This verifies that a signed-in mobile user can enter license information and submit it to start activation.",
+    "category": "License Activation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials into the login form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation control for license activation"
+      },
+      {
+        "type": "action",
+        "description": "Fill in valid license information into the license form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the activation form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify activation status is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Block access to the admin dashboard without signing in",
+    "description": "This verifies a visitor who is not signed in is prevented from viewing the protected admin dashboard.",
+    "category": "User Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the login screen is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the protected dashboard is not displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Reach the authenticated mobile home screen",
+    "description": "A signed-in mobile user can open the app home screen and see the primary tab-based sections.",
+    "category": "Mobile Home and Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the authenticated mobile home screen is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the primary tab sections are visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Track an active trip",
+    "description": "A mobile rider can open an active trip and view live trip status on the tracking screen.",
+    "category": "Real-time Trip Tracking",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to a valid active trip tracking page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify live trip status is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify trip location updates are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "View activation success state",
+    "description": "This verifies that a successful license submission shows a visible activation status confirmation.",
+    "category": "License Activation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials into the login form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation control for license activation"
+      },
+      {
+        "type": "action",
+        "description": "Fill in valid license information into the license form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the activation form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a success confirmation is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC010",
+    "title": "Prevent access to driver management without signing in",
+    "description": "This verifies the driver management page is protected and redirects unauthenticated visitors to sign in.",
+    "category": "Driver Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /drivers"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the login screen is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the driver list is not displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC011",
+    "title": "Review key dashboard metrics after signing in",
+    "description": "This verifies an admin can view the main operational statistics and monthly revenue on the dashboard after login.",
+    "category": "Admin Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify total users data is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify drivers and trips data are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify monthly revenue data is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC012",
+    "title": "Admin reviews trip records",
+    "description": "An authenticated admin can open the trip management page and see trip records available for review.",
+    "category": "Trip Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open trip management"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify trip records are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC013",
+    "title": "Switch between the main mobile tabs",
+    "description": "A signed-in mobile user can review the available tab sections from the home screen.",
+    "category": "Mobile Home and Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Select a different primary tab section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the selected tab content is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the mobile navigation remains available"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC014",
+    "title": "View analytics charts and metrics",
+    "description": "An admin can open the analytics dashboard and view charts and metrics for performance review.",
+    "category": "Analytics Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open analytics"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify analytics charts are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify analytics metrics are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC015",
+    "title": "Open the driver management list",
+    "description": "This verifies an authenticated admin can navigate to the driver records page and view the driver list.",
+    "category": "Driver Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to the driver management page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the driver list is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify driver records are visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC016",
+    "title": "Admin opens the route list",
+    "description": "An authenticated admin can open the route management page and see route records available for review.",
+    "category": "Route Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open route management"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify route records are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC017",
+    "title": "Update application settings",
+    "description": "An admin can review settings, change a value, and see the update reflected on the settings page.",
+    "category": "Admin Settings",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open settings"
+      },
+      {
+        "type": "action",
+        "description": "Change a setting value"
+      },
+      {
+        "type": "action",
+        "description": "Save the settings"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the updated setting value is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC018",
+    "title": "Open booking from the mobile home",
+    "description": "A logged-in mobile rider can navigate from the home screen to the booking page.",
+    "category": "Trip Booking",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Verify the mobile home screen is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Open the booking area from the mobile home screen"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the booking page is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC019",
+    "title": "Review trip history list",
+    "description": "This verifies that a signed-in mobile user can open trip history and see previous trip records.",
+    "category": "Trip History",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials into the login form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation control for trip history"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify previous trip records are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC020",
+    "title": "Admin reviews subscription records",
+    "description": "An authenticated admin can open the subscription management page and see subscription records available for review.",
+    "category": "Subscription Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open subscription management"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify subscription records are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC021",
+    "title": "Review license batch records",
+    "description": "An admin can open the license batch management page and see batch records for review.",
+    "category": "License Batch Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open license batch management"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify license batch records are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC022",
+    "title": "Open trip history from the mobile home screen",
+    "description": "This verifies that a signed-in mobile user can move from the home screen to trip history through normal tab navigation.",
+    "category": "Trip History",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials into the login form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the mobile home screen is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Click the tab for trip history"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify previous trip records are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC023",
+    "title": "Review a license batch's details",
+    "description": "An admin can open the license batch management page and inspect the details for a selected batch.",
+    "category": "License Batch Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open license batch management"
+      },
+      {
+        "type": "action",
+        "description": "Open a batch record for review"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify batch details are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC024",
+    "title": "Review analytics trend changes",
+    "description": "An admin can inspect analytics trends over time on the analytics dashboard.",
+    "category": "Analytics Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open analytics"
+      },
+      {
+        "type": "action",
+        "description": "Select a different time range"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify performance trend data is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC025",
+    "title": "Review recent trips after visiting booking",
+    "description": "This verifies that a mobile user can move through common app navigation and still reach trip history to review prior bookings.",
+    "category": "Trip History",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials into the login form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the booking navigation control"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation control for trip history"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify previous trip records are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC026",
+    "title": "View trip history and start activation",
+    "description": "A mobile rider can review trip history and open the license activation flow from the history area.",
+    "category": "Payment Processing",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /trip-history"
+      },
+      {
+        "type": "action",
+        "description": "Verify the trip history list is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Open the license activation flow"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the activation page is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC027",
+    "title": "View recent activity entries",
+    "description": "An admin can open the activity log and review recorded recent actions.",
+    "category": "Activity Log Viewer",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open the activity log"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify activity log entries are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify recent actions are visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC028",
+    "title": "Open the activity log from the admin session",
+    "description": "An authenticated admin can navigate to the activity log and see recorded system actions.",
+    "category": "Activity Log Viewer",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open the activity log"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the activity log page is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify activity entries are visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC029",
+    "title": "Return to license activation after reviewing history",
+    "description": "This verifies that a mobile user can navigate from trip history back to license activation and continue account tasks.",
+    "category": "License Activation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials into the login form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation control for trip history"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation control for license activation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the license activation form is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC030",
+    "title": "Keep required license fields empty until completed",
+    "description": "This verifies that the license activation form prevents submission when required information is missing.",
+    "category": "License Activation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials into the login form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation control for license activation"
+      },
+      {
+        "type": "action",
+        "description": "Submit the activation form without entering license information"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a license validation error is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC031",
+    "title": "Show validation for incomplete booking details",
+    "description": "A mobile rider is prevented from submitting a booking until the required trip details are provided.",
+    "category": "Trip Booking",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /booking"
+      },
+      {
+        "type": "action",
+        "description": "Submit the booking request without completing the required trip details"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a booking validation error is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC032",
+    "title": "Show validation for incomplete payment details",
+    "description": "A mobile rider is prevented from submitting payment until the required payment information is provided.",
+    "category": "Payment Processing",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /payment"
+      },
+      {
+        "type": "action",
+        "description": "Submit the payment without entering the required payment information"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a payment validation error is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC033",
+    "title": "Validate required settings before saving",
+    "description": "An admin who leaves a required setting blank sees validation feedback and the settings are not updated.",
+    "category": "Admin Settings",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open settings"
+      },
+      {
+        "type": "action",
+        "description": "Clear a required setting value"
+      },
+      {
+        "type": "action",
+        "description": "Save the settings"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a settings validation error is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC034",
+    "title": "View empty trip history state",
+    "description": "This verifies that a mobile user with no prior trips sees an empty state in trip history.",
+    "category": "Trip History",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials into the login form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation control for trip history"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an empty state message is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC035",
+    "title": "Reject invalid login credentials",
+    "description": "This verifies invalid email and password credentials show a login error and do not grant access.",
+    "category": "User Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with invalid@example.com"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with wrong-password"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a login error is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the dashboard is not displayed"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC036",
+    "title": "Stay on the login screen when credentials are invalid",
+    "description": "A mobile user entering invalid credentials sees a login error and does not reach the authenticated home experience.",
+    "category": "Mobile Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with invalid credentials"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with invalid credentials"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a login error is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the authenticated mobile experience is not displayed"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC037",
+    "title": "Handle an empty license batch list",
+    "description": "An admin can open license batch management and see an empty state when no batches are available.",
+    "category": "License Batch Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open license batch management"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an empty state message is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC038",
+    "title": "Handle a malformed trip tracking link",
+    "description": "A mobile rider is shown an error state when opening an invalid trip tracking route.",
+    "category": "Real-time Trip Tracking",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the mobile user credentials"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to an invalid trip tracking route"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an invalid trip error state is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC039",
+    "title": "Handle empty analytics data",
+    "description": "An admin can open analytics and see an empty state when no performance data is available.",
+    "category": "Analytics Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to open analytics"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an empty state message is visible"
+      }
+    ],
+    "priority": "Low"
+  }
+]

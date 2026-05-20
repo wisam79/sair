@@ -1,22 +1,18 @@
 'use client';
 
 import { List, useDataGrid, DateField } from '@refinedev/mui';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import React from 'react';
-import { Chip, Stack, Switch } from '@mui/material';
+import { Switch, Typography, Box } from '@mui/material';
 import { useUpdate } from '@refinedev/core';
+import { useTranslation } from 'react-i18next';
 
 export default function DriverList() {
+  const { t } = useTranslation();
   const { dataGridProps } = useDataGrid({
-    resource: 'profiles',
-    filters: {
-      initial: [
-        {
-          field: 'role',
-          operator: 'eq',
-          value: 'driver',
-        },
-      ],
+    resource: 'drivers',
+    meta: {
+      select: '*, profiles(full_name, phone)',
     },
   });
 
@@ -24,7 +20,7 @@ export default function DriverList() {
 
   const handleVerifyToggle = (id: string, currentStatus: boolean) => {
     mutate({
-      resource: 'profiles',
+      resource: 'drivers',
       id,
       values: {
         is_verified: !currentStatus,
@@ -36,49 +32,98 @@ export default function DriverList() {
     () => [
       {
         field: 'full_name',
-        headerName: 'Full Name',
-        type: 'string',
-        minWidth: 200,
-        flex: 1,
+        headerName: t('profiles.fields.fullName', 'Full Name'),
+        minWidth: 180,
+        flex: 1.5,
+        // MUI DataGrid v7: valueGetter receives (value, row) not (params)
+        valueGetter: (_value: unknown, row: Record<string, unknown>) =>
+          (row?.profiles as Record<string, unknown>)?.full_name,
+        renderCell: (params: import('@mui/x-data-grid').GridRenderCellParams) => (
+          <Box>
+            <Typography variant="body2" fontWeight="medium">
+              {((params?.row?.profiles as Record<string, unknown>)?.full_name as string) ||
+                t('common.unknown', 'Unknown')}
+            </Typography>
+            <Typography variant="caption" color="textSecondary">
+              {(params?.row?.profiles as Record<string, unknown>)?.phone as string}
+            </Typography>
+          </Box>
+        ),
       },
       {
-        field: 'phone',
-        headerName: 'Phone',
-        type: 'string',
-        minWidth: 150,
-        flex: 1,
+        field: 'vehicle_model',
+        headerName: t('drivers.fields.vehicleModel', 'Vehicle'),
+        minWidth: 180,
+        flex: 1.5,
+        renderCell: (params: import('@mui/x-data-grid').GridRenderCellParams) => (
+          <Box>
+            <Typography variant="body2">{params?.row?.vehicle_model as string}</Typography>
+            <Typography variant="caption" color="primary">
+              {params?.row?.vehicle_plate as string}
+            </Typography>
+          </Box>
+        ),
+      },
+      {
+        field: 'capacity',
+        headerName: t('drivers.fields.capacity', 'Seats'),
+        type: 'number',
+        minWidth: 80,
+        align: 'center',
+        headerAlign: 'center',
       },
       {
         field: 'is_verified',
-        headerName: 'Verified',
-        minWidth: 120,
-        flex: 1,
-        renderCell: function render({ row }) {
+        headerName: t('drivers.fields.verified', 'Verified'),
+        minWidth: 100,
+        renderCell: (params: import('@mui/x-data-grid').GridRenderCellParams) => {
           return (
             <Switch
-              checked={!!row.is_verified}
-              onChange={() => handleVerifyToggle(row.id, !!row.is_verified)}
+              checked={!!params?.row?.is_verified}
+              onChange={() =>
+                handleVerifyToggle(params?.row?.id as string, !!params?.row?.is_verified)
+              }
               color="success"
+              size="small"
             />
           );
         },
       },
       {
         field: 'created_at',
-        headerName: 'Registered At',
-        minWidth: 200,
-        flex: 1,
-        renderCell: function render({ value }) {
-          return <DateField value={value} />;
+        headerName: t('drivers.fields.registeredAt', 'Registered At'),
+        minWidth: 160,
+        renderCell: (params) => {
+          return (
+            <Typography variant="caption">
+              <DateField value={params?.value} format="LLL" />
+            </Typography>
+          );
         },
       },
     ],
-    [],
+    [t],
   );
 
   return (
-    <List title="Drivers Management">
-      <DataGrid {...dataGridProps} columns={columns} autoHeight />
+    <List
+      breadcrumb={null}
+      title={t('drivers.titles.list', 'Drivers Management')}
+      wrapperProps={{ sx: { p: 2 } }}
+    >
+      <DataGrid
+        {...dataGridProps}
+        columns={columns}
+        autoHeight
+        density="comfortable"
+        slots={{ toolbar: GridToolbar }}
+        slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
+        sx={{
+          border: 'none',
+          '& .MuiDataGrid-cell:focus': { outline: 'none' },
+          '& .MuiDataGrid-cell:focus-within': { outline: 'none' },
+        }}
+      />
     </List>
   );
 }
