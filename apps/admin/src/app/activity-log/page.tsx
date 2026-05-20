@@ -19,7 +19,7 @@ import {
   Button,
   TablePagination,
 } from '@mui/material';
-import { Search, Person, AdminPanelSettings, Settings, Delete, History } from '@mui/icons-material';
+import { Search } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { supabaseClient } from '../../providers/supabaseClient';
 

@@ -78,9 +78,9 @@ export default function AnalyticsPage() {
   useEffect(() => {
     async function fetchAnalytics() {
       try {
-        const { data: result, error: rpcError } = await supabaseClient.rpc('get_analytics_summary');
-        if (rpcError) throw rpcError;
-        setData(result as AnalyticsSummary);
+        const response = await supabaseClient.rpc('get_analytics_summary');
+        if (response.error) throw response.error;
+        setData(response.data as AnalyticsSummary);
       } catch (err: unknown) {
         setError(
           err instanceof Error

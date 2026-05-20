@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 import { supabaseClient } from '../../providers/supabaseClient';
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   Switch,
   Table,
@@ -120,7 +118,7 @@ export default function FeatureFlagsPage() {
                 <TableCell align="right">
                   <Switch
                     checked={flag.enabled}
-                    onChange={() => toggleFlag(flag.id, flag.enabled)}
+                    onChange={() => void toggleFlag(flag.id, flag.enabled)}
                     disabled={saving === flag.id}
                   />
                 </TableCell>

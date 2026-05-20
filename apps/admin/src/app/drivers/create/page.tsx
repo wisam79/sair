@@ -27,6 +27,12 @@ interface DriverFormValues {
   is_verified: boolean;
 }
 
+interface ProfileOption {
+  id: string | number;
+  full_name?: string;
+  phone?: string;
+}
+
 export default function DriverCreate() {
   const { t } = useTranslation();
   const {
@@ -63,21 +69,32 @@ export default function DriverCreate() {
                     <Autocomplete
                       {...profileAutocompleteProps}
                       value={
-                        profileAutocompleteProps?.options?.find(
+                        ((profileAutocompleteProps?.options || []) as ProfileOption[]).find(
                           (p) => p?.id?.toString() === value?.toString(),
                         ) ?? null
                       }
                       onChange={(_, newValue) => {
-                        onChange(newValue?.id ?? null);
+                        const val = newValue as ProfileOption | null;
+                        onChange(val?.id ?? null);
                       }}
                       getOptionLabel={(option) => {
-                        return option?.full_name
-                          ? `${option.full_name} (${option.phone || ''})`
+                        const p = option as ProfileOption;
+                        return p?.full_name
+                          ? `${p.full_name} (${p.phone || ''})`
                           : '';
                       }}
                       isOptionEqualToValue={(option, val) => {
-                        const optionId = option?.id?.toString();
-                        const valId = (val?.id ?? val)?.toString();
+                        const o = option as ProfileOption;
+                        const v = val as ProfileOption | string | number | null;
+                        const optionId = o?.id?.toString();
+                        let valId = '';
+                        if (typeof v === 'object' && v !== null) {
+                          valId = v.id?.toString() || '';
+                        } else if (typeof v === 'string') {
+                          valId = v;
+                        } else if (typeof v === 'number') {
+                          valId = v.toString();
+                        }
                         return optionId === valId;
                       }}
                       renderInput={(params) => (

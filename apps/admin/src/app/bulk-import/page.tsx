@@ -68,7 +68,7 @@ export default function BulkImportPage() {
     reader.readAsText(csvFile);
   };
 
-  const handleImport = async () => {
+  const handleImport = () => {
     setImporting(true);
     setError(null);
 
