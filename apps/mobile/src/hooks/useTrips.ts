@@ -329,8 +329,9 @@ export function useDriverTrips(page = 0) {
     const channel = supabase
       .channel('driver-trips-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trips' }, (payload) => {
-        const newTrip = payload.new as Trip | undefined;
-        const oldTrip = payload.old as Trip | undefined;
+        const { eventType, new: newTripRow, old: oldTripRow } = payload;
+        const newTrip = newTripRow as Trip | undefined;
+        const oldTrip = oldTripRow as Trip | undefined;
         const currentDriverId = driverIdRef.current;
 
         if (
@@ -338,7 +339,11 @@ export function useDriverTrips(page = 0) {
           ((newTrip && newTrip.driver_id === currentDriverId) ||
             (oldTrip && oldTrip.driver_id === currentDriverId))
         ) {
-          fetchTrips();
+          if (eventType === 'UPDATE' && newTrip) {
+            setTrips((prev) => prev.map((t) => (t.id === newTrip.id ? { ...t, ...newTrip } : t)));
+          } else {
+            fetchTrips();
+          }
         }
       })
       .subscribe((status) => {
@@ -364,12 +369,47 @@ interface QueuedLocation {
   retries: number;
 }
 
+let memoryGpsQueue: QueuedLocation[] = [];
+let writeTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleQueueWrite() {
+  if (writeTimeout) return;
+  writeTimeout = setTimeout(async () => {
+    writeTimeout = null;
+    try {
+      if (memoryGpsQueue.length === 0) {
+        await AsyncStorage.removeItem(GPS_QUEUE_KEY);
+      } else {
+        await AsyncStorage.setItem(GPS_QUEUE_KEY, JSON.stringify(memoryGpsQueue));
+      }
+    } catch (err) {
+      logger.warn('Failed to write GPS queue to AsyncStorage', { error: getErrorMessage(err) });
+    }
+  }, 10000);
+}
+
+async function persistQueueImmediately() {
+  if (writeTimeout) {
+    clearTimeout(writeTimeout);
+    writeTimeout = null;
+  }
+  try {
+    if (memoryGpsQueue.length === 0) {
+      await AsyncStorage.removeItem(GPS_QUEUE_KEY);
+    } else {
+      await AsyncStorage.setItem(GPS_QUEUE_KEY, JSON.stringify(memoryGpsQueue));
+    }
+  } catch (err) {
+    logger.warn('Failed to write GPS queue immediately', { error: getErrorMessage(err) });
+  }
+}
+
 async function flushGpsQueue() {
   try {
     const queueData = await AsyncStorage.getItem(GPS_QUEUE_KEY);
     if (!queueData) return;
 
-    const queue: QueuedLocation[] = JSON.parse(queueData);
+    let queue: QueuedLocation[] = JSON.parse(queueData);
     if (queue.length === 0) return;
 
     const {
@@ -377,14 +417,14 @@ async function flushGpsQueue() {
     } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Send the entire queue in a single RPC call to solve N+1 issue
+    // Send the entire queue in a single RPC call in snake_case
     const { error, data } = await supabase.rpc('bulk_update_trip_locations', {
-      p_locations: queue.map((q) => ({ tripId: q.tripId, lat: q.lat, lng: q.lng })),
+      p_locations: queue.map((q) => ({ trip_id: q.tripId, lat: q.lat, lng: q.lng })),
     });
 
     if (error) {
       // Network error or global failure: increment retries and keep the queue
-      const failed: QueuedLocation[] = queue
+      queue = queue
         .map((item) => ({ ...item, retries: item.retries + 1 }))
         .filter((item) => {
           if (item.retries >= 3) {
@@ -394,11 +434,12 @@ async function flushGpsQueue() {
           return true;
         });
 
-      if (failed.length > 0) {
-        await AsyncStorage.setItem(GPS_QUEUE_KEY, JSON.stringify(failed));
+      if (queue.length > 0) {
+        await AsyncStorage.setItem(GPS_QUEUE_KEY, JSON.stringify(queue));
       } else {
         await AsyncStorage.removeItem(GPS_QUEUE_KEY);
       }
+      memoryGpsQueue = queue;
       return;
     }
 
@@ -410,9 +451,9 @@ async function flushGpsQueue() {
       });
     }
 
-    // If the RPC succeeded, we can clear the queue. Business logic errors (e.g. invalid status)
-    // returned in responseData.failed should not be retried.
+    // If the RPC succeeded, we can clear the queue.
     await AsyncStorage.removeItem(GPS_QUEUE_KEY);
+    memoryGpsQueue = [];
   } catch (err) {
     logger.warn('Failed to flush GPS queue', { error: getErrorMessage(err) });
   }
@@ -422,17 +463,26 @@ async function flushGpsQueue() {
 export { flushGpsQueue as flushGpsQueueForTest };
 
 async function queueLocationUpdate(tripId: string, lat: number, lng: number) {
-  const item: QueuedLocation = { tripId, lat, lng, timestamp: Date.now(), retries: 0 };
-  const existing = await AsyncStorage.getItem(GPS_QUEUE_KEY);
-  let queue: QueuedLocation[] = existing ? JSON.parse(existing) : [];
-  queue.push(item);
-
-  // Phase 5: Memory optimization - Limit queue size to 100 items to prevent out-of-memory errors
-  if (queue.length > 100) {
-    queue = queue.slice(queue.length - 100);
+  if (memoryGpsQueue.length === 0) {
+    try {
+      const existing = await AsyncStorage.getItem(GPS_QUEUE_KEY);
+      if (existing) {
+        memoryGpsQueue = JSON.parse(existing);
+      }
+    } catch (e) {
+      // Ignore
+    }
   }
 
-  await AsyncStorage.setItem(GPS_QUEUE_KEY, JSON.stringify(queue));
+  const item: QueuedLocation = { tripId, lat, lng, timestamp: Date.now(), retries: 0 };
+  memoryGpsQueue.push(item);
+
+  // Phase 5: Memory optimization - Limit queue size to 100 items to prevent out-of-memory errors
+  if (memoryGpsQueue.length > 100) {
+    memoryGpsQueue = memoryGpsQueue.slice(memoryGpsQueue.length - 100);
+  }
+
+  scheduleQueueWrite();
 }
 
 export function useLocationTracker() {
@@ -491,13 +541,28 @@ export function useLocationTracker() {
       watchRef.current.remove();
       watchRef.current = null;
     }
+    persistQueueImmediately();
   }, []);
 
   return { startTracking, stopTracking };
 }
 
+export interface TripHistoryItem {
+  id: string;
+  status: TripStatus;
+  ended_at: string | null;
+  routes: {
+    title: string;
+  } | null;
+  drivers: {
+    profiles: {
+      full_name: string;
+    } | null;
+  } | null;
+}
+
 export function useTripHistory() {
-  const [trips, setTrips] = useState<any[]>([]);
+  const [trips, setTrips] = useState<TripHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const user = useAuthStore((state) => state.user);
@@ -551,7 +616,7 @@ export function useTripHistory() {
 
       if (error) throw error;
       if (data) {
-        setTrips(data);
+        setTrips(data as unknown as TripHistoryItem[]);
         AsyncStorage.setItem(`cached_trip_history_${user.id}`, JSON.stringify(data)).catch(
           () => {},
         );

@@ -11,6 +11,7 @@ import {
   DevSettings,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../src/lib/supabase';
 import { useAuthStore } from '../../src/hooks/useStore';
 import { useTranslation } from '../../src/hooks/useTranslation';
@@ -23,6 +24,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, role, profile, setProfile, logout } = useAuthStore();
   const { t, isRTL, language, setLanguage } = useTranslation();
+  const { top } = useSafeAreaInsets();
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [phone, setPhone] = useState(profile?.phone || '');
   const [saving, setSaving] = useState(false);
@@ -137,7 +139,7 @@ export default function ProfileScreen() {
       <StatusBar barStyle="light-content" backgroundColor={Colors.secondary} />
 
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: top + Spacing.xl }]}>
         {/* Avatar Ring */}
         <View style={styles.avatarContainer}>
           <View style={styles.avatarCircle}>
@@ -449,7 +451,6 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: Colors.secondary,
     alignItems: 'center',
-    paddingTop: Spacing.xxxl,
     paddingBottom: Spacing.xxxl,
     paddingHorizontal: Spacing.xl,
   },

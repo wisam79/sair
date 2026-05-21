@@ -201,7 +201,7 @@ describe('retryWithBackoff', () => {
       if (attempts < 3) throw new Error('fail');
       return 'success';
     };
-    const result = await retryWithBackoff(fn, 3, 10);
+    const result = await retryWithBackoff(fn, { maxRetries: 3, baseDelayMs: 10 });
     expect(result).toBe('success');
     expect(attempts).toBe(3);
   });
@@ -210,7 +210,7 @@ describe('retryWithBackoff', () => {
     const fn = async () => {
       throw new Error('always fail');
     };
-    await expect(retryWithBackoff(fn, 3, 10)).rejects.toThrow('always fail');
+    await expect(retryWithBackoff(fn, { maxRetries: 3, baseDelayMs: 10 })).rejects.toThrow('always fail');
   });
 });
 

@@ -2,6 +2,7 @@ import React, { Component, ReactNode } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Translations, Language } from '@uniride/core';
 import { useI18nStore } from '../hooks/useStore';
+import { logger } from '../lib/logger';
 
 function t(key: string): string {
   const lang: Language = useI18nStore.getState().language;
@@ -19,6 +20,13 @@ interface State {
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, error: null };
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    logger.error(`ErrorBoundary caught an uncaught exception: ${error.message}`, {
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+    });
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };

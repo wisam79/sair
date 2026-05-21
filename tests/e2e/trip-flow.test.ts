@@ -47,12 +47,16 @@ test.describe('Trip State Machine', () => {
   });
 
   test('update_trip_location RPC requires driver auth', async ({ request }) => {
-    const response = await request.post(`${SUPABASE_URL}/functions/v1/update_trip_location`, {
-      headers: { Authorization: `Bearer ${ANON_KEY}`, 'Content-Type': 'application/json' },
+    const response = await request.post(`${SUPABASE_URL}/rest/v1/rpc/update_trip_location`, {
+      headers: {
+        apikey: ANON_KEY,
+        Authorization: `Bearer ${ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
       data: {
-        tripId: '00000000-0000-0000-0000-000000000001',
-        lat: 33.3,
-        lng: 44.4,
+        p_trip_id: '00000000-0000-0000-0000-000000000001',
+        p_lat: 33.3,
+        p_lng: 44.4,
       },
     });
     expect([401, 403]).toContain(response.status());

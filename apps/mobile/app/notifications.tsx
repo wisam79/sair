@@ -11,13 +11,13 @@ import {
   RefreshControl,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../src/lib/supabase';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../src/theme';
 import { EmptyState } from '../src/components/EmptyState';
-import { useFocusEffect } from 'expo-router';
 
 interface NotificationItem {
   id: string;
@@ -31,6 +31,7 @@ interface NotificationItem {
 export default function NotificationsScreen() {
   const { t, isRTL } = useTranslation();
   const router = useRouter();
+  const { top } = useSafeAreaInsets();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -164,7 +165,13 @@ export default function NotificationsScreen() {
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
       {/* Header */}
-      <View style={[styles.header, isRTL && { flexDirection: 'row-reverse' }]}>
+      <View
+        style={[
+          styles.header,
+          { paddingTop: top + Spacing.md },
+          isRTL && { flexDirection: 'row-reverse' },
+        ]}
+      >
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
         </TouchableOpacity>
@@ -217,7 +224,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    paddingTop: Spacing.xl,
+    paddingTop: Spacing.md,
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,

@@ -10,6 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../src/lib/supabase';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../src/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +20,7 @@ import { useTranslation } from '../src/hooks/useTranslation';
 export default function CreateTripScreen() {
   const router = useRouter();
   const { t, isRTL } = useTranslation();
+  const { top } = useSafeAreaInsets();
   const [routes, setRoutes] = useState<Route[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,15 +33,14 @@ export default function CreateTripScreen() {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) throw new Error('not_authenticated');
 
         const { data: driverData, error: driverError } = await supabase
           .from('drivers')
           .select('id')
           .eq('user_id', user.id)
           .single();
-        if (driverError || !driverData)
-          throw driverError || new Error(t('driver_profile_not_found'));
+        if (driverError || !driverData) throw driverError || new Error('driver_profile_not_found');
 
         // Fetch routes assigned to this driver
         const { data, error } = await supabase
@@ -51,13 +52,17 @@ export default function CreateTripScreen() {
         if (error) throw error;
         setRoutes((data as Route[]) || []);
       } catch (err: unknown) {
-        Alert.alert(t('error'), err instanceof Error ? err.message : t('unknown_error'));
+        const msg = err instanceof Error ? err.message : 'unknown_error';
+        // Don't show alert for auth errors, just navigate back
+        if (msg !== 'not_authenticated') {
+          Alert.alert(t('error'), t(msg) || msg);
+        }
       } finally {
         setIsLoading(false);
       }
     }
     fetchMyRoutes();
-  }, [t]);
+  }, []); // Run once on mount only — t is stable and fetchMyRoutes captures it via closure
 
   const handleCreateTrip = async () => {
     if (!selectedRouteId) return;
@@ -83,14 +88,6 @@ export default function CreateTripScreen() {
       setIsSubmitting(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
-  }
 
   const renderRouteItem = useCallback(
     ({ item }: { item: Route }) => {
@@ -153,12 +150,26 @@ export default function CreateTripScreen() {
     [t],
   );
 
+  if (isLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
       {/* Header */}
-      <View style={[styles.header, isRTL && { flexDirection: 'row-reverse' }]}>
+      <View
+        style={[
+          styles.header,
+          { paddingTop: top + Spacing.md },
+          isRTL && { flexDirection: 'row-reverse' },
+        ]}
+      >
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
         </TouchableOpacity>
@@ -211,7 +222,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xl + 20,
+    paddingTop: Spacing.md,
     paddingBottom: Spacing.md,
     backgroundColor: Colors.white,
     borderBottomWidth: 1,

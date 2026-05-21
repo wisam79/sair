@@ -11,30 +11,45 @@ if (!SUPABASE_URL || !ANON_KEY) {
 
 test.describe('License Activation Flow', () => {
   test('activate_license RPC rejects unauthenticated requests', async ({ request }) => {
-    const response = await request.post(`${SUPABASE_URL}/functions/v1/activate-license`, {
-      headers: { Authorization: `Bearer ${ANON_KEY}`, 'Content-Type': 'application/json' },
-      data: { code: 'TEST12345678' },
+    const response = await request.post(`${SUPABASE_URL}/rest/v1/rpc/activate_license`, {
+      headers: {
+        apikey: ANON_KEY,
+        Authorization: `Bearer ${ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      data: { p_code: 'TEST12345678' },
     });
     expect([401, 403]).toContain(response.status());
   });
 
   test('activate_license RPC rejects invalid code format', async ({ request }) => {
-    const response = await request.post(`${SUPABASE_URL}/functions/v1/activate-license`, {
+    const response = await request.post(`${SUPABASE_URL}/rest/v1/rpc/activate_license`, {
       headers: {
+        apikey: ANON_KEY,
         Authorization: `Bearer ${ANON_KEY}`,
         'Content-Type': 'application/json',
       },
-      data: { code: 'TOOSHORT' },
+      data: { p_code: 'TOOSHORT' },
     });
     expect(response.status()).toBeGreaterThanOrEqual(400);
     const body = await response.json();
-    expect(body.error).toBeTruthy();
+    expect(body.error || body.message).toBeTruthy();
   });
 
   test('create_license_batch RPC requires admin role', async ({ request }) => {
-    const response = await request.post(`${SUPABASE_URL}/functions/v1/create-license-batch`, {
-      headers: { Authorization: `Bearer ${ANON_KEY}`, 'Content-Type': 'application/json' },
-      data: { routeId: '00000000-0000-0000-0000-000000000001', quantity: 10, validDays: 30 },
+    const response = await request.post(`${SUPABASE_URL}/rest/v1/rpc/create_license_batch`, {
+      headers: {
+        apikey: ANON_KEY,
+        Authorization: `Bearer ${ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      data: {
+        p_route_id: '00000000-0000-0000-0000-000000000001',
+        p_batch_name: 'E2E Test Batch',
+        p_quantity: 10,
+        p_price: 1000,
+        p_valid_days: 30,
+      },
     });
     expect([401, 403]).toContain(response.status());
   });
@@ -42,9 +57,13 @@ test.describe('License Activation Flow', () => {
 
 test.describe('Subscription Management', () => {
   test('cancel_subscription RPC requires authentication', async ({ request }) => {
-    const response = await request.post(`${SUPABASE_URL}/functions/v1/cancel-subscription`, {
-      headers: { Authorization: `Bearer ${ANON_KEY}`, 'Content-Type': 'application/json' },
-      data: { subscriptionId: '00000000-0000-0000-0000-000000000001' },
+    const response = await request.post(`${SUPABASE_URL}/rest/v1/rpc/cancel_subscription`, {
+      headers: {
+        apikey: ANON_KEY,
+        Authorization: `Bearer ${ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      data: { p_subscription_id: '00000000-0000-0000-0000-000000000001' },
     });
     expect([401, 403]).toContain(response.status());
   });

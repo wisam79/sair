@@ -11,6 +11,7 @@ import {
   StatusBar,
   ScrollView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoutes } from '../../src/hooks/useRoutes';
 import { useSubscriptions } from '../../src/hooks/useTrips';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -31,6 +32,7 @@ import { EmptyState } from '../../src/components/EmptyState';
 
 export default function DiscoveryPage() {
   const { profile, role } = useAuthStore();
+  const { top } = useSafeAreaInsets();
   const {
     routes,
     isLoading: routesLoading,
@@ -207,7 +209,7 @@ export default function DiscoveryPage() {
   const [searchResults, setSearchResults] = useState<NominatimResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const searchTimeout = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSearch = async (text: string) => {
     setSearchQuery(text);
@@ -244,7 +246,13 @@ export default function DiscoveryPage() {
       <StatusBar barStyle="dark-content" backgroundColor={Colors.white} />
       <View style={styles.content}>
         {/* Welcome Header */}
-        <View style={[styles.welcomeHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+        <View
+          style={[
+            styles.welcomeHeader,
+            { paddingTop: top + Spacing.md },
+            isRTL && { flexDirection: 'row-reverse' },
+          ]}
+        >
           <View style={styles.welcomeTextContainer}>
             <Text style={[styles.greetingText, { textAlign: isRTL ? 'right' : 'left' }]}>
               {t('hello')}, {profile?.full_name || t('student')} 👋
@@ -504,7 +512,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xl,
     paddingBottom: Spacing.sm,
     backgroundColor: Colors.white,
   },

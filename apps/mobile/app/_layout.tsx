@@ -1,7 +1,7 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { supabase } from '../src/lib/supabase';
-import { useAuthStore } from '../src/hooks/useStore';
+import { useAuthStore, useTripStore, useBookingStore, useI18nStore } from '../src/hooks/useStore';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { useNetworkStatus } from '../src/hooks/useNetworkStatus';
 import { useNotifications } from '../src/hooks/useNotifications';
@@ -35,12 +35,17 @@ export default function Layout() {
     user,
     role,
     initialized,
-    hasHydrated,
+    hasHydrated: authHydrated,
     hasSeenOnboarding,
     setAuth,
     setProfile,
     setInitialized,
   } = useAuthStore();
+  const tripHydrated = useTripStore((state) => state.hasHydrated);
+  const bookingHydrated = useBookingStore((state) => state.hasHydrated);
+  const i18nHydrated = useI18nStore((state) => state.hasHydrated);
+
+  const allStoresHydrated = authHydrated && tripHydrated && bookingHydrated && i18nHydrated;
   const segments = useSegments();
   const router = useRouter();
   const { isRTL, t } = useTranslation();
@@ -48,6 +53,8 @@ export default function Layout() {
   const { top } = useSafeAreaInsets();
 
   const [forceUpdateRequired, setForceUpdateRequired] = useState(false);
+  // Prevent infinite refresh loop: only attempt session refresh once per mount
+  const refreshAttemptedRef = useRef(false);
 
   // Initialize push notifications globally
   useNotifications();
@@ -91,21 +98,40 @@ export default function Layout() {
       .then(async ({ data: { session } }) => {
         try {
           if (session?.user) {
-            const role = session.user.app_metadata?.role || 'student'; // SECURITY: app_metadata only
+            const jwtRole = session.user.app_metadata?.role || 'student'; // SECURITY: app_metadata only
+
+            // Fetch full profile from DB (includes institution_id for smart matching)
+            // Also fetch role to detect admin-side promotions (e.g. student → driver)
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('full_name, phone, institution_id, role')
+              .eq('id', session.user.id)
+              .single();
+
+            const dbRole = profileData?.role as string | undefined;
+
+            // If the DB role differs from the JWT role, the admin promoted/demoted this user.
+            // Refresh the session so the new JWT reflects the updated app_metadata role.
+            if (dbRole && dbRole !== jwtRole && !refreshAttemptedRef.current) {
+              refreshAttemptedRef.current = true;
+              console.log(
+                `[Auth] Role mismatch detected: JWT=${jwtRole}, DB=${dbRole}. Refreshing session...`,
+              );
+              const { data: refreshed } = await supabase.auth.refreshSession();
+              if (refreshed?.session?.user) {
+                // onAuthStateChange will fire automatically with the new session
+                return;
+              }
+            }
+
             setAuth(
               {
                 id: session.user.id,
                 email: session.user.email,
                 user_metadata: session.user.user_metadata,
               },
-              role,
+              jwtRole,
             );
-            // Fetch full profile from DB (includes institution_id for smart matching)
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('full_name, phone, institution_id')
-              .eq('id', session.user.id)
-              .single();
             if (profileData) {
               setProfile({
                 full_name: profileData.full_name || '',
@@ -130,14 +156,18 @@ export default function Layout() {
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       try {
         if (session?.user) {
-          const role = session.user.app_metadata?.role || 'student'; // SECURITY: app_metadata only
+          const jwtRole = session.user.app_metadata?.role || 'student'; // SECURITY: app_metadata only
+
+          // Reset refresh guard when a fresh session arrives so future promotions can be caught
+          refreshAttemptedRef.current = false;
+
           setAuth(
             {
               id: session.user.id,
               email: session.user.email,
               user_metadata: session.user.user_metadata,
             },
-            role,
+            jwtRole,
           );
           // Fetch full profile from DB (includes institution_id for smart matching)
           const { data: profileData } = await supabase
@@ -167,7 +197,7 @@ export default function Layout() {
 
   // Navigation guard
   useEffect(() => {
-    if (!initialized || !hasHydrated) return;
+    if (!initialized || !allStoresHydrated) return;
 
     const inAuthGroup = segments[0] === 'login' || segments[0] === 'onboarding';
 
@@ -184,10 +214,10 @@ export default function Layout() {
         router.replace('/');
       }
     }
-  }, [initialized, hasHydrated, segments, user, hasSeenOnboarding]);
+  }, [initialized, allStoresHydrated, segments, user, hasSeenOnboarding, role]);
 
   // Hide splash screen once fonts are ready
-  const appIsReady = (fontsLoaded || fontError) && initialized && hasHydrated;
+  const appIsReady = (fontsLoaded || fontError) && initialized && allStoresHydrated;
 
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {

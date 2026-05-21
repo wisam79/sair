@@ -1,12 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import { createClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { isDBAvailable, createServiceClient } from '../helpers/test-helpers';
 
-// Setup Supabase client for local testing using the service role key to bypass RLS for setup
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const runIntegration = isDBAvailable();
+
+let supabase: SupabaseClient;
 
 describe('Database State Machine & Booking Logic', () => {
+  if (!runIntegration) {
+    it.skip('Skipping integration tests: Supabase service role key not set', () => {});
+    return;
+  }
+
+  supabase = createServiceClient();
+
   it('should reject invalid trip transitions at the DB level', async () => {
     const { data: trip } = await supabase
       .from('trips')

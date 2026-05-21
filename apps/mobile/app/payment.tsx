@@ -19,7 +19,12 @@ import * as Haptics from 'expo-haptics';
 
 export default function PaymentScreen() {
   const { top } = useSafeAreaInsets();
-  const { routeId, amount } = useLocalSearchParams<{ routeId: string; amount: string }>();
+  const { routeId, route_id, amount } = useLocalSearchParams<{
+    routeId?: string;
+    route_id?: string;
+    amount: string;
+  }>();
+  const activeRouteId = route_id || routeId;
   const [loading, setLoading] = useState(true);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [stubMessage, setStubMessage] = useState<string | null>(null);
@@ -34,9 +39,11 @@ export default function PaymentScreen() {
         } = await supabase.auth.getSession();
         if (!session) throw new Error('Not authenticated');
 
+        if (!activeRouteId) throw new Error('Route ID is missing');
+
         // Call the ZainCash checkout edge function
         const { data, error } = await supabase.functions.invoke('zaincash-checkout', {
-          body: { routeId, amount: Number(amount) },
+          body: { route_id: activeRouteId },
         });
 
         if (error) throw error;
@@ -57,9 +64,25 @@ export default function PaymentScreen() {
     };
 
     initPayment();
-  }, [routeId, amount]);
+  }, [activeRouteId, amount]);
 
   const handleMockSuccess = async () => {
+    try {
+      const orderId = paymentUrl ? new URL(paymentUrl).searchParams.get('id') : null;
+      if (orderId) {
+        const { error } = await supabase.functions.invoke(`zaincash-webhook?token=${orderId}`);
+        if (error) {
+          console.error('[Mock Payment] Error invoking zaincash-webhook:', error);
+          Alert.alert(t('error'), error.message || 'Payment simulation failed');
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('[Mock Payment] Failed to parse orderId or trigger webhook:', e);
+      Alert.alert(t('error'), e instanceof Error ? e.message : 'Unknown error');
+      return;
+    }
+
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     Alert.alert(t('success'), t('mock_payment_success'), [
       { text: t('ok'), onPress: () => router.replace('/subscriptions') },

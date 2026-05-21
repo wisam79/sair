@@ -8,7 +8,10 @@
     "dev": "pnpm -r dev",
     "test": "vitest run",
     "test:mobile": "vitest run --config vitest.mobile.config.ts",
+    "test:integration": "cross-env RUN_INTEGRATION_TESTS=true vitest run tests/integration/",
+    "test:concurrency": "cross-env RUN_INTEGRATION_TESTS=true vitest run tests/integration/concurrency.integration.test.ts",
     "test:coverage": "vitest run --coverage",
+    "test:all": "vitest run && vitest run --config vitest.mobile.config.ts",
     "test:e2e": "playwright test",
     "typecheck": "pnpm -r typecheck",
     "mobile:doctor": "pnpm --filter mobile-app exec expo install --check",
@@ -32,8 +35,10 @@
     "@typescript-eslint/eslint-plugin": "^8.59.3",
     "@typescript-eslint/parser": "^8.59.3",
     "@vitest/coverage-v8": "^1.6.0",
+    "cross-env": "^10.1.0",
     "eslint": "^8.57.0",
     "husky": "^9.1.7",
+    "jose": "^6.2.3",
     "jsdom": "^29.1.1",
     "lint-staged": "^17.0.3",
     "prettier": "^3.2.5",
@@ -48,7 +53,9 @@
   "pnpm": {
     "overrides": {
       "react": "19.1.0",
-      "react-dom": "19.1.0"
+      "react-dom": "19.1.0",
+      "react-native-maps": "1.20.1",
+      "@types/react": "19.1.10"
     }
   },
   "lint-staged": {

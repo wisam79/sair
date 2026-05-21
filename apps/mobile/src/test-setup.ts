@@ -2,6 +2,7 @@ import { vi } from 'vitest';
 
 // Define __DEV__ for expo-modules-core and other React Native dependencies
 (globalThis as any).__DEV__ = true;
+(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 
 vi.mock('react-native', () => ({
   Platform: { OS: 'ios', select: (obj: Record<string, unknown>) => obj.ios ?? obj.default },
