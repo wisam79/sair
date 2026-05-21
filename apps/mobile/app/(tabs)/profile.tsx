@@ -209,7 +209,7 @@ export default function ProfileScreen() {
               style={[styles.input, isRTL && styles.inputRTL]}
               value={phone}
               onChangeText={setPhone}
-              placeholder="+964 7XX XXX XXXX"
+              placeholder={t('phone_placeholder')}
               placeholderTextColor={Colors.textMuted}
               keyboardType="phone-pad"
               onFocus={() => setFocusedField('phone')}
