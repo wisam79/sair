@@ -12,8 +12,8 @@ const ibmArabic = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: 'UniRide Admin',
-  description: 'Management dashboard for UniRide platform',
+  title: 'Sair Admin',
+  description: 'Management dashboard for Sair platform',
 };
 
 export default function RootLayout({

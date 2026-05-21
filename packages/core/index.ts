@@ -205,7 +205,7 @@ export const Languages = z.enum(['ar', 'en']);
 export type Language = z.infer<typeof Languages>;
 
 const arTranslations = {
-  welcome: 'مرحباً بك في يونيرايد',
+  welcome: 'مرحباً بك في سير',
   book_now: 'احجز الآن',
   no_seats: 'عذراً، لا توجد مقاعد متاحة',
   trip_started: 'بدأت الرحلة',
@@ -463,20 +463,20 @@ const arTranslations = {
   emergency_failed_call_directly: 'فشل التبليغ التلقائي، اتصل بالطوارئ مباشرة',
   trip_not_found: 'لم يتم العثور على الرحلة',
   share_trip_message:
-    'أنا الآن على متن رحلة يونيرايد 🚌\nالخط: {{route}}\nالسائق: {{driver}}\nتتبع رحلتي هنا!',
+    'أنا الآن على متن رحلة سير 🚌\nالخط: {{route}}\nالسائق: {{driver}}\nتتبع رحلتي هنا!',
   share_failed: 'فشل في مشاركة الرحلة',
   chat_open_error: 'حدث خطأ أثناء فتح المحادثة',
   no_coordinates: 'إحداثيات الخط غير متوفرة',
   departure_time: 'وقت الانطلاق',
   arrival_time: 'وقت الوصول',
   current_driver_hint: 'السائق الحالي (انقر للتفاصيل)',
-  driver_uniride: 'سائق يونيرايد',
+  driver_uniride: 'سائق سير',
   sign_in_with_google: 'الدخول بواسطة جوجل',
   or: 'أو',
 } as const;
 
 const enTranslations = {
-  welcome: 'Welcome to UniRide',
+  welcome: 'Welcome to Sair',
   book_now: 'Book Now',
   no_seats: 'Sorry, no seats available',
   trip_started: 'Trip Started',
@@ -737,14 +737,14 @@ const enTranslations = {
   emergency_failed_call_directly: 'Failed to report automatically, please call emergency directly',
   trip_not_found: 'Trip not found',
   share_trip_message:
-    'I am now on a UniRide trip 🚌\nRoute: {{route}}\nDriver: {{driver}}\nTrack my trip here!',
+    'I am now on a Sair trip 🚌\nRoute: {{route}}\nDriver: {{driver}}\nTrack my trip here!',
   share_failed: 'Failed to share trip',
   chat_open_error: 'Failed to open chat conversation',
   no_coordinates: 'Route coordinates unavailable',
   departure_time: 'Departure Time',
   arrival_time: 'Arrival Time',
   current_driver_hint: 'Current Driver (Tap for details)',
-  driver_uniride: 'UniRide Driver',
+  driver_uniride: 'Sair Driver',
   sign_in_with_google: 'Sign in with Google',
   or: 'Or',
 } as const;

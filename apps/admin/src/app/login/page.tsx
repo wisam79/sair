@@ -253,7 +253,7 @@ export default function LoginPage() {
                   }}
                 />
               }
-              label={t('nav.appTitle', 'UniRide Admin')}
+              label={t('nav.appTitle', 'Sair Admin')}
               size="small"
               sx={{
                 mb: 2.5,
@@ -311,7 +311,7 @@ export default function LoginPage() {
                   : { color: 'text.primary' }),
               }}
             >
-              {t('login.title', 'UniRide Admin')}
+              {t('login.title', 'Sair Admin')}
             </Typography>
             <Typography
               variant="body2"
@@ -449,7 +449,7 @@ export default function LoginPage() {
               color="text.disabled"
               sx={{ fontSize: '0.6rem', opacity: 0.6 }}
             >
-              v2.0 — {t('login.poweredBy', 'Powered by UniRide')}
+              v2.0 — {t('login.poweredBy', 'Powered by Sair')}
             </Typography>
           </Box>
         </Paper>

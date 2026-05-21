@@ -14,11 +14,11 @@ function isRTL(language: string): boolean {
 
 describe('Translation logic', () => {
   it('returns Arabic translation for ar language', () => {
-    expect(t('welcome', 'ar')).toBe('مرحباً بك في يونيرايد');
+    expect(t('welcome', 'ar')).toBe('مرحباً بك في سير');
   });
 
   it('returns English translation for en language', () => {
-    expect(t('welcome', 'en')).toBe('Welcome to UniRide');
+    expect(t('welcome', 'en')).toBe('Welcome to Sair');
   });
 
   it('falls back to English when key missing in current language', () => {

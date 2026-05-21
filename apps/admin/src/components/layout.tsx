@@ -221,9 +221,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   const isDark = mode === 'dark';
-  const isLoginPage = pathname === '/login';
+  const isPublicPage = ['/login', '/privacy', '/terms', '/home', '/support'].includes(
+    pathname || '',
+  );
 
-  if (isLoginPage) {
+  if (isPublicPage) {
     return (
       <Box
         sx={{
@@ -381,7 +383,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   color: isDark ? '#f8fafc' : '#0f172a',
                 }}
               >
-                {t('nav.appTitle', 'UniRide Admin')}
+                {t('nav.appTitle', 'Sair Admin')}
               </Typography>
               <Typography
                 variant="caption"
@@ -623,7 +625,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               {activeItem
                 ? t(activeItem.labelKey, activeItem.defaultLabel)
-                : t('nav.appTitle', 'UniRide')}
+                : t('nav.appTitle', 'Sair')}
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.72rem' }}>
               {t('dashboard.subtitle', 'Monitor and manage platform operations')}

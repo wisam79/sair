@@ -224,7 +224,7 @@ export default function DiscoveryPage() {
         setIsSearching(true);
         const response = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&countrycodes=iq&limit=5`,
-          { headers: { 'User-Agent': 'UniRide-App' } },
+          { headers: { 'User-Agent': 'Sair-App' } },
         );
         const data = await response.json();
         setSearchResults(data);

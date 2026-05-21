@@ -21,7 +21,7 @@ import { Save } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 
 const DEFAULT_SETTINGS = {
-  appName: 'UniRide',
+  appName: 'Sair',
   defaultLanguage: 'ar',
   maintenanceMode: false,
   allowNewRegistrations: true,
@@ -39,7 +39,7 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const savedSettings = localStorage.getItem('uniride_settings');
+    const savedSettings = localStorage.getItem('sair_settings');
     if (savedSettings) {
       try {
         setSettings(JSON.parse(savedSettings));
@@ -51,7 +51,7 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     try {
-      localStorage.setItem('uniride_settings', JSON.stringify(settings));
+      localStorage.setItem('sair_settings', JSON.stringify(settings));
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (e) {

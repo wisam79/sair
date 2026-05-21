@@ -157,39 +157,36 @@ export default function LoginScreen() {
   };
 
   // Helper: extract tokens from a redirect URL (handles both # fragment and ? query)
-  const extractSessionFromUrl = useCallback(
-    async (url: string) => {
-      // Supabase puts tokens in the URL fragment (#access_token=...&refresh_token=...)
-      let accessToken: string | undefined;
-      let refreshToken: string | undefined;
+  const extractSessionFromUrl = useCallback(async (url: string) => {
+    // Supabase puts tokens in the URL fragment (#access_token=...&refresh_token=...)
+    let accessToken: string | undefined;
+    let refreshToken: string | undefined;
 
-      const hashIndex = url.indexOf('#');
-      if (hashIndex !== -1) {
-        const fragment = url.substring(hashIndex + 1);
-        const params = new URLSearchParams(fragment);
-        accessToken = params.get('access_token') ?? undefined;
-        refreshToken = params.get('refresh_token') ?? undefined;
-      }
+    const hashIndex = url.indexOf('#');
+    if (hashIndex !== -1) {
+      const fragment = url.substring(hashIndex + 1);
+      const params = new URLSearchParams(fragment);
+      accessToken = params.get('access_token') ?? undefined;
+      refreshToken = params.get('refresh_token') ?? undefined;
+    }
 
-      // Fallback: try query params
-      if (!accessToken || !refreshToken) {
-        const parsed = Linking.parse(url);
-        accessToken = (parsed.queryParams?.access_token as string) ?? undefined;
-        refreshToken = (parsed.queryParams?.refresh_token as string) ?? undefined;
-      }
+    // Fallback: try query params
+    if (!accessToken || !refreshToken) {
+      const parsed = Linking.parse(url);
+      accessToken = (parsed.queryParams?.access_token as string) ?? undefined;
+      refreshToken = (parsed.queryParams?.refresh_token as string) ?? undefined;
+    }
 
-      if (accessToken && refreshToken) {
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-        if (error) throw error;
-        return true;
-      }
-      return false;
-    },
-    [],
-  );
+    if (accessToken && refreshToken) {
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+      if (error) throw error;
+      return true;
+    }
+    return false;
+  }, []);
 
   // Listen for deep link redirects (fallback when openAuthSessionAsync can't intercept)
   useEffect(() => {
@@ -206,7 +203,7 @@ export default function LoginScreen() {
       setLoading(true);
 
       const redirectUrl = makeRedirectUri({
-        scheme: 'uniride',
+        scheme: 'sair',
         path: 'login',
       });
 
@@ -283,7 +280,7 @@ export default function LoginScreen() {
           <View style={styles.logoCircle}>
             <Ionicons name="bus" size={52} color={Colors.primary} />
           </View>
-          <Text style={styles.appName}>UniRide</Text>
+          <Text style={styles.appName}>Sair</Text>
           <Text style={styles.appNameAr}>{t('welcome').split(' ')[0]}</Text>
           <Text style={styles.tagline}>{t('uniride_tagline')}</Text>
         </View>

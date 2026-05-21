@@ -1,8 +1,8 @@
 {
-  "name": "uniride-v2",
+  "name": "sair-v2",
   "version": "2.0.0",
   "private": true,
-  "description": "UniRide v2 - Clean Smart Transit Platform",
+  "description": "Sair - Clean Smart Transit Platform",
   "scripts": {
     "build": "pnpm -r build",
     "dev": "pnpm -r dev",

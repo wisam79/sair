@@ -7,7 +7,7 @@ const resources = {
     translation: {
       ...Translations.ar,
       nav: {
-        appTitle: 'يونيرايد - لوحة التحكم',
+        appTitle: 'سير - لوحة التحكم',
         dashboard: 'الرئيسية',
         users: 'المستخدمين',
         drivers: 'السائقين',
@@ -31,7 +31,7 @@ const resources = {
         logout: 'تسجيل الخروج',
       },
       documentTitle: {
-        default: 'يونيرايد - لوحة التحكم',
+        default: 'سير - لوحة التحكم',
       },
       dashboard: {
         title: 'الرئيسية',
@@ -180,10 +180,10 @@ const resources = {
         unknown: 'حدث خطأ غير معروف',
       },
       login: {
-        title: 'يونيرايد - لوحة التحكم',
+        title: 'سير - لوحة التحكم',
         subtitle: 'سجل الدخول لإدارة المنصة',
         emailLabel: 'البريد الإلكتروني',
-        emailPlaceholder: 'admin@uniride.com',
+        emailPlaceholder: 'admin@sair.com',
         passwordLabel: 'كلمة المرور',
         signIn: 'تسجيل الدخول',
         signingIn: 'جاري تسجيل الدخول...',
@@ -413,7 +413,7 @@ const resources = {
     translation: {
       ...Translations.en,
       nav: {
-        appTitle: 'UniRide Admin',
+        appTitle: 'Sair Admin',
         dashboard: 'Dashboard',
         users: 'Users',
         drivers: 'Drivers',
@@ -437,7 +437,7 @@ const resources = {
         logout: 'Logout',
       },
       documentTitle: {
-        default: 'UniRide - Admin Dashboard',
+        default: 'Sair - Admin Dashboard',
       },
       dashboard: {
         title: 'Dashboard',
@@ -580,10 +580,10 @@ const resources = {
         unknown: 'An unknown error occurred',
       },
       login: {
-        title: 'UniRide Admin',
+        title: 'Sair Admin',
         subtitle: 'Sign in to manage the platform',
         emailLabel: 'Email address',
-        emailPlaceholder: 'admin@uniride.com',
+        emailPlaceholder: 'admin@sair.com',
         passwordLabel: 'Password',
         signIn: 'Sign in',
         signingIn: 'Signing in...',

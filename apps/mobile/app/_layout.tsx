@@ -210,7 +210,7 @@ export default function Layout() {
         </Text>
         <TouchableOpacity
           style={styles.updateButton}
-          onPress={() => Linking.openURL('market://details?id=com.uniride.app')}
+          onPress={() => Linking.openURL('market://details?id=com.wisam99sr.uniride')}
         >
           <Text style={styles.updateButtonText}>{t('update_now') || 'تحديث الآن'}</Text>
         </TouchableOpacity>

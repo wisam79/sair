@@ -21,9 +21,9 @@ const STATUS_MESSAGES: Record<
   },
   completed: {
     titleAr: 'وصلت الرحلة بسلام',
-    bodyAr: 'وصلت الرحلة إلى وجهتها. شكراً لركوبك مع يونيرايد!',
+    bodyAr: 'وصلت الرحلة إلى وجهتها. شكراً لركوبك مع سير!',
     titleEn: 'Trip Completed',
-    bodyEn: 'The trip has arrived safely. Thank you for riding with UniRide!',
+    bodyEn: 'The trip has arrived safely. Thank you for riding with Sair!',
   },
   cancelled: {
     titleAr: 'تم إلغاء الرحلة',
