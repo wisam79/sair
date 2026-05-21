@@ -45,6 +45,10 @@ export default function DriverCreate() {
 
   const { autocompleteProps: profileAutocompleteProps } = useAutocomplete({
     resource: 'profiles',
+    pagination: {
+      mode: 'server',
+      pageSize: 10,
+    },
   });
 
   return (

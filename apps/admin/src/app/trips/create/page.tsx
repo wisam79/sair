@@ -23,10 +23,18 @@ export default function TripCreate() {
 
   const { autocompleteProps: routeAutocompleteProps } = useAutocomplete({
     resource: 'routes',
+    pagination: {
+      mode: 'server',
+      pageSize: 10,
+    },
   });
 
   const { autocompleteProps: driverAutocompleteProps } = useAutocomplete({
     resource: 'drivers',
+    pagination: {
+      mode: 'server',
+      pageSize: 10,
+    },
   });
 
   return (
