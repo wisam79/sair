@@ -54,6 +54,29 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    // Health check endpoint (bypasses auth and validation)
+    let isHealthCheck = false;
+    try {
+      const clonedReq = req.clone();
+      const body = await clonedReq.json();
+      if (body && body.action === 'health') {
+        isHealthCheck = true;
+      }
+    } catch {
+      // Ignore
+    }
+
+    if (isHealthCheck) {
+      return new Response(JSON.stringify({ status: 'healthy' }), {
+        status: 200,
+        headers: {
+          ...corsHeaders(req),
+          'Access-Control-Allow-Origin': req.headers.get('Origin') || '*',
+          'Content-Type': 'application/json',
+        },
+      });
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',

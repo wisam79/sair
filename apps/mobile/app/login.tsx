@@ -1,11 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -20,6 +19,12 @@ import { z } from 'zod';
 import { Colors, Spacing, BorderRadius, Shadow, FontFamily } from '../src/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import CustomAlert from '../src/components/CustomAlert';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+import { makeRedirectUri } from 'expo-auth-session';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -30,10 +35,48 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [focusedField, setFocusedField] = useState<'fullName' | 'email' | 'password' | null>(null);
-
-  const { t, isRTL } = useTranslation();
-  const { top } = useSafeAreaInsets();
+  const { t, isRTL, language, setLanguage } = useTranslation();
+  const { top, bottom } = useSafeAreaInsets();
   const buttonScale = useRef(new Animated.Value(1)).current;
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'error' | 'warning' | 'info' | 'question';
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'info',
+  });
+
+  const showAlert = (
+    title: string,
+    message: string,
+    type: 'success' | 'error' | 'warning' | 'info' | 'question' = 'info',
+  ) => {
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+      type,
+    });
+  };
+
+  const handleFocus = (field: 'fullName' | 'email' | 'password') => {
+    setFocusedField(field);
+    let scrollY = 60;
+    if (field === 'password') {
+      scrollY = isSignup ? 200 : 140;
+    } else if (field === 'email') {
+      scrollY = isSignup ? 130 : 60;
+    }
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ y: scrollY, animated: true });
+    }, 100);
+  };
 
   const animateButton = () => {
     Animated.sequence([
@@ -71,7 +114,7 @@ export default function LoginScreen() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      Alert.alert(t('error'), error.message);
+      showAlert(t('error'), error.message, 'error');
     }
     setLoading(false);
   };
@@ -91,25 +134,107 @@ export default function LoginScreen() {
     });
 
     if (error) {
-      Alert.alert(t('error'), error.message);
+      showAlert(t('error'), error.message, 'error');
     } else if (data.session) {
-      Alert.alert(t('success'), t('account_created'));
+      showAlert(t('success'), t('account_created'), 'success');
     } else {
-      Alert.alert(t('check_inbox_title'), t('check_inbox_msg'));
+      showAlert(t('check_inbox_title'), t('check_inbox_msg'), 'info');
     }
     setLoading(false);
   };
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
-      Alert.alert(t('alert'), t('enter_email_first'));
+      showAlert(t('alert'), t('enter_email_first'), 'warning');
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(email);
     if (error) {
-      Alert.alert(t('error'), error.message);
+      showAlert(t('error'), error.message, 'error');
     } else {
-      Alert.alert(t('sent'), t('reset_link_sent'));
+      showAlert(t('sent'), t('reset_link_sent'), 'success');
+    }
+  };
+
+  // Helper: extract tokens from a redirect URL (handles both # fragment and ? query)
+  const extractSessionFromUrl = useCallback(async (url: string) => {
+    // Supabase puts tokens in the URL fragment (#access_token=...&refresh_token=...)
+    let accessToken: string | undefined;
+    let refreshToken: string | undefined;
+
+    const hashIndex = url.indexOf('#');
+    if (hashIndex !== -1) {
+      const fragment = url.substring(hashIndex + 1);
+      const params = new URLSearchParams(fragment);
+      accessToken = params.get('access_token') ?? undefined;
+      refreshToken = params.get('refresh_token') ?? undefined;
+    }
+
+    // Fallback: try query params
+    if (!accessToken || !refreshToken) {
+      const parsed = Linking.parse(url);
+      accessToken = (parsed.queryParams?.access_token as string) ?? undefined;
+      refreshToken = (parsed.queryParams?.refresh_token as string) ?? undefined;
+    }
+
+    if (accessToken && refreshToken) {
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+      if (error) throw error;
+      return true;
+    }
+    return false;
+  }, []);
+
+  // Listen for deep link redirects (fallback when openAuthSessionAsync can't intercept)
+  useEffect(() => {
+    const subscription = Linking.addEventListener('url', (event) => {
+      if (event.url && event.url.includes('access_token')) {
+        void extractSessionFromUrl(event.url);
+      }
+    });
+    return () => subscription.remove();
+  }, [extractSessionFromUrl]);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true);
+
+      const redirectUrl = makeRedirectUri({
+        scheme: 'sair',
+        path: 'login',
+      });
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (error) throw error;
+      if (!data?.url) throw new Error('Could not generate authentication URL');
+
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+
+      if (result.type === 'success' && result.url) {
+        const success = await extractSessionFromUrl(result.url);
+        if (!success) {
+          throw new Error('Authentication tokens not found in URL response');
+        }
+      }
+      // If result.type === 'dismiss', user closed the browser — do nothing
+    } catch (err: unknown) {
+      showAlert(
+        t('error'),
+        err instanceof Error ? err.message : t('something_went_wrong'),
+        'error',
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -117,23 +242,45 @@ export default function LoginScreen() {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
     >
       <StatusBar barStyle="light-content" backgroundColor={Colors.backgroundDark} />
       {/* Ambient background glowing orbs */}
-      <View style={styles.orb1} />
-      <View style={styles.orb2} />
+      <View style={styles.orb1} pointerEvents="none" />
+      <View style={styles.orb2} pointerEvents="none" />
+
+      {/* Language Switcher */}
+      <View style={[styles.langContainer, { top: top + Spacing.xs }]} pointerEvents="box-none">
+        <TouchableOpacity
+          style={[styles.langButton, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+          onPress={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="globe-outline" size={16} color={Colors.primary} />
+          <Text style={styles.langText}>{language === 'ar' ? 'English' : 'العربية'}</Text>
+        </TouchableOpacity>
+      </View>
 
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, { paddingTop: top }]}
+        ref={scrollViewRef}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: top,
+            paddingBottom: bottom + Spacing.xl,
+          },
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        <View style={{ height: Spacing.xl }} />
+
         {/* Logo Area */}
         <View style={styles.logoContainer}>
           <View style={styles.logoCircle}>
             <Ionicons name="bus" size={52} color={Colors.primary} />
           </View>
-          <Text style={styles.appName}>UniRide</Text>
+          <Text style={styles.appName}>Sair</Text>
           <Text style={styles.appNameAr}>{t('welcome').split(' ')[0]}</Text>
           <Text style={styles.tagline}>{t('uniride_tagline')}</Text>
         </View>
@@ -145,8 +292,10 @@ export default function LoginScreen() {
           {isSignup && (
             <View style={{ marginBottom: Spacing.md }}>
               <View
+                collapsable={false}
                 style={[
                   styles.inputWrapper,
+                  { flexDirection: isRTL ? 'row-reverse' : 'row' },
                   errors.fullName && styles.inputError,
                   focusedField === 'fullName' && styles.inputFocused,
                 ]}
@@ -155,7 +304,13 @@ export default function LoginScreen() {
                   name="person-outline"
                   size={18}
                   color={focusedField === 'fullName' ? Colors.primary : Colors.textMuted}
-                  style={styles.inputIcon}
+                  style={[
+                    styles.inputIcon,
+                    {
+                      marginRight: isRTL ? 0 : Spacing.xs,
+                      marginLeft: isRTL ? Spacing.xs : 0,
+                    },
+                  ]}
                 />
                 <TextInput
                   style={[styles.input, isRTL && styles.inputRTL]}
@@ -164,7 +319,7 @@ export default function LoginScreen() {
                   value={fullName}
                   onChangeText={setFullName}
                   autoCapitalize="words"
-                  onFocus={() => setFocusedField('fullName')}
+                  onFocus={() => handleFocus('fullName')}
                   onBlur={() => setFocusedField(null)}
                 />
               </View>
@@ -174,8 +329,10 @@ export default function LoginScreen() {
 
           <View style={{ marginBottom: Spacing.md }}>
             <View
+              collapsable={false}
               style={[
                 styles.inputWrapper,
+                { flexDirection: isRTL ? 'row-reverse' : 'row' },
                 errors.email && styles.inputError,
                 focusedField === 'email' && styles.inputFocused,
               ]}
@@ -184,17 +341,23 @@ export default function LoginScreen() {
                 name="mail-outline"
                 size={18}
                 color={focusedField === 'email' ? Colors.primary : Colors.textMuted}
-                style={styles.inputIcon}
+                style={[
+                  styles.inputIcon,
+                  {
+                    marginRight: isRTL ? 0 : Spacing.xs,
+                    marginLeft: isRTL ? Spacing.xs : 0,
+                  },
+                ]}
               />
               <TextInput
-                style={[styles.input, isRTL && styles.inputRTL]}
+                style={[styles.input, { textAlign: 'left' }]}
                 placeholder={t('email')}
                 placeholderTextColor={Colors.textMuted}
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
                 keyboardType="email-address"
-                onFocus={() => setFocusedField('email')}
+                onFocus={() => handleFocus('email')}
                 onBlur={() => setFocusedField(null)}
               />
             </View>
@@ -203,8 +366,10 @@ export default function LoginScreen() {
 
           <View style={{ marginBottom: Spacing.md }}>
             <View
+              collapsable={false}
               style={[
                 styles.inputWrapper,
+                { flexDirection: isRTL ? 'row-reverse' : 'row' },
                 errors.password && styles.inputError,
                 focusedField === 'password' && styles.inputFocused,
               ]}
@@ -213,16 +378,22 @@ export default function LoginScreen() {
                 name="lock-closed-outline"
                 size={18}
                 color={focusedField === 'password' ? Colors.primary : Colors.textMuted}
-                style={styles.inputIcon}
+                style={[
+                  styles.inputIcon,
+                  {
+                    marginRight: isRTL ? 0 : Spacing.xs,
+                    marginLeft: isRTL ? Spacing.xs : 0,
+                  },
+                ]}
               />
               <TextInput
-                style={[styles.input, styles.inputPassword, isRTL && styles.inputRTL]}
+                style={[styles.input, styles.inputPassword, { textAlign: 'left' }]}
                 placeholder={t('password')}
                 placeholderTextColor={Colors.textMuted}
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={setPassword}
-                onFocus={() => setFocusedField('password')}
+                onFocus={() => handleFocus('password')}
                 onBlur={() => setFocusedField(null)}
               />
               <TouchableOpacity
@@ -252,8 +423,11 @@ export default function LoginScreen() {
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={() => {
                 animateButton();
-                if (isSignup) handleSignup();
-                else handleLogin();
+                if (isSignup) {
+                  void handleSignup();
+                } else {
+                  void handleLogin();
+                }
               }}
               disabled={loading}
               activeOpacity={0.85}
@@ -267,11 +441,38 @@ export default function LoginScreen() {
           </Animated.View>
 
           {!isSignup && (
-            <TouchableOpacity style={styles.forgotButton} onPress={handleForgotPassword}>
+            <TouchableOpacity
+              style={styles.forgotButton}
+              onPress={() => {
+                void handleForgotPassword();
+              }}
+            >
               <Text style={styles.forgotText}>{t('forgot_password')}</Text>
             </TouchableOpacity>
           )}
+
+          {/* Separator */}
+          <View
+            style={[styles.separatorContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+          >
+            <View style={styles.separatorLine} />
+            <Text style={styles.separatorText}>{t('or')}</Text>
+            <View style={styles.separatorLine} />
+          </View>
+
+          {/* Google Sign-In Button */}
+          <TouchableOpacity
+            style={[styles.googleButton, loading && styles.buttonDisabled]}
+            onPress={() => void handleGoogleSignIn()}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="logo-google" size={20} color="#EA4335" style={styles.googleIcon} />
+            <Text style={styles.googleButtonText}>{t('sign_in_with_google')}</Text>
+          </TouchableOpacity>
         </View>
+
+        <View style={{ height: Spacing.xl }} />
 
         {/* Switch Mode */}
         <TouchableOpacity onPress={() => setIsSignup(!isSignup)} style={styles.switchButton}>
@@ -281,6 +482,14 @@ export default function LoginScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -314,9 +523,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.xxxl,
   },
   // Logo
   logoContainer: {
@@ -495,9 +702,70 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.regular,
     fontSize: 14,
     color: Colors.textMuted,
+    textAlign: 'center',
   },
   switchLink: {
     fontFamily: FontFamily.bold,
     color: Colors.primary,
+  },
+  langContainer: {
+    position: 'absolute',
+    end: Spacing.xl,
+    zIndex: 10,
+  },
+  langButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(194, 112, 62, 0.25)',
+    gap: Spacing.xs,
+  },
+  langText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 13,
+    color: Colors.primary,
+  },
+  separatorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: Spacing.md,
+  },
+  separatorLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.border,
+  },
+  separatorText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 14,
+    color: Colors.textMuted,
+    marginHorizontal: Spacing.sm,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: '#DADCE0',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.xs,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  googleIcon: {
+    marginHorizontal: Spacing.xs,
+  },
+  googleButtonText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 15,
+    color: '#3C4043',
   },
 });

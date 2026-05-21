@@ -1,5 +1,3 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
 /**
  * ZainCash Webhook — Stub Implementation
  *
@@ -10,7 +8,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
  * JWT payload: { id, key, type, status, amount, orderId, date, merchantId, msisdn }
  */
 
-Deno.serve(async (req: Request) => {
+Deno.serve((req: Request) => {
   try {
     const url = new URL(req.url);
     const token = url.searchParams.get('token');

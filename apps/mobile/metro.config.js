@@ -6,8 +6,13 @@ const workspaceRoot = path.resolve(projectRoot, '../..');
 
 const config = getDefaultConfig(projectRoot);
 
-// 1. Watch all files within the monorepo (append to defaults)
-config.watchFolders.push(workspaceRoot);
+// 1. Extend Expo's default watchFolders (do NOT replace — expo-doctor requires defaults)
+// Expo defaults already include: workspaceRoot/node_modules, mobile, admin, packages/core
+config.watchFolders = [
+  ...(config.watchFolders || []),
+  workspaceRoot,
+  path.resolve(workspaceRoot, 'packages/core'),
+];
 
 // 2. Let Metro know where to resolve packages and in what order
 config.resolver.nodeModulesPaths = [
@@ -17,5 +22,26 @@ config.resolver.nodeModulesPaths = [
 
 // 3. Align with Expo's recommendation
 config.resolver.disableHierarchicalLookup = false;
+
+// 4. Blocklist apps/admin, Next.js, Firebase, and other build folders
+const exclusionList = require('metro-config/private/defaults/exclusionList').default;
+config.resolver.blockList = exclusionList([
+  // Block admin app completely
+  /apps[/\\]admin[/\\]/,
+  // Block Next.js folders
+  /[/\\]\.next[/\\]/,
+  // Block Firebase folders
+  /[/\\]\.firebase[/\\]/,
+  // Block build artifacts (but NOT the mobile app's own dist)
+  new RegExp(`^(?!${escapeRegex(projectRoot.replace(/\\/g, '/'))}).*[/\\\\]dist[/\\\\]`),
+  /[/\\]build[/\\]/,
+  // Block common cache folders
+  /[/\\]\.cache[/\\]/,
+  /[/\\]\.expo[/\\]/,
+]);
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 module.exports = config;

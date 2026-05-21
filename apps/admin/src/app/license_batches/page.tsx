@@ -81,7 +81,10 @@ export default function LicenseBatchesList() {
         minWidth: 200,
         flex: 1,
         renderCell: function render({ value }) {
-          const val = typeof value === 'string' || typeof value === 'number' || value instanceof Date ? value : null;
+          const val =
+            typeof value === 'string' || typeof value === 'number' || value instanceof Date
+              ? value
+              : null;
           return val ? <DateField value={val} /> : null;
         },
       },

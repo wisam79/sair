@@ -10,7 +10,6 @@ import {
   ValidTransitions,
   SubscriptionStatus,
   RouteSchema,
-  TripSchema,
   ProfileSchema,
   Translations,
   Languages,
@@ -275,10 +274,10 @@ describe('Core Validation Logic', () => {
     });
 
     it('should have non-empty string values for all keys', () => {
-      for (const [key, value] of Object.entries(Translations.ar)) {
+      for (const value of Object.values(Translations.ar)) {
         expect(value.length).toBeGreaterThan(0);
       }
-      for (const [key, value] of Object.entries(Translations.en)) {
+      for (const value of Object.values(Translations.en)) {
         expect(value.length).toBeGreaterThan(0);
       }
     });

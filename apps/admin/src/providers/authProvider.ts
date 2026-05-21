@@ -6,7 +6,7 @@ export const authProvider: AuthBindings = {
     const { email, password } = (params || {}) as Record<string, unknown>;
     const emailStr = typeof email === 'string' ? email : '';
     const passwordStr = typeof password === 'string' ? password : '';
-    
+
     const { data, error } = await supabaseClient.auth.signInWithPassword({
       email: emailStr,
       password: passwordStr,
@@ -100,7 +100,7 @@ export const authProvider: AuthBindings = {
       return Promise.resolve({ logout: true });
     }
     return Promise.resolve({
-      error: error as unknown,
+      error: error || null,
     });
   },
 };

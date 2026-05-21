@@ -51,11 +51,13 @@ export default function NotificationsPage() {
       });
 
       if (response.error) {
-        const errorMsg = response.error instanceof Error ? response.error.message : String(response.error);
+        const errorMsg =
+          response.error instanceof Error ? response.error.message : String(response.error);
         setResult({ success: false, message: errorMsg });
       } else {
         const responseData = response.data as Record<string, unknown> | null;
-        const sentCount = typeof responseData?.sent_count === 'number' ? responseData.sent_count : 0;
+        const sentCount =
+          typeof responseData?.sent_count === 'number' ? responseData.sent_count : 0;
         setResult({
           success: true,
           message: `${t('notifications.sentCount', 'Notification sent to')} ${sentCount} ${t('notifications.targetAll', 'users')}`,

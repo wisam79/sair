@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "UniRide",
-    "slug": "uniride",
-    "scheme": "uniride",
+    "name": "سير",
+    "slug": "sair",
+    "scheme": "sair",
     "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,6 +13,9 @@
       "backgroundColor": "#2D2D2D"
     },
     "assetBundlePatterns": ["**/*"],
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
     "ios": {
       "supportsTablet": true
     },
@@ -34,13 +37,7 @@
         "projectId": "28fa1803-2b1d-4c78-b4af-9b0fd8cce561"
       }
     },
-    "owner": "wisam99sr",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/28fa1803-2b1d-4c78-b4af-9b0fd8cce561"
-    },
-    "plugins": ["expo-font", "expo-secure-store"]
+    "plugins": ["expo-font", "expo-secure-store", "expo-web-browser"],
+    "owner": "wisam99sr"
   }
 }

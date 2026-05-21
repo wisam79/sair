@@ -79,9 +79,7 @@ export default function DriverCreate() {
                       }}
                       getOptionLabel={(option) => {
                         const p = option as ProfileOption;
-                        return p?.full_name
-                          ? `${p.full_name} (${p.phone || ''})`
-                          : '';
+                        return p?.full_name ? `${p.full_name} (${p.phone || ''})` : '';
                       }}
                       isOptionEqualToValue={(option, val) => {
                         const o = option as ProfileOption;

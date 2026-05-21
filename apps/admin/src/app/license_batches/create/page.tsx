@@ -28,6 +28,9 @@ export default function LicenseBatchCreate() {
     resource: 'routes',
     optionLabel: 'title',
     optionValue: 'id',
+    pagination: {
+      pageSize: 100,
+    },
   });
   const routeOptions = rawRouteOptions as { label: string; value: string }[] | undefined;
 

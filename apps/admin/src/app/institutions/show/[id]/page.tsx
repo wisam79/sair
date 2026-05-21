@@ -9,7 +9,9 @@ export default function InstitutionShow() {
   const { t } = useTranslation();
   const { queryResult } = useShow();
   const { data, isLoading } = queryResult;
-  const record = data?.data as Record<string, unknown> | undefined;
+  const record = data?.data as
+    | { id?: string; name?: string; city?: string; created_at?: string }
+    | undefined;
 
   return (
     <Show isLoading={isLoading} title={t('institutions.titles.show', 'Institution Details')}>

@@ -1,4 +1,5 @@
 {
+  "installCommand": "rm -f node_modules/.pnpm-workspace-state.json && pnpm install --frozen-lockfile",
   "buildCommand": "pnpm --filter admin-dashboard build",
   "outputDirectory": "apps/admin/.next",
   "framework": "nextjs"
