@@ -39,7 +39,10 @@ export default function DriverList() {
         valueGetter: (_value: unknown, row: Record<string, unknown>) =>
           (row?.profiles as Record<string, unknown>)?.full_name,
         renderCell: (params: import('@mui/x-data-grid').GridRenderCellParams) => {
-          const profiles = (params?.row as Record<string, unknown>)?.profiles as Record<string, unknown>;
+          const profiles = (params?.row as Record<string, unknown>)?.profiles as Record<
+            string,
+            unknown
+          >;
           return (
             <Box>
               <Typography variant="body2" fontWeight="medium">
@@ -86,9 +89,7 @@ export default function DriverList() {
           return (
             <Switch
               checked={!!row?.is_verified}
-              onChange={() =>
-                handleVerifyToggle(row?.id as string, !!row?.is_verified)
-              }
+              onChange={() => handleVerifyToggle(row?.id as string, !!row?.is_verified)}
               color="success"
               size="small"
             />
@@ -100,7 +101,12 @@ export default function DriverList() {
         headerName: t('drivers.fields.registeredAt', 'Registered At'),
         minWidth: 160,
         renderCell: (params: import('@mui/x-data-grid').GridRenderCellParams) => {
-          const val = typeof params?.value === 'string' || typeof params?.value === 'number' || params?.value instanceof Date ? params.value : null;
+          const val =
+            typeof params?.value === 'string' ||
+            typeof params?.value === 'number' ||
+            params?.value instanceof Date
+              ? params.value
+              : null;
           return (
             <Typography variant="caption">
               {val ? <DateField value={val} format="LLL" /> : '-'}

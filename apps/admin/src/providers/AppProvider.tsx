@@ -7,11 +7,19 @@ import routerProvider from '@refinedev/nextjs-router';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { authProvider } from './authProvider';
 import { dataProvider } from './dataProvider';
-import { adminTheme } from './theme';
-import { Suspense } from 'react';
-import React from 'react';
+import { getAdminTheme } from './theme';
+import { RtlProvider } from './RtlProvider';
+import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import '../i18n';
+
+// Color Mode Context
+export const ColorModeContext = createContext({
+  toggleColorMode: () => {},
+  mode: 'light' as 'light' | 'dark',
+});
+
+export const useColorMode = () => useContext(ColorModeContext);
 
 const I18nProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { t, i18n } = useTranslation();
@@ -115,24 +123,61 @@ const I18nProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [mounted, setMounted] = React.useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [mode, setMode] = useState<'light' | 'dark'>('light');
+  const { i18n } = useTranslation();
 
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true);
-  }, []);
+    const savedMode = localStorage.getItem('theme-mode');
+    if (savedMode === 'light' || savedMode === 'dark') {
+      setMode(savedMode);
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setMode('dark');
+    }
+
+    const savedLang = localStorage.getItem('admin-lang');
+    if (savedLang === 'ar' || savedLang === 'en') {
+      void i18n.changeLanguage(savedLang);
+      document.documentElement.lang = savedLang;
+      document.documentElement.dir = savedLang === 'ar' ? 'rtl' : 'ltr';
+    }
+  }, [i18n]);
+
+  const colorMode = useMemo(
+    () => ({
+      toggleColorMode: () => {
+        setMode((prevMode) => {
+          const nextMode = prevMode === 'light' ? 'dark' : 'light';
+          localStorage.setItem('theme-mode', nextMode);
+          return nextMode;
+        });
+      },
+      mode,
+    }),
+    [mode],
+  );
+
+  const lang = i18n.language?.startsWith('en') ? 'en' : 'ar';
+  const isRtl = lang === 'ar';
+  const theme = useMemo(() => getAdminTheme(mode, lang), [mode, lang]);
 
   if (!mounted) {
     return null;
   }
 
   return (
-    <ThemeProvider theme={adminTheme}>
-      <CssBaseline />
-      <RefineKbarProvider>
-        <RefineSnackbarProvider>
-          <I18nProviderWrapper>{children}</I18nProviderWrapper>
-        </RefineSnackbarProvider>
-      </RefineKbarProvider>
-    </ThemeProvider>
+    <ColorModeContext.Provider value={colorMode}>
+      <RtlProvider isRtl={isRtl}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <RefineKbarProvider>
+            <RefineSnackbarProvider>
+              <I18nProviderWrapper>{children}</I18nProviderWrapper>
+            </RefineSnackbarProvider>
+          </RefineKbarProvider>
+        </ThemeProvider>
+      </RtlProvider>
+    </ColorModeContext.Provider>
   );
 };

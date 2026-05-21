@@ -1,13 +1,14 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   ScrollView,
   StatusBar,
+  Animated,
+  Easing,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRouteById } from '../src/hooks/useRoutes';
@@ -18,7 +19,60 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DriverBottomSheet } from '../src/components/DriverBottomSheet';
+import { supabase } from '../src/lib/supabase';
 import * as Haptics from 'expo-haptics';
+
+interface SeatProgressBarProps {
+  available: number;
+  capacity: number;
+  isRTL: boolean;
+  t: (key: string) => string;
+}
+
+function SeatProgressBar({ available, capacity, isRTL, t }: SeatProgressBarProps) {
+  const filledAnim = useRef(new Animated.Value(0)).current;
+
+  const ratio = capacity > 0 ? available / capacity : 0;
+  const percentage = Math.round(ratio * 100);
+
+  useEffect(() => {
+    Animated.timing(filledAnim, {
+      toValue: ratio,
+      duration: 600,
+      easing: Easing.bezier(0.1, 0.76, 0.55, 0.94),
+      useNativeDriver: false,
+    }).start();
+  }, [ratio, filledAnim]);
+
+  const barColor = available <= 3 ? Colors.warning : Colors.primary;
+
+  const widthInterpolation = filledAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  });
+
+  return (
+    <View style={styles.progressBarSection}>
+      <View style={[styles.progressBarHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+        <Text style={styles.progressBarLabel}>{t('seats_available')}</Text>
+        <Text style={[styles.progressBarValue, available <= 3 && { color: Colors.warning }]}>
+          {available} / {capacity} {t('seat')} ({percentage}%)
+        </Text>
+      </View>
+      <View style={styles.progressTrack}>
+        <Animated.View
+          style={[
+            styles.progressFill,
+            {
+              width: widthInterpolation,
+              backgroundColor: barColor,
+            },
+          ]}
+        />
+      </View>
+    </View>
+  );
+}
 
 export default function BookingScreen() {
   const { t, isRTL } = useTranslation();
@@ -31,22 +85,113 @@ export default function BookingScreen() {
   const lastPressRef = useRef(0);
   const [driverModalVisible, setDriverModalVisible] = useState(false);
 
+  // Driver details state
+  const [driverProfile, setDriverProfile] = useState<{ full_name: string; phone: string } | null>(
+    null,
+  );
+  const [driverLoading, setDriverLoading] = useState(false);
+
+  // Animations
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(16)).current;
+  const scaleAnim = useRef(new Animated.Value(0.97)).current;
+  const btnScale = useRef(new Animated.Value(1)).current;
+  const zainBtnScale = useRef(new Animated.Value(1)).current;
+
   const activeSub = subscriptions.find((s) => s.status === 'active');
   const isSubscribedToThis = activeSub?.route_id === routeId;
   const isLoading = routeLoading || subsLoading;
 
-  const handleBook = useCallback(async () => {
+  useEffect(() => {
+    if (!route?.driver_id) {
+      setDriverProfile(null);
+      return;
+    }
+
+    let isMounted = true;
+    setDriverLoading(true);
+    supabase
+      .from('profiles')
+      .select('full_name, phone')
+      .eq('id', route.driver_id)
+      .single()
+      .then(({ data, error }) => {
+        if (isMounted) {
+          if (!error && data) {
+            setDriverProfile(data);
+          }
+          setDriverLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [route?.driver_id]);
+
+  useEffect(() => {
+    if (!isLoading && route) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 100,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isLoading, route, fadeAnim, slideAnim, scaleAnim]);
+
+  const handleBook = useCallback(() => {
     const now = Date.now();
     if (now - lastPressRef.current < 2000) return;
     lastPressRef.current = now;
     if (isBooking) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    // Book scale bounce
+    Animated.sequence([
+      Animated.timing(btnScale, { toValue: 0.95, duration: 100, useNativeDriver: true }),
+      Animated.spring(btnScale, { toValue: 1, tension: 150, friction: 5, useNativeDriver: true }),
+    ]).start();
+
     if (isSubscribedToThis) {
       router.push('/subscriptions');
       return;
     }
     router.push('/activate');
-  }, [isBooking, router, isSubscribedToThis]);
+  }, [isBooking, router, isSubscribedToThis, btnScale]);
+
+  const handlePayZainCash = useCallback(() => {
+    if (!route) return;
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    Animated.sequence([
+      Animated.timing(zainBtnScale, { toValue: 0.95, duration: 100, useNativeDriver: true }),
+      Animated.spring(zainBtnScale, {
+        toValue: 1,
+        tension: 150,
+        friction: 5,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    router.push({
+      pathname: '/payment',
+      params: { routeId: route.id, amount: route.price },
+    });
+  }, [route, router, zainBtnScale]);
 
   return (
     <View style={styles.container}>
@@ -66,7 +211,7 @@ export default function BookingScreen() {
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               router.back();
             }}
           >
@@ -78,11 +223,17 @@ export default function BookingScreen() {
       {/* Content */}
       {!isLoading && route && (
         <>
-          <View style={[styles.header, isRTL && { flexDirection: 'row-reverse' }]}>
+          <View
+            style={[
+              styles.header,
+              { paddingTop: top + Spacing.sm },
+              isRTL && { flexDirection: 'row-reverse' },
+            ]}
+          >
             <TouchableOpacity
-              style={styles.backButton}
+              style={styles.headerBackBtn}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 router.back();
               }}
             >
@@ -99,125 +250,257 @@ export default function BookingScreen() {
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.routeCard}>
-              <Text style={[styles.routeTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-                {route.title}
-              </Text>
-
-              <View style={[styles.detailRow, isRTL && { flexDirection: 'row-reverse' }]}>
-                <Text style={styles.label}>{t('from')}</Text>
-                <Text style={styles.value}>{route.start_location}</Text>
-              </View>
-
-              <View style={[styles.detailRow, isRTL && { flexDirection: 'row-reverse' }]}>
-                <Text style={styles.label}>{t('to')}</Text>
-                <Text style={styles.value}>{route.end_location}</Text>
-              </View>
-
-              <View style={[styles.detailRow, isRTL && { flexDirection: 'row-reverse' }]}>
-                <Text style={styles.label}>{t('price')}</Text>
-                <Text style={styles.priceValue}>
-                  {route.price.toLocaleString()} {t('currency')}
-                </Text>
-              </View>
-
-              <View style={[styles.detailRow, isRTL && { flexDirection: 'row-reverse' }]}>
-                <Text style={styles.label}>{t('seats_available')}</Text>
-                <View style={[styles.seatBadge, isRTL && { flexDirection: 'row-reverse' }]}>
-                  <Ionicons name="people-outline" size={16} color={Colors.primary} />
-                  <Text
-                    style={[styles.seatsValue, route.available_seats <= 2 && styles.seatsWarning]}
-                  >
-                    {route.available_seats}
-                  </Text>
-                </View>
-              </View>
-
-              <TouchableOpacity
-                style={[styles.detailRow, isRTL && { flexDirection: 'row-reverse' }]}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setDriverModalVisible(true);
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.label}>{t('driver')}</Text>
-                <View style={[styles.driverBadge, isRTL && { flexDirection: 'row-reverse' }]}>
-                  <Text style={styles.driverBadgeText}>{t('view_details')}</Text>
-                  <Ionicons name="information-circle-outline" size={16} color={Colors.primary} />
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
+            <Animated.View
               style={[
-                styles.bookButton,
-                (isBooking || route.available_seats <= 0) && styles.bookButtonDisabled,
+                styles.ticketContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+                },
               ]}
-              onPress={handleBook}
-              disabled={isBooking || route.available_seats <= 0}
-              activeOpacity={0.85}
             >
-              {isBooking ? (
-                <ActivityIndicator color={Colors.white} />
-              ) : (
-                <>
+              {/* Ticket Accent Banner */}
+              <View style={styles.ticketAccent} />
+
+              <View style={styles.ticketContent}>
+                {/* Header: Title */}
+                <Text style={[styles.routeTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+                  {route.title}
+                </Text>
+
+                {/* From → To Timeline Path */}
+                <View
+                  style={[styles.routePathContainer, isRTL && { flexDirection: 'row-reverse' }]}
+                >
+                  <View style={styles.timelineTrack}>
+                    <Ionicons name="radio-button-on" size={18} color={Colors.primary} />
+                    <View style={styles.verticalConnector} />
+                    <Ionicons name="location" size={20} color={Colors.secondary} />
+                  </View>
+                  <View style={[styles.routeDetails, isRTL && { alignItems: 'flex-end' }]}>
+                    <View style={[styles.stopContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.stopLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+                          {t('start_point')}
+                        </Text>
+                        <Text style={[styles.stopText, { textAlign: isRTL ? 'right' : 'left' }]}>
+                          {route.start_location}
+                        </Text>
+                      </View>
+                      {route.departure_time && (
+                        <View
+                          style={[styles.stopTimeBadge, isRTL && { flexDirection: 'row-reverse' }]}
+                        >
+                          <Ionicons name="sunny-outline" size={14} color={Colors.warning} />
+                          <Text style={styles.stopTimeText}>
+                            {route.departure_time.substring(0, 5)}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View style={{ height: Spacing.lg }} />
+
+                    <View style={[styles.stopContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.stopLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+                          {t('end_point')}
+                        </Text>
+                        <Text style={[styles.stopText, { textAlign: isRTL ? 'right' : 'left' }]}>
+                          {route.end_location}
+                        </Text>
+                      </View>
+                      {route.return_time && (
+                        <View
+                          style={[styles.stopTimeBadge, isRTL && { flexDirection: 'row-reverse' }]}
+                        >
+                          <Ionicons name="moon-outline" size={14} color={Colors.secondary} />
+                          <Text style={styles.stopTimeText}>
+                            {route.return_time.substring(0, 5)}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* Dashed Separator with Ticket Cutouts */}
+              <View style={styles.ticketDividerContainer}>
+                <View style={styles.leftCutout} />
+                <View style={styles.dashedLine} />
+                <View style={styles.rightCutout} />
+              </View>
+
+              <View style={styles.ticketContent}>
+                {/* Stats Strip */}
+                <View style={[styles.statsStrip, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <View style={styles.statCol}>
+                    <Ionicons name="cash-outline" size={18} color={Colors.primary} />
+                    <Text style={styles.statLabel}>{t('price')}</Text>
+                    <Text style={styles.statValue}>
+                      {route.price.toLocaleString()} {t('currency')}
+                    </Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statCol}>
+                    <Ionicons name="people-outline" size={18} color={Colors.primary} />
+                    <Text style={styles.statLabel}>{t('seats_unit')}</Text>
+                    <Text style={styles.statValue}>
+                      {route.available_seats} / {route.capacity}
+                    </Text>
+                  </View>
+                  {route.departure_time && (
+                    <>
+                      <View style={styles.statDivider} />
+                      <View style={styles.statCol}>
+                        <Ionicons name="time-outline" size={18} color={Colors.primary} />
+                        <Text style={styles.statLabel}>{t('departure')}</Text>
+                        <Text style={styles.statValue}>{route.departure_time.substring(0, 5)}</Text>
+                      </View>
+                    </>
+                  )}
+                </View>
+
+                {/* Seat Progress Bar */}
+                <SeatProgressBar
+                  available={route.available_seats}
+                  capacity={route.capacity}
+                  isRTL={isRTL}
+                  t={t}
+                />
+
+                {/* Mini Driver Card */}
+                <View style={[styles.miniDriverSection, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <View style={styles.miniDriverAvatar}>
+                    {driverLoading ? (
+                      <ActivityIndicator size="small" color={Colors.white} />
+                    ) : (
+                      <Text style={styles.avatarText}>
+                        {driverProfile?.full_name ? driverProfile.full_name[0].toUpperCase() : 'U'}
+                      </Text>
+                    )}
+                  </View>
+                  <View
+                    style={[
+                      styles.miniDriverMeta,
+                      { alignItems: isRTL ? 'flex-end' : 'flex-start' },
+                    ]}
+                  >
+                    <Text style={styles.miniDriverName}>
+                      {driverLoading
+                        ? t('loading')
+                        : driverProfile?.full_name || t('driver_uniride')}
+                    </Text>
+                    <View style={[styles.ratingRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                      <Ionicons name="star" size={14} color={Colors.warning} />
+                      <Text style={styles.ratingText}>4.8</Text>
+                      <Text style={styles.tripsCountText}>• 142 {t('completed_trips_count')}</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.driverDetailButton, isRTL && { flexDirection: 'row-reverse' }]}
+                    onPress={() => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setDriverModalVisible(true);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.driverDetailText}>{t('view_details')}</Text>
+                    <Ionicons
+                      name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                      size={14}
+                      color={Colors.primary}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Animated.View>
+
+            {/* CTAs */}
+            <Animated.View style={{ transform: [{ scale: btnScale }] }}>
+              <TouchableOpacity
+                style={[
+                  styles.bookButton,
+                  (isBooking || route.available_seats <= 0) && styles.bookButtonDisabled,
+                ]}
+                onPress={handleBook}
+                disabled={isBooking || route.available_seats <= 0}
+                activeOpacity={0.85}
+              >
+                {isBooking ? (
+                  <ActivityIndicator color={Colors.white} />
+                ) : (
+                  <>
+                    <Ionicons
+                      name="ticket-outline"
+                      size={22}
+                      color={Colors.white}
+                      style={{ position: 'absolute', [isRTL ? 'left' : 'right']: Spacing.xl }}
+                    />
+                    <Text style={styles.bookButtonText}>
+                      {route.available_seats <= 0
+                        ? t('no_seats')
+                        : isSubscribedToThis
+                          ? t('view_subscription')
+                          : t('activate_license')}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </Animated.View>
+
+            {!isSubscribedToThis && route.available_seats > 0 && (
+              <Animated.View style={{ transform: [{ scale: zainBtnScale }] }}>
+                <TouchableOpacity
+                  style={[styles.bookButton, styles.zainCashBtn]}
+                  onPress={handlePayZainCash}
+                  activeOpacity={0.85}
+                >
                   <Ionicons
-                    name="ticket-outline"
-                    size={20}
+                    name="card-outline"
+                    size={22}
                     color={Colors.white}
                     style={{ position: 'absolute', [isRTL ? 'left' : 'right']: Spacing.xl }}
                   />
-                  <Text style={styles.bookButtonText}>
-                    {route.available_seats <= 0
-                      ? t('no_seats')
-                      : isSubscribedToThis
-                        ? t('view_subscription')
-                        : t('activate_license')}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-
-            {!isSubscribedToThis && route.available_seats > 0 && (
-              <TouchableOpacity
-                style={[styles.bookButton, { backgroundColor: '#C2703E', marginTop: Spacing.md }]}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  router.push({
-                    pathname: '/payment',
-                    params: { routeId: route.id, amount: route.price },
-                  });
-                }}
-                activeOpacity={0.85}
-              >
-                <Ionicons
-                  name="card-outline"
-                  size={20}
-                  color={Colors.white}
-                  style={{ position: 'absolute', [isRTL ? 'left' : 'right']: Spacing.xl }}
-                />
-                <Text style={styles.bookButtonText}>{t('pay_with_zaincash')}</Text>
-              </TouchableOpacity>
+                  <Text style={styles.bookButtonText}>{t('pay_with_zaincash')}</Text>
+                </TouchableOpacity>
+              </Animated.View>
             )}
           </ScrollView>
         </>
       )}
+
       <DriverBottomSheet
         visible={driverModalVisible}
         onClose={() => setDriverModalVisible(false)}
+        driverName={driverProfile?.full_name}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.md },
-  scrollView: { flex: 1 },
-  content: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.md,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  content: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxxl,
+  },
   errorText: {
     fontFamily: FontFamily.medium,
     color: Colors.error,
@@ -242,76 +525,260 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xl + 20,
     paddingBottom: Spacing.md,
     backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomWidth: 1.5,
+    borderBottomColor: Colors.surfaceMuted,
+  },
+  headerBackBtn: {
+    padding: 6,
   },
   headerTitle: {
     fontFamily: FontFamily.bold,
     fontSize: 18,
-    color: Colors.text,
+    color: Colors.secondary,
   },
-  // Card
-  routeCard: {
-    backgroundColor: Colors.surface,
+  // Ticket Design
+  ticketContainer: {
+    backgroundColor: Colors.white,
     borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
+    borderWidth: 1,
+    borderColor: '#E6E3DE',
+    overflow: 'hidden',
     ...Shadow.lg,
+    marginBottom: Spacing.md,
+  },
+  ticketAccent: {
+    height: 6,
+    backgroundColor: Colors.primary,
+  },
+  ticketContent: {
+    padding: Spacing.xl,
   },
   routeTitle: {
     fontFamily: FontFamily.bold,
     fontSize: 20,
-    color: Colors.text,
-    marginBottom: Spacing.lg,
+    color: Colors.secondary,
+    marginBottom: Spacing.xl,
   },
-  // Details
-  detailRow: {
+  // Route Timeline
+  routePathContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'stretch',
+  },
+  timelineTrack: {
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+    width: 24,
   },
-  label: {
-    fontFamily: FontFamily.regular,
-    fontSize: 13,
-    color: Colors.textMuted,
+  verticalConnector: {
+    width: 2,
+    flex: 1,
+    backgroundColor: Colors.border,
+    marginVertical: 4,
   },
-  value: {
+  routeDetails: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingLeft: Spacing.sm,
+  },
+  stopContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  stopLabel: {
     fontFamily: FontFamily.medium,
+    fontSize: 12,
+    color: Colors.textMuted,
+    marginBottom: 2,
+  },
+  stopText: {
+    fontFamily: FontFamily.bold,
     fontSize: 15,
     color: Colors.text,
   },
-  priceValue: {
-    fontFamily: FontFamily.bold,
-    fontSize: 18,
-    color: Colors.success,
-  },
-  seatBadge: {
+  stopTimeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
+    gap: 4,
+    backgroundColor: Colors.surfaceMuted,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  seatsValue: {
+  stopTimeText: {
     fontFamily: FontFamily.bold,
-    fontSize: 18,
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
+  // Ticket Divider
+  ticketDividerContainer: {
+    height: 20,
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  leftCutout: {
+    position: 'absolute',
+    left: -10,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.background,
+    borderRightWidth: 1,
+    borderRightColor: '#E6E3DE',
+    zIndex: 2,
+  },
+  rightCutout: {
+    position: 'absolute',
+    right: -10,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.background,
+    borderLeftWidth: 1,
+    borderLeftColor: '#E6E3DE',
+    zIndex: 2,
+  },
+  dashedLine: {
+    height: 1,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderStyle: 'dashed',
+    borderRadius: 1,
+    marginHorizontal: 14,
+  },
+  // Stats Strip
+  statsStrip: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surfaceMuted,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: Spacing.xl,
+  },
+  statCol: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 2,
+  },
+  statLabel: {
+    fontFamily: FontFamily.regular,
+    fontSize: 12,
+    color: Colors.textMuted,
+  },
+  statValue: {
+    fontFamily: FontFamily.bold,
+    fontSize: 14,
+    color: Colors.text,
+  },
+  statDivider: {
+    width: 1,
+    backgroundColor: Colors.border,
+    height: '60%',
+    alignSelf: 'center',
+  },
+  // Seat Progress Bar
+  progressBarSection: {
+    marginBottom: Spacing.xl,
+  },
+  progressBarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  progressBarLabel: {
+    fontFamily: FontFamily.medium,
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  progressBarValue: {
+    fontFamily: FontFamily.bold,
+    fontSize: 13,
     color: Colors.primary,
   },
-  seatsWarning: { color: Colors.warning },
-  driverBadge: {
+  progressTrack: {
+    height: 8,
+    backgroundColor: Colors.surfaceMuted,
+    borderRadius: BorderRadius.pill,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: BorderRadius.pill,
+  },
+  // Mini Driver Card
+  miniDriverSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    ...Shadow.sm,
+  },
+  miniDriverAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+    marginLeft: Spacing.xs,
+  },
+  avatarText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 18,
+    color: Colors.white,
+  },
+  miniDriverMeta: {
+    flex: 1,
+    gap: 2,
+  },
+  miniDriverName: {
+    fontFamily: FontFamily.bold,
+    fontSize: 15,
+    color: Colors.text,
+  },
+  ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  driverBadgeText: {
-    fontFamily: FontFamily.medium,
-    fontSize: 14,
+  ratingText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 13,
+    color: Colors.text,
+  },
+  tripsCountText: {
+    fontFamily: FontFamily.regular,
+    fontSize: 12,
+    color: Colors.textMuted,
+  },
+  driverDetailButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.primarySurface,
+    borderRadius: BorderRadius.pill,
+  },
+  driverDetailText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 12,
     color: Colors.primary,
   },
-  // Book Button
+  // CTA buttons
   bookButton: {
     backgroundColor: Colors.primary,
     flexDirection: 'row',
@@ -322,10 +789,17 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xl,
     ...Shadow.md,
   },
-  bookButtonDisabled: { backgroundColor: Colors.textMuted, opacity: 0.6 },
+  bookButtonDisabled: {
+    backgroundColor: Colors.textMuted,
+    opacity: 0.6,
+  },
   bookButtonText: {
     fontFamily: FontFamily.bold,
     color: Colors.white,
     fontSize: 17,
+  },
+  zainCashBtn: {
+    backgroundColor: '#C2703E',
+    marginTop: Spacing.md,
   },
 });

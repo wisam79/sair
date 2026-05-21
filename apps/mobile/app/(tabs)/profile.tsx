@@ -5,7 +5,6 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  Alert,
   ScrollView,
   ActivityIndicator,
   StatusBar,
@@ -15,10 +14,10 @@ import { useRouter } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
 import { useAuthStore } from '../../src/hooks/useStore';
 import { useTranslation } from '../../src/hooks/useTranslation';
-import * as Updates from 'expo-updates';
 import Constants from 'expo-constants';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../../src/theme';
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../src/components/CustomAlert';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -29,6 +28,42 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [stats, setStats] = useState({ tripCount: 0, avgRating: 0 });
   const [focusedField, setFocusedField] = useState<'fullName' | 'phone' | null>(null);
+
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'error' | 'warning' | 'info' | 'question';
+    buttons?: Array<{
+      text: string;
+      style?: 'cancel' | 'destructive' | 'default';
+      onPress?: () => void | Promise<void>;
+    }>;
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'info',
+  });
+
+  const showAlert = (
+    title: string,
+    message: string,
+    type: 'success' | 'error' | 'warning' | 'info' | 'question' = 'info',
+    buttons?: Array<{
+      text: string;
+      style?: 'cancel' | 'destructive' | 'default';
+      onPress?: () => void | Promise<void>;
+    }>,
+  ) => {
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+      type,
+      buttons,
+    });
+  };
 
   useEffect(() => {
     if (!user?.id) return;
@@ -56,7 +91,7 @@ export default function ProfileScreen() {
   const initials = (profile?.full_name || user?.email || 'U')[0].toUpperCase();
 
   const roleLabel = t(role || 'student');
-  const roleIcon =
+  const roleIcon: keyof typeof Ionicons.glyphMap =
     role === 'driver' ? 'car-outline' : role === 'admin' ? 'shield-outline' : 'school-outline';
 
   const handleSave = async () => {
@@ -70,17 +105,17 @@ export default function ProfileScreen() {
 
       if (error) throw error;
       setProfile({ full_name: fullName.trim(), phone: phone.trim() });
-      Alert.alert(t('success'), t('updated_successfully'));
+      showAlert(t('success'), t('updated_successfully'), 'success');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t('error_generic');
-      Alert.alert(t('error'), msg);
+      showAlert(t('error'), msg, 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleLogout = async () => {
-    Alert.alert(t('logout'), t('logout_question'), [
+  const handleLogout = () => {
+    showAlert(t('logout'), t('logout_question'), 'question', [
       { text: t('cancel'), style: 'cancel' },
       {
         text: t('logout'),
@@ -111,7 +146,7 @@ export default function ProfileScreen() {
         </View>
         <Text style={styles.headerName}>{profile?.full_name || t('user')}</Text>
         <View style={[styles.roleBadge, isRTL && { flexDirection: 'row-reverse' }]}>
-          <Ionicons name={roleIcon as any} size={13} color={Colors.primary} />
+          <Ionicons name={roleIcon} size={13} color={Colors.primary} />
           <Text style={styles.roleBadgeText}>{roleLabel}</Text>
         </View>
         <Text style={styles.headerEmail}>{user?.email}</Text>
@@ -215,7 +250,9 @@ export default function ProfileScreen() {
             saving && { opacity: 0.7 },
             isRTL && { flexDirection: 'row-reverse' },
           ]}
-          onPress={handleSave}
+          onPress={() => {
+            void handleSave();
+          }}
           disabled={saving}
           activeOpacity={0.85}
         >
@@ -347,16 +384,16 @@ export default function ProfileScreen() {
               style={[styles.langChip, language === lang.code && styles.langChipActive]}
               onPress={() => {
                 if (language === lang.code) return;
-                Alert.alert(t('alert'), t('language_change_restart'), [
+                showAlert(t('alert'), t('language_change_restart'), 'warning', [
                   { text: t('cancel'), style: 'cancel' },
                   {
                     text: t('ok'),
-                    onPress: async () => {
+                    onPress: () => {
                       setLanguage(lang.code as 'ar' | 'en');
                       try {
-                        await Updates.reloadAsync();
-                      } catch (e) {
                         DevSettings.reload();
+                      } catch {
+                        // ignore
                       }
                     },
                   },
@@ -376,7 +413,9 @@ export default function ProfileScreen() {
       {/* Logout */}
       <TouchableOpacity
         style={[styles.logoutButton, isRTL && { flexDirection: 'row-reverse' }]}
-        onPress={handleLogout}
+        onPress={() => {
+          handleLogout();
+        }}
         activeOpacity={0.85}
       >
         <Ionicons name="log-out-outline" size={18} color={Colors.error} />
@@ -385,6 +424,15 @@ export default function ProfileScreen() {
 
       {/* App Version */}
       <Text style={styles.versionText}>v{Constants.expoConfig?.version ?? '1.0.0'}</Text>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        buttons={alertConfig.buttons}
+        onClose={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
+      />
     </ScrollView>
   );
 }

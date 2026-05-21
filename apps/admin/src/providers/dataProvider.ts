@@ -32,6 +32,14 @@ export const dataProvider: DataProvider = {
   ...baseDataProvider,
   getList: async (params) => {
     try {
+      if (
+        params.pagination &&
+        (params.pagination.pageSize === 0 || params.pagination.mode === 'off')
+      ) {
+        throw new Error(
+          'Client-side pagination / fetching all records is prohibited for performance reasons.',
+        );
+      }
       return await baseDataProvider.getList(params);
     } catch (error) {
       throw sanitizeError(error);

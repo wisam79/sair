@@ -1,4 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ─── CSS Custom Properties ─────────────────────────────────────────────── */
+:root {
+  --glow-blue: rgba(59, 130, 246, 0.5);
+  --glow-purple: rgba(139, 92, 246, 0.4);
+  --glow-emerald: rgba(16, 185, 129, 0.4);
+  --glow-amber: rgba(245, 158, 11, 0.4);
+  --gradient-brand: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+  --gradient-hero: linear-gradient(135deg, #1e3a8a 0%, #2563eb 35%, #7c3aed 70%, #0ea5e9 100%);
+  --glass-bg-light: rgba(255, 255, 255, 0.72);
+  --glass-bg-dark: rgba(17, 24, 39, 0.68);
+  --glass-border-light: rgba(255, 255, 255, 0.5);
+  --glass-border-dark: rgba(255, 255, 255, 0.08);
+}
 
 *,
 *::before,
@@ -12,7 +26,7 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Cairo', 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Alyamama Variable', 'Inter', system-ui, -apple-system, sans-serif;
   color: #111827;
   background: #f8fafc;
   -webkit-font-smoothing: antialiased;
@@ -20,7 +34,7 @@ body {
   font-feature-settings: "ss01" on, "cv01" on;
 }
 
-/* Elegant custom scrollbar */
+/* ─── Elegant Custom Scrollbar ───────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -36,21 +50,194 @@ body {
   background: rgba(148, 163, 184, 0.7);
 }
 
-/* Smooth page transitions */
+/* ─── Page Enter Animation ───────────────────────────────────────────────── */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .page-enter {
-  animation: fadeInUp 0.28s ease forwards;
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Pulse animation for live indicators */
+/* ─── Live Pulse Dot ─────────────────────────────────────────────────────── */
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.6; transform: scale(0.85); }
+  50%       { opacity: 0.5; transform: scale(0.75); }
 }
 .live-dot {
   animation: pulse-dot 1.6s ease-in-out infinite;
 }
 
+/* ─── Shimmer Loading Effect ─────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,255,255,0.08) 20%,
+    rgba(255,255,255,0.15) 50%,
+    rgba(255,255,255,0.08) 80%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* ─── Gradient Shift (Hero Banner) ───────────────────────────────────────── */
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.gradient-animate {
+  background-size: 200% 200%;
+  animation: gradientShift 8s ease infinite;
+}
+
+/* ─── Glow Pulse (Active Nav Items) ──────────────────────────────────────── */
+.glow-active {
+  /* Disabled glow animation */
+}
+
+/* ─── Floating Animation (Login Orbs) ────────────────────────────────────── */
+.float-slow {
+  /* Disabled floating animation */
+}
+.float-medium {
+  /* Disabled floating animation */
+}
+.float-fast {
+  /* Disabled floating animation */
+}
+
+/* ─── Rotate on Hover ────────────────────────────────────────────────────── */
+
+/* ─── Border Glow (Login Card) ───────────────────────────────────────────── */
+.border-glow {
+  /* Disabled border glow animation */
+}
+
+/* ─── Counter Animation ──────────────────────────────────────────────────── */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.count-animate {
+  animation: countUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── Logo Pulse (Login) ─────────────────────────────────────────────────── */
+.logo-pulse {
+  /* Disabled logo pulse animation */
+}
+
+/* ─── Sidebar Gradient Animation ─────────────────────────────────────────── */
+@keyframes sidebarGradient {
+  0%   { background-position: 50% 0%; }
+  50%  { background-position: 50% 100%; }
+  100% { background-position: 50% 0%; }
+}
+.sidebar-gradient {
+  background-size: 100% 200%;
+  animation: sidebarGradient 15s ease infinite;
+}
+
+/* ─── Subtle Scale on Hover ──────────────────────────────────────────────── */
+@keyframes subtleBounce {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* ─── Grid Pattern Background (Login) ────────────────────────────────────── */
+.grid-pattern {
+  background-image:
+    linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.grid-pattern-dark {
+  background-image:
+    linear-gradient(rgba(59, 130, 246, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ─── Gradient Text ──────────────────────────────────────────────────────── */
+.gradient-text {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── AppBar Bottom Gradient Line ────────────────────────────────────────── */
+.appbar-gradient-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(59, 130, 246, 0.5) 20%,
+    rgba(139, 92, 246, 0.5) 50%,
+    rgba(6, 182, 212, 0.5) 80%,
+    transparent 100%
+  );
+  opacity: 0.6;
+}
+
+/* ─── Card Shine Effect on Hover ─────────────────────────────────────────── */
+@keyframes cardShine {
+  0%   { left: -100%; }
+  100% { left: 200%; }
+}
+.card-shine:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255,255,255,0.06),
+    transparent
+  );
+  animation: cardShine 0.8s ease forwards;
+  pointer-events: none;
+}
+
+/* ─── Wave Decoration ────────────────────────────────────────────────────── */
+.wave-decoration {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.wave-decoration svg {
+  position: absolute;
+  bottom: -1px;
+  width: 100%;
+  height: 40px;
+}
+
+/* ─── Stagger Animation for Children ─────────────────────────────────────── */
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.4s; }

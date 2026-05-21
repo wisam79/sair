@@ -238,4 +238,20 @@ describe('dataProvider — base utilities', () => {
 
     expect(result.total).toBe(100);
   });
+
+  it('throws an error for pageSize: 0 or mode: off', async () => {
+    await expect(
+      dataProvider.getList({
+        resource: 'trips',
+        pagination: { current: 1, pageSize: 0 },
+      }),
+    ).rejects.toThrow('Client-side pagination / fetching all records is prohibited');
+
+    await expect(
+      dataProvider.getList({
+        resource: 'trips',
+        pagination: { mode: 'off' },
+      }),
+    ).rejects.toThrow('Client-side pagination / fetching all records is prohibited');
+  });
 });

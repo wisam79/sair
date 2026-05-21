@@ -2,6 +2,8 @@ import { createClient } from '../providers/supabase';
 import DashboardClient from '../components/DashboardClient';
 import { Box, Typography } from '@mui/material';
 
+export const dynamic = 'force-dynamic';
+
 interface DashboardStats {
   total_users: number;
   total_drivers: number;
@@ -17,6 +19,15 @@ interface DashboardStats {
 async function getStats(): Promise<DashboardStats | null> {
   try {
     const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // If guest or not an admin, return null silently to avoid noisy console errors before client redirection
+    if (!user || user.app_metadata?.role !== 'admin') {
+      return null;
+    }
+
     const { data, error } = await supabase.rpc('get_dashboard_stats');
 
     if (error) {

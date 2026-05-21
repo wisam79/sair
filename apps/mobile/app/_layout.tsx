@@ -230,8 +230,20 @@ export default function Layout() {
           <Stack screenOptions={{ headerShown: true, headerBackTitle: t('go_back_short') }}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="booking" options={{ headerShown: false }} />
-            <Stack.Screen name="login" options={{ headerShown: false }} />
-            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="login"
+              options={{
+                headerShown: false,
+                contentStyle: { backgroundColor: Colors.backgroundDark },
+              }}
+            />
+            <Stack.Screen
+              name="onboarding"
+              options={{
+                headerShown: false,
+                contentStyle: { backgroundColor: Colors.background },
+              }}
+            />
             <Stack.Screen name="tracking/[tripId]" options={{ title: t('track_trip') }} />
             <Stack.Screen name="activate" options={{ headerShown: false }} />
             <Stack.Screen name="create-trip" options={{ headerShown: false }} />
