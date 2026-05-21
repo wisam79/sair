@@ -11,6 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../src/lib/supabase';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { useAuthStore } from '../src/hooks/useStore';
@@ -39,6 +40,7 @@ export default function PayoutsScreen() {
   const { t, isRTL } = useTranslation();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const { top } = useSafeAreaInsets();
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -180,7 +182,13 @@ export default function PayoutsScreen() {
       <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
 
       {/* Custom Header for Stack */}
-      <View style={[styles.navHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+      <View
+        style={[
+          styles.navHeader,
+          { paddingTop: top + Spacing.sm },
+          isRTL && { flexDirection: 'row-reverse' },
+        ]}
+      >
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.white} />
         </TouchableOpacity>

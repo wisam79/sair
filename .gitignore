@@ -8,3 +8,5 @@ test-results/
 .kilo/
 .gemini/
 *.tsbuildinfo
+scratch/
+coverage/

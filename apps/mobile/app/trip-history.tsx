@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTripHistory } from '../src/hooks/useTrips';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,6 +27,7 @@ export default function TripHistoryScreen() {
   const { trips, loading, refreshing, refetch } = useTripHistory();
   const { t, isRTL } = useTranslation();
   const router = useRouter();
+  const { top } = useSafeAreaInsets();
 
   const renderItem = useCallback(
     ({ item }: { item: TripHistoryRecord }) => {
@@ -88,7 +90,13 @@ export default function TripHistoryScreen() {
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
       {/* Custom Header for Stack */}
-      <View style={[styles.navHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+      <View
+        style={[
+          styles.navHeader,
+          { paddingTop: top + Spacing.sm },
+          isRTL && { flexDirection: 'row-reverse' },
+        ]}
+      >
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
         </TouchableOpacity>

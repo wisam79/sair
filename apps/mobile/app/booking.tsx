@@ -189,7 +189,7 @@ export default function BookingScreen() {
 
     router.push({
       pathname: '/payment',
-      params: { routeId: route.id, amount: route.price },
+      params: { route_id: route.id, routeId: route.id, amount: route.price },
     });
   }, [route, router, zainBtnScale]);
 

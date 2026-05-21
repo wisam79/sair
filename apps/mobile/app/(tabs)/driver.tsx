@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../src/lib/supabase';
 import { useAuthStore, useTripStore } from '../../src/hooks/useStore';
 import { useDriverTrips, useLocationTracker, TripWithRoute } from '../../src/hooks/useTrips';
@@ -87,6 +88,7 @@ export default function DriverDashboard() {
   const { startTracking, stopTracking } = useLocationTracker();
   const { t, isRTL } = useTranslation();
   const router = useRouter();
+  const { top } = useSafeAreaInsets();
   const [updatingTripId, setUpdatingTripId] = useState<string | null>(null);
   const { activeTripId, setActiveTrip, updateStatus, clearTrip } = useTripStore();
 
@@ -277,7 +279,13 @@ export default function DriverDashboard() {
       <StatusBar barStyle="light-content" backgroundColor={Colors.secondary} />
 
       {/* Header */}
-      <View style={[styles.header, isRTL && { flexDirection: 'row-reverse' }]}>
+      <View
+        style={[
+          styles.header,
+          { paddingTop: top + Spacing.xl },
+          isRTL && { flexDirection: 'row-reverse' },
+        ]}
+      >
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>{t('driver_dashboard')}</Text>
           {profile?.full_name && (
@@ -340,7 +348,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.secondary,
-    paddingTop: Spacing.xl + 12,
     paddingBottom: Spacing.xl,
     paddingHorizontal: Spacing.lg,
   },

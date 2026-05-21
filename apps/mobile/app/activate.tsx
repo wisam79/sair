@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../src/lib/supabase';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../src/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,6 +22,7 @@ import * as Haptics from 'expo-haptics';
 export default function ActivateLicenseScreen() {
   const router = useRouter();
   const { t, isRTL } = useTranslation();
+  const { top } = useSafeAreaInsets();
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -59,7 +61,13 @@ export default function ActivateLicenseScreen() {
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
       {/* Header */}
-      <View style={[styles.header, isRTL && { flexDirection: 'row-reverse' }]}>
+      <View
+        style={[
+          styles.header,
+          { paddingTop: top + Spacing.md },
+          isRTL && { flexDirection: 'row-reverse' },
+        ]}
+      >
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => {
@@ -124,7 +132,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xl + 20,
+    paddingTop: Spacing.md,
     paddingBottom: Spacing.md,
     backgroundColor: Colors.white,
     borderBottomWidth: 1,

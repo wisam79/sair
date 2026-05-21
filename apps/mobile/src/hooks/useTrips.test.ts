@@ -1,4 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import React, { act } from 'react';
+import { createRoot } from 'react-dom/client';
+
+function renderHook<T>(hookFn: () => T) {
+  const result = { current: null as any };
+  function TestComponent() {
+    result.current = hookFn();
+    return null;
+  }
+  const div = document.createElement('div');
+  document.body.appendChild(div);
+  const root = createRoot(div);
+  act(() => {
+    root.render(React.createElement(TestComponent));
+  });
+  return {
+    result,
+    unmount: () => {
+      act(() => {
+        root.unmount();
+      });
+      document.body.removeChild(div);
+    },
+  };
+}
 
 // ─── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -30,6 +55,19 @@ const mockChannel = vi.fn();
 const mockRemoveChannel = vi.fn();
 const mockGetUser = vi.fn();
 
+let subscribeCallback: any = null;
+let channelOnCallback: any = null;
+const mockChannelObj = {
+  on: vi.fn((event, filter, cb) => {
+    channelOnCallback = cb;
+    return mockChannelObj;
+  }),
+  subscribe: vi.fn((cb) => {
+    subscribeCallback = cb;
+    return mockChannelObj;
+  }),
+};
+
 vi.mock('../lib/supabase', () => ({
   supabase: {
     auth: { getUser: mockGetUser },
@@ -59,10 +97,14 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
   },
 }));
 
+let watchCallback: any = null;
 vi.mock('expo-location', () => ({
   requestForegroundPermissionsAsync: vi.fn().mockResolvedValue({ status: 'granted' }),
-  watchPositionAsync: vi.fn().mockResolvedValue({ remove: vi.fn() }),
-  Accuracy: { High: 5 },
+  watchPositionAsync: vi.fn((options, callback) => {
+    watchCallback = callback;
+    return Promise.resolve({ remove: vi.fn() });
+  }),
+  Accuracy: { Balanced: 3, High: 5 },
 }));
 
 // ─── flushGpsQueue tests (via indirect import) ─────────────────────────────────
@@ -72,6 +114,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 describe('GPS Queue — flushGpsQueue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockChannel.mockReturnValue(mockChannelObj);
+    subscribeCallback = null;
+    channelOnCallback = null;
   });
 
   it('removes successfully sent items from queue', async () => {
@@ -150,5 +195,101 @@ describe('Trip status transitions (core integration)', () => {
     // These should be blocked
     expect(canTransition('completed', 'scheduled')).toBe(false);
     expect(canTransition('absent', 'in_transit')).toBe(false);
+  });
+});
+
+// ─── GPS Queue Cap & Realtime Reconnection ──────────────────────────────────────
+
+describe('GPS Queue limits & Realtime reconnection hooks', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockChannel.mockReturnValue(mockChannelObj);
+    subscribeCallback = null;
+    channelOnCallback = null;
+
+    const mockQueryBuilder: any = {
+      select: vi.fn(() => mockQueryBuilder),
+      in: vi.fn(() => mockQueryBuilder),
+      order: vi.fn(() => mockQueryBuilder),
+      limit: vi.fn(() => mockQueryBuilder),
+      eq: vi.fn(() => mockQueryBuilder),
+      single: vi.fn(() => Promise.resolve({ data: null, error: null })),
+      then: vi.fn((onfulfilled) => {
+        return Promise.resolve({ data: [], error: null }).then(onfulfilled);
+      }),
+    };
+    mockFrom.mockReturnValue(mockQueryBuilder);
+  });
+
+  it('drops older items if queue size exceeds 100', async () => {
+    const { useLocationTracker } = await import('./useTrips');
+    const { result, unmount } = renderHook(() => useLocationTracker());
+    const { startTracking, stopTracking } = result.current;
+    
+    // Start tracking to set up watchCallback
+    await act(async () => {
+      await startTracking('trip123');
+    });
+    expect(watchCallback).toBeDefined();
+
+    // Trigger network error so tracker queues location
+    mockRpc.mockResolvedValue({ error: { code: 'NETWORK_ERROR' } });
+
+    // Call watch callback 110 times
+    await act(async () => {
+      for (let i = 0; i < 110; i++) {
+        await watchCallback({ coords: { latitude: 33.1 + i * 0.001, longitude: 44.1 + i * 0.001 } });
+      }
+    });
+
+    // Stop tracking to persist queue immediately
+    await act(async () => {
+      stopTracking();
+    });
+
+    const setCalls = vi.mocked(AsyncStorage.setItem).mock.calls;
+    
+    expect(setCalls.length).toBeGreaterThan(0);
+    const lastCallJson = setCalls[setCalls.length - 1][1];
+    const parsedQueue = JSON.parse(lastCallJson);
+    
+    expect(parsedQueue.length).toBeLessThanOrEqual(100);
+    expect(parsedQueue[0].lat).toBeGreaterThan(33.109);
+    unmount();
+  });
+
+  it('triggers a refetch when realtime channel receives CHANNEL_ERROR or TIMED_OUT', async () => {
+    const { useActiveTrips } = await import('./useTrips');
+    
+    // Simulate user fetch trips returning mock
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } }, error: null });
+    
+    // Render/run the setupRealtime effect
+    const { result, unmount } = renderHook(() => useActiveTrips());
+    
+    // Wait for useEffect microtasks and supabase.from chain resolution
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+
+    expect(mockChannel).toHaveBeenCalledWith('trips-active-u1');
+    expect(subscribeCallback).toBeDefined();
+
+    // Reset fetch mock calls to detect refetch
+    mockFrom.mockClear();
+
+    // Trigger error callback
+    act(() => {
+      subscribeCallback('CHANNEL_ERROR');
+    });
+
+    // Wait for async fetch callback to complete
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+
+    // Verify it refetches trips
+    expect(mockFrom).toHaveBeenCalled();
+    unmount();
   });
 });

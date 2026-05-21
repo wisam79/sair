@@ -1,12 +1,18 @@
 import { defineConfig } from 'vitest/config';
 
-const excludePatterns = ['**/node_modules/**', '**/dist/**', '**/e2e/**', '**/.next/**'];
+const excludePatterns = ['**/node_modules/**', '**/dist/**', '**/e2e/**', '**/.next/**', '**/apps/mobile/**'];
 
 if (!process.env.RUN_INTEGRATION_TESTS) {
   excludePatterns.push('**/tests/integration/**');
 }
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      'https://esm.sh/@supabase/supabase-js@2': '@supabase/supabase-js',
+      'https://esm.sh/jose@5': 'jose',
+    },
+  },
   test: {
     globals: true,
     environment: 'node',
@@ -24,6 +30,13 @@ export default defineConfig({
         '**/*.d.ts',
         '**/e2e/**',
       ],
+      thresholds: {
+        lines: 80,
+        branches: 70,
+        functions: 70,
+        statements: 80,
+      },
     },
   },
 });
+

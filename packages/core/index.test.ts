@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   canTransition,
   TripStatus,
@@ -38,6 +38,10 @@ describe('canTransition', () => {
     expect(canTransition('scheduled', 'driver_waiting')).toBe(true);
   });
 
+  it('allows scheduled → absent', () => {
+    expect(canTransition('scheduled', 'absent')).toBe(true);
+  });
+
   it('allows scheduled → cancelled', () => {
     expect(canTransition('scheduled', 'cancelled')).toBe(true);
   });
@@ -46,12 +50,20 @@ describe('canTransition', () => {
     expect(canTransition('driver_waiting', 'in_transit')).toBe(true);
   });
 
+  it('allows driver_waiting → absent', () => {
+    expect(canTransition('driver_waiting', 'absent')).toBe(true);
+  });
+
   it('allows driver_waiting → cancelled', () => {
     expect(canTransition('driver_waiting', 'cancelled')).toBe(true);
   });
 
   it('allows in_transit → completed', () => {
     expect(canTransition('in_transit', 'completed')).toBe(true);
+  });
+
+  it('allows in_transit → cancelled', () => {
+    expect(canTransition('in_transit', 'cancelled')).toBe(true);
   });
 
   it('allows in_transit → absent', () => {
@@ -252,6 +264,11 @@ describe('LicenseSchema', () => {
 
   it('accepts valid license', () => {
     expect(() => LicenseSchema.parse(validLicense)).not.toThrow();
+  });
+
+  it('rejects code length != 8', () => {
+    expect(() => LicenseSchema.parse({ ...validLicense, code: 'ABCD123' })).toThrow();
+    expect(() => LicenseSchema.parse({ ...validLicense, code: 'ABCD12345' })).toThrow();
   });
 
   it('rejects invalid status', () => {
