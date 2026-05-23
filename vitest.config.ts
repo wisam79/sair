@@ -19,6 +19,7 @@ export default defineConfig({
       'jsr:@supabase/supabase-js@2': '@supabase/supabase-js',
       'https://esm.sh/jose@5': 'jose',
       'https://esm.sh/expo-server-sdk': 'expo-server-sdk',
+      'npm:expo-server-sdk': 'expo-server-sdk',
     },
   },
   test: {
