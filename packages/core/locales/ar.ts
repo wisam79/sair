@@ -1,4 +1,4 @@
-{
+export default {
   "welcome": "مرحباً بك في سير",
   "book_now": "احجز الآن",
   "no_seats": "عذراً، لا توجد مقاعد متاحة",
@@ -264,4 +264,4 @@
   "or": "أو",
   "notifications": "الإشعارات",
   "clear_all": "مسح الكل"
-}
+} as const;

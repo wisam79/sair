@@ -1,4 +1,4 @@
-{
+export default {
   "welcome": "Welcome to Sair",
   "book_now": "Book Now",
   "no_seats": "Sorry, no seats available",
@@ -264,4 +264,4 @@
   "or": "Or",
   "notifications": "Notifications",
   "clear_all": "Clear All"
-}
+} as const;
