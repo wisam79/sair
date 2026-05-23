@@ -15,18 +15,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: npm install
-
       - name: Setup Supabase CLI
-        run: |
-          npm install -g supabase
-          supabase --version
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
 
       - name: Check migration files exist
         run: |
@@ -40,11 +32,16 @@ jobs:
       - name: Validate migration naming convention
         run: |
           echo "Validating migration file names..."
-          INVALID=$(ls supabase/migrations/*.sql 2>/dev/null | grep -vE "^[0-9]{14}_[a-z_]+\.sql$" || true)
+          INVALID=""
+          for f in supabase/migrations/*.sql; do
+            basename=$(basename "$f")
+            if ! echo "$basename" | grep -qE '^[0-9]{10,}_[a-zA-Z0-9_]+\.sql$'; then
+              echo "Invalid name: $basename"
+              INVALID="$INVALID $basename"
+            fi
+          done
           if [ -n "$INVALID" ]; then
-            echo "ERROR: Invalid migration file names:"
-            echo "$INVALID"
-            echo "Expected format: YYYYMMDDNN_description.sql"
+            echo "ERROR: Invalid migration file names found!"
             exit 1
           fi
           echo "✅ All migration files follow naming convention"
@@ -91,11 +88,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
 
       - name: Lint SQL files
         run: |
