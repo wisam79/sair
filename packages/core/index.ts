@@ -248,8 +248,8 @@ export type SignupRequest = z.infer<typeof SignupSchema>;
 export const Languages = z.enum(['ar', 'en']);
 export type Language = z.infer<typeof Languages>;
 
-import arTranslations from './locales/ar.json';
-import enTranslations from './locales/en.json';
+import arTranslations from './locales/ar.ts';
+import enTranslations from './locales/en.ts';
 
 export const Translations: Record<Language, Record<string, string>> = {
   ar: arTranslations,
