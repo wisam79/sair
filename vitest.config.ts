@@ -16,7 +16,7 @@ export default defineConfig({
   resolve: {
     alias: {
       'https://esm.sh/@supabase/supabase-js@2': '@supabase/supabase-js',
-      'npm:@supabase/supabase-js@2': '@supabase/supabase-js',
+      'jsr:@supabase/supabase-js@2': '@supabase/supabase-js',
       'https://esm.sh/jose@5': 'jose',
       'https://esm.sh/expo-server-sdk': 'expo-server-sdk',
     },
