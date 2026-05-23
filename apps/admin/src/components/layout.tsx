@@ -400,7 +400,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </Box>
 
         {/* User chip */}
-        {!collapsed && identity && (
+        {!collapsed && !!identity && (
           <Chip
             avatar={
               <Avatar sx={{ bgcolor: '#2563eb', color: '#fff', fontSize: 11 }}>
@@ -687,7 +687,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Tooltip>
 
             {/* Identity */}
-            {identity && (
+            {!!identity && (
               <Box
                 sx={{
                   display: 'flex',

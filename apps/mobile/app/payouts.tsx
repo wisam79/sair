@@ -6,10 +6,11 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
-  StatusBar,
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../src/lib/supabase';
@@ -90,12 +91,14 @@ export default function PayoutsScreen() {
 
   const handleRequestPayout = async () => {
     if (balanceData.available_balance <= 0) return;
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     Alert.alert(t('request_payout_title'), t('request_payout_confirm'), [
       { text: t('cancel'), style: 'cancel' },
       {
         text: t('confirm_request'),
         onPress: async () => {
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           setRequesting(true);
           try {
             const { error } = await supabase.rpc('request_payout', {
@@ -103,9 +106,11 @@ export default function PayoutsScreen() {
             });
             if (error) throw error;
 
+            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             Alert.alert(t('success'), t('payout_submitted_success'));
             fetchData();
           } catch (err: unknown) {
+            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
             Alert.alert(t('error'), err instanceof Error ? err.message : t('something_went_wrong'));
           } finally {
             setRequesting(false);
@@ -161,6 +166,7 @@ export default function PayoutsScreen() {
   );
 
   const handleRefresh = useCallback(() => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setRefreshing(true);
     fetchData();
   }, [fetchData]);
@@ -179,21 +185,26 @@ export default function PayoutsScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+      <StatusBar style="dark" translucent />
 
       {/* Custom Header for Stack */}
       <View
         style={[
           styles.navHeader,
-          { paddingTop: top + Spacing.sm },
+          { paddingTop: top + Spacing.md },
           isRTL && { flexDirection: 'row-reverse' },
         ]}
       >
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.white} />
+        <TouchableOpacity
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.back();
+          }}
+          style={styles.backBtn}
+        >
+          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.navTitle}>{t('withdraw_request')}</Text>
-        <View style={{ width: 24 }} />
       </View>
 
       <View style={styles.balanceContainer}>
@@ -261,18 +272,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+    backgroundColor: '#EFECE9',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E6E2DE',
+    ...Shadow.sm,
     zIndex: 10,
   },
   backBtn: {
     padding: Spacing.xs,
+    zIndex: 11,
   },
   navTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
     fontFamily: FontFamily.bold,
     fontSize: 18,
-    color: Colors.white,
+    color: Colors.text,
+    zIndex: 1,
   },
   balanceContainer: {
     backgroundColor: Colors.primary,

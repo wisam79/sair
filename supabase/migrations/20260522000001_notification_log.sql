@@ -1,5 +1,5 @@
 -- Phase 4: Notification Log Table
--- Migration: 2026051901_notification_log.sql
+-- Migration: 20260522000001_notification_log.sql
 
 CREATE TABLE IF NOT EXISTS public.notification_log (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),

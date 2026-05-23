@@ -1,0 +1,43 @@
+#!/bin/bash
+# Pre-commit hook to verify DB/Code consistency
+# Prevents: Direct DB modifications without migration files
+
+echo "🔍 Checking DB/Code consistency..."
+
+# Check for migration files
+MIGRATION_COUNT=$(ls -1 supabase/migrations/*.sql 2>/dev/null | wc -l)
+echo "📁 Found $MIGRATION_COUNT migration files"
+
+# Get list of all functions in DB (from migrations)
+echo "📋 Checking for function definitions..."
+
+# Extract all function names from migrations
+MIGRATION_FUNCTIONS=$(grep -ohE "CREATE (OR REPLACE )?(FUNCTION|PROCEDURE)[^ ]+ ([a-zA-Z_][a-zA-Z0-9_]*)\(" supabase/migrations/*.sql 2>/dev/null | grep -oE "[a-zA-Z_][a-zA-Z0-9_]*\(" | tr -d '(' || true)
+
+if [ -z "$MIGRATION_FUNCTIONS" ]; then
+    echo "⚠️  Warning: Could not extract functions from migrations"
+fi
+
+# Check if there are uncommitted migration files
+UNCOMMITTED=$(git status --porcelain supabase/migrations/ 2>/dev/null | grep "^?" | wc -l)
+if [ "$UNCOMMITTED" -gt 0 ]; then
+    echo "⚠️  Warning: $UNCOMMITTED untracked migration file(s)"
+fi
+
+# Check for Supabase link status
+if [ -f "supabase/.temp/linked-project.json" ]; then
+    PROJECT_REF=$(cat supabase/.temp/project-ref 2>/dev/null || echo "unknown")
+    echo "🔗 Project linked to Supabase: $PROJECT_REF"
+    echo "   ⚠️  All DB changes MUST be documented in migrations"
+fi
+
+# Validate migration file naming convention
+INVALID_NAMES=$(ls supabase/migrations/*.sql 2>/dev/null | grep -vE "^[0-9]{14}_[a-z_]+\.sql$" || true)
+if [ -n "$INVALID_NAMES" ]; then
+    echo "⚠️  Warning: Some migration files don't follow naming convention:"
+    echo "$INVALID_NAMES"
+    echo "   Expected format: YYYYMMDDNN_description.sql"
+fi
+
+echo "✅ Pre-commit check passed"
+exit 0

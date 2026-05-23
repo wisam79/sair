@@ -14,8 +14,69 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../src/lib/supabase';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../src/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { Route } from '@uniride/core';
+import * as Haptics from 'expo-haptics';
+import { Route } from '@sair/core';
 import { useTranslation } from '../src/hooks/useTranslation';
+
+interface RouteCardItemProps {
+  item: Route;
+  isSelected: boolean;
+  isRTL: boolean;
+  onPress: (id: string) => void;
+  t: (key: string) => string;
+}
+
+const RouteCardItem = React.memo(({ item, isSelected, isRTL, onPress, t }: RouteCardItemProps) => {
+  const handlePress = useCallback(() => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress(item.id);
+  }, [item.id, onPress]);
+
+  return (
+    <TouchableOpacity
+      style={[styles.routeCard, isSelected && styles.routeCardSelected]}
+      onPress={handlePress}
+      activeOpacity={0.8}
+    >
+      <View style={[styles.routeHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+        <Ionicons
+          name={isSelected ? 'radio-button-on' : 'radio-button-off'}
+          size={24}
+          color={isSelected ? Colors.primary : Colors.border}
+        />
+        <Text
+          style={[
+            styles.routeTitle,
+            isSelected && styles.routeTitleSelected,
+            { textAlign: isRTL ? 'right' : 'left' },
+          ]}
+        >
+          {item.title}
+        </Text>
+      </View>
+
+      <View
+        style={[
+          styles.routeDetails,
+          isRTL && { flexDirection: 'row-reverse', justifyContent: 'flex-end' },
+        ]}
+      >
+        <View style={[styles.detailItem, isRTL && { flexDirection: 'row-reverse' }]}>
+          <Ionicons name="people-outline" size={16} color={Colors.textSecondary} />
+          <Text style={styles.detailText}>
+            {item.capacity} {t(item.capacity === 1 ? 'passenger' : 'passengers')}
+          </Text>
+        </View>
+        <View style={[styles.detailItem, isRTL && { flexDirection: 'row-reverse' }]}>
+          <Ionicons name="cash-outline" size={16} color={Colors.textSecondary} />
+          <Text style={styles.detailText}>
+            {item.price} {t('currency')}
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+});
 
 export default function CreateTripScreen() {
   const router = useRouter();
@@ -68,6 +129,7 @@ export default function CreateTripScreen() {
     if (!selectedRouteId) return;
 
     try {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       setIsSubmitting(true);
       // Create trip scheduled for now
       const scheduledAt = new Date().toISOString();
@@ -79,10 +141,12 @@ export default function CreateTripScreen() {
 
       if (error) throw error;
 
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert(t('success'), t('trip_opened_success'), [
         { text: t('ok'), onPress: () => router.back() },
       ]);
     } catch (err: unknown) {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert(t('trip_creation_error'), err instanceof Error ? err.message : t('try_again'));
     } finally {
       setIsSubmitting(false);
@@ -90,53 +154,15 @@ export default function CreateTripScreen() {
   };
 
   const renderRouteItem = useCallback(
-    ({ item }: { item: Route }) => {
-      const isSelected = selectedRouteId === item.id;
-      return (
-        <TouchableOpacity
-          style={[styles.routeCard, isSelected && styles.routeCardSelected]}
-          onPress={() => setSelectedRouteId(item.id)}
-          activeOpacity={0.8}
-        >
-          <View style={[styles.routeHeader, isRTL && { flexDirection: 'row-reverse' }]}>
-            <Ionicons
-              name={isSelected ? 'radio-button-on' : 'radio-button-off'}
-              size={24}
-              color={isSelected ? Colors.primary : Colors.border}
-            />
-            <Text
-              style={[
-                styles.routeTitle,
-                isSelected && styles.routeTitleSelected,
-                { textAlign: isRTL ? 'right' : 'left' },
-              ]}
-            >
-              {item.title}
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.routeDetails,
-              isRTL && { flexDirection: 'row-reverse', justifyContent: 'flex-end' },
-            ]}
-          >
-            <View style={[styles.detailItem, isRTL && { flexDirection: 'row-reverse' }]}>
-              <Ionicons name="people-outline" size={16} color={Colors.textSecondary} />
-              <Text style={styles.detailText}>
-                {item.capacity} {t(item.capacity === 1 ? 'passenger' : 'passengers')}
-              </Text>
-            </View>
-            <View style={[styles.detailItem, isRTL && { flexDirection: 'row-reverse' }]}>
-              <Ionicons name="cash-outline" size={16} color={Colors.textSecondary} />
-              <Text style={styles.detailText}>
-                {item.price} {t('currency')}
-              </Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      );
-    },
+    ({ item }: { item: Route }) => (
+      <RouteCardItem
+        item={item}
+        isSelected={selectedRouteId === item.id}
+        isRTL={isRTL}
+        onPress={setSelectedRouteId}
+        t={t}
+      />
+    ),
     [selectedRouteId, isRTL, t],
   );
 
@@ -170,11 +196,16 @@ export default function CreateTripScreen() {
           isRTL && { flexDirection: 'row-reverse' },
         ]}
       >
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.back();
+          }}
+        >
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('create_trip')}</Text>
-        <View style={{ width: 40 }} />
       </View>
 
       <Text style={[styles.pageSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
@@ -222,11 +253,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
     paddingBottom: Spacing.md,
-    backgroundColor: Colors.white,
+    backgroundColor: '#EFECE9',
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: '#E6E2DE',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    ...Shadow.sm,
+    zIndex: 10,
   },
   backButton: {
     width: 40,
@@ -234,12 +268,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: BorderRadius.pill,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceMuted,
+    zIndex: 11,
   },
   headerTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
     fontFamily: FontFamily.bold,
     fontSize: 18,
     color: Colors.text,
+    zIndex: 1,
   },
   pageSubtitle: {
     fontFamily: FontFamily.medium,

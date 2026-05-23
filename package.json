@@ -37,6 +37,7 @@
     "@vitest/coverage-v8": "^1.6.0",
     "cross-env": "^10.1.0",
     "eslint": "^8.57.0",
+    "expo-server-sdk": "^6.1.0",
     "husky": "^9.1.7",
     "jose": "^6.2.3",
     "jsdom": "^29.1.1",

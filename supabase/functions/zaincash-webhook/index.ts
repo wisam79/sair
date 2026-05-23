@@ -1,20 +1,22 @@
 /**
- * ZainCash Webhook — Stub Implementation
+ * ZainCash Webhook
  *
- * ZainCash calls this endpoint after payment with a signed JWT in the query string.
- * Full activation requires ZAINCASH_SECRET to verify the JWT signature.
- *
- * Expected query param: ?token=<jwt>
- * JWT payload: { id, key, type, status, amount, orderId, date, merchantId, msisdn }
+ * Disabled until merchant credentials and signature verification are configured.
+ * Never acknowledge fake/stub payment callbacks as successful in production.
  */
 
 Deno.serve((req: Request) => {
   try {
-    const url = new URL(req.url);
-    const token = url.searchParams.get('token');
+    if (req.method !== 'POST') {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
-    if (!token) {
-      return new Response(JSON.stringify({ error: 'Missing token' }), {
+    const signature = req.headers.get('X-ZainCash-Signature');
+    if (!signature) {
+      return new Response(JSON.stringify({ error: 'Missing ZainCash signature' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -23,15 +25,16 @@ Deno.serve((req: Request) => {
     const zaincashSecret = Deno.env.get('ZAINCASH_SECRET');
 
     if (!zaincashSecret) {
-      // Stub mode — log and acknowledge
-      console.warn(
-        '[ZainCash Webhook] Stub mode — ZAINCASH_SECRET not configured. Token received:',
-        token.substring(0, 20) + '...',
+      return new Response(
+        JSON.stringify({
+          error: 'ZainCash webhook is not enabled for this environment.',
+          code: 'PAYMENTS_DISABLED',
+        }),
+        {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' },
+        },
       );
-      return new Response(JSON.stringify({ received: true, stub: true }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
     }
 
     // ── Real implementation (when credentials are set) ────────────────────────
@@ -53,8 +56,8 @@ Deno.serve((req: Request) => {
     //    await supabaseAdmin.rpc("log_audit", { ... });
 
     console.warn('[ZainCash Webhook] Real implementation pending merchant credentials');
-    return new Response(JSON.stringify({ received: true }), {
-      status: 200,
+    return new Response(JSON.stringify({ error: 'ZainCash webhook implementation pending' }), {
+      status: 501,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err: unknown) {

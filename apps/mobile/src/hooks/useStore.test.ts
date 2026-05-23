@@ -67,7 +67,7 @@ describe('useAuthStore', () => {
   it('logout clears user, role, profile, trip, booking, and offline cache', () => {
     useAuthStore.getState().setAuth({ id: 'u1' }, 'student');
     useAuthStore.getState().setProfile({ full_name: 'Ahmed', phone: '0770' });
-    
+
     // Set some state in other stores
     useTripStore.getState().setActiveTrip('t1', 'in_transit', 'r1');
     useBookingStore.getState().setBooking(true);

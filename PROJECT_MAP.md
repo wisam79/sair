@@ -19,7 +19,7 @@
 - Network Status -> Periodic connectivity check with offline banner
 - Audit -> log_audit RPC for booking, trip, and profile changes
 - Subscription Expiry -> pg_cron job (hourly, sets expired status)
-- Role Resolution -> app_metadata.role (primary), user_metadata.role (fallback)
+- Role Resolution -> app_metadata.role (primary, secure, written by admin only)
 
 ## [ARCHITECTURE]
 
@@ -84,7 +84,7 @@
 - [x] Subscription cancellation RLS (students can cancel own active/pending).
 - [x] Subscription cancellation trigger (returns seat to routes.available_seats).
 - [x] GPS location-only RPC (update_trip_location) bypasses state machine for tracking updates.
-- [x] JWT role from app_metadata (secure, not user-writable) with user_metadata fallback.
+- [x] JWT role from app_metadata (secure, not user-writable).
 - [x] Profile update sync trigger (profiles.full_name -> auth.users raw_user_meta_data).
 - [x] Subscription auto-expiry via pg_cron (hourly).
 - [x] CHECK constraint: routes.available_seats >= 0 AND <= capacity.

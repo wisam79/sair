@@ -1,167 +1,159 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Route } from '@uniride/core';
+import { Route } from '@sair/core';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const PAGE_SIZE = 20;
 
 export function useRoutes(institutionId?: string | null, page = 0) {
-  const [routes, setRoutes] = useState<Route[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
+  const queryClient = useQueryClient();
+  const queryKey = ['routes', institutionId, page];
 
-  // Load cached routes on mount
+  // Load cached routes on mount (only for page 0)
   useEffect(() => {
+    if (page !== 0) return;
     const loadCached = async () => {
       try {
         const cached = await AsyncStorage.getItem('cached_routes');
         if (cached) {
-          setRoutes(JSON.parse(cached));
-          setIsLoading(false);
+          const parsed = JSON.parse(cached);
+          // Seed the query cache if it has no data yet
+          if (!queryClient.getQueryData(queryKey)) {
+            queryClient.setQueryData(queryKey, { routes: parsed, hasMore: true });
+          }
         }
       } catch (e) {
         // Ignore cache load failure
       }
     };
     loadCached();
-  }, []);
+  }, [queryClient, page, institutionId]);
 
-  const fetchRoutes = useCallback(
-    async (isRefresh = false) => {
-      try {
-        setIsLoading(true);
-        // If refreshing, we fetch everything from 0 up to the current page's end
-        const from = isRefresh ? 0 : page * PAGE_SIZE;
-        const to = page * PAGE_SIZE + PAGE_SIZE - 1;
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const from = page * PAGE_SIZE;
+      const to = page * PAGE_SIZE + PAGE_SIZE - 1;
 
-        let query = supabase
-          .from('routes')
-          .select('*', { count: 'exact' })
-          .eq('is_active', true)
-          .gt('available_seats', 0)
-          .order('created_at', { ascending: false });
+      let query = supabase
+        .from('routes')
+        .select('*', { count: 'exact' })
+        .eq('is_active', true)
+        .gt('available_seats', 0)
+        .order('created_at', { ascending: false });
 
-        if (institutionId) {
-          query = query.eq('institution_id', institutionId);
-        }
-
-        const { data, error, count } = await query.range(from, to);
-
-        if (error) throw error;
-        const newRoutes = data || [];
-        setRoutes(
-          page === 0 || isRefresh
-            ? newRoutes
-            : (prev) => {
-                const existingIds = new Set(prev.map((r) => r.id));
-                const unique = newRoutes.filter((r) => !existingIds.has(r.id));
-                return [...prev, ...unique];
-              },
-        );
-
-        if (page === 0 || isRefresh) {
-          AsyncStorage.setItem('cached_routes', JSON.stringify(newRoutes)).catch(() => {});
-        }
-
-        // Calculate hasMore correctly regardless of isRefresh
-        const currentFetchedCount = isRefresh ? newRoutes.length : from + newRoutes.length;
-        setHasMore(newRoutes.length > 0 && (!count || currentFetchedCount < count));
-        setError(null);
-      } catch (err: unknown) {
-        const msg =
-          err instanceof Error
-            ? err.message
-            : typeof err === 'string'
-              ? err
-              : 'Failed to fetch routes';
-        setError(msg);
-      } finally {
-        setIsLoading(false);
+      if (institutionId) {
+        query = query.eq('institution_id', institutionId);
       }
+
+      const { data: routeData, error: err, count } = await query.range(from, to);
+
+      if (err) throw err;
+      const fetchedRoutes = routeData || [];
+
+      if (page === 0) {
+        AsyncStorage.setItem('cached_routes', JSON.stringify(fetchedRoutes)).catch(() => {});
+      }
+
+      const hasMoreValue =
+        fetchedRoutes.length > 0 && (!count || from + fetchedRoutes.length < count);
+
+      return {
+        routes: fetchedRoutes,
+        hasMore: hasMoreValue,
+      };
     },
-    [page, institutionId],
-  );
+  });
 
+  // Postgres realtime changes
   useEffect(() => {
-    fetchRoutes();
-
     const channel = supabase
       .channel('routes-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, (payload) => {
-        if (payload.eventType === 'UPDATE') {
-          setRoutes((prev) =>
-            prev.map((r) => (r.id === payload.new.id ? ({ ...r, ...payload.new } as Route) : r)),
-          );
-        } else if (payload.eventType === 'INSERT') {
-          setRoutes((prev) => [payload.new as Route, ...prev]);
-        } else if (payload.eventType === 'DELETE') {
-          setRoutes((prev) => prev.filter((r) => r.id !== payload.old.id));
-        }
+        queryClient.setQueriesData(
+          { queryKey: ['routes'] },
+          (old: { routes: Route[]; hasMore: boolean } | undefined) => {
+            if (!old) return old;
+            let updatedRoutes = [...old.routes];
+            if (payload.eventType === 'UPDATE') {
+              updatedRoutes = updatedRoutes.map((r) =>
+                r.id === payload.new.id ? ({ ...r, ...payload.new } as Route) : r,
+              );
+            } else if (payload.eventType === 'INSERT') {
+              const exists = updatedRoutes.some((r) => r.id === payload.new.id);
+              if (!exists) {
+                updatedRoutes = [payload.new as Route, ...updatedRoutes];
+              }
+            } else if (payload.eventType === 'DELETE') {
+              updatedRoutes = updatedRoutes.filter((r) => r.id !== payload.old.id);
+            }
+            return {
+              ...old,
+              routes: updatedRoutes,
+            };
+          },
+        );
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchRoutes]);
+  }, [queryClient]);
 
-  return { routes, isLoading, error, refetch: fetchRoutes, hasMore };
+  const routes = data?.routes ?? [];
+  const hasMore = data?.hasMore ?? false;
+  const errorMsg = error instanceof Error ? error.message : error ? String(error) : null;
+
+  return { routes, isLoading, error: errorMsg, refetch, hasMore };
 }
 
 export function useRouteById(routeId: string | null) {
-  const [route, setRoute] = useState<Route | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const queryKey = ['route', routeId];
 
-  const fetchRoute = useCallback(async () => {
-    if (!routeId) {
-      setIsLoading(false);
-      return;
-    }
-    try {
-      setIsLoading(true);
+  const {
+    data: route = null,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      if (!routeId) return null;
       const { data, error } = await supabase.from('routes').select('*').eq('id', routeId).single();
-
       if (error) throw error;
-      setRoute(data);
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : typeof err === 'string'
-            ? err
-            : 'Failed to fetch route';
-      setError(msg);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [routeId]);
+      return data as Route;
+    },
+    enabled: !!routeId,
+  });
 
   useEffect(() => {
-    fetchRoute();
+    if (!routeId) return;
 
     const channel = supabase
       .channel(`route-${routeId}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'routes', filter: `id=eq.${routeId}` },
-        () => {
-          // ✅ Re-fetch كامل — لا ندمج payload.new مباشرة (قد يفقد بيانات)
-          fetchRoute();
+        (payload) => {
+          queryClient.setQueryData(queryKey, payload.new as Route);
         },
       )
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.warn('[Realtime] route channel error, re-fetching...');
-          fetchRoute();
+          refetch();
         }
       });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [routeId, fetchRoute]);
+  }, [routeId, queryClient, refetch]);
 
-  return { route, isLoading, error, refetch: fetchRoute };
+  const errorMsg = error instanceof Error ? error.message : error ? String(error) : null;
+
+  return { route, isLoading, error: errorMsg, refetch };
 }

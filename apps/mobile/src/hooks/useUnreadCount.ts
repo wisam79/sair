@@ -1,36 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from './useStore';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useUnreadCount = () => {
-  const [unreadCount, setUnreadCount] = useState<number>(0);
   const user = useAuthStore((state) => state.user);
+  const queryClient = useQueryClient();
+  const queryKey = ['unreadCount', user?.id];
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_unread_count');
+      if (error) throw error;
+      return Number(data) || 0;
+    },
+    enabled: !!user,
+  });
 
   useEffect(() => {
     if (!user) return;
 
-    let isMounted = true;
-
-    const fetchUnreadCount = async () => {
-      try {
-        const { data, error } = await supabase.rpc('get_unread_count');
-        if (error) {
-          console.error('Error fetching unread count:', error);
-          return;
-        }
-        if (isMounted) {
-          setUnreadCount(Number(data) || 0);
-        }
-      } catch (err) {
-        console.error('Error in fetchUnreadCount:', err);
-      }
-    };
-
-    fetchUnreadCount();
-
     // Subscribe to new messages where I am NOT the sender
     const channel = supabase
-      .channel('unread_messages')
+      .channel(`unread_messages_${user.id}_${Math.random().toString(36).slice(2, 9)}`)
       .on(
         'postgres_changes',
         {
@@ -40,7 +33,7 @@ export const useUnreadCount = () => {
           filter: `sender_id=neq.${user.id}`,
         },
         () => {
-          if (isMounted) fetchUnreadCount();
+          queryClient.invalidateQueries({ queryKey });
         },
       )
       .on(
@@ -52,16 +45,15 @@ export const useUnreadCount = () => {
           filter: `sender_id=neq.${user.id}`,
         },
         () => {
-          if (isMounted) fetchUnreadCount();
+          queryClient.invalidateQueries({ queryKey });
         },
       )
       .subscribe();
 
     return () => {
-      isMounted = false;
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, queryClient, queryKey]);
 
   return unreadCount;
 };

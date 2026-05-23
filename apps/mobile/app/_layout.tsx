@@ -2,6 +2,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { supabase } from '../src/lib/supabase';
 import { useAuthStore, useTripStore, useBookingStore, useI18nStore } from '../src/hooks/useStore';
+import '../src/lib/i18n';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { useNetworkStatus } from '../src/hooks/useNetworkStatus';
 import { useNotifications } from '../src/hooks/useNotifications';
@@ -22,10 +23,21 @@ import {
   IBMPlexSansArabic_500Medium,
   IBMPlexSansArabic_700Bold,
 } from '@expo-google-fonts/ibm-plex-sans-arabic';
+import { Gulzar_400Regular } from '@expo-google-fonts/gulzar';
 import * as SplashScreen from 'expo-splash-screen';
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import { Linking } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Keep the splash screen visible while fonts load
 SplashScreen.preventAutoHideAsync();
@@ -63,6 +75,7 @@ export default function Layout() {
     IBMPlexSansArabic_400Regular,
     IBMPlexSansArabic_500Medium,
     IBMPlexSansArabic_700Bold,
+    Gulzar_400Regular,
   });
 
   // RTL setup
@@ -183,7 +196,7 @@ export default function Layout() {
             });
           }
         } else {
-          setAuth(null, null);
+          useAuthStore.getState().logout();
         }
       } catch (error) {
         console.warn('[Auth] onAuthStateChange inner error:', error);
@@ -240,7 +253,7 @@ export default function Layout() {
         </Text>
         <TouchableOpacity
           style={styles.updateButton}
-          onPress={() => Linking.openURL('market://details?id=com.wisam99sr.uniride')}
+          onPress={() => Linking.openURL('market://details?id=com.wisam99sr.sair')}
         >
           <Text style={styles.updateButtonText}>{t('update_now') || 'تحديث الآن'}</Text>
         </TouchableOpacity>
@@ -249,48 +262,50 @@ export default function Layout() {
   }
 
   return (
-    <SafeAreaProvider>
-      <ErrorBoundary>
-        <View style={styles.root} onLayout={onLayoutRootView}>
-          {!isOnline && (
-            <View style={[styles.offlineBanner, { paddingTop: top }]}>
-              <Text style={styles.offlineText}>{t('no_internet')}</Text>
-            </View>
-          )}
-          <Stack screenOptions={{ headerShown: true, headerBackTitle: t('go_back_short') }}>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="booking" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="login"
-              options={{
-                headerShown: false,
-                contentStyle: { backgroundColor: Colors.backgroundDark },
-              }}
-            />
-            <Stack.Screen
-              name="onboarding"
-              options={{
-                headerShown: false,
-                contentStyle: { backgroundColor: Colors.background },
-              }}
-            />
-            <Stack.Screen name="tracking/[tripId]" options={{ title: t('track_trip') }} />
-            <Stack.Screen name="activate" options={{ headerShown: false }} />
-            <Stack.Screen name="create-trip" options={{ headerShown: false }} />
-            <Stack.Screen name="payment" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="rating/[tripId]"
-              options={{ title: t('rating'), headerShown: false }}
-            />
-            <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
-            <Stack.Screen name="trip-history" options={{ headerShown: false }} />
-            <Stack.Screen name="payouts" options={{ headerShown: false }} />
-            <Stack.Screen name="notifications" options={{ headerShown: false }} />
-            <Stack.Screen name="help" options={{ headerShown: false }} />
-          </Stack>
-        </View>
-      </ErrorBoundary>
-    </SafeAreaProvider>
+    <QueryClientProvider client={queryClient}>
+      <SafeAreaProvider>
+        <ErrorBoundary>
+          <View style={styles.root} onLayout={onLayoutRootView}>
+            {!isOnline && (
+              <View style={[styles.offlineBanner, { paddingTop: top }]}>
+                <Text style={styles.offlineText}>{t('no_internet')}</Text>
+              </View>
+            )}
+            <Stack screenOptions={{ headerShown: true, headerBackTitle: t('go_back_short') }}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="booking" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="login"
+                options={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: Colors.backgroundDark },
+                }}
+              />
+              <Stack.Screen
+                name="onboarding"
+                options={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: Colors.background },
+                }}
+              />
+              <Stack.Screen name="tracking/[tripId]" options={{ headerShown: false }} />
+              <Stack.Screen name="activate" options={{ headerShown: false }} />
+              <Stack.Screen name="create-trip" options={{ headerShown: false }} />
+              <Stack.Screen name="payment" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="rating/[tripId]"
+                options={{ title: t('rating'), headerShown: false }}
+              />
+              <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="trip-history" options={{ headerShown: false }} />
+              <Stack.Screen name="payouts" options={{ headerShown: false }} />
+              <Stack.Screen name="notifications" options={{ headerShown: false }} />
+              <Stack.Screen name="help" options={{ headerShown: false }} />
+            </Stack>
+          </View>
+        </ErrorBoundary>
+      </SafeAreaProvider>
+    </QueryClientProvider>
   );
 }
 

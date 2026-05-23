@@ -78,7 +78,6 @@ export const TripMap: React.FC<TripMapProps> = ({
         ref={mapRef}
         style={styles.map}
         provider={PROVIDER_DEFAULT}
-        mapType="none" // Important to hide Google/Apple basemap to use OSM
         initialRegion={{
           latitude: (startLat + endLat) / 2,
           longitude: (startLng + endLng) / 2,
@@ -86,12 +85,6 @@ export const TripMap: React.FC<TripMapProps> = ({
           longitudeDelta: Math.abs(startLng - endLng) * 2 || 0.05,
         }}
       >
-        <UrlTile
-          urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maximumZ={19}
-          flipY={false}
-        />
-
         {/* Route Line — OSRM or fallback straight line */}
         {routeCoords.length > 1 ? (
           <Polyline coordinates={routeCoords} strokeColor={Colors.primary} strokeWidth={4} />

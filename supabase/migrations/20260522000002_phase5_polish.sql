@@ -1,5 +1,5 @@
 -- Phase 5: Polish & Pre-launch
--- Migration: 2026051902_phase5_polish.sql
+-- Migration: 20260522000002_phase5_polish.sql
 
 -- 1. App Config Table (For Force Update Mechanism)
 CREATE TABLE IF NOT EXISTS public.app_config (

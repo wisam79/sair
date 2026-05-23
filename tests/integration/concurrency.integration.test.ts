@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createServiceClient, createAuthenticatedClient, cleanupTestData, isDBAvailable } from '../helpers/test-helpers';
+import {
+  createServiceClient,
+  createAuthenticatedClient,
+  cleanupTestData,
+  isDBAvailable,
+} from '../helpers/test-helpers';
 import { getTableRow } from '../helpers/db-test-helpers';
 
 const runIntegration = isDBAvailable();
@@ -96,7 +101,7 @@ describe('Database Concurrency & Locking Integration Tests', () => {
     const promises = students.map((student) =>
       student.client.rpc('activate_license', {
         p_code: licenseCode,
-      })
+      }),
     );
 
     const results = await Promise.all(promises);
@@ -111,7 +116,9 @@ describe('Database Concurrency & Locking Integration Tests', () => {
 
     // Verify error messages for failures
     for (const fail of failures) {
-      expect(fail.error?.message).toMatch(/Invalid or already used license code|could not obtain lock on row/i);
+      expect(fail.error?.message).toMatch(
+        /Invalid or already used license code|could not obtain lock on row/i,
+      );
     }
   });
 
@@ -120,10 +127,7 @@ describe('Database Concurrency & Locking Integration Tests', () => {
     await serviceClient.from('subscriptions').delete().eq('route_id', routeId);
 
     // Modify route available seats to 1
-    await serviceClient
-      .from('routes')
-      .update({ available_seats: 1 })
-      .eq('id', routeId);
+    await serviceClient.from('routes').update({ available_seats: 1 }).eq('id', routeId);
 
     // Create 5 licenses for this route
     const { data: batchId } = await adminClient.rpc('create_license_batch', {
@@ -143,7 +147,7 @@ describe('Database Concurrency & Locking Integration Tests', () => {
     const promises = students.map((student, idx) =>
       student.client.rpc('activate_license', {
         p_code: licenses[idx].code,
-      })
+      }),
     );
 
     const results = await Promise.all(promises);
@@ -156,7 +160,9 @@ describe('Database Concurrency & Locking Integration Tests', () => {
     expect(failures.length).toBe(4);
 
     for (const fail of failures) {
-      expect(fail.error?.message).toMatch(/No seats available for this route or route is inactive/i);
+      expect(fail.error?.message).toMatch(
+        /No seats available for this route or route is inactive/i,
+      );
     }
 
     // Verify final seats is 0
@@ -183,16 +189,14 @@ describe('Database Concurrency & Locking Integration Tests', () => {
 
     // Insert active subscription to route to give the driver 20,000 balance
     const student = students[0];
-    await serviceClient
-      .from('subscriptions')
-      .insert({
-        student_id: student.user.id,
-        route_id: route.id,
-        status: 'active',
-        start_date: new Date().toISOString(),
-        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        purchase_price: 20000,
-      });
+    await serviceClient.from('subscriptions').insert({
+      student_id: student.user.id,
+      route_id: route.id,
+      status: 'active',
+      start_date: new Date().toISOString(),
+      end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      purchase_price: 20000,
+    });
 
     // Request two payouts of 15,000 concurrently (Total requested: 30,000, Driver balance: 20,000)
     // Only one request should succeed; the other should fail due to balance check.
@@ -208,7 +212,9 @@ describe('Database Concurrency & Locking Integration Tests', () => {
 
     expect(successes.length).toBe(1);
     expect(failures.length).toBe(1);
-    expect(failures[0].error?.message).toMatch(/Requested amount exceeds available balance|could not obtain lock on row/i);
+    expect(failures[0].error?.message).toMatch(
+      /Requested amount exceeds available balance|could not obtain lock on row/i,
+    );
 
     // Cleanup route
     await serviceClient.from('routes').delete().eq('id', route.id);

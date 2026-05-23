@@ -1,5 +1,5 @@
 /**
- * UniRide Design System — Main Export
+ * Sair Design System — Main Export
  */
 
 export { Colors } from './colors';

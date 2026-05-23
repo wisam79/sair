@@ -1,5 +1,5 @@
 /**
- * UniRide Design System — Colors
+ * Sair Design System — Colors
  * Primary: Earthy Orange #C2703E
  * Secondary: Dark Charcoal #2D2D2D
  */

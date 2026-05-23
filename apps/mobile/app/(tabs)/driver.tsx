@@ -8,8 +8,8 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
-  StatusBar,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,7 +18,7 @@ import { useAuthStore, useTripStore } from '../../src/hooks/useStore';
 import { useDriverTrips, useLocationTracker, TripWithRoute } from '../../src/hooks/useTrips';
 import { useTranslation } from '../../src/hooks/useTranslation';
 import { ClientRateLimiter } from '../../src/lib/rateLimiter';
-import { TripStatus, canTransition } from '@uniride/core';
+import { TripStatus, canTransition } from '@sair/core';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../../src/theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -27,6 +27,17 @@ function getErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   if (typeof err === 'string') return err;
   return 'error_generic'; // Should use t('error_generic') inside the component
+}
+
+function getInitials(fullName: string): string {
+  if (!fullName) return '';
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) {
+    return parts[0].substring(0, 2).toUpperCase();
+  }
+  const first = parts[0].charAt(0);
+  const last = parts[parts.length - 1].charAt(0);
+  return (first + last).toUpperCase();
 }
 
 const STATUS_DISPLAY: Record<
@@ -130,7 +141,12 @@ export default function DriverDashboard() {
         }
 
         const { error } = await supabase.functions.invoke('trip-engine', {
-          body: { tripId, newStatus, lat, lng },
+          body: {
+            trip_id: tripId,
+            new_status: newStatus,
+            lat,
+            lng,
+          },
         });
 
         if (error) throw error;
@@ -176,6 +192,7 @@ export default function DriverDashboard() {
   );
 
   const handleLogout = async () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     stopTracking();
     await supabase.auth.signOut();
     logout();
@@ -199,11 +216,15 @@ export default function DriverDashboard() {
             <View
               style={[
                 styles.statusBadge,
-                { backgroundColor: statusDisplay.bg },
+                { backgroundColor: statusDisplay.bg, borderColor: statusDisplay.color },
                 isRTL && { flexDirection: 'row-reverse' },
               ]}
             >
-              <Ionicons name={statusDisplay.icon as any} size={14} color={statusDisplay.color} />
+              <Ionicons
+                name={statusDisplay.icon as React.ComponentProps<typeof Ionicons>['name']}
+                size={14}
+                color={statusDisplay.color}
+              />
               <Text style={[styles.statusText, { color: statusDisplay.color }]}>
                 {t(statusDisplay.labelKey)}
               </Text>
@@ -215,14 +236,57 @@ export default function DriverDashboard() {
 
           {/* Route Info */}
           {item.routes && (
-            <View style={[styles.routeContainer, isRTL && { flexDirection: 'row-reverse' }]}>
-              <Ionicons name="bus-outline" size={24} color={Colors.secondaryLight} />
-              <Text
-                style={[styles.routeInfo, { textAlign: isRTL ? 'right' : 'left' }]}
-                numberOfLines={1}
-              >
-                {item.routes.title}
-              </Text>
+            <View style={styles.routeDetailCard}>
+              <View style={[styles.routeHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Ionicons name="map-outline" size={18} color={Colors.primary} />
+                <Text style={[styles.routeTitleText, { textAlign: isRTL ? 'right' : 'left' }]}>
+                  {item.routes.title}
+                </Text>
+              </View>
+
+              {/* Route path diagram */}
+              <View style={styles.pathDiagram}>
+                <View style={[styles.pathRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <View style={styles.bulletContainer}>
+                    <View style={styles.startBullet} />
+                    <View style={styles.verticalLine} />
+                  </View>
+                  <View
+                    style={[
+                      styles.pathTextContainer,
+                      { alignItems: isRTL ? 'flex-end' : 'flex-start' },
+                    ]}
+                  >
+                    <Text style={styles.pathLabel}>{t('start_point')}</Text>
+                    <Text
+                      style={[styles.pathValue, { textAlign: isRTL ? 'right' : 'left' }]}
+                      numberOfLines={1}
+                    >
+                      {item.routes.start_location}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={[styles.pathRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <View style={styles.bulletContainer}>
+                    <View style={styles.endBullet} />
+                  </View>
+                  <View
+                    style={[
+                      styles.pathTextContainer,
+                      { alignItems: isRTL ? 'flex-end' : 'flex-start' },
+                    ]}
+                  >
+                    <Text style={styles.pathLabel}>{t('end_point')}</Text>
+                    <Text
+                      style={[styles.pathValue, { textAlign: isRTL ? 'right' : 'left' }]}
+                      numberOfLines={1}
+                    >
+                      {item.routes.end_location}
+                    </Text>
+                  </View>
+                </View>
+              </View>
             </View>
           )}
 
@@ -272,22 +336,43 @@ export default function DriverDashboard() {
     [t],
   );
 
-  const keyExtractor = useCallback((item: any) => item.id, []);
+  const keyExtractor = useCallback((item: TripWithRoute) => item.id, []);
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.secondary} />
+      <StatusBar style="dark" translucent />
 
       {/* Header */}
       <View
         style={[
           styles.header,
-          { paddingTop: top + Spacing.xl },
+          { paddingTop: top + Spacing.sm },
           isRTL && { flexDirection: 'row-reverse' },
         ]}
       >
+        <TouchableOpacity
+          style={[
+            styles.profileAvatarContainer,
+            {
+              [isRTL ? 'marginLeft' : 'marginRight']: Spacing.md,
+            } as import('react-native').ViewStyle,
+          ]}
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/profile');
+          }}
+          activeOpacity={0.85}
+        >
+          <View style={styles.profileAvatar}>
+            <Text style={styles.profileAvatarText}>{getInitials(profile?.full_name || '')}</Text>
+          </View>
+          <View style={styles.onlineIndicator} />
+        </TouchableOpacity>
+
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>{t('driver_dashboard')}</Text>
+          <Text style={[styles.headerTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('driver_dashboard')}
+          </Text>
           {profile?.full_name && (
             <Text style={[styles.headerSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
               {t('hello')}
@@ -296,15 +381,9 @@ export default function DriverDashboard() {
             </Text>
           )}
         </View>
-        <TouchableOpacity
-          style={styles.profileButton}
-          onPress={() => router.push('/profile')}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="person-circle-outline" size={36} color={Colors.white} />
-        </TouchableOpacity>
+
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
-          <Ionicons name="log-out-outline" size={24} color={Colors.errorSurface} />
+          <Ionicons name="log-out-outline" size={22} color={Colors.error} />
         </TouchableOpacity>
       </View>
 
@@ -316,7 +395,10 @@ export default function DriverDashboard() {
         refreshControl={
           <RefreshControl
             refreshing={isLoading}
-            onRefresh={refetch}
+            onRefresh={async () => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              refetch();
+            }}
             colors={[Colors.primary]}
             tintColor={Colors.primary}
           />
@@ -331,9 +413,15 @@ export default function DriverDashboard() {
 
       {/* Floating Action Button */}
       <TouchableOpacity
-        style={[styles.fab, { [isRTL ? 'left' : 'right']: Spacing.xl } as any]}
+        style={[
+          styles.fab,
+          { [isRTL ? 'left' : 'right']: Spacing.xl } as import('react-native').ViewStyle,
+        ]}
         activeOpacity={0.9}
-        onPress={() => router.push('/create-trip')}
+        onPress={() => {
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          router.push('/create-trip');
+        }}
       >
         <Ionicons name="add" size={32} color={Colors.white} />
       </TouchableOpacity>
@@ -347,32 +435,69 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.secondary,
-    paddingBottom: Spacing.xl,
+    backgroundColor: '#EFECE9',
+    paddingBottom: Spacing.md,
     paddingHorizontal: Spacing.lg,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E6E2DE',
+    ...Shadow.sm,
+    zIndex: 10,
   },
   headerTitleContainer: {
     flex: 1,
   },
   headerTitle: {
     fontFamily: FontFamily.bold,
-    fontSize: 22,
-    color: Colors.white,
+    fontSize: 20,
+    color: Colors.text,
   },
   headerSubtitle: {
     fontFamily: FontFamily.regular,
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
+    fontSize: 13,
+    color: Colors.textSecondary,
     marginTop: 2,
   },
-  profileButton: {
-    padding: Spacing.xs,
-    marginRight: Spacing.sm,
+  profileAvatarContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    position: 'relative',
+  },
+  profileAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.primarySurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+  },
+  profileAvatarText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 14,
+    color: Colors.primary,
+  },
+  onlineIndicator: {
+    position: 'absolute',
+    bottom: -1,
+    right: -1,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: Colors.success,
+    borderWidth: 2,
+    borderColor: '#EFECE9',
   },
   logoutButton: {
-    padding: Spacing.xs,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: BorderRadius.sm,
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   // List
   listContent: {
@@ -397,6 +522,8 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xl,
     padding: Spacing.xl,
     marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: '#ECE9E4',
     ...Shadow.md,
   },
   tripHeader: {
@@ -412,30 +539,86 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.pill,
+    borderWidth: 1,
   },
   statusText: {
     fontFamily: FontFamily.bold,
-    fontSize: 13,
+    fontSize: 12,
   },
   tripTime: {
     fontFamily: FontFamily.medium,
     fontSize: 13,
     color: Colors.textMuted,
   },
-  routeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
+  routeDetailCard: {
     backgroundColor: Colors.surfaceMuted,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.03)',
   },
-  routeInfo: {
+  routeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+    paddingBottom: Spacing.xs,
+  },
+  routeTitleText: {
     flex: 1,
     fontFamily: FontFamily.bold,
-    fontSize: 16,
+    fontSize: 15,
     color: Colors.text,
+  },
+  pathDiagram: {
+    gap: Spacing.sm,
+  },
+  pathRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+  },
+  bulletContainer: {
+    alignItems: 'center',
+    width: 16,
+  },
+  startBullet: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.primary,
+    marginTop: 4,
+  },
+  endBullet: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.secondary,
+    marginTop: 4,
+  },
+  verticalLine: {
+    width: 2,
+    height: 24,
+    backgroundColor: Colors.border,
+    marginTop: 4,
+    marginBottom: -4,
+  },
+  pathTextContainer: {
+    flex: 1,
+  },
+  pathLabel: {
+    fontFamily: FontFamily.regular,
+    fontSize: 11,
+    color: Colors.textMuted,
+  },
+  pathValue: {
+    fontFamily: FontFamily.medium,
+    fontSize: 13,
+    color: Colors.text,
+    marginTop: 2,
   },
   // Actions
   actionRow: {
@@ -444,7 +627,7 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    paddingVertical: Spacing.lg,
+    height: 48,
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
@@ -456,9 +639,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   cancelButton: {
-    paddingHorizontal: Spacing.lg,
+    width: 48,
+    height: 48,
     borderRadius: BorderRadius.md,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: Colors.error,
     alignItems: 'center',
     justifyContent: 'center',

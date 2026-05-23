@@ -4,7 +4,7 @@ import path from 'path';
 export default defineConfig({
   resolve: {
     alias: {
-      '@uniride/core': path.resolve(__dirname, 'packages/core'),
+      '@sair/core': path.resolve(__dirname, 'packages/core'),
     },
   },
   test: {

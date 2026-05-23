@@ -210,7 +210,9 @@ describe('retryWithBackoff', () => {
     const fn = async () => {
       throw new Error('always fail');
     };
-    await expect(retryWithBackoff(fn, { maxRetries: 3, baseDelayMs: 10 })).rejects.toThrow('always fail');
+    await expect(retryWithBackoff(fn, { maxRetries: 3, baseDelayMs: 10 })).rejects.toThrow(
+      'always fail',
+    );
   });
 });
 

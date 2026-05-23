@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createServiceClient, createAuthenticatedClient, cleanupTestData, isDBAvailable } from '../helpers/test-helpers';
+import {
+  createServiceClient,
+  createAuthenticatedClient,
+  cleanupTestData,
+  isDBAvailable,
+} from '../helpers/test-helpers';
 import { getTableRow } from '../helpers/db-test-helpers';
 import { TripStatus } from '../../packages/core/index';
 
@@ -18,17 +23,17 @@ describe('Trip State Machine Integration Tests', () => {
 
   beforeAll(async () => {
     serviceClient = createServiceClient();
-    
+
     // Create a test driver user and get their driver ID
     const authResult = await createAuthenticatedClient('driver');
     driverUser = authResult.user;
-    
+
     const { data: driverData, error: driverErr } = await serviceClient
       .from('drivers')
       .select('id')
       .eq('user_id', driverUser.id)
       .single();
-      
+
     if (driverErr || !driverData) {
       throw new Error(`Failed to fetch test driver ID: ${driverErr?.message}`);
     }
@@ -116,7 +121,7 @@ describe('Trip State Machine Integration Tests', () => {
           expect(error).toBeNull();
           const trip = await getTableRow('trips', tripId);
           expect(trip.status).toBe(toStatus);
-          
+
           if (toStatus === 'in_transit' && fromStatus === 'driver_waiting') {
             expect(trip.started_at).not.toBeNull();
           }

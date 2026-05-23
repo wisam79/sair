@@ -1,0 +1,406 @@
+{
+  "nav": {
+    "appTitle": "Sair Admin",
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "drivers": "Drivers",
+    "institutions": "Institutions",
+    "routes": "Routes",
+    "liveTrips": "Live Trips",
+    "tripArchive": "Trip Archive",
+    "subscriptions": "Subscriptions",
+    "licenseBatches": "License Batches",
+    "licenses": "Licenses",
+    "payouts": "Payouts",
+    "ratings": "Ratings",
+    "analytics": "Analytics",
+    "revenue": "Revenue",
+    "notifications": "Notifications",
+    "featureFlags": "Feature Flags",
+    "bulkImport": "Bulk Import",
+    "systemHealth": "System Health",
+    "activityLog": "Activity Log",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "documentTitle": {
+    "default": "Sair - Admin Dashboard"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "stats": {
+      "total_users": "Total Users",
+      "active_drivers": "Active Drivers",
+      "active_routes": "Active Routes",
+      "active_trips": "Active Trips",
+      "total_routes": "Total Routes",
+      "total_trips": "Total Trips",
+      "active_subscriptions": "Active Subscriptions",
+      "monthly_revenue": "Monthly Revenue (IQD)",
+      "hint_users": "Registered on platform",
+      "hint_drivers": "Available fleet",
+      "of": "of",
+      "total": "total",
+      "hint_trips": "Currently in progress",
+      "hint_revenue": "Active subscriptions",
+      "hint_total_trips": "All-time tracked",
+      "hint_total_routes": "Configured network"
+    },
+    "actions": {
+      "addRoute": "Add Route",
+      "addRouteDesc": "Create a new transport route",
+      "sendNotification": "Notify Users",
+      "sendNotificationDesc": "Send push notification",
+      "createLicenseBatch": "License Batch",
+      "createLicenseBatchDesc": "Generate license codes",
+      "viewTrips": "Live Trips",
+      "viewTripsDesc": "Monitor active trips"
+    },
+    "charts": {
+      "activity_title": "Performance & Growth",
+      "activity_subtitle": "Track monthly revenue and users over the past 6 months",
+      "live_analytics": "Live Analytics",
+      "revenue_label": "Revenue (IQD)",
+      "users_label": "Subscribers"
+    },
+    "system": {
+      "status_title": "Fleet Capacity & Status",
+      "status_desc": "Seat occupancy and current route coverage",
+      "routes_covered": "Student Routes Covered",
+      "seats_booked": "Active Subscriptions Activity",
+      "drivers_active": "Active Drivers on Trips",
+      "running_normal": "Central trip server and maps operating at 100% availability"
+    },
+    "liveTripsActive": "live trips active",
+    "heroDesc": "Here's a snapshot of your platform. All systems running normally.",
+    "lastRefreshed": "Last refreshed",
+    "quickActions": "Quick Actions",
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "live_trips_notice_title": "Live Trips",
+    "live_trips_notice_desc": "trip(s) currently active. View details in the Trips section."
+  },
+  "profiles": {
+    "titles": {
+      "list": "Users",
+      "show": "Show User",
+      "edit": "Edit User",
+      "create": "Create User"
+    },
+    "fields": {
+      "fullName": "Full Name",
+      "phone": "Phone",
+      "role": "Role",
+      "joined": "Joined At"
+    }
+  },
+  "subscriptions": {
+    "titles": {
+      "list": "Subscriptions",
+      "show": "Show Subscription",
+      "edit": "Edit Subscription",
+      "create": "Create Subscription"
+    },
+    "fields": {
+      "student": "Student",
+      "route": "Route",
+      "status": "Status",
+      "startDate": "Start Date",
+      "endDate": "End Date"
+    }
+  },
+  "license_batches": {
+    "titles": {
+      "list": "License Batches",
+      "show": "Show Batch",
+      "edit": "Edit Batch",
+      "create": "Create Batch"
+    },
+    "fields": {
+      "name": "Batch Name",
+      "route": "Route",
+      "quantity": "Quantity",
+      "price": "Price",
+      "validDays": "Valid Days",
+      "createdAt": "Created At"
+    }
+  },
+  "licenses": {
+    "titles": {
+      "list": "Licenses",
+      "show": "Show License",
+      "edit": "Edit License",
+      "create": "Create License"
+    },
+    "fields": {
+      "code": "Code",
+      "status": "Status",
+      "usedBy": "Used By",
+      "usedAt": "Used At"
+    }
+  },
+  "actions": {
+    "actions": "Actions",
+    "edit": "Edit",
+    "show": "Show",
+    "create": "Create",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "export": "Export"
+  },
+  "common": {
+    "id": "ID",
+    "loading": "Loading...",
+    "na": "N/A",
+    "status": "Status",
+    "route": "Route",
+    "back": "Back"
+  },
+  "validation": {
+    "required": "This field is required",
+    "minCapacity": "Capacity must be at least 1",
+    "pricePositive": "Price must be greater than 0",
+    "seatsNotExceedCapacity": "Available seats cannot exceed capacity",
+    "lessThanOrEqualCapacity": "Must be less than or equal to capacity"
+  },
+  "errors": {
+    "generic": "Error",
+    "unknown": "An unknown error occurred"
+  },
+  "login": {
+    "title": "Sair Admin",
+    "subtitle": "Sign in to manage the platform",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "admin@sair.com",
+    "passwordLabel": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in..."
+  },
+  "drivers": {
+    "titles": {
+      "list": "Drivers Management",
+      "show": "Show Driver",
+      "edit": "Edit Driver",
+      "create": "Create Driver"
+    },
+    "fields": {
+      "verified": "Verified",
+      "registeredAt": "Registered At",
+      "userProfile": "User Profile",
+      "userProfileId": "User Profile ID",
+      "licenseNumber": "License Number",
+      "vehicleModel": "Vehicle Model",
+      "vehiclePlate": "Vehicle Plate",
+      "capacity": "Capacity",
+      "isVerified": "Is Verified",
+      "driverId": "Driver ID"
+    },
+    "hints": {
+      "selectProfile": "Select a user profile (preferably with driver role)",
+      "userProfileImmutable": "User profile cannot be changed after creation"
+    }
+  },
+  "routes": {
+    "titles": {
+      "list": "Routes",
+      "show": "Show Route",
+      "edit": "Edit Route",
+      "create": "Create Route"
+    },
+    "fields": {
+      "title": "Title",
+      "driver": "Driver",
+      "driverId": "Driver ID",
+      "startLocation": "Start Location",
+      "endLocation": "End Location",
+      "price": "Price",
+      "priceIqd": "Price (IQD)",
+      "capacity": "Capacity",
+      "availableSeats": "Available Seats",
+      "active": "Active",
+      "isActive": "Is Active"
+    },
+    "hints": {
+      "driverUuid": "Enter driver UUID from Drivers list",
+      "driverImmutable": "Driver cannot be changed after creation"
+    },
+    "placeholders": {
+      "uuid": "e.g., 550e8400-e29b-41d4-a716-446655440000"
+    }
+  },
+  "trips": {
+    "titles": {
+      "list": "Live Trips",
+      "show": "Show Trip",
+      "edit": "Edit Trip",
+      "create": "Create Trip"
+    },
+    "fields": {
+      "status": "Status",
+      "route": "Route",
+      "driver": "Driver",
+      "scheduledAt": "Scheduled At",
+      "scheduled": "Scheduled",
+      "started": "Started",
+      "ended": "Ended",
+      "lat": "Lat",
+      "lng": "Lng",
+      "driverVehiclePlate": "Driver (Vehicle Plate)"
+    },
+    "hints": {
+      "selectDriver": "Select the driver for this trip"
+    }
+  },
+  "institutions": {
+    "titles": {
+      "list": "Institutions",
+      "show": "Show Institution",
+      "edit": "Edit Institution",
+      "create": "Create Institution"
+    },
+    "fields": {
+      "name": "Name",
+      "city": "City",
+      "created": "Created",
+      "createdAt": "Created At"
+    }
+  },
+  "payouts": {
+    "title": "Driver Payouts",
+    "fields": {
+      "driverId": "Driver ID",
+      "amountIqd": "Amount (IQD)",
+      "reference": "Reference",
+      "requested": "Requested",
+      "updated": "Updated"
+    }
+  },
+  "ratings": {
+    "title": "Ratings & Reviews",
+    "fields": {
+      "tripId": "Trip ID",
+      "studentId": "Student ID",
+      "rating": "Rating",
+      "comment": "Comment",
+      "date": "Date"
+    }
+  },
+  "notifications": {
+    "title": "Send Push Notification",
+    "description": "Broadcast a push notification to mobile app users via Expo Push API.",
+    "targetAll": "All Users",
+    "targetStudents": "Students Only",
+    "targetDrivers": "Drivers Only",
+    "validationRequired": "Title and body are required",
+    "sendFailed": "Failed to send notification",
+    "fieldTitle": "Title",
+    "fieldBody": "Message Body",
+    "fieldTarget": "Target Audience",
+    "sendButton": "Send Notification",
+    "sending": "Sending..."
+  },
+  "featureFlags": {
+    "description": "Toggle features on/off for the mobile app in real-time.",
+    "flagName": "Flag Name",
+    "description_field": "Description",
+    "toggle": "Toggle",
+    "lastUpdated": "Last Updated",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "health": {
+    "supabaseDb": "Supabase Database",
+    "connectionFailed": "Connection failed",
+    "tripEngine": "Trip Engine (Edge Function)",
+    "functionUnreachable": "Function unreachable",
+    "notificationService": "Notification Service",
+    "realtimeSubs": "Realtime Subscriptions",
+    "websocketActive": "WebSocket connections active",
+    "refresh": "Refresh",
+    "allOperational": "All Systems Operational",
+    "partialDegradation": "Partial Degradation",
+    "systemOutage": "System Outage",
+    "lastChecked": "Last checked:",
+    "latency": "Latency:"
+  },
+  "bulkImport": {
+    "title": "Bulk User Import",
+    "description": "Import users from a CSV file. Expected columns: full_name, phone, role (optional).",
+    "stepUpload": "Upload CSV",
+    "stepPreview": "Preview Data",
+    "stepConfirm": "Confirm Import",
+    "roleStudent": "Student",
+    "roleDriver": "Driver",
+    "uploadButton": "Upload CSV File",
+    "csvFormatHint": "CSV format: full_name, phone, role (role defaults to Student if not specified)",
+    "defaultRole": "Default Role (if not in CSV)",
+    "previewTitle": "Preview (first 5 rows)",
+    "back": "Back",
+    "importing": "Importing...",
+    "confirmImport": "Confirm & Import",
+    "importResult": "Import complete"
+  },
+  "settings": {
+    "title": "Settings & Configuration",
+    "description": "Manage application-wide settings and feature toggles.",
+    "saved": "Settings saved successfully!",
+    "sectionGeneral": "General",
+    "fieldAppName": "App Name",
+    "fieldDefaultLang": "Default Language",
+    "langArabic": "Arabic",
+    "langEnglish": "English",
+    "fieldSessionTimeout": "Session Timeout (minutes)",
+    "sectionFeatures": "Features",
+    "fieldPushNotif": "Push Notifications",
+    "fieldChat": "In-App Chat",
+    "fieldRatings": "Trip Ratings",
+    "sectionSecurity": "Security",
+    "fieldMaintenance": "Maintenance Mode",
+    "fieldRegistrations": "Allow New Registrations",
+    "sectionLimits": "Limits",
+    "fieldMaxCapacity": "Max Trip Capacity",
+    "fieldCodeLength": "License Code Length",
+    "saveButton": "Save Settings"
+  },
+  "activityLog": {
+    "description": "Track all admin actions and system events for auditing purposes.",
+    "searchPlaceholder": "Search by action, resource, user, or details...",
+    "timestamp": "Timestamp",
+    "user": "User",
+    "action": "Action",
+    "resource": "Resource",
+    "details": "Details",
+    "ipAddress": "IP Address"
+  },
+  "revenue": {
+    "title": "Revenue Reports",
+    "totalRevenue": "Total Revenue",
+    "completedTrips": "Completed Trips",
+    "activeStudents": "Active Students",
+    "avgRating": "Avg Rating",
+    "topRoutes": "Top Routes by Revenue",
+    "revenueIqd": "Revenue (IQD)"
+  },
+  "tripArchive": {
+    "routeId": "Route ID"
+  },
+  "analytics": {
+    "title": "Analytics — Last 30 Days",
+    "loadFailed": "Failed to load analytics",
+    "tripOutcomes": "Trip Outcomes",
+    "completionRate": "Completion Rate",
+    "cancellationRate": "Cancellation Rate",
+    "tripsByStatus": "Trips by Status",
+    "topRoutes": "Top Routes",
+    "subsCount": "subs"
+  },
+  "buttons": {
+    "logout": "Logout"
+  },
+  "yes": "Yes",
+  "no": "No"
+}

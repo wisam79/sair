@@ -1,0 +1,406 @@
+{
+  "nav": {
+    "appTitle": "سير - لوحة التحكم",
+    "dashboard": "الرئيسية",
+    "users": "المستخدمين",
+    "drivers": "السائقين",
+    "institutions": "المؤسسات",
+    "routes": "الخطوط",
+    "liveTrips": "الرحلات الحية",
+    "tripArchive": "أرشيف الرحلات",
+    "subscriptions": "الاشتراكات",
+    "licenseBatches": "دفعات التراخيص",
+    "licenses": "التراخيص",
+    "payouts": "المدفوعات",
+    "ratings": "التقييمات",
+    "analytics": "التحليلات",
+    "revenue": "الإيرادات",
+    "notifications": "الإشعارات",
+    "featureFlags": "ميزات العلم",
+    "bulkImport": "استيراد جماعي",
+    "systemHealth": "صحة النظام",
+    "activityLog": "سجل النشاطات",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج"
+  },
+  "documentTitle": {
+    "default": "سير - لوحة التحكم"
+  },
+  "dashboard": {
+    "title": "الرئيسية",
+    "stats": {
+      "total_users": "إجمالي المستخدمين",
+      "active_drivers": "السائقون النشطون",
+      "active_routes": "الخطوط الفعالة",
+      "active_trips": "الرحلات الحية",
+      "total_routes": "إجمالي الخطوط",
+      "total_trips": "إجمالي الرحلات",
+      "active_subscriptions": "الاشتراكات الفعالة",
+      "monthly_revenue": "الأرباح الشهرية (د.ع)",
+      "hint_users": "مسجلين في المنصة",
+      "hint_drivers": "الأسطول المتاح حالياً",
+      "of": "من أصل",
+      "total": "إجمالي",
+      "hint_trips": "رحلات قيد التنفيذ حالياً",
+      "hint_revenue": "من الاشتراكات الفعالة",
+      "hint_total_trips": "الرحلات المسجلة بالنظام",
+      "hint_total_routes": "الخطوط المجهزة والمتاحة"
+    },
+    "actions": {
+      "addRoute": "إضافة خط جديد",
+      "addRouteDesc": "إنشاء مسار نقل جديد للطلاب",
+      "sendNotification": "إرسال إشعار",
+      "sendNotificationDesc": "إرسال إشعار جماعي فوري للهواتف",
+      "createLicenseBatch": "دفعة تراخيص جديدة",
+      "createLicenseBatchDesc": "توليد وتصدير أكواد تراخيص جديدة",
+      "viewTrips": "الرحلات الحية",
+      "viewTripsDesc": "مراقبة حركة الرحلات النشطة حالياً"
+    },
+    "charts": {
+      "activity_title": "مؤشرات الأداء والنمو",
+      "activity_subtitle": "متابعة الإيرادات وتفاعل المشتركين خلال الـ 6 أشهر الماضية",
+      "live_analytics": "تحليلات مباشرة",
+      "revenue_label": "الأرباح (د.ع)",
+      "users_label": "المشتركون"
+    },
+    "system": {
+      "status_title": "حالة تشغيل الأسطول",
+      "status_desc": "إشغال المقاعد وتغطية المسارات الحالية للرحلات",
+      "routes_covered": "تغطية مسارات الطلاب",
+      "seats_booked": "نشاط اشتراكات الطلاب",
+      "drivers_active": "السائقين النشطين بالرحلات",
+      "running_normal": "خادم الرحلات المركزي والخرائط يعمل بجهوزية 100%"
+    },
+    "liveTripsActive": "رحلة نشطة الآن",
+    "heroDesc": "مرحباً بك في لوحة الإدارة. كافة الأنظمة والخوادم الحالية تعمل بكفاءة وبدون مشاكل.",
+    "lastRefreshed": "آخر تحديث",
+    "quickActions": "إجراءات سريعة",
+    "greeting": {
+      "morning": "صباح الخير",
+      "afternoon": "مساء الخير",
+      "evening": "مساء الخير"
+    },
+    "live_trips_notice_title": "الرحلات الحية الان",
+    "live_trips_notice_desc": "رحلة/رحلات نشطة حالياً. راجع التفاصيل في قسم الرحلات."
+  },
+  "profiles": {
+    "titles": {
+      "list": "المستخدمين",
+      "show": "عرض المستخدم",
+      "edit": "تعديل المستخدم",
+      "create": "إضافة مستخدم"
+    },
+    "fields": {
+      "fullName": "الاسم الكامل",
+      "phone": "الهاتف",
+      "role": "الدور",
+      "joined": "تاريخ الانضمام"
+    }
+  },
+  "subscriptions": {
+    "titles": {
+      "list": "الاشتراكات",
+      "show": "عرض الاشتراك",
+      "edit": "تعديل الاشتراك",
+      "create": "إضافة اشتراك"
+    },
+    "fields": {
+      "student": "الطالب",
+      "route": "الخط",
+      "status": "الحالة",
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء"
+    }
+  },
+  "license_batches": {
+    "titles": {
+      "list": "دفعات التراخيص",
+      "show": "عرض الدفعة",
+      "edit": "تعديل الدفعة",
+      "create": "إضافة دفعة"
+    },
+    "fields": {
+      "name": "اسم الدفعة",
+      "route": "الخط",
+      "quantity": "الكمية",
+      "price": "السعر",
+      "validDays": "أيام الصلاحية",
+      "createdAt": "تاريخ الإنشاء"
+    }
+  },
+  "licenses": {
+    "titles": {
+      "list": "التراخيص",
+      "show": "عرض الترخيص",
+      "edit": "تعديل الترخيص",
+      "create": "إضافة ترخيص"
+    },
+    "fields": {
+      "code": "الكود",
+      "status": "الحالة",
+      "usedBy": "استخدم بواسطة",
+      "usedAt": "تاريخ الاستخدام"
+    }
+  },
+  "actions": {
+    "actions": "الإجراءات",
+    "edit": "تعديل",
+    "show": "عرض",
+    "create": "إنشاء",
+    "delete": "حذف",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "export": "تصدير"
+  },
+  "common": {
+    "id": "المعرف",
+    "loading": "جاري التحميل...",
+    "na": "غير متاح",
+    "status": "الحالة",
+    "route": "المسار",
+    "back": "رجوع"
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب",
+    "minCapacity": "السعة يجب أن تكون 1 على الأقل",
+    "pricePositive": "السعر يجب أن يكون أكبر من 0",
+    "seatsNotExceedCapacity": "المقاعد المتاحة لا يمكن أن تتجاوز السعة",
+    "lessThanOrEqualCapacity": "يجب أن يكون أقل من أو يساوي السعة"
+  },
+  "errors": {
+    "generic": "خطأ",
+    "unknown": "حدث خطأ غير معروف"
+  },
+  "login": {
+    "title": "سير - لوحة التحكم",
+    "subtitle": "سجل الدخول لإدارة المنصة",
+    "emailLabel": "البريد الإلكتروني",
+    "emailPlaceholder": "admin@sair.com",
+    "passwordLabel": "كلمة المرور",
+    "signIn": "تسجيل الدخول",
+    "signingIn": "جاري تسجيل الدخول..."
+  },
+  "drivers": {
+    "titles": {
+      "list": "إدارة السائقين",
+      "show": "عرض السائق",
+      "edit": "تعديل السائق",
+      "create": "إضافة سائق"
+    },
+    "fields": {
+      "verified": "موثق",
+      "registeredAt": "تاريخ التسجيل",
+      "userProfile": "الملف الشخصي",
+      "userProfileId": "معرف الملف الشخصي",
+      "licenseNumber": "رقم الرخصة",
+      "vehicleModel": "نوع السيارة",
+      "vehiclePlate": "رقم اللوحة",
+      "capacity": "السعة",
+      "isVerified": "موثق",
+      "driverId": "معرف السائق"
+    },
+    "hints": {
+      "selectProfile": "اختر ملف مستخدم (يفضل بدور سائق)",
+      "userProfileImmutable": "لا يمكن تغيير الملف الشخصي بعد الإنشاء"
+    }
+  },
+  "routes": {
+    "titles": {
+      "list": "الخطوط",
+      "show": "عرض الخط",
+      "edit": "تعديل الخط",
+      "create": "إضافة خط"
+    },
+    "fields": {
+      "title": "العنوان",
+      "driver": "السائق",
+      "driverId": "معرف السائق",
+      "startLocation": "نقطة الانطلاق",
+      "endLocation": "نقطة النهاية",
+      "price": "السعر",
+      "priceIqd": "السعر (د.ع)",
+      "capacity": "السعة",
+      "availableSeats": "المقاعد المتاحة",
+      "active": "فعال",
+      "isActive": "نشط"
+    },
+    "hints": {
+      "driverUuid": "أدخل معرف السائق من قائمة السائقين",
+      "driverImmutable": "لا يمكن تغيير السائق بعد الإنشاء"
+    },
+    "placeholders": {
+      "uuid": "مثال: 550e8400-e29b-41d4-a716-446655440000"
+    }
+  },
+  "trips": {
+    "titles": {
+      "list": "الرحلات الحية",
+      "show": "عرض الرحلة",
+      "edit": "تعديل الرحلة",
+      "create": "إضافة رحلة"
+    },
+    "fields": {
+      "status": "الحالة",
+      "route": "المسار",
+      "driver": "السائق",
+      "scheduledAt": "وقت الجدولة",
+      "scheduled": "مجدولة",
+      "started": "بدأت",
+      "ended": "انتهت",
+      "lat": "خط العرض",
+      "lng": "خط الطول",
+      "driverVehiclePlate": "السائق (رقم اللوحة)"
+    },
+    "hints": {
+      "selectDriver": "اختر السائق لهذه الرحلة"
+    }
+  },
+  "institutions": {
+    "titles": {
+      "list": "المؤسسات",
+      "show": "عرض المؤسسة",
+      "edit": "تعديل المؤسسة",
+      "create": "إضافة مؤسسة"
+    },
+    "fields": {
+      "name": "الاسم",
+      "city": "المدينة",
+      "created": "تاريخ الإنشاء",
+      "createdAt": "تاريخ الإنشاء"
+    }
+  },
+  "payouts": {
+    "title": "مدفوعات السائقين",
+    "fields": {
+      "driverId": "معرف السائق",
+      "amountIqd": "المبلغ (د.ع)",
+      "reference": "المرجع",
+      "requested": "تاريخ الطلب",
+      "updated": "تاريخ التحديث"
+    }
+  },
+  "ratings": {
+    "title": "التقييمات والمراجعات",
+    "fields": {
+      "tripId": "معرف الرحلة",
+      "studentId": "معرف الطالب",
+      "rating": "التقييم",
+      "comment": "التعليق",
+      "date": "التاريخ"
+    }
+  },
+  "notifications": {
+    "title": "إرسال إشعار",
+    "description": "بث إشعار لمستخدمي التطبيق عبر Expo Push API.",
+    "targetAll": "جميع المستخدمين",
+    "targetStudents": "الطلاب فقط",
+    "targetDrivers": "السائقين فقط",
+    "validationRequired": "العنوان والمحتوى مطلوبان",
+    "sendFailed": "فشل إرسال الإشعار",
+    "fieldTitle": "العنوان",
+    "fieldBody": "محتوى الرسالة",
+    "fieldTarget": "الفئة المستهدفة",
+    "sendButton": "إرسال الإشعار",
+    "sending": "جاري الإرسال..."
+  },
+  "featureFlags": {
+    "description": "تفعيل/تعطيل الميزات لتطبيق الهاتف في الوقت الفعلي.",
+    "flagName": "اسم الميزة",
+    "description_field": "الوصف",
+    "toggle": "التبديل",
+    "lastUpdated": "آخر تحديث",
+    "enabled": "مفعل",
+    "disabled": "معطل"
+  },
+  "health": {
+    "supabaseDb": "قاعدة البيانات",
+    "connectionFailed": "فشل الاتصال",
+    "tripEngine": "محرك الرحلات",
+    "functionUnreachable": "الخدمة غير متاحة",
+    "notificationService": "خدمة الإشعارات",
+    "realtimeSubs": "الاشتراكات الفورية",
+    "websocketActive": "اتصالات WebSocket نشطة",
+    "refresh": "تحديث",
+    "allOperational": "جميع الأنظمة تعمل",
+    "partialDegradation": "تدهور جزئي",
+    "systemOutage": "انقطاع النظام",
+    "lastChecked": "آخر فحص:",
+    "latency": "زمن الاستجابة:"
+  },
+  "bulkImport": {
+    "title": "استيراد المستخدمين",
+    "description": "استيراد مستخدمين من ملف CSV. الأعمدة المطلوبة: full_name, phone, role (اختياري).",
+    "stepUpload": "رفع CSV",
+    "stepPreview": "معاينة البيانات",
+    "stepConfirm": "تأكيد الاستيراد",
+    "roleStudent": "طالب",
+    "roleDriver": "سائق",
+    "uploadButton": "رفع ملف CSV",
+    "csvFormatHint": "صيغة CSV: full_name, phone, role (الدور الافتراضي: طالب)",
+    "defaultRole": "الدور الافتراضي (إذا لم يكن في CSV)",
+    "previewTitle": "معاينة (أول 5 صفوف)",
+    "back": "رجوع",
+    "importing": "جاري الاستيراد...",
+    "confirmImport": "تأكيد واستيراد",
+    "importResult": "اكتمل الاستيراد"
+  },
+  "settings": {
+    "title": "الإعدادات والتكوين",
+    "description": "إدارة إعدادات التطبيق وميزات التبديل.",
+    "saved": "تم حفظ الإعدادات بنجاح!",
+    "sectionGeneral": "عام",
+    "fieldAppName": "اسم التطبيق",
+    "fieldDefaultLang": "اللغة الافتراضية",
+    "langArabic": "العربية",
+    "langEnglish": "الإنجليزية",
+    "fieldSessionTimeout": "مهلة الجلسة (دقائق)",
+    "sectionFeatures": "الميزات",
+    "fieldPushNotif": "الإشعارات الفورية",
+    "fieldChat": "المحادثة داخل التطبيق",
+    "fieldRatings": "تقييمات الرحلات",
+    "sectionSecurity": "الأمان",
+    "fieldMaintenance": "وضع الصيانة",
+    "fieldRegistrations": "السماح بالتسجيلات الجديدة",
+    "sectionLimits": "الحدود",
+    "fieldMaxCapacity": "الحد الأقصى لسعة الرحلة",
+    "fieldCodeLength": "طول رمز الترخيص",
+    "saveButton": "حفظ الإعدادات"
+  },
+  "activityLog": {
+    "description": "تتبع جميع إجراءات المدير وأحداث النظام لأغراض التدقيق.",
+    "searchPlaceholder": "بحث بالإجراء أو المورد أو المستخدم أو التفاصيل...",
+    "timestamp": "الوقت",
+    "user": "المستخدم",
+    "action": "الإجراء",
+    "resource": "المورد",
+    "details": "التفاصيل",
+    "ipAddress": "عنوان IP"
+  },
+  "revenue": {
+    "title": "تقارير الإيرادات",
+    "totalRevenue": "إجمالي الإيرادات",
+    "completedTrips": "الرحلات المكتملة",
+    "activeStudents": "الطلاب النشطون",
+    "avgRating": "متوسط التقييم",
+    "topRoutes": "أفضل الخطوط حسب الإيرادات",
+    "revenueIqd": "الإيرادات (د.ع)"
+  },
+  "tripArchive": {
+    "routeId": "معرف المسار"
+  },
+  "analytics": {
+    "title": "التحليلات — آخر 30 يوم",
+    "loadFailed": "فشل تحميل التحليلات",
+    "tripOutcomes": "نتائج الرحلات",
+    "completionRate": "نسبة الإكمال",
+    "cancellationRate": "نسبة الإلغاء",
+    "tripsByStatus": "الرحلات حسب الحالة",
+    "topRoutes": "أفضل الخطوط",
+    "subsCount": "اشتراك"
+  },
+  "buttons": {
+    "logout": "تسجيل الخروج"
+  },
+  "yes": "نعم",
+  "no": "لا"
+}

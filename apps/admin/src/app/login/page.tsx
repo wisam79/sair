@@ -28,7 +28,7 @@ export default function LoginPage() {
   const isRTL = i18n.language?.startsWith('ar') || false;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { mutate: login, isLoading, error } = useLogin();
+  const { mutate: login, isPending, error } = useLogin();
   const { mode, toggleColorMode } = useColorMode();
   const isDark = mode === 'dark';
 
@@ -394,7 +394,7 @@ export default function LoginPage() {
               fullWidth
               variant="contained"
               size="large"
-              disabled={isLoading}
+              disabled={isPending}
               sx={{
                 mt: 4,
                 mb: 2.5,
@@ -424,7 +424,7 @@ export default function LoginPage() {
                 },
               }}
             >
-              {isLoading ? t('login.signingIn', 'Signing in...') : t('login.signIn', 'Sign in')}
+              {isPending ? t('login.signingIn', 'Signing in...') : t('login.signIn', 'Sign in')}
             </Button>
           </Box>
 

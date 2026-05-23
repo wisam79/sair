@@ -28,19 +28,32 @@ export default function SubscriptionList() {
     ids:
       dataGridProps?.rows
         ?.map((item: { student_id?: string }) => item?.student_id)
-        .filter(Boolean) ?? [],
+        .filter((id): id is string => typeof id === 'string') ?? [],
     queryOptions: {
       enabled: !!dataGridProps?.rows,
+      queryKey: [
+        'profiles',
+        dataGridProps?.rows
+          ?.map((item: { student_id?: string }) => item?.student_id)
+          .filter((id): id is string => typeof id === 'string') ?? [],
+      ],
     },
   });
 
   const { data: routeData, isLoading: routeIsLoading } = useMany({
     resource: 'routes',
     ids:
-      dataGridProps?.rows?.map((item: { route_id?: string }) => item?.route_id).filter(Boolean) ??
-      [],
+      dataGridProps?.rows
+        ?.map((item: { route_id?: string }) => item?.route_id)
+        .filter((id): id is string => typeof id === 'string') ?? [],
     queryOptions: {
       enabled: !!dataGridProps?.rows,
+      queryKey: [
+        'routes',
+        dataGridProps?.rows
+          ?.map((item: { route_id?: string }) => item?.route_id)
+          .filter((id): id is string => typeof id === 'string') ?? [],
+      ],
     },
   });
 

@@ -1,5 +1,5 @@
 /**
- * UniRide Design System — Typography
+ * Sair Design System — Typography
  * Font: IBM Plex Sans Arabic
  */
 
@@ -7,6 +7,7 @@ export const FontFamily = {
   regular: 'IBMPlexSansArabic_400Regular',
   medium: 'IBMPlexSansArabic_500Medium',
   bold: 'IBMPlexSansArabic_700Bold',
+  logo: 'Gulzar_400Regular',
 } as const;
 
 export const FontSize = {

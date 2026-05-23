@@ -76,7 +76,7 @@ export default function HelpScreen() {
     [],
   );
 
-  const categories = useMemo(
+  const categories: { key: 'all' | 'general' | 'booking' | 'driver'; label: string }[] = useMemo(
     () => [
       { key: 'all', label: t('all') },
       { key: 'general', label: t('faq_general') },
@@ -117,7 +117,7 @@ export default function HelpScreen() {
       >
         <TouchableOpacity
           onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             router.back();
           }}
           style={styles.backButton}
@@ -126,7 +126,6 @@ export default function HelpScreen() {
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('help_center')}</Text>
-        <View style={{ width: 40 }} />
       </View>
 
       {/* Search Bar */}
@@ -181,7 +180,7 @@ export default function HelpScreen() {
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                  setSelectedCategory(cat.key as any);
+                  setSelectedCategory(cat.key);
                 }}
                 activeOpacity={0.8}
               >
@@ -252,18 +251,28 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    backgroundColor: Colors.white,
+    backgroundColor: '#EFECE9',
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: '#E6E2DE',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    ...Shadow.sm,
+    zIndex: 10,
   },
   backButton: {
     padding: Spacing.xs,
     width: 40,
+    zIndex: 11,
   },
   headerTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
     fontFamily: FontFamily.bold,
     fontSize: 18,
     color: Colors.text,
+    zIndex: 1,
   },
   searchContainer: {
     padding: Spacing.lg,

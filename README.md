@@ -22,7 +22,7 @@ Welcome to the Sair engineering documentation. Everything you need to understand
 ## 🌟 Key Engineering Highlights
 
 1. **Zero Overbooking Guarantee**: Utilizes strict `FOR UPDATE` pessimistic locking in PostgreSQL to ensure seat availability is absolute, regardless of concurrency.
-2. **Symmetric Monorepo**: Powered by `pnpm` workspaces, strictly separating domain logic (`@uniride/core`, `@uniride/db`) from presentation (`mobile`, `admin`).
+2. **Symmetric Monorepo**: Powered by `pnpm` workspaces, strictly separating domain logic (`@sair/core`) from presentation (`mobile`, `admin`).
 3. **Blazing Fast Security**: Row Level Security (RLS) policies rely purely on JWT claims, bypassing expensive database lookups on every query.
 4. **Developer Experience (DX)**: Automated database seeding (`pnpm seed`), pre-commit hooks (Husky), and fully typed interfaces end-to-end.
 

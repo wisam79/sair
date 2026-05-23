@@ -1,50 +1,22 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const ALLOWED_ORIGINS = [
-  Deno.env.get('ADMIN_URL') || 'http://localhost:3000',
-  'exp://localhost:8081',
-  'http://localhost:8081',
-].join(',');
-
-function resolveOrigin(origin: string | null): string {
-  const allowed = ALLOWED_ORIGINS.split(',');
-  if (origin && allowed.includes(origin)) return origin;
-  return allowed[0];
-}
-
-const corsHeaders = (req: Request) => ({
-  'Access-Control-Allow-Origin': resolveOrigin(req.headers.get('Origin')),
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-});
-
-const json = (req: Request, body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
-  });
+import { corsResponse } from '../_shared/cors.ts';
+import { verifyAuth, supabaseAdmin } from '../_shared/auth.ts';
+import { CheckoutRequest } from '../../../packages/core/index.ts';
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
+  if (req.method === 'OPTIONS') {
+    return corsResponse(req, 'ok');
+  }
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) return json(req, { error: 'Unauthorized' }, 401);
-
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    );
-
-    const token = authHeader.replace('Bearer ', '');
-    const {
-      data: { user },
-      error: authError,
-    } = await supabaseAdmin.auth.getUser(token);
-    if (authError || !user) return json(req, { error: 'Invalid token' }, 401);
+    const { user, error: authError } = await verifyAuth(req);
+    if (authError || !user) {
+      return corsResponse(req, { error: authError || 'Invalid token' }, 401);
+    }
 
     const role = user.app_metadata?.role;
-    if (role !== 'student') return json(req, { error: 'Only students can initiate checkout' }, 403);
+    if (role !== 'student') {
+      return corsResponse(req, { error: 'Only students can initiate checkout' }, 403);
+    }
 
     // Rate limiting: 10 checkouts per 60 seconds per user
     const { data: rateLimitOk, error: rateLimitError } = await supabaseAdmin.rpc(
@@ -58,31 +30,40 @@ Deno.serve(async (req: Request) => {
     );
 
     if (rateLimitError || !rateLimitOk) {
-      return json(req, { error: 'Too many requests. Please try again later.' }, 429);
+      return corsResponse(req, { error: 'Too many requests. Please try again later.' }, 429);
     }
 
-    const { routeId, amount } = await req.json();
-    if (!routeId || !amount) return json(req, { error: 'Missing routeId or amount' }, 400);
-    if (typeof amount !== 'number' || amount <= 0)
-      return json(req, { error: 'Invalid amount' }, 400);
+    const payload = await req.json();
+    const parsed = CheckoutRequest.safeParse(payload);
+    if (!parsed.success) {
+      return corsResponse(req, { error: parsed.error.message }, 400);
+    }
+    const { route_id } = parsed.data;
 
     const zaincashSecret = Deno.env.get('ZAINCASH_SECRET');
     const zaincashMsisdn = Deno.env.get('ZAINCASH_MSISDN');
     const zaincashMerchantId = Deno.env.get('ZAINCASH_MERCHANT_ID');
 
     if (!zaincashSecret || !zaincashMsisdn || !zaincashMerchantId) {
-      return json(req, {
-        success: true,
-        stub: true,
-        paymentUrl: `https://test.zaincash.iq/transaction/pay?id=stub_${Date.now()}`,
-        message:
-          'ZainCash is in stub mode. Configure ZAINCASH_SECRET, ZAINCASH_MSISDN, ZAINCASH_MERCHANT_ID to enable real payments.',
-      });
+      return corsResponse(
+        req,
+        {
+          error: 'ZainCash payments are not enabled for this environment.',
+          code: 'PAYMENTS_DISABLED',
+        },
+        503,
+      );
     }
 
-    return json(req, { error: 'ZainCash real implementation pending merchant credentials' }, 501);
+    // Keep route_id parsed and validated for the real integration path.
+    void route_id;
+    return corsResponse(
+      req,
+      { error: 'ZainCash real implementation pending merchant credentials' },
+      501,
+    );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Internal server error';
-    return json(req, { error: message }, 500);
+    return corsResponse(req, { error: message }, 500);
   }
 });

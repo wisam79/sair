@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createServiceClient, createAuthenticatedClient, cleanupTestData, isDBAvailable } from '../helpers/test-helpers';
+import {
+  createServiceClient,
+  createAuthenticatedClient,
+  cleanupTestData,
+  isDBAvailable,
+} from '../helpers/test-helpers';
 import { getTableRow } from '../helpers/db-test-helpers';
 
 const runIntegration = isDBAvailable();
@@ -195,10 +200,7 @@ describe('License System Integration Tests', () => {
 
     it('should reject activation if route has no seats available', async () => {
       // Set route seats to 0
-      await serviceClient
-        .from('routes')
-        .update({ available_seats: 0 })
-        .eq('id', routeId);
+      await serviceClient.from('routes').update({ available_seats: 0 }).eq('id', routeId);
 
       const { data: batchId } = await adminClient.rpc('create_license_batch', {
         p_route_id: routeId,

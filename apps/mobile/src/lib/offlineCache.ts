@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
-import { Subscription } from '@uniride/core';
+import { Subscription } from '@sair/core';
 
-const CACHE_KEY = 'uniride_active_subscription';
+const CACHE_KEY = 'sair_active_subscription';
 
 export const OfflineCache = {
   /**

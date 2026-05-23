@@ -48,7 +48,7 @@ describe('OfflineCache', () => {
       expect(firstCall).toBeDefined();
       const key = firstCall?.[0];
       const value = firstCall?.[1];
-      expect(key).toBe('uniride_active_subscription');
+      expect(key).toBe('sair_active_subscription');
       const parsed = JSON.parse(value as string);
       expect(parsed.data.id).toBe(uuid);
       expect(parsed.cachedAt).toBeTruthy();
@@ -59,7 +59,7 @@ describe('OfflineCache', () => {
 
       await OfflineCache.saveActiveSubscription(null);
 
-      expect(mockDelete).toHaveBeenCalledWith('uniride_active_subscription');
+      expect(mockDelete).toHaveBeenCalledWith('sair_active_subscription');
       expect(mockSet).not.toHaveBeenCalled();
     });
   });
@@ -111,7 +111,7 @@ describe('OfflineCache', () => {
 
       const result = await OfflineCache.getActiveSubscription();
       expect(result).toBeNull();
-      expect(mockDelete).toHaveBeenCalledWith('uniride_active_subscription');
+      expect(mockDelete).toHaveBeenCalledWith('sair_active_subscription');
     });
 
     it('returns null and deletes on malformed JSON', async () => {
@@ -131,7 +131,7 @@ describe('OfflineCache', () => {
 
       await OfflineCache.clear();
 
-      expect(mockDelete).toHaveBeenCalledWith('uniride_active_subscription');
+      expect(mockDelete).toHaveBeenCalledWith('sair_active_subscription');
     });
   });
 

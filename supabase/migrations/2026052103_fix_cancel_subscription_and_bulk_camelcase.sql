@@ -1,4 +1,5 @@
 -- UniRide: Fix cancel_subscription regression and bulk_update_trip_locations compatibility
+-- Includes: FOR UPDATE NOWAIT on bulk_update_trip_locations for race condition protection
 
 -- 1. Hardened cancel_subscription RPC
 CREATE OR REPLACE FUNCTION public.cancel_subscription(p_subscription_id uuid)
@@ -94,7 +95,8 @@ BEGIN
       CONTINUE;
     END IF;
 
-    SELECT status INTO v_status FROM public.trips WHERE id = v_location.trip_id AND driver_id = v_driver_id;
+    -- Lock trip row to prevent race conditions between status check and update
+    SELECT status INTO v_status FROM public.trips WHERE id = v_location.trip_id AND driver_id = v_driver_id FOR UPDATE NOWAIT;
     
     IF v_status IN ('driver_waiting', 'in_transit') THEN
       UPDATE public.trips 
@@ -103,8 +105,12 @@ BEGIN
           updated_at = NOW() 
       WHERE id = v_location.trip_id;
       v_success_count := v_success_count + 1;
+    ELSIF v_status IS NOT NULL THEN
+      -- Trip exists but is not in an active state (completed/cancelled/absent)
+      v_failed := v_failed || jsonb_build_object('trip_id', v_location.trip_id, 'error', 'Trip is not in an active state: ' || v_status);
     ELSE
-      v_failed := v_failed || jsonb_build_object('trip_id', v_location.trip_id, 'error', 'Invalid status or trip not found');
+      -- Trip not found or not assigned to this driver
+      v_failed := v_failed || jsonb_build_object('trip_id', v_location.trip_id, 'error', 'Trip not found or not assigned to driver');
     END IF;
   END LOOP;
 

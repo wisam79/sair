@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+});
 
 function renderHook<T>(hookFn: () => T) {
   const result = { current: null as any };
@@ -12,7 +21,13 @@ function renderHook<T>(hookFn: () => T) {
   document.body.appendChild(div);
   const root = createRoot(div);
   act(() => {
-    root.render(React.createElement(TestComponent));
+    root.render(
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        React.createElement(TestComponent),
+      ),
+    );
   });
   return {
     result,
@@ -183,7 +198,7 @@ describe('GPS Queue — flushGpsQueue', () => {
 
 describe('Trip status transitions (core integration)', () => {
   it('validates transitions match DB state machine', async () => {
-    const { canTransition } = await import('@uniride/core');
+    const { canTransition } = await import('@sair/core');
 
     // These are the transitions trip-engine allows
     expect(canTransition('scheduled', 'driver_waiting')).toBe(true);
@@ -225,7 +240,7 @@ describe('GPS Queue limits & Realtime reconnection hooks', () => {
     const { useLocationTracker } = await import('./useTrips');
     const { result, unmount } = renderHook(() => useLocationTracker());
     const { startTracking, stopTracking } = result.current;
-    
+
     // Start tracking to set up watchCallback
     await act(async () => {
       await startTracking('trip123');
@@ -238,7 +253,9 @@ describe('GPS Queue limits & Realtime reconnection hooks', () => {
     // Call watch callback 110 times
     await act(async () => {
       for (let i = 0; i < 110; i++) {
-        await watchCallback({ coords: { latitude: 33.1 + i * 0.001, longitude: 44.1 + i * 0.001 } });
+        await watchCallback({
+          coords: { latitude: 33.1 + i * 0.001, longitude: 44.1 + i * 0.001 },
+        });
       }
     });
 
@@ -248,11 +265,11 @@ describe('GPS Queue limits & Realtime reconnection hooks', () => {
     });
 
     const setCalls = vi.mocked(AsyncStorage.setItem).mock.calls;
-    
+
     expect(setCalls.length).toBeGreaterThan(0);
     const lastCallJson = setCalls[setCalls.length - 1][1];
     const parsedQueue = JSON.parse(lastCallJson);
-    
+
     expect(parsedQueue.length).toBeLessThanOrEqual(100);
     expect(parsedQueue[0].lat).toBeGreaterThan(33.109);
     unmount();
@@ -260,13 +277,13 @@ describe('GPS Queue limits & Realtime reconnection hooks', () => {
 
   it('triggers a refetch when realtime channel receives CHANNEL_ERROR or TIMED_OUT', async () => {
     const { useActiveTrips } = await import('./useTrips');
-    
+
     // Simulate user fetch trips returning mock
     mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } }, error: null });
-    
+
     // Render/run the setupRealtime effect
     const { result, unmount } = renderHook(() => useActiveTrips());
-    
+
     // Wait for useEffect microtasks and supabase.from chain resolution
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 50));

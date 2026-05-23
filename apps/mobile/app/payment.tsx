@@ -11,7 +11,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '../src/lib/supabase';
 import { useTranslation } from '../src/hooks/useTranslation';
-import { Colors, FontFamily, Spacing, BorderRadius } from '../src/theme';
+import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../src/theme';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,15 +19,13 @@ import * as Haptics from 'expo-haptics';
 
 export default function PaymentScreen() {
   const { top } = useSafeAreaInsets();
-  const { routeId, route_id, amount } = useLocalSearchParams<{
+  const { routeId, route_id } = useLocalSearchParams<{
     routeId?: string;
     route_id?: string;
-    amount: string;
   }>();
   const activeRouteId = route_id || routeId;
   const [loading, setLoading] = useState(true);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
-  const [stubMessage, setStubMessage] = useState<string | null>(null);
   const router = useRouter();
   const { t, isRTL } = useTranslation();
 
@@ -48,12 +46,7 @@ export default function PaymentScreen() {
 
         if (error) throw error;
 
-        if (data.stub) {
-          setStubMessage(data.message);
-          setPaymentUrl(data.paymentUrl);
-        } else {
-          setPaymentUrl(data.paymentUrl);
-        }
+        setPaymentUrl(data.paymentUrl);
       } catch (err: unknown) {
         console.error('Payment Error:', err);
         Alert.alert(t('error'), err instanceof Error ? err.message : t('something_went_wrong'));
@@ -64,30 +57,7 @@ export default function PaymentScreen() {
     };
 
     initPayment();
-  }, [activeRouteId, amount]);
-
-  const handleMockSuccess = async () => {
-    try {
-      const orderId = paymentUrl ? new URL(paymentUrl).searchParams.get('id') : null;
-      if (orderId) {
-        const { error } = await supabase.functions.invoke(`zaincash-webhook?token=${orderId}`);
-        if (error) {
-          console.error('[Mock Payment] Error invoking zaincash-webhook:', error);
-          Alert.alert(t('error'), error.message || 'Payment simulation failed');
-          return;
-        }
-      }
-    } catch (e) {
-      console.error('[Mock Payment] Failed to parse orderId or trigger webhook:', e);
-      Alert.alert(t('error'), e instanceof Error ? e.message : 'Unknown error');
-      return;
-    }
-
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert(t('success'), t('mock_payment_success'), [
-      { text: t('ok'), onPress: () => router.replace('/subscriptions') },
-    ]);
-  };
+  }, [activeRouteId, router, t]);
 
   if (loading) {
     return (
@@ -100,47 +70,33 @@ export default function PaymentScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Custom Header */}
       <View
         style={[
           styles.header,
-          { paddingTop: top + Spacing.lg },
+          { paddingTop: top + Spacing.md },
           isRTL && { flexDirection: 'row-reverse' },
         ]}
       >
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             router.back();
           }}
         >
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('zaincash_checkout')}</Text>
-        <View style={{ width: 40 }} />
       </View>
 
       <View style={styles.content}>
-        {stubMessage ? (
-          <View style={styles.stubContainer}>
-            <Text style={styles.stubText}>{stubMessage}</Text>
-            <TouchableOpacity
-              style={styles.mockButton}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                handleMockSuccess();
-              }}
-            >
-              <Text style={styles.mockButtonText}>{t('simulate_success')}</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
+        {paymentUrl ? (
           <Text style={styles.text}>{t('redirecting_to_zaincash')}</Text>
-          // In a real implementation, you would use react-native-webview here:
-          // <WebView source={{ uri: paymentUrl }} onNavigationStateChange={...} />
+        ) : (
+          <Text style={styles.text}>{t('payments_disabled')}</Text>
         )}
       </View>
     </View>
@@ -169,9 +125,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    backgroundColor: Colors.white,
+    backgroundColor: '#EFECE9',
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: '#E6E2DE',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    ...Shadow.sm,
+    zIndex: 10,
   },
   backButton: {
     width: 40,
@@ -180,11 +140,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: BorderRadius.pill,
     backgroundColor: Colors.surfaceMuted,
+    zIndex: 11,
   },
   headerTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
     fontFamily: FontFamily.bold,
     fontSize: 18,
     color: Colors.text,
+    zIndex: 1,
   },
   title: {
     fontFamily: FontFamily.bold,
@@ -196,30 +162,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
     textAlign: 'center',
-  },
-  stubContainer: {
-    alignItems: 'center',
-    gap: Spacing.xl,
-    backgroundColor: Colors.surfaceMuted,
-    padding: Spacing.xl,
-    borderRadius: BorderRadius.lg,
-  },
-  stubText: {
-    fontFamily: FontFamily.medium,
-    fontSize: 14,
-    color: Colors.warning,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  mockButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-  },
-  mockButtonText: {
-    fontFamily: FontFamily.bold,
-    fontSize: 16,
-    color: Colors.white,
   },
 });

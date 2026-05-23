@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { logger } from '../lib/logger';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface FeatureFlag {
   name: string;
@@ -16,14 +17,13 @@ const DEFAULT_FLAGS: Record<string, boolean> = {
   zaincash_payment: false,
 };
 
-let cachedFlags: Record<string, boolean> | null = null;
-
 export function useFeatureFlags() {
-  const [flags, setFlags] = useState<Record<string, boolean>>(cachedFlags ?? DEFAULT_FLAGS);
-  const [isLoading, setIsLoading] = useState(!cachedFlags);
+  const queryClient = useQueryClient();
+  const queryKey = ['feature_flags'];
 
-  const fetchFlags = useCallback(async () => {
-    try {
+  const { data: flags = DEFAULT_FLAGS, isLoading } = useQuery({
+    queryKey,
+    queryFn: async () => {
       const { data, error } = await supabase.from('feature_flags').select('name, enabled');
 
       if (error) throw error;
@@ -33,28 +33,19 @@ export function useFeatureFlags() {
         return acc;
       }, {});
 
-      cachedFlags = map;
-      setFlags(map);
       logger.info('Feature flags loaded', { count: data.length });
-    } catch (err: unknown) {
-      logger.warn('Failed to fetch feature flags — using defaults', {
-        error: err instanceof Error ? err.message : String(err),
-      });
-      // Keep defaults on error
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      return map;
+    },
+    staleTime: Infinity, // flags do not change often, keep cached infinitely unless invalidated
+  });
 
   useEffect(() => {
-    fetchFlags();
-
     // Live updates — admin can toggle flags without app restart
     const channel = supabase
       .channel('feature-flags-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'feature_flags' }, () => {
         logger.info('Feature flags changed — reloading');
-        fetchFlags();
+        queryClient.invalidateQueries({ queryKey });
       })
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
@@ -65,7 +56,7 @@ export function useFeatureFlags() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchFlags]);
+  }, [queryClient, queryKey]);
 
   const isEnabled = useCallback(
     (flagName: string): boolean => flags[flagName] ?? DEFAULT_FLAGS[flagName] ?? false,

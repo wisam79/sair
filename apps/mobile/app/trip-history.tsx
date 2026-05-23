@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTripHistory } from '../src/hooks/useTrips';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../src/theme';
 
 interface TripHistoryRecord {
@@ -93,15 +94,20 @@ export default function TripHistoryScreen() {
       <View
         style={[
           styles.navHeader,
-          { paddingTop: top + Spacing.sm },
+          { paddingTop: top + Spacing.md },
           isRTL && { flexDirection: 'row-reverse' },
         ]}
       >
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.back();
+          }}
+          style={styles.backBtn}
+        >
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.navTitle}>{t('trip_history')}</Text>
-        <View style={{ width: 24 }} />
       </View>
 
       {loading && !refreshing ? (
@@ -117,7 +123,10 @@ export default function TripHistoryScreen() {
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
-              onRefresh={refetch}
+              onRefresh={async () => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                refetch();
+              }}
               colors={[Colors.primary]}
               tintColor={Colors.primary}
             />
@@ -142,19 +151,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-    backgroundColor: Colors.white,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+    backgroundColor: '#EFECE9',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E6E2DE',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
     ...Shadow.sm,
     zIndex: 10,
   },
   backBtn: {
     padding: Spacing.xs,
+    zIndex: 11,
   },
   navTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
     fontFamily: FontFamily.bold,
     fontSize: 18,
     color: Colors.text,
+    zIndex: 1,
   },
   listContent: {
     padding: Spacing.md,
