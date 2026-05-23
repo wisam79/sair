@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  TextInput,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
@@ -18,25 +17,36 @@ import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../src/theme'
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../src/hooks/useTranslation';
 import * as Haptics from 'expo-haptics';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { FormInput } from '../src/components/FormInput';
+
+const ActivationSchema = z.object({
+  code: z.string().length(8, 'invalid_code_length'),
+});
+type ActivationRequest = z.infer<typeof ActivationSchema>;
 
 export default function ActivateLicenseScreen() {
   const router = useRouter();
   const { t, isRTL } = useTranslation();
   const { top } = useSafeAreaInsets();
-  const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleActivate = async () => {
-    if (!code.trim() || code.trim().length !== 8) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      Alert.alert(t('error'), t('invalid_code_length'));
-      return;
-    }
+  const { control, handleSubmit, watch } = useForm<ActivationRequest>({
+    resolver: zodResolver(ActivationSchema),
+    defaultValues: {
+      code: '',
+    },
+  });
 
+  const code = watch('code');
+
+  const handleActivate = async (data: ActivationRequest) => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase.rpc('activate_license', {
-        p_code: code.trim().toUpperCase(),
+      const { data: resData, error } = await supabase.rpc('activate_license', {
+        p_code: data.code.trim().toUpperCase(),
       });
 
       if (error) throw error;
@@ -58,7 +68,7 @@ export default function ActivateLicenseScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Header */}
       <View
@@ -71,14 +81,13 @@ export default function ActivateLicenseScreen() {
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             router.back();
           }}
         >
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('activate_subscription')}</Text>
-        <View style={{ width: 40 }} />
       </View>
 
       <View style={styles.content}>
@@ -89,25 +98,24 @@ export default function ActivateLicenseScreen() {
         <Text style={styles.title}>{t('enter_license_code')}</Text>
         <Text style={styles.subtitle}>{t('license_code_subtitle')}</Text>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder={t('license_placeholder')}
-            placeholderTextColor={Colors.textMuted}
-            value={code}
-            onChangeText={setCode}
-            maxLength={8}
-            autoCapitalize="characters"
-            autoCorrect={false}
-          />
-        </View>
+        <FormInput
+          control={control}
+          name="code"
+          placeholder={t('license_placeholder')}
+          maxLength={8}
+          autoCapitalize="characters"
+          autoCorrect={false}
+          isRTL={isRTL}
+          inputStyle={styles.input}
+          style={{ width: '100%', marginBottom: Spacing.xxxl }}
+        />
 
         <TouchableOpacity
           style={[styles.button, (!code || code.length < 8 || isLoading) && styles.buttonDisabled]}
-          onPress={() => {
+          onPress={handleSubmit((data) => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            handleActivate();
-          }}
+            void handleActivate(data);
+          })}
           disabled={!code || code.length < 8 || isLoading}
           activeOpacity={0.8}
         >
@@ -132,11 +140,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
     paddingBottom: Spacing.md,
-    backgroundColor: Colors.white,
+    backgroundColor: '#EFECE9',
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: '#E6E2DE',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    ...Shadow.sm,
+    zIndex: 10,
   },
   backButton: {
     width: 40,
@@ -145,11 +156,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: BorderRadius.pill,
     backgroundColor: Colors.surfaceMuted,
+    zIndex: 11,
   },
   headerTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
     fontFamily: FontFamily.bold,
     fontSize: 18,
     color: Colors.text,
+    zIndex: 1,
   },
   content: {
     flex: 1,

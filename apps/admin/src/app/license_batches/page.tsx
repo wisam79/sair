@@ -23,10 +23,17 @@ export default function LicenseBatchesList() {
   const { data: routesData, isLoading: routesIsLoading } = useMany({
     resource: 'routes',
     ids:
-      dataGridProps?.rows?.map((item: { route_id?: string }) => item?.route_id).filter(Boolean) ??
-      [],
+      dataGridProps?.rows
+        ?.map((item: { route_id?: string }) => item?.route_id)
+        .filter((id): id is string => typeof id === 'string') ?? [],
     queryOptions: {
       enabled: !!dataGridProps?.rows,
+      queryKey: [
+        'routes',
+        dataGridProps?.rows
+          ?.map((item: { route_id?: string }) => item?.route_id)
+          .filter((id): id is string => typeof id === 'string') ?? [],
+      ],
     },
   });
 

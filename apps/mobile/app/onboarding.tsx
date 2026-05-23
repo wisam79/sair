@@ -90,7 +90,11 @@ export default function OnboardingScreen() {
           <View style={styles.slide}>
             <View style={styles.iconGlowContainer}>
               <View style={styles.iconCircle}>
-                <Ionicons name={item.icon as any} size={72} color={Colors.white} />
+                <Ionicons
+                  name={item.icon as React.ComponentProps<typeof Ionicons>['name']}
+                  size={72}
+                  color={Colors.white}
+                />
               </View>
             </View>
             <Text style={styles.title}>{t(item.titleKey)}</Text>

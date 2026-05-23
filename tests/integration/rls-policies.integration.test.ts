@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createServiceClient, createAuthenticatedClient, cleanupTestData, isDBAvailable } from '../helpers/test-helpers';
+import {
+  createServiceClient,
+  createAuthenticatedClient,
+  cleanupTestData,
+  isDBAvailable,
+} from '../helpers/test-helpers';
 import { createClient } from '@supabase/supabase-js';
 
 const runIntegration = isDBAvailable();
@@ -12,7 +17,7 @@ describe('Row Level Security (RLS) Policies Integration Tests', () => {
 
   let serviceClient: any;
   let anonClient: any;
-  
+
   let studentA: any;
   let studentB: any;
   let driverA: any;
@@ -24,9 +29,10 @@ describe('Row Level Security (RLS) Policies Integration Tests', () => {
 
   beforeAll(async () => {
     serviceClient = createServiceClient();
-    
+
     // Create anon client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zpcvvyxtmxzplmojobbv.supabase.co';
+    const supabaseUrl =
+      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zpcvvyxtmxzplmojobbv.supabase.co';
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
     anonClient = createClient(supabaseUrl, anonKey, {
       auth: { persistSession: false, autoRefreshToken: false },
@@ -106,7 +112,7 @@ describe('Row Level Security (RLS) Policies Integration Tests', () => {
         .from('profiles')
         .update({ role: 'admin' })
         .eq('id', studentA.user.id);
-      
+
       // The update should either fail or not change the role due to RLS/Trigger constraints
       const { data: profile } = await serviceClient
         .from('profiles')
@@ -167,7 +173,7 @@ describe('Row Level Security (RLS) Policies Integration Tests', () => {
         .from('routes')
         .select('*')
         .in('id', [routeActive.id, routeInactive.id]);
-      
+
       expect(routesAnon.map((r: any) => r.id)).toContain(routeActive.id);
       expect(routesAnon.map((r: any) => r.id)).not.toContain(routeInactive.id);
 
@@ -196,7 +202,7 @@ describe('Row Level Security (RLS) Policies Integration Tests', () => {
         .from('routes')
         .update({ title: 'Hacked Title' })
         .eq('id', routeActive.id);
-      
+
       // Update should not modify the route
       const { data: route } = await serviceClient
         .from('routes')
@@ -374,20 +380,13 @@ describe('Row Level Security (RLS) Policies Integration Tests', () => {
 
   describe('audit_logs RLS Policies', () => {
     it('should deny non-admins from selecting audit logs', async () => {
-      const { data: studentLogs } = await studentA.client
-        .from('audit_logs')
-        .select('*');
+      const { data: studentLogs } = await studentA.client.from('audit_logs').select('*');
       expect(studentLogs).toEqual([]);
 
-      const { data: driverLogs } = await driverA.client
-        .from('audit_logs')
-        .select('*');
+      const { data: driverLogs } = await driverA.client.from('audit_logs').select('*');
       expect(driverLogs).toEqual([]);
 
-      const { data: adminLogs, error } = await admin.client
-        .from('audit_logs')
-        .select('*')
-        .limit(5);
+      const { data: adminLogs, error } = await admin.client.from('audit_logs').select('*').limit(5);
       expect(error).toBeNull();
       expect(adminLogs).not.toBeNull();
     });
@@ -401,7 +400,10 @@ describe('Row Level Security (RLS) Policies Integration Tests', () => {
       const { data: driverBtc } = await driverA.client.from('license_batches').select('*');
       expect(driverBtc).toEqual([]);
 
-      const { data: adminL, error: errL } = await admin.client.from('licenses').select('*').limit(5);
+      const { data: adminL, error: errL } = await admin.client
+        .from('licenses')
+        .select('*')
+        .limit(5);
       expect(errL).toBeNull();
       expect(adminL).not.toBeNull();
     });

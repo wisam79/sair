@@ -6,7 +6,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
-import { Subscription } from '@uniride/core';
+import { Subscription } from '@sair/core';
 
 interface ActiveSubscriptionCardProps {
   activeSub: Partial<Subscription> & {

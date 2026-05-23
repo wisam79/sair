@@ -1,6 +1,6 @@
 import React, { Component, ReactNode } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Translations, Language } from '@uniride/core';
+import { Translations, Language } from '@sair/core';
 import { useI18nStore } from '../hooks/useStore';
 import { logger } from '../lib/logger';
 

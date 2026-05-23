@@ -41,7 +41,7 @@ export function DriverBottomSheet({
 }: DriverBottomSheetProps) {
   const { t, isRTL } = useTranslation();
 
-  const displayDriverName = driverName || t('driver_uniride');
+  const displayDriverName = driverName || t('driver_sair');
   const displayVehicleModel = vehicleModel || t('vehicle_model_default');
   const displayVehiclePlate = vehiclePlate || t('vehicle_plate_default');
 

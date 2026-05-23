@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createServiceClient, createAuthenticatedClient, cleanupTestData, isDBAvailable } from '../helpers/test-helpers';
+import {
+  createServiceClient,
+  createAuthenticatedClient,
+  cleanupTestData,
+  isDBAvailable,
+} from '../helpers/test-helpers';
 
 const runIntegration = isDBAvailable();
 
@@ -69,12 +74,15 @@ describe('DB Rate Limiting Integration Tests', () => {
     expect(updateErr).toBeNull();
 
     // 4. Request should now be allowed again
-    const { data: allowedAfterReset, error: errAfter } = await serviceClient.rpc('check_rate_limit', {
-      p_user_id: userId,
-      p_action: action,
-      p_limit: limit,
-      p_window_seconds: windowSeconds,
-    });
+    const { data: allowedAfterReset, error: errAfter } = await serviceClient.rpc(
+      'check_rate_limit',
+      {
+        p_user_id: userId,
+        p_action: action,
+        p_limit: limit,
+        p_window_seconds: windowSeconds,
+      },
+    );
     expect(errAfter).toBeNull();
     expect(allowedAfterReset).toBe(true);
   });

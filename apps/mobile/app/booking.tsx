@@ -10,17 +10,20 @@ import {
   Animated,
   Easing,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useRouteById } from '../src/hooks/useRoutes';
 import { useSubscriptions } from '../src/hooks/useTrips';
 import { useBookingStore } from '../src/hooks/useStore';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../src/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../src/hooks/useTranslation';
+import { useFeatureFlags } from '../src/hooks/useFeatureFlags';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DriverBottomSheet } from '../src/components/DriverBottomSheet';
 import { supabase } from '../src/lib/supabase';
 import * as Haptics from 'expo-haptics';
+import CustomAlert from '../src/components/CustomAlert';
+import { RouteCardSkeleton } from '../src/components/LoadingSkeleton';
 
 interface SeatProgressBarProps {
   available: number;
@@ -76,6 +79,7 @@ function SeatProgressBar({ available, capacity, isRTL, t }: SeatProgressBarProps
 
 export default function BookingScreen() {
   const { t, isRTL } = useTranslation();
+  const { isEnabled } = useFeatureFlags();
   const { top } = useSafeAreaInsets();
   const { routeId } = useLocalSearchParams<{ routeId: string }>();
   const { route, isLoading: routeLoading } = useRouteById(routeId || null);
@@ -85,10 +89,25 @@ export default function BookingScreen() {
   const lastPressRef = useRef(0);
   const [driverModalVisible, setDriverModalVisible] = useState(false);
 
-  // Driver details state
-  const [driverProfile, setDriverProfile] = useState<{ full_name: string; phone: string } | null>(
-    null,
+  // Alert states
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info' | 'question'>(
+    'info',
   );
+
+  // Driver details state
+  interface DriverDetails {
+    full_name: string;
+    phone: string;
+    vehicle_model?: string;
+    vehicle_plate?: string;
+    capacity?: number;
+    avg_rating?: number;
+    completed_trips?: number;
+  }
+  const [driverProfile, setDriverProfile] = useState<DriverDetails | null>(null);
   const [driverLoading, setDriverLoading] = useState(false);
 
   // Animations
@@ -110,19 +129,67 @@ export default function BookingScreen() {
 
     let isMounted = true;
     setDriverLoading(true);
-    supabase
-      .from('profiles')
-      .select('full_name, phone')
-      .eq('id', route.driver_id)
-      .single()
-      .then(({ data, error }) => {
+
+    const loadDriverData = async () => {
+      try {
+        const { data: driverRecord, error: driverErr } = await supabase
+          .from('drivers')
+          .select(
+            'vehicle_model, vehicle_plate, capacity, profiles!drivers_user_id_fkey(id, full_name, phone)',
+          )
+          .eq('id', route.driver_id)
+          .single();
+
+        if (driverErr || !driverRecord) throw driverErr || new Error('Driver not found');
+
+        const profileRow = driverRecord.profiles
+          ? Array.isArray(driverRecord.profiles)
+            ? driverRecord.profiles[0]
+            : driverRecord.profiles
+          : null;
+
+        if (!profileRow) throw new Error('Driver profile not found');
+
+        // Fetch completed trips count
+        const { count: tripsCount } = await supabase
+          .from('trips')
+          .select('id', { count: 'exact', head: true })
+          .eq('driver_id', route.driver_id)
+          .eq('status', 'completed');
+
+        // Fetch average rating
+        const { data: ratingsData } = await supabase
+          .from('ratings')
+          .select('rating')
+          .eq('driver_id', profileRow.id);
+
+        let avgRating = 0;
+        if (ratingsData && ratingsData.length > 0) {
+          const sum = ratingsData.reduce((acc, curr) => acc + curr.rating, 0);
+          avgRating = Math.round((sum / ratingsData.length) * 10) / 10;
+        }
+
         if (isMounted) {
-          if (!error && data) {
-            setDriverProfile(data);
-          }
+          setDriverProfile({
+            full_name: profileRow.full_name ?? '',
+            phone: profileRow.phone ?? '',
+            vehicle_model: driverRecord.vehicle_model ?? undefined,
+            vehicle_plate: driverRecord.vehicle_plate ?? undefined,
+            capacity: driverRecord.capacity ?? undefined,
+            avg_rating: avgRating || undefined,
+            completed_trips: tripsCount ?? 0,
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load driver data:', err);
+      } finally {
+        if (isMounted) {
           setDriverLoading(false);
         }
-      });
+      }
+    };
+
+    void loadDriverData();
 
     return () => {
       isMounted = false;
@@ -187,20 +254,25 @@ export default function BookingScreen() {
       }),
     ]).start();
 
-    router.push({
-      pathname: '/payment',
-      params: { route_id: route.id, routeId: route.id, amount: route.price },
-    });
-  }, [route, router, zainBtnScale]);
+    if (isEnabled('zaincash_payment')) {
+      router.push({ pathname: '/payment', params: { route_id: route.id } });
+    } else {
+      setAlertTitle(t('alert'));
+      setAlertMessage(t('payments_disabled'));
+      setAlertType('warning');
+      setAlertVisible(true);
+    }
+  }, [route, t, zainBtnScale, isEnabled, router]);
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <Stack.Screen options={{ headerShown: false }} />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Loading */}
       {isLoading && (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+        <View style={{ padding: Spacing.lg }}>
+          <RouteCardSkeleton />
         </View>
       )}
 
@@ -226,7 +298,7 @@ export default function BookingScreen() {
           <View
             style={[
               styles.header,
-              { paddingTop: top + Spacing.sm },
+              { paddingTop: top + Spacing.md },
               isRTL && { flexDirection: 'row-reverse' },
             ]}
           >
@@ -244,7 +316,6 @@ export default function BookingScreen() {
               />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>{t('route_details')}</Text>
-            <View style={{ width: 40 }} />
           </View>
 
           <ScrollView
@@ -391,14 +462,14 @@ export default function BookingScreen() {
                     ]}
                   >
                     <Text style={styles.miniDriverName}>
-                      {driverLoading
-                        ? t('loading')
-                        : driverProfile?.full_name || t('driver_uniride')}
+                      {driverLoading ? t('loading') : driverProfile?.full_name || t('driver_sair')}
                     </Text>
                     <View style={[styles.ratingRow, isRTL && { flexDirection: 'row-reverse' }]}>
                       <Ionicons name="star" size={14} color={Colors.warning} />
-                      <Text style={styles.ratingText}>4.8</Text>
-                      <Text style={styles.tripsCountText}>• 142 {t('completed_trips_count')}</Text>
+                      <Text style={styles.ratingText}>{driverProfile?.avg_rating || '4.8'}</Text>
+                      <Text style={styles.tripsCountText}>
+                        • {driverProfile?.completed_trips ?? 0} {t('completed_trips_count')}
+                      </Text>
                     </View>
                   </View>
                   <TouchableOpacity
@@ -478,6 +549,19 @@ export default function BookingScreen() {
         visible={driverModalVisible}
         onClose={() => setDriverModalVisible(false)}
         driverName={driverProfile?.full_name}
+        driverRating={driverProfile?.avg_rating}
+        driverTrips={driverProfile?.completed_trips}
+        vehicleModel={driverProfile?.vehicle_model}
+        vehiclePlate={driverProfile?.vehicle_plate}
+        vehicleCapacity={driverProfile?.capacity}
+      />
+
+      <CustomAlert
+        visible={alertVisible}
+        title={alertTitle}
+        message={alertMessage}
+        type={alertType}
+        onClose={() => setAlertVisible(false)}
       />
     </View>
   );
@@ -526,17 +610,27 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1.5,
-    borderBottomColor: Colors.surfaceMuted,
+    backgroundColor: '#EFECE9',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E6E2DE',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    ...Shadow.sm,
+    zIndex: 10,
   },
   headerBackBtn: {
     padding: 6,
+    zIndex: 11,
   },
   headerTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
     fontFamily: FontFamily.bold,
     fontSize: 18,
-    color: Colors.secondary,
+    color: Colors.text,
+    zIndex: 1,
   },
   // Ticket Design
   ticketContainer: {

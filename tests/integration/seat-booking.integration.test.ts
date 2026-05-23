@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createServiceClient, createAuthenticatedClient, cleanupTestData, isDBAvailable } from '../helpers/test-helpers';
+import {
+  createServiceClient,
+  createAuthenticatedClient,
+  cleanupTestData,
+  isDBAvailable,
+} from '../helpers/test-helpers';
 import { getTableRow } from '../helpers/db-test-helpers';
 
 const runIntegration = isDBAvailable();
@@ -116,10 +121,7 @@ describe('Seat Booking & Subscription Integrity Integration Tests', () => {
 
   it('should restore a seat when a subscription is cancelled, and prevent double cancellation seat increment', async () => {
     // Make sure seats are back to 1
-    await serviceClient
-      .from('routes')
-      .update({ available_seats: 1 })
-      .eq('id', routeId);
+    await serviceClient.from('routes').update({ available_seats: 1 }).eq('id', routeId);
 
     const student = student1;
 
@@ -138,10 +140,7 @@ describe('Seat Booking & Subscription Integrity Integration Tests', () => {
       .single();
 
     // Manually decrement seat to simulate active subscription state
-    await serviceClient
-      .from('routes')
-      .update({ available_seats: 0 })
-      .eq('id', routeId);
+    await serviceClient.from('routes').update({ available_seats: 0 }).eq('id', routeId);
 
     // Cancel subscription
     const { error: cancelErr } = await student.client.rpc('cancel_subscription', {
@@ -173,10 +172,7 @@ describe('Seat Booking & Subscription Integrity Integration Tests', () => {
 
   it('should handle complete_payment_and_activate_subscription atomically and prevent duplicate subscriptions', async () => {
     // Reset seat to 1
-    await serviceClient
-      .from('routes')
-      .update({ available_seats: 1 })
-      .eq('id', routeId);
+    await serviceClient.from('routes').update({ available_seats: 1 }).eq('id', routeId);
 
     const student = student1;
     const orderId1 = `order_test_${Math.random().toString(36).substring(2, 8)}`;
@@ -201,7 +197,7 @@ describe('Seat Booking & Subscription Integrity Integration Tests', () => {
       'complete_payment_and_activate_subscription',
       {
         p_zaincash_order_id: orderId1,
-      }
+      },
     );
 
     expect(actErr).toBeNull();
@@ -230,7 +226,7 @@ describe('Seat Booking & Subscription Integrity Integration Tests', () => {
       'complete_payment_and_activate_subscription',
       {
         p_zaincash_order_id: orderId2,
-      }
+      },
     );
 
     // It should NOT throw an error but mark the payment as failed and return it

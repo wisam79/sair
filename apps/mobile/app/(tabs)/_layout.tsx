@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs, useRouter, type Href } from 'expo-router';
 import { View, Animated, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/hooks/useStore';
@@ -7,6 +7,7 @@ import { useTranslation } from '../../src/hooks/useTranslation';
 import { useUnreadCount } from '../../src/hooks/useUnreadCount';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontFamily, Shadow, Spacing } from '../../src/theme';
+import * as Haptics from 'expo-haptics';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -18,6 +19,7 @@ interface AnimatedTabIconProps {
 
 function AnimatedTabIcon({ name, color, focused }: AnimatedTabIconProps) {
   const scale = useRef(new Animated.Value(1)).current;
+  const isFirst = useRef(true);
 
   useEffect(() => {
     if (focused) {
@@ -25,6 +27,12 @@ function AnimatedTabIcon({ name, color, focused }: AnimatedTabIconProps) {
         Animated.spring(scale, { toValue: 1.15, useNativeDriver: true, speed: 45, bounciness: 8 }),
         Animated.spring(scale, { toValue: 1.0, useNativeDriver: true, speed: 25, bounciness: 4 }),
       ]).start();
+
+      if (!isFirst.current) {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } else {
+        isFirst.current = false;
+      }
     }
   }, [focused, scale]);
 
@@ -60,12 +68,16 @@ export default function TabLayout() {
 
   const isDriver = role === 'driver';
 
-  const screens = [
+  const screens: {
+    name: string;
+    options: React.ComponentProps<typeof Tabs.Screen>['options'];
+  }[] = [
     {
       name: 'index',
       options: {
         title: t('home'),
-        href: isDriver ? null : ('/(tabs)' as any),
+        headerShown: false,
+        href: isDriver ? null : ('/(tabs)' as Href),
         tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
           <AnimatedTabIcon name="home-outline" color={color} focused={focused} />
         ),
@@ -76,7 +88,7 @@ export default function TabLayout() {
       options: {
         title: t('driver_dashboard'),
         headerShown: false,
-        href: isDriver ? ('/(tabs)/driver' as any) : null,
+        href: isDriver ? ('/(tabs)/driver' as Href) : null,
         tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
           <AnimatedTabIcon name="car-outline" color={color} focused={focused} />
         ),
@@ -86,7 +98,8 @@ export default function TabLayout() {
       name: 'subscriptions',
       options: {
         title: t('my_subscriptions'),
-        href: isDriver ? null : ('/(tabs)/subscriptions' as any),
+        headerShown: false,
+        href: isDriver ? null : ('/(tabs)/subscriptions' as Href),
         tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
           <AnimatedTabIcon name="card-outline" color={color} focused={focused} />
         ),
@@ -96,6 +109,7 @@ export default function TabLayout() {
       name: 'chat',
       options: {
         title: t('messages'),
+        headerShown: false,
         tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
         tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
           <AnimatedTabIcon name="chatbubbles-outline" color={color} focused={focused} />
@@ -192,7 +206,7 @@ export default function TabLayout() {
       }}
     >
       {orderedScreens.map((screen) => (
-        <Tabs.Screen key={screen.name} name={screen.name} options={screen.options as any} />
+        <Tabs.Screen key={screen.name} name={screen.name} options={screen.options} />
       ))}
     </Tabs>
   );

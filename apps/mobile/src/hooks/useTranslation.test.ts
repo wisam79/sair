@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Translations } from '@uniride/core';
+import { Translations } from '@sair/core';
 
 // Test the translation logic directly (without React hooks)
 function t(key: string, language: string): string {

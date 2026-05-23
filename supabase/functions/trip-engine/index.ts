@@ -1,7 +1,6 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+import { Expo } from 'https://esm.sh/expo-server-sdk';
+import { corsResponse } from '../_shared/cors.ts';
+import { verifyAuth, supabaseAdmin } from '../_shared/auth.ts';
 
 const STATUS_MESSAGES: Record<
   string,
@@ -103,28 +102,89 @@ async function notifyStudentsForTripStatus(supabaseClient: any, tripId: string, 
       console.error('[Notification] Failed to insert notification logs:', logError);
     }
 
-    // 5. Send Expo push notifications
+    // 5. Send Expo push notifications using Expo SDK
     if (pushTokens && pushTokens.length > 0) {
-      const messages = pushTokens.map((pt: any) => ({
-        to: pt.token,
-        sound: 'default',
-        title,
-        body,
-        data: dataPayload,
-      }));
+      const expo = new Expo();
+      const messages: any[] = [];
+      const invalidTokens: string[] = [];
 
-      const res = await fetch('https://exp.host/--/api/v2/push/send', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Accept-encoding': 'gzip, deflate',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(messages),
-      });
+      for (const pt of pushTokens) {
+        if (!Expo.isExpoPushToken(pt.token)) {
+          console.warn(`[Notification] Invalid Expo push token: ${pt.token}`);
+          invalidTokens.push(pt.token);
+          continue;
+        }
 
-      if (!res.ok) {
-        console.error('[Notification] Expo push notification API error:', await res.text());
+        messages.push({
+          to: pt.token,
+          sound: 'default',
+          title,
+          body,
+          data: dataPayload,
+        });
+      }
+
+      // Cleanup invalid tokens immediately
+      if (invalidTokens.length > 0) {
+        await supabaseClient.from('push_tokens').delete().in('token', invalidTokens);
+      }
+
+      if (messages.length > 0) {
+        const chunks = expo.chunkPushNotifications(messages);
+        const ticketIds: string[] = [];
+        const ticketToTokenMap = new Map<string, string>();
+
+        for (const chunk of chunks) {
+          try {
+            const tickets = await expo.sendPushNotificationsAsync(chunk);
+            for (let i = 0; i < tickets.length; i++) {
+              const ticket = tickets[i];
+              const token = chunk[i].to;
+
+              if (ticket.status === 'error') {
+                console.error(`[Notification] Ticket error for token ${token}:`, ticket.message);
+                if (ticket.details?.error === 'DeviceNotRegistered') {
+                  await supabaseClient.from('push_tokens').delete().eq('token', token);
+                  console.log(`[Notification] Removed unregistered device token: ${token}`);
+                }
+              } else if (ticket.status === 'ok') {
+                ticketIds.push(ticket.id);
+                ticketToTokenMap.set(ticket.id, token);
+              }
+            }
+          } catch (error) {
+            console.error('[Notification] Error sending notification chunk:', error);
+          }
+        }
+
+        // Fetch receipts to cleanup stale tokens
+        if (ticketIds.length > 0) {
+          try {
+            const receiptIdChunks = expo.chunkPushNotificationReceiptIds(ticketIds);
+            for (const receiptIdChunk of receiptIdChunks) {
+              const receipts = await expo.getPushNotificationReceiptsAsync(receiptIdChunk);
+              for (const [ticketId, receipt] of Object.entries(receipts)) {
+                if (receipt.status === 'error') {
+                  console.error(
+                    `[Notification] Receipt error for ticket ${ticketId}:`,
+                    receipt.details?.error,
+                  );
+                  if (receipt.details?.error === 'DeviceNotRegistered') {
+                    const token = ticketToTokenMap.get(ticketId);
+                    if (token) {
+                      await supabaseClient.from('push_tokens').delete().eq('token', token);
+                      console.log(
+                        `[Notification] Removed unregistered device token from receipt: ${token}`,
+                      );
+                    }
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            console.error('[Notification] Error fetching receipts:', e);
+          }
+        }
       }
     }
   } catch (err) {
@@ -132,38 +192,12 @@ async function notifyStudentsForTripStatus(supabaseClient: any, tripId: string, 
   }
 }
 
-const ALLOWED_ORIGINS = [
-  Deno.env.get('ADMIN_URL') || 'http://localhost:3000',
-  'exp://localhost:8081',
-  'http://localhost:8081',
-].join(',');
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, idempotency-key',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-
-function resolveOrigin(origin: string): string {
-  const allowedOrigins = ALLOWED_ORIGINS.split(',');
-  return allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
-}
-
 Deno.serve(async (req: Request) => {
-  const origin = req.headers.get('Origin') || '';
-  const resolvedOrigin = resolveOrigin(origin);
-  const responseHeaders = {
-    ...CORS_HEADERS,
-    'Access-Control-Allow-Origin': resolvedOrigin,
-    'Content-Type': 'application/json',
-  };
+  if (req.method === 'OPTIONS') {
+    return corsResponse(req, 'ok');
+  }
 
   try {
-    if (req.method === 'OPTIONS') {
-      return new Response('ok', { headers: responseHeaders });
-    }
-
     // Health check endpoint (bypasses auth and validation)
     let isHealthCheck = false;
     try {
@@ -177,43 +211,20 @@ Deno.serve(async (req: Request) => {
     }
 
     if (isHealthCheck) {
-      return new Response(JSON.stringify({ status: 'healthy' }), {
-        status: 200,
-        headers: {
-          ...responseHeaders,
-          'Access-Control-Allow-Origin': origin || '*',
-        },
-      });
+      return corsResponse(req, { status: 'healthy' });
     }
 
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
-        status: 401,
-        headers: responseHeaders,
-      });
+    const { user, error: authError } = await verifyAuth(req);
+    if (authError || !user) {
+      return corsResponse(req, { error: authError || 'Invalid token' }, 401);
     }
 
     const idempotencyKey = req.headers.get('idempotency-key');
 
-    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
-    const token = authHeader.replace('Bearer ', '');
-    const {
-      data: { user },
-      error: authError,
-    } = await supabaseClient.auth.getUser(token);
-
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid token' }), {
-        status: 401,
-        headers: responseHeaders,
-      });
-    }
-
-    const { data: rateLimitOk, error: rateLimitError } = await supabaseClient.rpc(
+    const { data: rateLimitOk, error: rateLimitError } = await supabaseAdmin.rpc(
       'check_rate_limit',
       {
-        p_user_id: user.id, // FIX: pass explicitly — auth.uid() is NULL with service role key
+        p_user_id: user.id,
         p_action: 'trip_engine',
         p_limit: 30,
         p_window_seconds: 60,
@@ -221,10 +232,7 @@ Deno.serve(async (req: Request) => {
     );
 
     if (rateLimitError || !rateLimitOk) {
-      return new Response(JSON.stringify({ error: 'Too many requests. Please try again later.' }), {
-        status: 429,
-        headers: responseHeaders,
-      });
+      return corsResponse(req, { error: 'Too many requests. Please try again later.' }, 429);
     }
 
     const { TripUpdateRequest } = await import('../../../packages/core/index.ts');
@@ -232,33 +240,27 @@ Deno.serve(async (req: Request) => {
     const parsed = TripUpdateRequest.safeParse(payload);
 
     if (!parsed.success) {
-      return new Response(JSON.stringify({ error: parsed.error.message }), {
-        status: 400,
-        headers: responseHeaders,
-      });
+      return corsResponse(req, { error: parsed.error.message }, 400);
     }
 
     const { trip_id: tripId, new_status: newStatus, lat, lng } = parsed.data;
 
-    // lat/lng are optional — only relevant for certain transitions (e.g. driver_waiting)
+    // lat/lng are optional
     const validLat = typeof lat === 'number' ? lat : null;
     const validLng = typeof lng === 'number' ? lng : null;
 
-    const { data: driverData, error: driverError } = await supabaseClient
+    const { data: driverData, error: driverError } = await supabaseAdmin
       .from('drivers')
       .select('id')
       .eq('user_id', user.id)
       .single();
 
     if (driverError || !driverData) {
-      return new Response(JSON.stringify({ error: 'Driver profile not found' }), {
-        status: 403,
-        headers: responseHeaders,
-      });
+      return corsResponse(req, { error: 'Driver profile not found' }, 403);
     }
 
     if (idempotencyKey) {
-      const { data: existingAudit } = await supabaseClient
+      const { data: existingAudit } = await supabaseAdmin
         .from('audit_logs')
         .select('id')
         .eq('user_id', user.id)
@@ -268,20 +270,42 @@ Deno.serve(async (req: Request) => {
         .single();
 
       if (existingAudit) {
-        return new Response(
-          JSON.stringify({
-            success: true,
-            message: 'Status already updated (idempotent response)',
-            idempotent: true,
-          }),
-          {
-            headers: responseHeaders,
-          },
-        );
+        return corsResponse(req, {
+          success: true,
+          message: 'Status already updated (idempotent response)',
+          idempotent: true,
+        });
       }
     }
 
-    const { error } = await supabaseClient.rpc('update_trip_status', {
+    // Fetch current trip status and driver assignment to validate transition using State Machine in core package
+    const { data: tripData, error: tripFetchError } = await supabaseAdmin
+      .from('trips')
+      .select('status, driver_id')
+      .eq('id', tripId)
+      .single();
+
+    if (tripFetchError || !tripData) {
+      return corsResponse(req, { error: 'Trip not found or query failed' }, 404);
+    }
+
+    if (tripData.driver_id !== driverData.id) {
+      return corsResponse(req, { error: 'Unauthorized: not your trip' }, 403);
+    }
+
+    const { canTransition } = await import('../../../packages/core/index.ts');
+    if (!canTransition(tripData.status, newStatus)) {
+      return corsResponse(
+        req,
+        {
+          success: false,
+          error: `Invalid transition from ${tripData.status} to ${newStatus}`,
+        },
+        400,
+      );
+    }
+
+    const { error } = await supabaseAdmin.rpc('update_trip_status', {
       p_trip_id: tripId,
       p_new_status: newStatus,
       p_lat: validLat,
@@ -290,16 +314,13 @@ Deno.serve(async (req: Request) => {
     });
 
     if (error) {
-      return new Response(JSON.stringify({ success: false, error: error.message }), {
-        status: 400,
-        headers: responseHeaders,
-      });
+      return corsResponse(req, { success: false, error: error.message }, 400);
     }
 
     // Trigger push notification dispatch for subscribed students
-    await notifyStudentsForTripStatus(supabaseClient, tripId, newStatus);
+    await notifyStudentsForTripStatus(supabaseAdmin, tripId, newStatus);
 
-    await supabaseClient.rpc('log_audit', {
+    await supabaseAdmin.rpc('log_audit', {
       p_user_id: user.id,
       p_action: 'trip_status_change',
       p_resource: 'trips',
@@ -307,17 +328,9 @@ Deno.serve(async (req: Request) => {
       p_details: { newStatus, lat, lng, idempotencyKey },
     });
 
-    return new Response(JSON.stringify({ success: true }), {
-      headers: responseHeaders,
-    });
-  } catch {
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: {
-        ...CORS_HEADERS,
-        'Access-Control-Allow-Origin': resolvedOrigin,
-        'Content-Type': 'application/json',
-      },
-    });
+    return corsResponse(req, { success: true });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Internal server error';
+    return corsResponse(req, { error: msg }, 500);
   }
 });

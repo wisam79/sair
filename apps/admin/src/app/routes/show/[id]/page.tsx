@@ -17,6 +17,7 @@ export default function RouteShow() {
     id: record?.driver_id || '',
     queryOptions: {
       enabled: !!record,
+      queryKey: ['drivers', record?.driver_id],
     },
   });
 

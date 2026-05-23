@@ -17,6 +17,7 @@ export default function DriverShow() {
     id: record?.user_id || '',
     queryOptions: {
       enabled: !!record?.user_id,
+      queryKey: ['profiles', record?.user_id],
     },
   });
 

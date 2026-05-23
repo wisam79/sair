@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { StyleSheet, Text, View, Animated, Pressable } from 'react-native';
-import { Route } from '@uniride/core';
+import { Route } from '@sair/core';
 import { Colors, Spacing, BorderRadius, Shadow, FontFamily } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../hooks/useTranslation';
@@ -11,10 +11,11 @@ interface RouteCardProps {
   item: Route;
   isSubscribed?: boolean;
   driverRating?: number;
+  flat?: boolean;
 }
 
 export const RouteCard: React.FC<RouteCardProps> = React.memo(
-  ({ item, isSubscribed, driverRating }) => {
+  ({ item, isSubscribed, driverRating, flat = false }) => {
     const { t, isRTL } = useTranslation();
     const router = useRouter();
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -56,11 +57,11 @@ export const RouteCard: React.FC<RouteCardProps> = React.memo(
         style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }, { scale }] }}
       >
         <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} onPress={handlePress}>
-          <View style={[styles.card, isRTL && styles.cardRTL]}>
+          <View style={[styles.card, isRTL && styles.cardRTL, flat && styles.flatCard]}>
             {/* Orange accent bar */}
-            <View style={styles.cardAccent} />
+            {!flat && <View style={styles.cardAccent} />}
 
-            <View style={styles.cardContent}>
+            <View style={[styles.cardContent, flat && styles.flatCardContent]}>
               {/* Header: Title + Badges */}
               <View style={[styles.cardHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
                 <Text
@@ -110,7 +111,13 @@ export const RouteCard: React.FC<RouteCardProps> = React.memo(
               {/* Schedule */}
               <View style={[styles.scheduleRow, isRTL && { flexDirection: 'row-reverse' }]}>
                 {item.departure_time && (
-                  <View style={[styles.timeBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <View
+                    style={[
+                      styles.timeBadge,
+                      flat && styles.flatTimeBadge,
+                      isRTL && { flexDirection: 'row-reverse' },
+                    ]}
+                  >
                     <Ionicons name="sunny-outline" size={14} color={Colors.warning} />
                     <Text style={styles.timeText}>
                       {t('departure')}: {item.departure_time.substring(0, 5)}
@@ -118,7 +125,13 @@ export const RouteCard: React.FC<RouteCardProps> = React.memo(
                   </View>
                 )}
                 {item.return_time && (
-                  <View style={[styles.timeBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <View
+                    style={[
+                      styles.timeBadge,
+                      flat && styles.flatTimeBadge,
+                      isRTL && { flexDirection: 'row-reverse' },
+                    ]}
+                  >
                     <Ionicons name="moon-outline" size={14} color={Colors.secondary} />
                     <Text style={styles.timeText}>
                       {t('return')}: {item.return_time.substring(0, 5)}
@@ -234,9 +247,9 @@ const styles = StyleSheet.create({
     paddingVertical: 1,
   },
   routeStopText: {
-    fontFamily: FontFamily.regular,
-    fontSize: 13,
-    color: Colors.textSecondary,
+    fontFamily: FontFamily.medium,
+    fontSize: 13.5,
+    color: Colors.text,
     flex: 1,
   },
   scheduleRow: {
@@ -288,5 +301,22 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     fontSize: 15,
     color: Colors.success,
+  },
+  flatCard: {
+    backgroundColor: '#F5F2EF', // warm off-white matching screen background for nested contrast
+    borderWidth: 1,
+    borderColor: '#E6E3DE',
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+    shadowOpacity: 0,
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  flatCardContent: {
+    padding: Spacing.md,
+  },
+  flatTimeBadge: {
+    backgroundColor: Colors.white,
   },
 });

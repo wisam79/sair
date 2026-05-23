@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  StatusBar,
   DevSettings,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../src/lib/supabase';
 import { useAuthStore } from '../../src/hooks/useStore';
@@ -18,18 +18,43 @@ import { useTranslation } from '../../src/hooks/useTranslation';
 import Constants from 'expo-constants';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../../src/theme';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import CustomAlert from '../../src/components/CustomAlert';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { FormInput } from '../../src/components/FormInput';
+
+const ProfileEditSchema = z.object({
+  full_name: z.string().min(1, 'full_name_required'),
+  phone: z.string().optional().or(z.literal('')),
+});
+type ProfileEditRequest = z.infer<typeof ProfileEditSchema>;
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, role, profile, setProfile, logout } = useAuthStore();
   const { t, isRTL, language, setLanguage } = useTranslation();
   const { top } = useSafeAreaInsets();
-  const [fullName, setFullName] = useState(profile?.full_name || '');
-  const [phone, setPhone] = useState(profile?.phone || '');
   const [saving, setSaving] = useState(false);
   const [stats, setStats] = useState({ tripCount: 0, avgRating: 0 });
-  const [focusedField, setFocusedField] = useState<'fullName' | 'phone' | null>(null);
+
+  const { control, handleSubmit, reset } = useForm<ProfileEditRequest>({
+    resolver: zodResolver(ProfileEditSchema),
+    defaultValues: {
+      full_name: profile?.full_name || '',
+      phone: profile?.phone || '',
+    },
+  });
+
+  useEffect(() => {
+    if (profile) {
+      reset({
+        full_name: profile.full_name || '',
+        phone: profile.phone || '',
+      });
+    }
+  }, [profile, reset]);
 
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
@@ -90,25 +115,28 @@ export default function ProfileScreen() {
       });
   }, [user?.id]);
 
-  const initials = (profile?.full_name || user?.email || 'U')[0].toUpperCase();
-
   const roleLabel = t(role || 'student');
   const roleIcon: keyof typeof Ionicons.glyphMap =
     role === 'driver' ? 'car-outline' : role === 'admin' ? 'shield-outline' : 'school-outline';
 
-  const handleSave = async () => {
-    if (!fullName.trim()) return;
+  const handleSave = async (data: ProfileEditRequest) => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSaving(true);
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: fullName.trim(), phone: phone.trim() })
+        .update({
+          full_name: data.full_name.trim(),
+          phone: data.phone?.trim() || null,
+        })
         .eq('id', user?.id);
 
       if (error) throw error;
-      setProfile({ full_name: fullName.trim(), phone: phone.trim() });
+      setProfile({ full_name: data.full_name.trim(), phone: data.phone?.trim() || null });
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       showAlert(t('success'), t('updated_successfully'), 'success');
     } catch (err: unknown) {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       const msg = err instanceof Error ? err.message : t('error_generic');
       showAlert(t('error'), msg, 'error');
     } finally {
@@ -117,12 +145,14 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     showAlert(t('logout'), t('logout_question'), 'question', [
       { text: t('cancel'), style: 'cancel' },
       {
         text: t('logout'),
         style: 'destructive',
         onPress: async () => {
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           await supabase.auth.signOut();
           logout();
         },
@@ -136,14 +166,14 @@ export default function ProfileScreen() {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      <StatusBar barStyle="light-content" backgroundColor={Colors.secondary} />
+      <StatusBar style="dark" translucent />
 
       {/* Header */}
-      <View style={[styles.header, { paddingTop: top + Spacing.xl }]}>
+      <View style={[styles.header, { paddingTop: top + Spacing.md }]}>
         {/* Avatar Ring */}
         <View style={styles.avatarContainer}>
           <View style={styles.avatarCircle}>
-            <Text style={styles.avatarText}>{initials}</Text>
+            <Ionicons name="person" size={32} color={Colors.white} />
           </View>
         </View>
         <Text style={styles.headerName}>{profile?.full_name || t('user')}</Text>
@@ -164,60 +194,30 @@ export default function ProfileScreen() {
           <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
             {t('full_name')}
           </Text>
-          <View
-            style={[
-              styles.inputWrapper,
-              focusedField === 'fullName' && styles.inputFocused,
-              isRTL && { flexDirection: 'row-reverse' },
-            ]}
-          >
-            <Ionicons
-              name="person-outline"
-              size={16}
-              color={focusedField === 'fullName' ? Colors.primary : Colors.textMuted}
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={[styles.input, isRTL && styles.inputRTL]}
-              value={fullName}
-              onChangeText={setFullName}
-              placeholder={t('enter_full_name')}
-              placeholderTextColor={Colors.textMuted}
-              autoCapitalize="words"
-              onFocus={() => setFocusedField('fullName')}
-              onBlur={() => setFocusedField(null)}
-            />
-          </View>
+          <FormInput
+            control={control}
+            name="full_name"
+            placeholder={t('enter_full_name')}
+            icon="person-outline"
+            autoCapitalize="words"
+            isRTL={isRTL}
+            style={{ marginBottom: 0 }}
+          />
         </View>
 
         <View style={styles.field}>
           <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
             {t('phone')}
           </Text>
-          <View
-            style={[
-              styles.inputWrapper,
-              focusedField === 'phone' && styles.inputFocused,
-              isRTL && { flexDirection: 'row-reverse' },
-            ]}
-          >
-            <Ionicons
-              name="call-outline"
-              size={16}
-              color={focusedField === 'phone' ? Colors.primary : Colors.textMuted}
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={[styles.input, isRTL && styles.inputRTL]}
-              value={phone}
-              onChangeText={setPhone}
-              placeholder={t('phone_placeholder')}
-              placeholderTextColor={Colors.textMuted}
-              keyboardType="phone-pad"
-              onFocus={() => setFocusedField('phone')}
-              onBlur={() => setFocusedField(null)}
-            />
-          </View>
+          <FormInput
+            control={control}
+            name="phone"
+            placeholder={t('phone_placeholder')}
+            icon="call-outline"
+            keyboardType="phone-pad"
+            isRTL={isRTL}
+            style={{ marginBottom: 0 }}
+          />
         </View>
 
         <View style={styles.field}>
@@ -252,9 +252,7 @@ export default function ProfileScreen() {
             saving && { opacity: 0.7 },
             isRTL && { flexDirection: 'row-reverse' },
           ]}
-          onPress={() => {
-            void handleSave();
-          }}
+          onPress={handleSubmit(handleSave)}
           disabled={saving}
           activeOpacity={0.85}
         >
@@ -386,11 +384,13 @@ export default function ProfileScreen() {
               style={[styles.langChip, language === lang.code && styles.langChipActive]}
               onPress={() => {
                 if (language === lang.code) return;
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 showAlert(t('alert'), t('language_change_restart'), 'warning', [
                   { text: t('cancel'), style: 'cancel' },
                   {
                     text: t('ok'),
                     onPress: () => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       setLanguage(lang.code as 'ar' | 'en');
                       try {
                         DevSettings.reload();
@@ -449,25 +449,29 @@ const styles = StyleSheet.create({
   },
   // Header
   header: {
-    backgroundColor: Colors.secondary,
+    backgroundColor: '#EFECE9',
     alignItems: 'center',
-    paddingBottom: Spacing.xxxl,
+    paddingBottom: Spacing.xl,
     paddingHorizontal: Spacing.xl,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E6E2DE',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   avatarContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   avatarCircle: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
@@ -479,44 +483,44 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontFamily: FontFamily.bold,
-    fontSize: 36,
+    fontSize: 24,
     color: Colors.white,
   },
   headerName: {
     fontFamily: FontFamily.bold,
-    fontSize: 20,
-    color: Colors.white,
+    fontSize: 18,
+    color: Colors.text,
     marginBottom: Spacing.xs,
   },
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: Colors.primarySurface,
     paddingHorizontal: Spacing.md,
     paddingVertical: 4,
     borderRadius: BorderRadius.pill,
     marginBottom: Spacing.sm,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#E6E2DE',
   },
   roleBadgeText: {
     fontFamily: FontFamily.medium,
     fontSize: 13,
-    color: Colors.primaryLight,
+    color: Colors.primary,
   },
   headerEmail: {
     fontFamily: FontFamily.regular,
     fontSize: 13,
-    color: 'rgba(255,255,255,0.55)',
+    color: Colors.textSecondary,
   },
   // Section
   section: {
     backgroundColor: Colors.white,
     marginHorizontal: Spacing.lg,
-    marginTop: Spacing.lg,
+    marginTop: Spacing.md,
     borderRadius: BorderRadius.lg,
-    padding: Spacing.xl,
+    padding: Spacing.lg,
     borderWidth: 1,
     borderColor: '#E6E3DE',
     ...Shadow.sm,
@@ -525,7 +529,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     fontSize: 15,
     color: Colors.text,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   // Navigation Links
   navLinkCard: {
@@ -559,7 +563,7 @@ const styles = StyleSheet.create({
   },
   // Field
   field: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   fieldLabel: {
     fontFamily: FontFamily.medium,
@@ -656,8 +660,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.sm,
     marginHorizontal: Spacing.lg,
-    marginTop: Spacing.lg,
-    padding: Spacing.md,
+    marginTop: Spacing.md,
+    padding: Spacing.sm,
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.errorSurface,
     borderWidth: 1,
@@ -694,7 +698,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textMuted,
     textAlign: 'center',
-    marginTop: Spacing.md,
-    marginBottom: Spacing.xl,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.lg,
   },
 });

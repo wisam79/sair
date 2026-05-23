@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createServiceClient, createAuthenticatedClient, cleanupTestData, isDBAvailable } from '../helpers/test-helpers';
+import {
+  createServiceClient,
+  createAuthenticatedClient,
+  cleanupTestData,
+  isDBAvailable,
+} from '../helpers/test-helpers';
 import { getTableRow } from '../helpers/db-test-helpers';
 
 const runIntegration = isDBAvailable();
@@ -101,22 +106,20 @@ describe('Payout System Integration Tests', () => {
       .single();
 
     // 3. Create one cancelled subscription (should be ignored)
-    await serviceClient
-      .from('subscriptions')
-      .insert({
-        student_id: student1.user.id,
-        route_id: routeId,
-        status: 'cancelled',
-        start_date: new Date().toISOString(),
-        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        purchase_price: 25000,
-      });
+    await serviceClient.from('subscriptions').insert({
+      student_id: student1.user.id,
+      route_id: routeId,
+      status: 'cancelled',
+      start_date: new Date().toISOString(),
+      end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      purchase_price: 25000,
+    });
 
     // 4. Query balance via driverClient
     const { data: balanceData, error } = await driverClient.rpc('get_driver_balance');
     expect(error).toBeNull();
     expect(balanceData.length).toBe(1);
-    
+
     // total_earned = 25,000 (sub1) + 20,000 (sub2) = 45,000
     expect(Number(balanceData[0].total_earned)).toBe(45000);
     expect(Number(balanceData[0].total_paid)).toBe(0);
@@ -129,16 +132,14 @@ describe('Payout System Integration Tests', () => {
   it('should request and manage payout requests correctly', async () => {
     // 1. Give the driver 30,000 balance
     const student = student1;
-    await serviceClient
-      .from('subscriptions')
-      .insert({
-        student_id: student.user.id,
-        route_id: routeId,
-        status: 'active',
-        start_date: new Date().toISOString(),
-        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        purchase_price: 30000,
-      });
+    await serviceClient.from('subscriptions').insert({
+      student_id: student.user.id,
+      route_id: routeId,
+      status: 'active',
+      start_date: new Date().toISOString(),
+      end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      purchase_price: 30000,
+    });
 
     // Verify balance
     const { data: initialBalance } = await driverClient.rpc('get_driver_balance');
@@ -176,7 +177,7 @@ describe('Payout System Integration Tests', () => {
       .from('driver_payouts')
       .select('*')
       .eq('driver_id', driverId);
-    
+
     expect(payouts.length).toBe(1);
     expect(payouts[0].status).toBe('pending');
     expect(Number(payouts[0].amount)).toBe(10000);
@@ -189,7 +190,7 @@ describe('Payout System Integration Tests', () => {
     // available_balance = total_earned - total_paid (completed payouts)
     // Wait, in request_payout, v_paid is completed and pending! So let's check what get_driver_balance() returns now:
     const { data: midBalance } = await driverClient.rpc('get_driver_balance');
-    
+
     // In 2026052104_fix_critical_bugs_audit.sql, get_driver_balance() has:
     // v_paid is status completed or pending
     // So available_balance = v_earned - v_paid (completed + pending) = 30000 - 10000 = 20000

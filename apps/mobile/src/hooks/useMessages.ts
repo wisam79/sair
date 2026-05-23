@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface Message {
@@ -26,94 +27,104 @@ export interface Conversation {
 }
 
 export function useConversations() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const queryKey = ['conversations'];
 
-  const fetchConversations = useCallback(async () => {
-    try {
-      const { data, error: err } = await supabase.rpc('get_my_conversations');
+  const {
+    data: conversations = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const { data: res, error: err } = await supabase.rpc('get_my_conversations');
       if (err) throw err;
-
-      const convs = (data as Conversation[]) || [];
-      setConversations(convs);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load conversations');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      return (res as Conversation[]) || [];
+    },
+  });
 
   useEffect(() => {
-    fetchConversations();
-
+    const channelName = `conversations-changes-${Math.random().toString(36).substring(2, 9)}`;
     const channel: RealtimeChannel = supabase
-      .channel('conversations-changes')
+      .channel(channelName)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
-        fetchConversations();
+        queryClient.invalidateQueries({ queryKey });
       })
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          fetchConversations();
+          queryClient.invalidateQueries({ queryKey });
         }
       });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchConversations]);
+  }, [queryClient]);
 
-  return { conversations, loading, error, refetch: fetchConversations };
+  const errorMsg = error
+    ? (error as any).message || (error as any).error_description || String(error)
+    : null;
+
+  return { conversations, loading: isLoading, error: errorMsg, refetch };
 }
 
 export function useMessages(conversationId: string | null) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const queryKey = ['messages', conversationId];
+  const [localError, setLocalError] = useState<string | null>(null);
 
-  const fetchMessages = useCallback(async () => {
-    if (!conversationId) {
-      setMessages([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const { data, error: err } = await supabase.rpc('get_messages', {
+  const {
+    data: messages = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      if (!conversationId) return [];
+      const { data: res, error: err } = await supabase.rpc('get_messages', {
         p_conversation_id: conversationId,
         p_limit: 50,
       });
       if (err) throw err;
-
-      setMessages((data as Message[]) || []);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load messages');
-    } finally {
-      setLoading(false);
-    }
-  }, [conversationId]);
+      return (res as Message[]) || [];
+    },
+    enabled: !!conversationId,
+  });
 
   const sendMessage = useCallback(
     async (content: string) => {
       if (!conversationId || !content.trim()) return null;
 
       try {
-        const { data, error: err } = await supabase.rpc('send_message', {
-          p_conversation_id: conversationId,
-          p_content: content.trim(),
-        });
+        setLocalError(null);
+        const { data: res, error: err } = await supabase
+          .rpc('send_message', {
+            p_conversation_id: conversationId,
+            p_content: content.trim(),
+          })
+          .single();
         if (err) throw err;
 
-        await fetchMessages();
-        return data as Message;
+        const sentMessage = res as Message;
+
+        queryClient.setQueryData<Message[]>(queryKey, (old) => {
+          if (!old) return [sentMessage];
+          const exists = old.some((m) => m.id === sentMessage.id);
+          if (exists) return old;
+          return [sentMessage, ...old];
+        });
+
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+
+        return sentMessage;
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to send message');
+        setLocalError(err instanceof Error ? err.message : 'Failed to send message');
         return null;
       }
     },
-    [conversationId, fetchMessages],
+    [conversationId, queryClient, queryKey],
   );
 
   const markAsRead = useCallback(async () => {
@@ -123,20 +134,19 @@ export function useMessages(conversationId: string | null) {
       await supabase.rpc('mark_messages_read', {
         p_conversation_id: conversationId,
       });
+      queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
     } catch {
       // Silently fail - not critical
     }
-  }, [conversationId]);
-
-  useEffect(() => {
-    fetchMessages();
-  }, [fetchMessages]);
+  }, [conversationId, queryClient]);
 
   useEffect(() => {
     if (!conversationId) return;
 
+    const channelName = `messages-${conversationId}-${Math.random().toString(36).substring(2, 9)}`;
     const channel: RealtimeChannel = supabase
-      .channel(`messages-${conversationId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -147,23 +157,24 @@ export function useMessages(conversationId: string | null) {
         },
         (payload) => {
           const newMessage = payload.new as Message;
-          setMessages((prev) => {
-            const exists = prev.some((m) => m.id === newMessage.id);
-            if (exists) return prev;
-            return [newMessage, ...prev];
+          queryClient.setQueryData<Message[]>(queryKey, (old) => {
+            if (!old) return [newMessage];
+            const exists = old.some((m) => m.id === newMessage.id);
+            if (exists) return old;
+            return [newMessage, ...old];
           });
         },
       )
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          fetchMessages();
+          refetch();
         }
       });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId, fetchMessages]);
+  }, [conversationId, refetch, queryClient, queryKey]);
 
   useEffect(() => {
     if (conversationId && messages.length > 0) {
@@ -171,41 +182,52 @@ export function useMessages(conversationId: string | null) {
     }
   }, [conversationId, messages, markAsRead]);
 
-  return { messages, loading, error, sendMessage, refetch: fetchMessages };
+  const errorMsg =
+    localError ||
+    (error ? (error as any).message || (error as any).error_description || String(error) : null);
+
+  return { messages, loading: isLoading, error: errorMsg, sendMessage, refetch };
 }
 
 export function useConversationForTrip(tripId: string | null) {
-  const [conversation, setConversation] = useState<Conversation | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const queryKey = ['conversation_for_trip', tripId];
+
+  const {
+    data: conversation = null,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      if (!tripId) return null;
+      const { data: res, error: err } = await supabase
+        .rpc('get_or_create_conversation', {
+          p_trip_id: tripId,
+        })
+        .single();
+      if (err) throw err;
+      return res as Conversation;
+    },
+    enabled: !!tripId,
+  });
 
   const getOrCreate = useCallback(async () => {
-    if (!tripId) {
-      setConversation(null);
-      setLoading(false);
-      return null;
-    }
-
-    try {
-      const { data, error: err } = await supabase.rpc('get_or_create_conversation', {
+    if (!tripId) return null;
+    const { data: res, error: err } = await supabase
+      .rpc('get_or_create_conversation', {
         p_trip_id: tripId,
-      });
-      if (err) throw err;
+      })
+      .single();
+    if (err) throw err;
+    const conv = res as Conversation;
+    queryClient.setQueryData(queryKey, conv);
+    return conv;
+  }, [tripId, queryClient, queryKey]);
 
-      setConversation(data as Conversation);
-      setError(null);
-      return data as Conversation;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to get conversation');
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [tripId]);
+  const errorMsg = error
+    ? (error as any).message || (error as any).error_description || String(error)
+    : null;
 
-  useEffect(() => {
-    getOrCreate();
-  }, [getOrCreate]);
-
-  return { conversation, loading, error, getOrCreate };
+  return { conversation, loading: isLoading, error: errorMsg, getOrCreate };
 }

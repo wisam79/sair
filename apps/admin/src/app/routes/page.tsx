@@ -16,10 +16,17 @@ export default function RouteList() {
   const { data: driverData, isLoading: driverIsLoading } = useMany({
     resource: 'drivers',
     ids:
-      dataGridProps?.rows?.map((item: { driver_id?: string }) => item?.driver_id).filter(Boolean) ??
-      [],
+      dataGridProps?.rows
+        ?.map((item: { driver_id?: string }) => item?.driver_id)
+        .filter((id): id is string => typeof id === 'string') ?? [],
     queryOptions: {
       enabled: !!dataGridProps?.rows,
+      queryKey: [
+        'drivers',
+        dataGridProps?.rows
+          ?.map((item: { driver_id?: string }) => item?.driver_id)
+          .filter((id): id is string => typeof id === 'string') ?? [],
+      ],
     },
   });
 

@@ -3,11 +3,7 @@ import { expect } from 'vitest';
 
 export async function getTableRow(table: string, id: string) {
   const supabase = createServiceClient();
-  const { data, error } = await supabase
-    .from(table)
-    .select('*')
-    .eq('id', id)
-    .maybeSingle();
+  const { data, error } = await supabase.from(table).select('*').eq('id', id).maybeSingle();
 
   if (error) throw error;
   return data;
@@ -15,11 +11,7 @@ export async function getTableRow(table: string, id: string) {
 
 export async function insertRow(table: string, data: any) {
   const supabase = createServiceClient();
-  const { data: inserted, error } = await supabase
-    .from(table)
-    .insert(data)
-    .select()
-    .single();
+  const { data: inserted, error } = await supabase.from(table).insert(data).select().single();
 
   if (error) throw error;
   return inserted;
@@ -27,10 +19,7 @@ export async function insertRow(table: string, data: any) {
 
 export async function deleteRow(table: string, id: string) {
   const supabase = createServiceClient();
-  const { error } = await supabase
-    .from(table)
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from(table).delete().eq('id', id);
 
   if (error) throw error;
 }

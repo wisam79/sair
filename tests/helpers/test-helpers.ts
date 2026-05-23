@@ -28,7 +28,8 @@ try {
   console.warn('Failed to load .env file in test-helpers:', e);
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zpcvvyxtmxzplmojobbv.supabase.co';
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zpcvvyxtmxzplmojobbv.supabase.co';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export function isDBAvailable(): boolean {
@@ -56,11 +57,14 @@ export async function createAuthenticatedClient(role: 'student' | 'driver' | 'ad
 }> {
   const serviceClient = createServiceClient();
   const randomId = Math.random().toString(36).substring(2, 10);
-  const email = `test_user_${role}_${randomId}@uniride.test`;
+  const email = `test_user_${role}_${randomId}@sair.test`;
   const password = `Password123!_${randomId}`;
 
   // 1. Create user using service role admin API
-  const { data: { user }, error: createError } = await serviceClient.auth.admin.createUser({
+  const {
+    data: { user },
+    error: createError,
+  } = await serviceClient.auth.admin.createUser({
     email,
     password,
     email_confirm: true,

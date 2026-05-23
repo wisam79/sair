@@ -1,56 +1,10 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { corsResponse } from '../_shared/cors.ts';
+import { verifyAuth, supabaseAdmin } from '../_shared/auth.ts';
+import { retryWithBackoff } from '../../../packages/core/index.ts';
 
-const ALLOWED_ORIGINS = [
-  Deno.env.get('ADMIN_URL') || 'http://localhost:3000',
-  'exp://localhost:8081',
-  'http://localhost:8081',
-].join(',');
-
-function resolveOrigin(origin: string | null): string {
-  const allowed = ALLOWED_ORIGINS.split(',');
-  if (origin && allowed.includes(origin)) return origin;
-  return allowed[0];
-}
-
-const corsHeaders = (req: Request) => ({
-  'Access-Control-Allow-Origin': resolveOrigin(req.headers.get('Origin')),
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-});
-
-const jsonResponse = (req: Request, body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
-    status,
-  });
-
-// ─── Retry helper ─────────────────────────────────────────────────────────────
-async function fetchWithRetry(
-  url: string,
-  options: RequestInit,
-  maxRetries = 3,
-): Promise<Response> {
-  let lastError: Error | null = null;
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const res = await fetch(url, options);
-      if (res.ok || res.status < 500) return res;
-      if (attempt < maxRetries) {
-        await new Promise((r) => setTimeout(r, 1000 * attempt));
-      }
-    } catch (err) {
-      lastError = err as Error;
-      if (attempt < maxRetries) {
-        await new Promise((r) => setTimeout(r, 1000 * attempt));
-      }
-    }
-  }
-  throw lastError ?? new Error('Max retries exceeded');
-}
-
-// ─── Handler ──────────────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders(req) });
+    return corsResponse(req, 'ok');
   }
 
   try {
@@ -67,35 +21,17 @@ Deno.serve(async (req: Request) => {
     }
 
     if (isHealthCheck) {
-      return new Response(JSON.stringify({ status: 'healthy' }), {
-        status: 200,
-        headers: {
-          ...corsHeaders(req),
-          'Access-Control-Allow-Origin': req.headers.get('Origin') || '*',
-          'Content-Type': 'application/json',
-        },
-      });
+      return corsResponse(req, { status: 'healthy' });
     }
 
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    );
-
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) return jsonResponse(req, { error: 'Unauthorized' }, 401);
-
-    const token = authHeader.replace('Bearer ', '');
-    const {
-      data: { user },
-      error: authError,
-    } = await supabaseAdmin.auth.getUser(token);
-
-    if (authError || !user) return jsonResponse(req, { error: 'Invalid token' }, 401);
+    const { user, error: authError } = await verifyAuth(req);
+    if (authError || !user) {
+      return corsResponse(req, { error: authError || 'Invalid token' }, 401);
+    }
 
     const role = user.app_metadata?.role as string | undefined;
     if (!role || !['admin', 'driver'].includes(role)) {
-      return jsonResponse(req, { error: 'Only admins and drivers can send notifications' }, 403);
+      return corsResponse(req, { error: 'Only admins and drivers can send notifications' }, 403);
     }
 
     const { data: rateLimitOk, error: rateLimitError } = await supabaseAdmin.rpc(
@@ -109,7 +45,7 @@ Deno.serve(async (req: Request) => {
     );
 
     if (rateLimitError || !rateLimitOk) {
-      return jsonResponse(req, { error: 'Too many requests. Please try again later.' }, 429);
+      return corsResponse(req, { error: 'Too many requests. Please try again later.' }, 429);
     }
 
     const { NotificationRequest } = await import('../../../packages/core/index.ts');
@@ -117,14 +53,14 @@ Deno.serve(async (req: Request) => {
     const parsed = NotificationRequest.safeParse(payload);
 
     if (!parsed.success) {
-      return jsonResponse(req, { error: parsed.error.message }, 400);
+      return corsResponse(req, { error: parsed.error.message }, 400);
     }
 
     const { target_user_id, target_role, title, body, data } = parsed.data;
 
     if (role === 'driver') {
       if (target_role) {
-        return jsonResponse(req, { error: 'Drivers cannot send broadcast notifications' }, 403);
+        return corsResponse(req, { error: 'Drivers cannot send broadcast notifications' }, 403);
       }
 
       const { data: driverRow } = await supabaseAdmin
@@ -134,7 +70,7 @@ Deno.serve(async (req: Request) => {
         .single();
 
       if (!driverRow) {
-        return jsonResponse(req, { error: 'Driver profile not found' }, 403);
+        return corsResponse(req, { error: 'Driver profile not found' }, 403);
       }
 
       const { data: match } = await supabaseAdmin
@@ -146,7 +82,7 @@ Deno.serve(async (req: Request) => {
         .limit(1);
 
       if (!match || match.length === 0) {
-        return jsonResponse(req, { error: 'Cannot send notification to this user' }, 403);
+        return corsResponse(req, { error: 'Cannot send notification to this user' }, 403);
       }
     }
 
@@ -165,11 +101,10 @@ Deno.serve(async (req: Request) => {
       if (userIds.length > 0) {
         tokensQuery = tokensQuery.in('user_id', userIds);
       } else {
-        return jsonResponse(
-          req,
-          { success: true, message: `No users found for role ${target_role}` },
-          200,
-        );
+        return corsResponse(req, {
+          success: true,
+          message: `No users found for role ${target_role}`,
+        });
       }
     }
 
@@ -178,11 +113,10 @@ Deno.serve(async (req: Request) => {
     if (tokenError) throw tokenError;
 
     if (!pushTokens || pushTokens.length === 0) {
-      return jsonResponse(
-        req,
-        { success: false, message: 'No valid push tokens found for target' },
-        200,
-      );
+      return corsResponse(req, {
+        success: false,
+        message: 'No valid push tokens found for target',
+      });
     }
 
     // Expo Push API allows sending up to 100 messages at once
@@ -194,21 +128,30 @@ Deno.serve(async (req: Request) => {
       data: data || {},
     }));
 
-    const expoResponse = await fetchWithRetry('https://exp.host/--/api/v2/push/send', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Accept-encoding': 'gzip, deflate',
-        'Content-Type': 'application/json',
+    const expoResponse = await retryWithBackoff(
+      async () => {
+        const res = await fetch('https://exp.host/--/api/v2/push/send', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Accept-encoding': 'gzip, deflate',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(messages),
+        });
+        if (!res.ok) {
+          throw new Error(`Expo API returned status ${res.status}`);
+        }
+        return res;
       },
-      body: JSON.stringify(messages),
-    });
+      { maxRetries: 3, baseDelayMs: 1000 },
+    );
 
     const expoResult = await expoResponse.json();
 
-    return jsonResponse(req, { success: true, expoResult });
+    return corsResponse(req, { success: true, expoResult });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error';
-    return jsonResponse(req, { error: message }, 400);
+    return corsResponse(req, { error: message }, 400);
   }
 });

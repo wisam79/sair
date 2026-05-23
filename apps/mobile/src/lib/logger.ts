@@ -1,5 +1,5 @@
 /**
- * Structured logger for UniRide mobile app.
+ * Structured logger for Sair mobile app.
  * - In dev: logs to console with level prefix
  * - In prod: silences debug, reports errors to backend
  * - Never uses console.log (per AGENTS.md — use console.warn)

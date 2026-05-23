@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { UserRole, TripStatus, Language } from '@uniride/core';
+import { UserRole, TripStatus, Language } from '@sair/core';
 import { OfflineCache } from '../lib/offlineCache';
 
 interface AuthUser {

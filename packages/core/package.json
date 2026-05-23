@@ -1,10 +1,14 @@
 {
-  "name": "@uniride/core",
+  "name": "@sair/core",
   "version": "0.1.0",
   "private": true,
   "main": "./index.ts",
   "types": "./index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
   "dependencies": {
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@xstate/fsm": "^2.1.0"
   }
 }

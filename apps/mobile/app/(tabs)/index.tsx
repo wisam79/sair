@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,17 +8,18 @@ import {
   RefreshControl,
   TextInput,
   ActivityIndicator,
-  StatusBar,
   ScrollView,
+  Dimensions,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoutes } from '../../src/hooks/useRoutes';
-import { useSubscriptions } from '../../src/hooks/useTrips';
+import { useSubscriptions, SubscriptionWithRoute } from '../../src/hooks/useTrips';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../../src/hooks/useStore';
 import { useTranslation } from '../../src/hooks/useTranslation';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { Route } from '@uniride/core';
+import { Route } from '@sair/core';
 import { Colors, Typography, Spacing, BorderRadius, Shadow, FontFamily } from '../../src/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { logger } from '../../src/lib/logger';
@@ -29,6 +30,8 @@ import { ActiveSubscriptionCard } from '../../src/components/ActiveSubscriptionC
 import { LicenseActivationBanner } from '../../src/components/LicenseActivationBanner';
 import { LoadingList } from '../../src/components/LoadingSkeleton';
 import { EmptyState } from '../../src/components/EmptyState';
+import { useUnreadCount } from '../../src/hooks/useUnreadCount';
+import CustomAlert, { AlertButton } from '../../src/components/CustomAlert';
 
 export default function DiscoveryPage() {
   const { profile, role } = useAuthStore();
@@ -42,10 +45,21 @@ export default function DiscoveryPage() {
   const { subscriptions, isLoading: subsLoading, refetch: refetchSubs } = useSubscriptions();
   const { t, isRTL, language } = useTranslation();
   const router = useRouter();
+  const unreadCount = useUnreadCount();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const [favorites, setFavorites] = useState<string[]>(['جامعة بغداد', 'باب المعظم', 'الجادرية']);
+  const [driverRatings, setDriverRatings] = useState<Record<string, number>>({});
+
+  // Alert states
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info' | 'question'>(
+    'info',
+  );
+  const [alertButtons, setAlertButtons] = useState<AlertButton[]>([]);
 
   // Load favorites from AsyncStorage on mount
   React.useEffect(() => {
@@ -61,6 +75,39 @@ export default function DiscoveryPage() {
     };
     loadFavorites();
   }, []);
+
+  // Fetch driver ratings when routes load
+  React.useEffect(() => {
+    if (!routes || routes.length === 0) return;
+
+    const fetchDriverRatings = async () => {
+      try {
+        const driverIds = [...new Set(routes.map((r: Route) => r.driver_id).filter(Boolean))];
+        if (driverIds.length === 0) return;
+
+        const { data, error } = await supabase.rpc('get_drivers_avg_rating', {
+          p_driver_ids: driverIds,
+        });
+
+        if (error) {
+          logger.error('Failed to fetch driver ratings', { error: error.message });
+          return;
+        }
+
+        const ratingsMap: Record<string, number> = {};
+        if (data && Array.isArray(data)) {
+          data.forEach((row: { driver_id: string; avg_rating: number }) => {
+            ratingsMap[row.driver_id] = Number(row.avg_rating);
+          });
+        }
+        setDriverRatings(ratingsMap);
+      } catch (err) {
+        logger.error('Failed to fetch driver ratings', err);
+      }
+    };
+
+    fetchDriverRatings();
+  }, [routes]);
 
   const saveFavorites = async (updated: string[]) => {
     try {
@@ -141,9 +188,15 @@ export default function DiscoveryPage() {
       const isSubscribed = subscriptions.some(
         (sub) => sub.route_id === item.id && (sub.status === 'active' || sub.status === 'pending'),
       );
-      return <RouteCard item={item} isSubscribed={isSubscribed} driverRating={4.8} />;
+      return (
+        <RouteCard
+          item={item}
+          isSubscribed={isSubscribed}
+          driverRating={driverRatings[item.driver_id] ?? null}
+        />
+      );
     },
-    [subscriptions],
+    [subscriptions, driverRatings],
   );
 
   const ListEmpty = useCallback(
@@ -171,10 +224,12 @@ export default function DiscoveryPage() {
     [t, onRefresh],
   );
 
-  const keyExtractor = useCallback((item: any) => item.id, []);
+  const routeKeyExtractor = useCallback((item: Route) => item.id, []);
+
+  const subKeyExtractor = useCallback((item: SubscriptionWithRoute) => item.id, []);
 
   const renderActiveSubscription = useCallback(
-    ({ item }: { item: any }) => {
+    ({ item }: { item: SubscriptionWithRoute }) => {
       const handleTrack = () => handleTrackActiveTrip(item.route_id);
       return (
         <View style={{ width: 300 }}>
@@ -184,20 +239,6 @@ export default function DiscoveryPage() {
     },
     [handleTrackActiveTrip],
   );
-
-  const renderRoutesHeader = useCallback(() => {
-    if (filteredRoutes.length === 0) return null;
-    return (
-      <View style={[styles.routesHeader, isRTL && { flexDirection: 'row-reverse' }]}>
-        <Text style={[styles.sectionHeader, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('available_routes')}
-        </Text>
-        <Text style={styles.routesCount}>
-          {filteredRoutes.length} {t('route')}
-        </Text>
-      </View>
-    );
-  }, [filteredRoutes.length, isRTL, t]);
 
   interface NominatimResult {
     place_id: number;
@@ -243,257 +284,432 @@ export default function DiscoveryPage() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.white} />
-      <View style={styles.content}>
-        {/* Welcome Header */}
-        <View
-          style={[
-            styles.welcomeHeader,
-            { paddingTop: top + Spacing.md },
-            isRTL && { flexDirection: 'row-reverse' },
-          ]}
-        >
-          <View style={styles.welcomeTextContainer}>
-            <Text style={[styles.greetingText, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('hello')}, {profile?.full_name || t('student')} 👋
-            </Text>
-            <Text style={[styles.subGreetingText, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('welcome')}
-            </Text>
+      <StatusBar style="dark" translucent />
+
+      {/* Branded Header Banner (Fixed at the top) */}
+      <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
+        <View style={[styles.headerTopRow, isRTL && { flexDirection: 'row-reverse' }]}>
+          <View style={[styles.brandLogoContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+            <Text style={styles.brandLogoText}>{isRTL ? 'سير' : 'Sair'}</Text>
+            <Text style={styles.brandLogoTextDot}>.</Text>
           </View>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarText}>
-              {(profile?.full_name || 'S').charAt(0).toUpperCase()}
-            </Text>
+
+          <View style={[styles.headerActions, isRTL && { flexDirection: 'row-reverse' }]}>
+            {/* Notification Button */}
+            <TouchableOpacity
+              style={styles.notificationHeaderButton}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/notifications');
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="notifications-outline" size={22} color={Colors.text} />
+              {unreadCount > 0 && (
+                <View style={styles.unreadBadge}>
+                  <Text style={styles.unreadBadgeText}>{unreadCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            {/* Avatar Button */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/profile');
+              }}
+              style={styles.avatarButton}
+            >
+              <View style={styles.avatarInner}>
+                <Ionicons name="person" size={18} color={Colors.white} />
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Search Bar */}
-        <View style={[styles.searchContainer, searchFocused && styles.searchContainerFocused]}>
-          <View
-            style={[
-              styles.searchBar,
-              searchFocused && styles.searchBarFocused,
-              isRTL && { flexDirection: 'row-reverse' },
-            ]}
-          >
-            <Ionicons
-              name="search-outline"
-              size={18}
-              color={searchFocused ? Colors.primary : Colors.textMuted}
-            />
-            <TextInput
-              style={[styles.searchInput, { textAlign: isRTL ? 'right' : 'left' }]}
-              placeholder={t('search_routes_placeholder')}
-              placeholderTextColor={Colors.textMuted}
-              value={searchQuery}
-              onChangeText={handleSearch}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-            />
-            {isSearching ? (
-              <ActivityIndicator size="small" color={Colors.primary} />
-            ) : searchQuery.length > 0 ? (
-              <View
-                style={[styles.favoriteActionContainer, isRTL && { flexDirection: 'row-reverse' }]}
-              >
-                {favorites.includes(searchQuery.trim()) ? (
-                  <TouchableOpacity
-                    onPress={() => handleRemoveFavorite(searchQuery)}
-                    style={styles.favoriteActionButton}
-                  >
-                    <Ionicons name="star" size={18} color={Colors.warning} />
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => handleAddFavorite(searchQuery)}
-                    style={styles.favoriteActionButton}
-                  >
-                    <Ionicons name="star-outline" size={18} color={Colors.primary} />
-                  </TouchableOpacity>
-                )}
+        {/* Search Bar sits inside the header banner */}
+        <View
+          style={[
+            styles.searchBar,
+            searchFocused && styles.searchBarFocused,
+            isRTL && { flexDirection: 'row-reverse' },
+          ]}
+        >
+          <Ionicons
+            name="search-outline"
+            size={18}
+            color={searchFocused ? Colors.primary : Colors.textMuted}
+          />
+          <TextInput
+            style={[styles.searchInput, { textAlign: isRTL ? 'right' : 'left' }]}
+            placeholder={t('search_routes_placeholder')}
+            placeholderTextColor={Colors.textMuted}
+            value={searchQuery}
+            onChangeText={handleSearch}
+            onFocus={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setSearchFocused(true);
+            }}
+            onBlur={() => setSearchFocused(false)}
+          />
+          {isSearching ? (
+            <ActivityIndicator size="small" color={Colors.primary} />
+          ) : searchQuery.length > 0 ? (
+            <View
+              style={[styles.favoriteActionContainer, isRTL && { flexDirection: 'row-reverse' }]}
+            >
+              {favorites.includes(searchQuery.trim()) ? (
                 <TouchableOpacity
                   onPress={() => {
-                    setSearchQuery('');
-                    setSearchResults([]);
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    handleRemoveFavorite(searchQuery);
                   }}
-                  style={{ marginLeft: 6 }}
+                  style={styles.favoriteActionButton}
                 >
-                  <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+                  <Ionicons name="star" size={18} color={Colors.warning} />
                 </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    handleAddFavorite(searchQuery);
+                  }}
+                  style={styles.favoriteActionButton}
+                >
+                  <Ionicons name="star-outline" size={18} color={Colors.primary} />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setSearchQuery('');
+                  setSearchResults([]);
+                }}
+                style={{ marginLeft: 6 }}
+              >
+                <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+          ) : null}
+        </View>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        {/* mainContent containing the two main cards */}
+        <View style={styles.mainContent}>
+          {/* Container 1: Widgets Dashboard Card */}
+          <View style={styles.widgetsMainContainer}>
+            {/* Quick Stats Strip (Interactive, flat inside widgetsMainContainer) */}
+            <View style={[styles.statsRow, isRTL && { flexDirection: 'row-reverse' }]}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setSearchQuery('');
+                }}
+                style={styles.statItem}
+              >
+                <View style={[styles.statIcon, { backgroundColor: Colors.primarySurface }]}>
+                  <Ionicons name="bus" size={20} color={Colors.primary} />
+                </View>
+                <Text style={styles.statValue}>{routes.length}</Text>
+                <Text style={styles.statLabel} numberOfLines={1}>
+                  {t('available_routes')}
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.statDivider} />
+
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push('/subscriptions');
+                }}
+                style={styles.statItem}
+              >
+                <View style={[styles.statIcon, { backgroundColor: Colors.successSurface }]}>
+                  <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
+                </View>
+                <Text style={styles.statValue}>{activeSubs.length}</Text>
+                <Text style={styles.statLabel} numberOfLines={1}>
+                  {t('my_subscriptions')}
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.statDivider} />
+
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setAlertTitle(t('seats_available'));
+                  setAlertMessage(
+                    isRTL
+                      ? 'يتم تخصيص المقاعد تلقائياً للمشتركين الفعالين في الرحلة فور حضورك.'
+                      : 'Seats are dynamically allocated to active subscribers once you board the vehicle.',
+                  );
+                  setAlertType('info');
+                  setAlertButtons([{ text: t('ok'), style: 'default' }]);
+                  setAlertVisible(true);
+                }}
+                style={styles.statItem}
+              >
+                <View style={[styles.statIcon, { backgroundColor: Colors.warningSurface }]}>
+                  <Ionicons name="car" size={20} color={Colors.warning} />
+                </View>
+                <Text style={styles.statValue}>
+                  {routes.reduce((sum, r) => sum + r.available_seats, 0)}
+                </Text>
+                <Text style={styles.statLabel} numberOfLines={1}>
+                  {t('seats_available')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.widgetDivider} />
+
+            {/* Saved Locations Strip (Favorites) */}
+            <View style={[styles.favoritesHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
+              <Ionicons name="star" size={14} color={Colors.warning} />
+              <Text style={styles.favoritesHeaderTitle}>{t('favorites')}</Text>
+            </View>
+            <View style={styles.favoritesContainer}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={[
+                  styles.favoritesScroll,
+                  isRTL && { flexDirection: 'row-reverse' },
+                ]}
+              >
+                {favorites.map((fav) => {
+                  const isActive = searchQuery === fav;
+                  return (
+                    <TouchableOpacity
+                      key={fav}
+                      style={[
+                        styles.favoriteChip,
+                        isActive && styles.favoriteChipActive,
+                        isRTL && { flexDirection: 'row-reverse' },
+                      ]}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setSearchQuery(isActive ? '' : fav);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons
+                        name={isActive ? 'location' : 'location-outline'}
+                        size={13}
+                        color={isActive ? Colors.primary : Colors.textMuted}
+                        style={isRTL ? { marginLeft: 4 } : { marginRight: 4 }}
+                      />
+                      <Text
+                        style={[styles.favoriteChipText, isActive && styles.favoriteChipTextActive]}
+                      >
+                        {fav}
+                      </Text>
+                      {isActive && (
+                        <Ionicons
+                          name="close-circle"
+                          size={13}
+                          color={Colors.primary}
+                          style={isRTL ? { marginRight: 4 } : { marginLeft: 4 }}
+                        />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+
+            {/* Subscriptions / License Section */}
+            {!subsLoading && (
+              <View style={styles.subscriptionSection}>
+                {activeSubs.length > 0 ? (
+                  <View style={{ gap: Spacing.xs }}>
+                    <Text
+                      style={[styles.nestedSectionHeader, { textAlign: isRTL ? 'right' : 'left' }]}
+                    >
+                      {t('my_subscriptions')}
+                    </Text>
+                    <FlatList
+                      horizontal
+                      data={activeSubs}
+                      keyExtractor={subKeyExtractor}
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={{ paddingHorizontal: Spacing.md, gap: 12 }}
+                      renderItem={renderActiveSubscription}
+                      inverted={isRTL}
+                      initialNumToRender={2}
+                      windowSize={3}
+                    />
+                  </View>
+                ) : role === 'student' ? (
+                  <View style={{ paddingHorizontal: Spacing.xs }}>
+                    <View style={styles.widgetDivider} />
+                    <TouchableOpacity
+                      style={[styles.flatActivationRow, isRTL && { flexDirection: 'row-reverse' }]}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        router.push('/activate');
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <View
+                        style={[
+                          styles.activationContent,
+                          isRTL && { flexDirection: 'row-reverse' },
+                        ]}
+                      >
+                        <View style={styles.activationIconWrapper}>
+                          <Ionicons name="card" size={20} color={Colors.primary} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={[
+                              styles.activationTitle,
+                              { textAlign: isRTL ? 'right' : 'left' },
+                            ]}
+                          >
+                            {t('activate_new_license')}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.activationSubtitle,
+                              { textAlign: isRTL ? 'right' : 'left' },
+                            ]}
+                          >
+                            {t('activate_license_description')}
+                          </Text>
+                        </View>
+                      </View>
+                      <Ionicons
+                        name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                        size={20}
+                        color={Colors.textMuted}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
               </View>
-            ) : null}
+            )}
           </View>
 
-          {/* Search Results Dropdown */}
-          {searchResults.length > 0 && (
-            <View style={styles.searchResults}>
-              {searchResults.map((result, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[styles.searchResultItem, isRTL && { flexDirection: 'row-reverse' }]}
-                  onPress={() => {
-                    setSearchQuery(result.display_name.split(',')[0]);
-                    setSearchResults([]);
-                    setSearchFocused(false);
-                  }}
-                >
-                  <Ionicons name="location-outline" size={16} color={Colors.textMuted} />
+          {/* Container 2: Available Routes Container */}
+          <View style={styles.routesMainContainer}>
+            <View style={[styles.routesContainerHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+              <Text style={styles.routesContainerTitle}>{t('available_routes')}</Text>
+              <View style={styles.routesBadge}>
+                <Text style={styles.routesBadgeText}>
+                  {filteredRoutes.length} {t('route')}
+                </Text>
+              </View>
+            </View>
+
+            {/* List of Routes */}
+            {isLoading ? (
+              <LoadingList count={3} variant="route" />
+            ) : error ? (
+              <ListError />
+            ) : filteredRoutes.length === 0 ? (
+              <ListEmpty />
+            ) : (
+              <View style={styles.routesListWrapper}>
+                {filteredRoutes.map((route) => {
+                  const isSubscribed = subscriptions.some(
+                    (sub) =>
+                      sub.route_id === route.id &&
+                      (sub.status === 'active' || sub.status === 'pending'),
+                  );
+                  return (
+                    <RouteCard
+                      key={route.id}
+                      item={route}
+                      isSubscribed={isSubscribed}
+                      driverRating={driverRatings[route.driver_id] ?? null}
+                      flat={true}
+                    />
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Search Results Dropdown (floating absolute outside header to prevent clipping) */}
+      {searchResults.length > 0 && (
+        <View style={[styles.searchResults, { top: top + 112 }]}>
+          {searchResults.map((result, index) => {
+            const parts = result.display_name.split(',');
+            const mainName = parts[0]?.trim();
+            const subName = parts
+              .slice(1)
+              .map((p) => p.trim())
+              .join(', ');
+            return (
+              <TouchableOpacity
+                key={index}
+                style={[styles.searchResultItem, isRTL && { flexDirection: 'row-reverse' }]}
+                onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setSearchQuery(mainName);
+                  setSearchResults([]);
+                  setSearchFocused(false);
+                }}
+              >
+                <View style={[styles.searchResultIconWrapper, isRTL && { marginLeft: Spacing.xs }]}>
+                  <Ionicons name="location" size={16} color={Colors.primary} />
+                </View>
+                <View style={{ flex: 1, paddingVertical: 2 }}>
                   <Text
                     style={[styles.searchResultText, { textAlign: isRTL ? 'right' : 'left' }]}
                     numberOfLines={1}
                   >
-                    {result.display_name}
+                    {mainName}
                   </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
-
-        {/* Saved Locations Strip */}
-        <View style={styles.favoritesContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[
-              styles.favoritesScroll,
-              isRTL && { flexDirection: 'row-reverse' },
-            ]}
-          >
-            <View
-              style={[styles.favoriteLabelContainer, isRTL && { flexDirection: 'row-reverse' }]}
-            >
-              <Ionicons name="star" size={14} color={Colors.warning} />
-              <Text style={styles.favoriteLabelText}>{t('favorites')}</Text>
-            </View>
-            {favorites.map((fav) => {
-              const isActive = searchQuery === fav;
-              return (
-                <TouchableOpacity
-                  key={fav}
-                  style={[
-                    styles.favoriteChip,
-                    isActive && styles.favoriteChipActive,
-                    isRTL && { flexDirection: 'row-reverse' },
-                  ]}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setSearchQuery(isActive ? '' : fav);
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text
-                    style={[styles.favoriteChipText, isActive && styles.favoriteChipTextActive]}
-                  >
-                    {fav}
-                  </Text>
-                  {isActive && (
-                    <Ionicons
-                      name="close"
-                      size={12}
-                      color={Colors.primary}
-                      style={{ marginLeft: 4 }}
-                    />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
-
-        {/* Quick Stats Strip */}
-        {!isLoading && (
-          <View style={[styles.statsStrip, isRTL && { flexDirection: 'row-reverse' }]}>
-            <View style={styles.statItem}>
-              <View style={[styles.statIcon, { backgroundColor: Colors.primarySurface }]}>
-                <Ionicons name="bus" size={16} color={Colors.primary} />
-              </View>
-              <Text style={styles.statValue}>{routes.length}</Text>
-              <Text style={styles.statLabel} numberOfLines={1}>
-                {t('available_routes')}
-              </Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <View style={[styles.statIcon, { backgroundColor: Colors.successSurface }]}>
-                <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
-              </View>
-              <Text style={styles.statValue}>{activeSubs.length}</Text>
-              <Text style={styles.statLabel} numberOfLines={1}>
-                {t('my_subscriptions')}
-              </Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <View style={[styles.statIcon, { backgroundColor: Colors.warningSurface }]}>
-                <Ionicons name="car" size={16} color={Colors.warning} />
-              </View>
-              <Text style={styles.statValue}>
-                {routes.reduce((sum, r) => sum + r.available_seats, 0)}
-              </Text>
-              <Text style={styles.statLabel} numberOfLines={1}>
-                {t('seats_available')}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {/* Subscription / License Section */}
-        {!subsLoading && (
-          <View style={styles.subscriptionSection}>
-            {activeSubs.length > 0 ? (
-              <>
-                <Text style={[styles.sectionHeader, { textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t('my_subscriptions')}
-                </Text>
-                <FlatList
-                  horizontal
-                  data={activeSubs}
-                  keyExtractor={keyExtractor}
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ paddingHorizontal: Spacing.lg, gap: 12 }}
-                  renderItem={renderActiveSubscription}
-                  inverted={isRTL}
-                  initialNumToRender={2}
-                  windowSize={3}
+                  {subName ? (
+                    <Text
+                      style={[styles.searchResultSubtext, { textAlign: isRTL ? 'right' : 'left' }]}
+                      numberOfLines={1}
+                    >
+                      {subName}
+                    </Text>
+                  ) : null}
+                </View>
+                <Ionicons
+                  name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                  size={14}
+                  color={Colors.textMuted}
                 />
-              </>
-            ) : role === 'student' ? (
-              <View style={{ paddingHorizontal: Spacing.lg }}>
-                <LicenseActivationBanner />
-              </View>
-            ) : null}
-          </View>
-        )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
 
-        {/* Routes List */}
-        {isLoading ? (
-          <LoadingList count={4} variant="route" />
-        ) : (
-          <FlatList
-            data={error ? [] : filteredRoutes}
-            keyExtractor={keyExtractor}
-            renderItem={renderRoute}
-            contentContainerStyle={styles.listContent}
-            refreshControl={
-              <RefreshControl
-                refreshing={isLoading}
-                onRefresh={onRefresh}
-                colors={[Colors.primary]}
-                tintColor={Colors.primary}
-              />
-            }
-            ListEmptyComponent={error ? ListError : ListEmpty}
-            ListHeaderComponent={renderRoutesHeader}
-            showsVerticalScrollIndicator={false}
-            initialNumToRender={5}
-            maxToRenderPerBatch={10}
-            windowSize={5}
-            removeClippedSubviews={true}
-          />
-        )}
-      </View>
+      <CustomAlert
+        visible={alertVisible}
+        title={alertTitle}
+        message={alertMessage}
+        type={alertType}
+        buttons={alertButtons}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }
@@ -503,67 +719,133 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  content: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
+    backgroundColor: Colors.background,
   },
-  // Welcome Header
-  welcomeHeader: {
+  mainContent: {
+    flex: 1,
+    paddingTop: Spacing.sm,
+  },
+  // Branded Header
+  headerBanner: {
+    backgroundColor: '#EFECE9',
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E6E2DE',
+    ...Shadow.sm,
+    zIndex: 10,
+    overflow: 'hidden',
+  },
+
+  headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.sm,
-    backgroundColor: Colors.white,
+    marginBottom: Spacing.md,
   },
-  welcomeTextContainer: {
+  brandLogoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
+  },
+  brandLogoText: {
+    fontFamily: FontFamily.logo,
+    fontSize: 26,
+    color: Colors.text,
+  },
+  brandLogoTextDot: {
+    fontFamily: FontFamily.bold,
+    fontSize: 26,
+    color: Colors.primary,
+  },
+  greetingEmoji: {
+    fontSize: 18,
   },
   greetingText: {
     fontFamily: FontFamily.bold,
-    fontSize: 20,
+    fontSize: 18,
     color: Colors.text,
   },
-  subGreetingText: {
+  brandSubtitle: {
     fontFamily: FontFamily.regular,
     fontSize: 13,
-    color: Colors.textMuted,
+    color: Colors.textSecondary,
     marginTop: 2,
   },
-  avatarContainer: {
-    width: 44,
-    height: 44,
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  notificationHeaderButton: {
+    position: 'relative',
+    padding: 8,
+    backgroundColor: Colors.white,
     borderRadius: 22,
-    backgroundColor: Colors.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: Colors.primary,
+    borderWidth: 1,
+    borderColor: '#E6E2DE',
+    ...Shadow.sm,
+  },
+  unreadBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: Colors.error,
+    borderRadius: 9,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: Colors.white,
+  },
+  unreadBadgeText: {
+    color: Colors.white,
+    fontSize: 9,
+    fontFamily: FontFamily.bold,
+    lineHeight: 11,
+  },
+  avatarButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: Colors.white,
+    ...Shadow.sm,
+  },
+  avatarInner: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarText: {
     fontFamily: FontFamily.bold,
-    fontSize: 16,
-    color: Colors.primary,
+    fontSize: 14,
+    color: Colors.white,
   },
   // Search
-  searchContainer: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.sm,
-    zIndex: 10,
-  },
-  searchContainerFocused: {
-    zIndex: 100,
-  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.white,
     paddingHorizontal: Spacing.md,
-    height: 50,
+    height: 44,
     borderRadius: BorderRadius.pill,
     ...Shadow.sm,
     borderWidth: 1.5,
-    borderColor: Colors.transparent,
+    borderColor: '#E6E2DE',
   },
   searchBarFocused: {
     borderColor: Colors.primary,
@@ -571,7 +853,6 @@ const styles = StyleSheet.create({
   },
   searchResults: {
     position: 'absolute',
-    top: 66,
     left: Spacing.lg,
     right: Spacing.lg,
     backgroundColor: Colors.white,
@@ -585,17 +866,30 @@ const styles = StyleSheet.create({
   searchResultItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: Spacing.md,
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm + 2,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.surface,
+    borderBottomColor: '#F5F2EF',
+  },
+  searchResultIconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primarySurface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchResultText: {
     fontFamily: FontFamily.medium,
     fontSize: 14,
     color: Colors.text,
-    flex: 1,
+  },
+  searchResultSubtext: {
+    fontFamily: FontFamily.regular,
+    fontSize: 11,
+    color: Colors.textMuted,
+    marginTop: 1,
   },
   searchInput: {
     flex: 1,
@@ -604,36 +898,41 @@ const styles = StyleSheet.create({
     color: Colors.text,
     paddingHorizontal: Spacing.sm,
   },
-  statsStrip: {
-    flexDirection: 'row',
+  // Widgets Container
+  widgetsMainContainer: {
     backgroundColor: Colors.white,
+    borderRadius: 20,
+    padding: Spacing.md,
+    marginTop: Spacing.lg, // Safe gap below the header curtain instead of negative overlap
     marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-    borderRadius: 16,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.md,
+    marginBottom: Spacing.lg,
     borderWidth: 1,
     borderColor: '#EFECE9',
-    ...Shadow.sm,
+    ...Shadow.md,
+  },
+  statsRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
+    paddingVertical: Spacing.xs,
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 5,
+    paddingVertical: Spacing.xs,
   },
   statIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   statValue: {
     fontFamily: FontFamily.bold,
-    fontSize: 15,
+    fontSize: 18,
     color: Colors.text,
   },
   statLabel: {
@@ -644,100 +943,47 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    height: 30,
+    height: 32,
     backgroundColor: Colors.border,
     marginHorizontal: Spacing.xs,
   },
-  // Sections
-  subscriptionSection: {
-    marginBottom: Spacing.md,
+  widgetDivider: {
+    height: 1,
+    backgroundColor: '#EFECE9',
+    marginVertical: Spacing.sm,
   },
-  sectionHeader: {
-    fontFamily: FontFamily.medium,
-    fontSize: 12,
-    color: Colors.textMuted,
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.sm,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  routesHeader: {
+  favoritesHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    gap: 6,
+    marginBottom: Spacing.xs,
+    paddingHorizontal: Spacing.xs,
   },
-  routesCount: {
-    fontFamily: FontFamily.medium,
-    fontSize: 12,
-    color: Colors.primary,
-    backgroundColor: Colors.primarySurface,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.pill,
-  },
-  // List
-  listContent: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xxxl,
-  },
-  // Empty / Error
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.section,
-    gap: Spacing.md,
-  },
-  emptyTitle: {
+  favoritesHeaderTitle: {
     fontFamily: FontFamily.bold,
-    fontSize: 17,
+    fontSize: 13,
     color: Colors.textSecondary,
-  },
-  emptySubtitle: {
-    fontFamily: FontFamily.regular,
-    fontSize: 14,
-    color: Colors.textMuted,
-  },
-  retryButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-  },
-  retryText: {
-    fontFamily: FontFamily.bold,
-    color: Colors.white,
-    fontSize: 14,
   },
   favoritesContainer: {
     backgroundColor: 'transparent',
-    paddingBottom: Spacing.md,
+    marginHorizontal: -Spacing.md,
+    paddingBottom: Spacing.xs,
+    marginTop: Spacing.xs,
   },
   favoritesScroll: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.md,
     alignItems: 'center',
     gap: Spacing.sm,
-  },
-  favoriteLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginRight: 4,
-  },
-  favoriteLabelText: {
-    fontFamily: FontFamily.bold,
-    fontSize: 11,
-    color: Colors.textMuted,
   },
   favoriteChip: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
+    paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.pill,
     backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
     ...Shadow.sm,
   },
   favoriteChipActive: {
@@ -746,7 +992,7 @@ const styles = StyleSheet.create({
   },
   favoriteChipText: {
     fontFamily: FontFamily.medium,
-    fontSize: 12,
+    fontSize: 13,
     color: Colors.textSecondary,
   },
   favoriteChipTextActive: {
@@ -759,5 +1005,117 @@ const styles = StyleSheet.create({
   },
   favoriteActionButton: {
     padding: Spacing.xs,
+  },
+  subscriptionSection: {
+    marginHorizontal: -Spacing.md,
+    marginTop: Spacing.xs,
+  },
+  nestedSectionHeader: {
+    fontFamily: FontFamily.bold,
+    fontSize: 13,
+    color: Colors.textSecondary,
+    paddingHorizontal: Spacing.md,
+    marginBottom: Spacing.xs,
+  },
+  flatActivationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.sm,
+  },
+  activationContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    flex: 1,
+  },
+  activationIconWrapper: {
+    width: 38,
+    height: 38,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.primarySurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activationTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 14,
+    color: Colors.text,
+  },
+  activationSubtitle: {
+    fontFamily: FontFamily.regular,
+    fontSize: 11.5,
+    color: Colors.textSecondary,
+    marginTop: 1,
+  },
+  // Routes Container
+  routesMainContainer: {
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    padding: Spacing.md,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.xxl,
+    borderWidth: 1,
+    borderColor: '#EFECE9',
+    ...Shadow.md,
+  },
+  routesContainerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
+  },
+  routesContainerTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 15,
+    color: Colors.text,
+  },
+  routesBadge: {
+    backgroundColor: Colors.primarySurface,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.pill,
+  },
+  routesBadgeText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 11,
+    color: Colors.primary,
+  },
+  routesListWrapper: {
+    marginTop: Spacing.xs,
+  },
+  routeItemDivider: {
+    height: 1,
+    backgroundColor: '#EFECE9',
+    marginVertical: Spacing.sm,
+  },
+  // Empty State override inside container
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.lg,
+    gap: Spacing.md,
+  },
+  emptyTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 15,
+    color: Colors.textSecondary,
+  },
+  emptySubtitle: {
+    fontFamily: FontFamily.regular,
+    fontSize: 13,
+    color: Colors.textMuted,
+  },
+  retryButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+  },
+  retryText: {
+    fontFamily: FontFamily.bold,
+    color: Colors.white,
+    fontSize: 13,
   },
 });

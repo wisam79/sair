@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
@@ -14,8 +13,7 @@ import {
 } from 'react-native';
 import { supabase } from '../src/lib/supabase';
 import { useTranslation } from '../src/hooks/useTranslation';
-import { LoginSchema, SignupSchema } from '@uniride/core';
-import { z } from 'zod';
+import { LoginSchema, SignupSchema, SignupRequest } from '@sair/core';
 import { Colors, Spacing, BorderRadius, Shadow, FontFamily } from '../src/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,22 +21,38 @@ import CustomAlert from '../src/components/CustomAlert';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { makeRedirectUri } from 'expo-auth-session';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FormInput } from '../src/components/FormInput';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
   const [isSignup, setIsSignup] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [focusedField, setFocusedField] = useState<'fullName' | 'email' | 'password' | null>(null);
   const { t, isRTL, language, setLanguage } = useTranslation();
   const { top, bottom } = useSafeAreaInsets();
   const buttonScale = useRef(new Animated.Value(1)).current;
   const scrollViewRef = useRef<ScrollView>(null);
+
+  const { control, handleSubmit, reset, getValues } = useForm<SignupRequest>({
+    resolver: zodResolver(isSignup ? SignupSchema : LoginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      full_name: '',
+    },
+  });
+
+  // Reset form errors and fields when switching forms
+  useEffect(() => {
+    reset({
+      email: '',
+      password: '',
+      full_name: '',
+    });
+  }, [isSignup, reset]);
 
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
@@ -85,70 +99,55 @@ export default function LoginScreen() {
     ]).start();
   };
 
-  const validate = () => {
-    try {
-      const data = { email, password, ...(isSignup && { full_name: fullName }) };
-      if (isSignup) {
-        SignupSchema.parse(data);
-      } else {
-        LoginSchema.parse(data);
-      }
-      setErrors({});
-      return true;
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        const fieldErrors: Record<string, string> = {};
-        err.errors.forEach((e) => {
-          if (e.path[0]) {
-            fieldErrors[e.path[0].toString()] = e.message;
-          }
-        });
-        setErrors(fieldErrors);
-      }
-      return false;
-    }
-  };
-
-  const handleLogin = async () => {
-    if (!validate()) return;
+  const onSubmit = async (data: SignupRequest) => {
+    animateButton();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      showAlert(t('error'), error.message, 'error');
-    }
-    setLoading(false);
-  };
-
-  const handleSignup = async () => {
-    if (!validate()) return;
-    setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName.trim(),
-          role: 'student',
+    if (isSignup) {
+      const { data: signUpData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.full_name?.trim(),
+            role: 'student',
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
-      showAlert(t('error'), error.message, 'error');
-    } else if (data.session) {
-      showAlert(t('success'), t('account_created'), 'success');
+      if (error) {
+        showAlert(t('error'), error.message, 'error');
+      } else if (signUpData.session) {
+        showAlert(t('success'), t('account_created'), 'success');
+      } else {
+        showAlert(t('check_inbox_title'), t('check_inbox_msg'), 'info');
+      }
     } else {
-      showAlert(t('check_inbox_title'), t('check_inbox_msg'), 'info');
+      const { error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+      if (error) {
+        showAlert(t('error'), error.message, 'error');
+      }
     }
     setLoading(false);
   };
 
   const handleForgotPassword = async () => {
-    if (!email.trim()) {
+    const email = getValues('email');
+    if (!email || !email.trim()) {
       showAlert(t('alert'), t('enter_email_first'), 'warning');
       return;
     }
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+    const redirectUrl = makeRedirectUri({
+      scheme: 'sair',
+      path: 'login',
+    });
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl,
+    });
     if (error) {
       showAlert(t('error'), error.message, 'error');
     } else {
@@ -282,7 +281,7 @@ export default function LoginScreen() {
           </View>
           <Text style={styles.appName}>Sair</Text>
           <Text style={styles.appNameAr}>{t('welcome').split(' ')[0]}</Text>
-          <Text style={styles.tagline}>{t('uniride_tagline')}</Text>
+          <Text style={styles.tagline}>{t('sair_tagline')}</Text>
         </View>
 
         {/* Card */}
@@ -290,125 +289,36 @@ export default function LoginScreen() {
           <Text style={styles.cardTitle}>{isSignup ? t('signup') : t('login')}</Text>
 
           {isSignup && (
-            <View style={{ marginBottom: Spacing.md }}>
-              <View
-                collapsable={false}
-                style={[
-                  styles.inputWrapper,
-                  { flexDirection: isRTL ? 'row-reverse' : 'row' },
-                  errors.fullName && styles.inputError,
-                  focusedField === 'fullName' && styles.inputFocused,
-                ]}
-              >
-                <Ionicons
-                  name="person-outline"
-                  size={18}
-                  color={focusedField === 'fullName' ? Colors.primary : Colors.textMuted}
-                  style={[
-                    styles.inputIcon,
-                    {
-                      marginRight: isRTL ? 0 : Spacing.xs,
-                      marginLeft: isRTL ? Spacing.xs : 0,
-                    },
-                  ]}
-                />
-                <TextInput
-                  style={[styles.input, isRTL && styles.inputRTL]}
-                  placeholder={t('full_name')}
-                  placeholderTextColor={Colors.textMuted}
-                  value={fullName}
-                  onChangeText={setFullName}
-                  autoCapitalize="words"
-                  onFocus={() => handleFocus('fullName')}
-                  onBlur={() => setFocusedField(null)}
-                />
-              </View>
-              {errors.fullName && <Text style={styles.errorText}>{errors.fullName}</Text>}
-            </View>
+            <FormInput
+              control={control}
+              name="full_name"
+              placeholder={t('full_name')}
+              icon="person-outline"
+              autoCapitalize="words"
+              isRTL={isRTL}
+              onFocus={() => handleFocus('fullName')}
+            />
           )}
 
-          <View style={{ marginBottom: Spacing.md }}>
-            <View
-              collapsable={false}
-              style={[
-                styles.inputWrapper,
-                { flexDirection: isRTL ? 'row-reverse' : 'row' },
-                errors.email && styles.inputError,
-                focusedField === 'email' && styles.inputFocused,
-              ]}
-            >
-              <Ionicons
-                name="mail-outline"
-                size={18}
-                color={focusedField === 'email' ? Colors.primary : Colors.textMuted}
-                style={[
-                  styles.inputIcon,
-                  {
-                    marginRight: isRTL ? 0 : Spacing.xs,
-                    marginLeft: isRTL ? Spacing.xs : 0,
-                  },
-                ]}
-              />
-              <TextInput
-                style={[styles.input, { textAlign: 'left' }]}
-                placeholder={t('email')}
-                placeholderTextColor={Colors.textMuted}
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                onFocus={() => handleFocus('email')}
-                onBlur={() => setFocusedField(null)}
-              />
-            </View>
-            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-          </View>
+          <FormInput
+            control={control}
+            name="email"
+            placeholder={t('email')}
+            icon="mail-outline"
+            keyboardType="email-address"
+            isRTL={isRTL}
+            onFocus={() => handleFocus('email')}
+          />
 
-          <View style={{ marginBottom: Spacing.md }}>
-            <View
-              collapsable={false}
-              style={[
-                styles.inputWrapper,
-                { flexDirection: isRTL ? 'row-reverse' : 'row' },
-                errors.password && styles.inputError,
-                focusedField === 'password' && styles.inputFocused,
-              ]}
-            >
-              <Ionicons
-                name="lock-closed-outline"
-                size={18}
-                color={focusedField === 'password' ? Colors.primary : Colors.textMuted}
-                style={[
-                  styles.inputIcon,
-                  {
-                    marginRight: isRTL ? 0 : Spacing.xs,
-                    marginLeft: isRTL ? Spacing.xs : 0,
-                  },
-                ]}
-              />
-              <TextInput
-                style={[styles.input, styles.inputPassword, { textAlign: 'left' }]}
-                placeholder={t('password')}
-                placeholderTextColor={Colors.textMuted}
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-                onFocus={() => handleFocus('password')}
-                onBlur={() => setFocusedField(null)}
-              />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeButton}
-              >
-                <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  size={18}
-                  color={Colors.textMuted}
-                />
-              </TouchableOpacity>
-            </View>
-            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-          </View>
+          <FormInput
+            control={control}
+            name="password"
+            placeholder={t('password')}
+            icon="lock-closed-outline"
+            secureTextEntry
+            isRTL={isRTL}
+            onFocus={() => handleFocus('password')}
+          />
 
           {isSignup && (
             <View style={styles.roleSection}>
@@ -421,14 +331,7 @@ export default function LoginScreen() {
           <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={() => {
-                animateButton();
-                if (isSignup) {
-                  void handleSignup();
-                } else {
-                  void handleLogin();
-                }
-              }}
+              onPress={handleSubmit(onSubmit)}
               disabled={loading}
               activeOpacity={0.85}
             >
