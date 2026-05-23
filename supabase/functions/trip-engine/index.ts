@@ -1,4 +1,4 @@
-import { Expo } from 'https://esm.sh/expo-server-sdk';
+import { Expo } from 'npm:expo-server-sdk';
 import { corsResponse } from '../_shared/cors.ts';
 import { verifyAuth, supabaseAdmin } from '../_shared/auth.ts';
 
