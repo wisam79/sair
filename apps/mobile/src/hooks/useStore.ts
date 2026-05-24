@@ -13,12 +13,7 @@ interface AuthUser {
 interface AuthState {
   user: AuthUser | null;
   role: UserRole | null;
-  profile: {
-    full_name: string;
-    phone: string;
-    institution_id?: string | null;
-    is_verified?: boolean;
-  } | null;
+  profile: { full_name: string; phone: string; institution_id?: string | null } | null;
   initialized: boolean;
   hasHydrated: boolean;
   hasSeenOnboarding: boolean;
@@ -27,7 +22,6 @@ interface AuthState {
     full_name: string;
     phone: string;
     institution_id?: string | null;
-    is_verified?: boolean;
   }) => void;
   setInitialized: (initialized: boolean) => void;
   setHasHydrated: (state: boolean) => void;

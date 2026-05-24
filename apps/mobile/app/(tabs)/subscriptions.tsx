@@ -315,9 +315,6 @@ export default function SubscriptionsScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="dark" translucent />
-      {/* Background Decorative Glass Blobs */}
-      <View style={styles.blob1} />
-      <View style={styles.blob2} />
       <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
         <Text style={[styles.headerTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
           {t('my_subscriptions')}
@@ -359,36 +356,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  // Blobs
-  blob1: {
-    position: 'absolute',
-    top: -40,
-    left: -40,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: 'rgba(194, 112, 62, 0.16)', // warm earthy orange tint
-    zIndex: 0,
-  },
-  blob2: {
-    position: 'absolute',
-    top: 360,
-    right: -60,
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    backgroundColor: 'rgba(45, 45, 45, 0.08)', // charcoal neutral tint
-    zIndex: 0,
   },
   headerBanner: {
-    backgroundColor: 'rgba(255, 255, 255, 0.45)', // Translucent glass banner
+    backgroundColor: '#EFECE9',
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    borderBottomWidth: 1.5,
-    borderBottomColor: 'rgba(255, 255, 255, 0.6)', // Glowing border
+    borderBottomWidth: 1,
+    borderBottomColor: '#E6E2DE',
     ...Shadow.sm,
     zIndex: 10,
   },
@@ -405,7 +379,6 @@ const styles = StyleSheet.create({
   listContent: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xxxl,
-    backgroundColor: 'transparent',
   },
   pageTitle: {
     fontFamily: FontFamily.bold,
@@ -415,12 +388,10 @@ const styles = StyleSheet.create({
   },
   // Card
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.72)', // Translucent glass card
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     marginBottom: Spacing.md,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.6)', // Light reflection edge
     ...Shadow.md,
   },
   cardHeader: {
@@ -445,18 +416,16 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.pill,
   },
   statusText: {
-    fontFamily: FontFamily.bold,
+    fontFamily: FontFamily.medium,
     fontSize: 12,
   },
   // Route
   routePath: {
-    backgroundColor: 'rgba(255, 255, 255, 0.4)', // Translucent inner path card
+    backgroundColor: Colors.surfaceMuted,
     borderRadius: BorderRadius.sm,
     padding: Spacing.sm,
     marginBottom: Spacing.sm,
     gap: Spacing.xs,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   pathStop: {
     alignItems: 'center',
@@ -470,7 +439,7 @@ const styles = StyleSheet.create({
   pathDivider: {
     width: 2,
     height: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: Colors.border,
   },
   // Details
   detailsRow: {
@@ -479,7 +448,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: Spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.05)',
+    borderTopColor: Colors.border,
     marginBottom: Spacing.sm,
   },
   dateText: {

@@ -88,11 +88,11 @@ const styles = StyleSheet.create({
   activeSubCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.72)', // Translucent glass card background
+    backgroundColor: Colors.white,
     padding: Spacing.md,
-    borderRadius: BorderRadius.xl, // Increased for smoother rounded corners
+    borderRadius: BorderRadius.lg,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.6)', // Light reflection edge
+    borderColor: Colors.success,
     ...Shadow.md,
   },
   activeSubIcon: {

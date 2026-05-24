@@ -278,9 +278,4 @@ export default {
   km_short: 'كم',
   driver_gps_inactive: 'موقع السائق غير نشط حالياً',
   live: 'مباشر',
-  verified: 'حساب موثق',
-  unverified: 'حساب غير موثق',
-  institution: 'المؤسسة التعليمية',
-  active_subscription_desc: 'تتبع والتحكم باشتراكك الحالي',
-  no_active_subscription: 'لا يوجد اشتراك نشط حالياً',
 } as const;

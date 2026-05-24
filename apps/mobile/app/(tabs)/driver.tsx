@@ -341,9 +341,6 @@ export default function DriverDashboard() {
   return (
     <View style={styles.container}>
       <StatusBar style="dark" translucent />
-      {/* Background Decorative Glass Blobs */}
-      <View style={styles.blob1} />
-      <View style={styles.blob2} />
 
       {/* Header */}
       <View
@@ -433,44 +430,18 @@ export default function DriverDashboard() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  // Blobs
-  blob1: {
-    position: 'absolute',
-    top: -40,
-    left: -40,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: 'rgba(194, 112, 62, 0.16)', // warm earthy orange tint
-    zIndex: 0,
-  },
-  blob2: {
-    position: 'absolute',
-    top: 360,
-    right: -60,
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    backgroundColor: 'rgba(45, 45, 45, 0.08)', // charcoal neutral tint
-    zIndex: 0,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
   // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.45)', // Translucent glass banner
+    backgroundColor: '#EFECE9',
     paddingBottom: Spacing.md,
     paddingHorizontal: Spacing.lg,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    borderBottomWidth: 1.5,
-    borderBottomColor: 'rgba(255, 255, 255, 0.6)', // Glowing border
+    borderBottomWidth: 1,
+    borderBottomColor: '#E6E2DE',
     ...Shadow.sm,
     zIndex: 10,
   },
@@ -498,11 +469,11 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(253, 240, 232, 0.8)',
+    backgroundColor: Colors.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
   profileAvatarText: {
     fontFamily: FontFamily.bold,
@@ -518,23 +489,20 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: Colors.success,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderColor: '#EFECE9',
   },
   logoutButton: {
     width: 40,
     height: 40,
     borderRadius: BorderRadius.md,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   // List
   listContent: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xxxl,
-    backgroundColor: 'transparent',
   },
   center: {
     flex: 1,
@@ -550,12 +518,12 @@ const styles = StyleSheet.create({
   },
   // Card
   tripCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.72)', // Translucent glass card
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.xl,
     padding: Spacing.xl,
     marginBottom: Spacing.md,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.6)', // Light reflection edge
+    borderWidth: 1,
+    borderColor: '#ECE9E4',
     ...Shadow.md,
   },
   tripHeader: {
@@ -583,12 +551,12 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
   },
   routeDetailCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.4)', // Translucent flat nested card
+    backgroundColor: Colors.surfaceMuted,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: 'rgba(0,0,0,0.03)',
   },
   routeHeader: {
     flexDirection: 'row',
@@ -634,7 +602,7 @@ const styles = StyleSheet.create({
   verticalLine: {
     width: 2,
     height: 24,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: Colors.border,
     marginTop: 4,
     marginBottom: -4,
   },
@@ -689,8 +657,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.4)', // Glassy border highlight
     ...Shadow.lg,
   },
 });

@@ -162,13 +162,13 @@ export const RouteCard: React.FC<RouteCardProps> = React.memo(
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.72)', // Translucent glass card background
-    borderRadius: BorderRadius.xl, // Increased for smoother rounded corners
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
     marginBottom: Spacing.md,
     flexDirection: 'row',
     overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.6)', // Light reflection border
+    borderWidth: 1,
+    borderColor: '#E6E3DE',
     ...Shadow.md,
   },
   cardRTL: {
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
   verticalConnector: {
     width: 1.5,
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: Colors.border,
     marginVertical: 2,
   },
   routeDetails: {
@@ -262,12 +262,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)', // Translucent time badge
+    backgroundColor: Colors.surfaceMuted,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
-    borderRadius: BorderRadius.md, // Increased for smoother rounded corners
+    borderRadius: BorderRadius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: Colors.border,
   },
   timeText: {
     fontFamily: FontFamily.medium,
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.05)',
+    borderTopColor: Colors.border,
     paddingTop: Spacing.sm,
     marginTop: Spacing.xs,
   },
@@ -303,10 +303,10 @@ const styles = StyleSheet.create({
     color: Colors.success,
   },
   flatCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.4)', // Translucent flat nested card
+    backgroundColor: '#F5F2EF', // warm off-white matching screen background for nested contrast
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
-    borderRadius: BorderRadius.xl, // Increased to make it highly rounded
+    borderColor: '#E6E3DE',
+    borderRadius: BorderRadius.md,
     marginBottom: Spacing.md,
     shadowOpacity: 0,
     shadowOffset: { width: 0, height: 0 },
@@ -317,6 +317,6 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
   },
   flatTimeBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: Colors.white,
   },
 });
