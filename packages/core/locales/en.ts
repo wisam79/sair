@@ -282,4 +282,9 @@ export default {
   km_short: 'km',
   driver_gps_inactive: 'Driver GPS currently inactive',
   live: 'Live',
+  verified: 'Verified',
+  unverified: 'Unverified',
+  institution: 'Institution',
+  active_subscription_desc: 'Track and manage your current subscription',
+  no_active_subscription: 'No active subscription currently',
 } as const;

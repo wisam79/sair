@@ -285,6 +285,9 @@ export default function DiscoveryPage() {
   return (
     <View style={styles.container}>
       <StatusBar style="dark" translucent />
+      {/* Background Decorative Glass Blobs */}
+      <View style={styles.blob1} />
+      <View style={styles.blob2} />
 
       {/* Branded Header Banner (Fixed at the top) */}
       <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
@@ -718,10 +721,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  // Blobs
+  blob1: {
+    position: 'absolute',
+    top: -40,
+    left: -40,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: 'rgba(194, 112, 62, 0.16)', // warm earthy orange tint
+    zIndex: 0,
+  },
+  blob2: {
+    position: 'absolute',
+    top: 420,
+    right: -60,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: 'rgba(45, 45, 45, 0.08)', // charcoal neutral tint
+    zIndex: 0,
   },
   scrollContent: {
     flexGrow: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: 'transparent',
   },
   mainContent: {
     flex: 1,
@@ -729,13 +755,13 @@ const styles = StyleSheet.create({
   },
   // Branded Header
   headerBanner: {
-    backgroundColor: '#EFECE9',
+    backgroundColor: 'rgba(255, 255, 255, 0.45)', // Translucent glass banner
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E6E2DE',
+    borderBottomWidth: 1.5,
+    borderBottomColor: 'rgba(255, 255, 255, 0.6)', // Glowing border
     ...Shadow.sm,
     zIndex: 10,
     overflow: 'hidden',
@@ -784,12 +810,12 @@ const styles = StyleSheet.create({
   notificationHeaderButton: {
     position: 'relative',
     padding: 8,
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E6E2DE',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
     ...Shadow.sm,
   },
   unreadBadge: {
@@ -819,8 +845,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: Colors.white,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
     ...Shadow.sm,
   },
   avatarInner: {
@@ -839,26 +865,26 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     paddingHorizontal: Spacing.md,
     height: 44,
     borderRadius: BorderRadius.pill,
     ...Shadow.sm,
     borderWidth: 1.5,
-    borderColor: '#E6E2DE',
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
   searchBarFocused: {
     borderColor: Colors.primary,
-    ...Shadow.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
   searchResults: {
     position: 'absolute',
     left: Spacing.lg,
     right: Spacing.lg,
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
     paddingVertical: Spacing.sm,
     ...Shadow.md,
     zIndex: 101,
@@ -870,15 +896,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 2,
     borderBottomWidth: 1,
-    borderBottomColor: '#F5F2EF',
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
   },
   searchResultIconWrapper: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.primarySurface,
+    backgroundColor: 'rgba(253, 240, 232, 0.8)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   searchResultText: {
     fontFamily: FontFamily.medium,
@@ -900,14 +928,14 @@ const styles = StyleSheet.create({
   },
   // Widgets Container
   widgetsMainContainer: {
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.72)', // Translucent glass card
     borderRadius: 20,
     padding: Spacing.md,
     marginTop: Spacing.lg, // Safe gap below the header curtain instead of negative overlap
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
-    borderWidth: 1,
-    borderColor: '#EFECE9',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
     ...Shadow.md,
   },
   statsRow: {
@@ -944,12 +972,12 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 32,
-    backgroundColor: Colors.border,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
     marginHorizontal: Spacing.xs,
   },
   widgetDivider: {
     height: 1,
-    backgroundColor: '#EFECE9',
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
     marginVertical: Spacing.sm,
   },
   favoritesHeaderRow: {
@@ -981,9 +1009,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.pill,
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderWidth: 1.5,
-    borderColor: 'transparent',
+    borderColor: 'rgba(255, 255, 255, 0.6)',
     ...Shadow.sm,
   },
   favoriteChipActive: {
@@ -1033,9 +1061,11 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.primarySurface,
+    backgroundColor: 'rgba(253, 240, 232, 0.8)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   activationTitle: {
     fontFamily: FontFamily.bold,
@@ -1050,13 +1080,13 @@ const styles = StyleSheet.create({
   },
   // Routes Container
   routesMainContainer: {
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.72)', // Translucent glass card
     borderRadius: 20,
     padding: Spacing.md,
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.xxl,
-    borderWidth: 1,
-    borderColor: '#EFECE9',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
     ...Shadow.md,
   },
   routesContainerHeader: {
@@ -1072,10 +1102,12 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   routesBadge: {
-    backgroundColor: Colors.primarySurface,
+    backgroundColor: 'rgba(253, 240, 232, 0.8)',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 3,
     borderRadius: BorderRadius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   routesBadgeText: {
     fontFamily: FontFamily.bold,
@@ -1087,7 +1119,7 @@ const styles = StyleSheet.create({
   },
   routeItemDivider: {
     height: 1,
-    backgroundColor: '#EFECE9',
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
     marginVertical: Spacing.sm,
   },
   // Empty State override inside container
