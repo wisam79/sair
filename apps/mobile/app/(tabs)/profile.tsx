@@ -210,386 +210,396 @@ export default function ProfileScreen() {
   const initials = profile?.full_name ? getInitials(profile.full_name) : '';
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      <StatusBar style="dark" translucent />
+    <View style={styles.container}>
+      {/* Background Decorative Glass Blobs */}
+      <View style={styles.blob1} />
+      <View style={styles.blob2} />
 
-      {/* Premium Header */}
-      <View style={[styles.header, { paddingTop: top + Spacing.md }]}>
-        {/* Avatar Ring */}
-        <View style={styles.avatarContainer}>
-          <View style={styles.avatarCircle}>
-            {initials ? (
-              <Text style={styles.avatarInitialsText}>{initials}</Text>
-            ) : (
-              <Ionicons name="person" size={32} color={Colors.white} />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <StatusBar style="dark" translucent />
+
+        {/* Premium Header */}
+        <View style={[styles.header, { paddingTop: top + Spacing.md }]}>
+          {/* Avatar Ring */}
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatarCircle}>
+              {initials ? (
+                <Text style={styles.avatarInitialsText}>{initials}</Text>
+              ) : (
+                <Ionicons name="person" size={32} color={Colors.white} />
+              )}
+            </View>
+            {profile?.is_verified && (
+              <View style={styles.verifiedBadgeFloating}>
+                <Ionicons name="checkmark-circle" size={18} color={Colors.info} />
+              </View>
             )}
           </View>
-          {profile?.is_verified && (
-            <View style={styles.verifiedBadgeFloating}>
-              <Ionicons name="checkmark-circle" size={18} color={Colors.info} />
-            </View>
-          )}
-        </View>
 
-        <View style={[styles.nameRow, isRTL && { flexDirection: 'row-reverse' }]}>
-          <Text style={styles.headerName}>{profile?.full_name || t('user')}</Text>
-          {profile?.is_verified && (
-            <Ionicons
-              name="checkmark-circle"
-              size={16}
-              color={Colors.info}
-              style={styles.verifiedInlineIcon}
-            />
-          )}
-        </View>
-
-        <View style={[styles.roleBadge, isRTL && { flexDirection: 'row-reverse' }]}>
-          <Ionicons name={roleIcon} size={13} color={Colors.primary} />
-          <Text style={styles.roleBadgeText}>{roleLabel}</Text>
-        </View>
-
-        {institutionName ? (
-          <View style={[styles.institutionBadge, isRTL && { flexDirection: 'row-reverse' }]}>
-            <Ionicons name="school-outline" size={13} color={Colors.textSecondary} />
-            <Text style={styles.institutionText}>{institutionName}</Text>
+          <View style={[styles.nameRow, isRTL && { flexDirection: 'row-reverse' }]}>
+            <Text style={styles.headerName}>{profile?.full_name || t('user')}</Text>
+            {profile?.is_verified && (
+              <Ionicons
+                name="checkmark-circle"
+                size={16}
+                color={Colors.info}
+                style={styles.verifiedInlineIcon}
+              />
+            )}
           </View>
-        ) : profile?.institution_id ? (
-          <ActivityIndicator size="small" color={Colors.textMuted} style={{ marginVertical: 2 }} />
-        ) : null}
 
-        <Text style={styles.headerEmail}>{user?.email}</Text>
-      </View>
+          <View style={[styles.roleBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+            <Ionicons name={roleIcon} size={13} color={Colors.primary} />
+            <Text style={styles.roleBadgeText}>{roleLabel}</Text>
+          </View>
 
-      {/* Student Active Subscription summary card */}
-      {role === 'student' && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('active_subscription')}
-          </Text>
-
-          {loadingSubs ? (
+          {institutionName ? (
+            <View style={[styles.institutionBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+              <Ionicons name="school-outline" size={13} color={Colors.textSecondary} />
+              <Text style={styles.institutionText}>{institutionName}</Text>
+            </View>
+          ) : profile?.institution_id ? (
             <ActivityIndicator
-              color={Colors.primary}
               size="small"
-              style={{ padding: Spacing.md }}
+              color={Colors.textMuted}
+              style={{ marginVertical: 2 }}
             />
-          ) : activeSub ? (
-            <View style={styles.subCard}>
-              <View style={[styles.subCardHeader, isRTL && { flexDirection: 'row-reverse' }]}>
-                <Text style={[styles.subCardTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-                  {activeSub.routes?.title || t('route')}
+          ) : null}
+
+          <Text style={styles.headerEmail}>{user?.email}</Text>
+        </View>
+
+        {/* Student Active Subscription summary card */}
+        {role === 'student' && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('active_subscription')}
+            </Text>
+
+            {loadingSubs ? (
+              <ActivityIndicator
+                color={Colors.primary}
+                size="small"
+                style={{ padding: Spacing.md }}
+              />
+            ) : activeSub ? (
+              <View style={styles.subCard}>
+                <View style={[styles.subCardHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <Text style={[styles.subCardTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    {activeSub.routes?.title || t('route')}
+                  </Text>
+                  <View style={[styles.activeBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+                    <Ionicons name="checkmark-circle" size={12} color={Colors.white} />
+                    <Text style={styles.activeBadgeText}>{t('active')}</Text>
+                  </View>
+                </View>
+
+                <Text style={[styles.subCardDesc, { textAlign: isRTL ? 'right' : 'left' }]}>
+                  {activeSub.routes?.start_location} ➔ {activeSub.routes?.end_location}
                 </Text>
-                <View style={[styles.activeBadge, isRTL && { flexDirection: 'row-reverse' }]}>
-                  <Ionicons name="checkmark-circle" size={12} color={Colors.white} />
-                  <Text style={styles.activeBadgeText}>{t('active')}</Text>
+
+                <View style={[styles.subCardFooter, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <Text style={styles.subCardDate}>
+                    {t('expires')}:{' '}
+                    {new Date(activeSub.end_date).toLocaleDateString(isRTL ? 'ar-IQ' : 'en-US')}
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.subTrackBtn, isRTL && { flexDirection: 'row-reverse' }]}
+                    onPress={() => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      router.push('/subscriptions');
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="eye-outline" size={12} color={Colors.white} />
+                    <Text style={styles.subTrackText}>{t('view_subscription')}</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
-
-              <Text style={[styles.subCardDesc, { textAlign: isRTL ? 'right' : 'left' }]}>
-                {activeSub.routes?.start_location} ➔ {activeSub.routes?.end_location}
-              </Text>
-
-              <View style={[styles.subCardFooter, isRTL && { flexDirection: 'row-reverse' }]}>
-                <Text style={styles.subCardDate}>
-                  {t('expires')}:{' '}
-                  {new Date(activeSub.end_date).toLocaleDateString(isRTL ? 'ar-IQ' : 'en-US')}
-                </Text>
-                <TouchableOpacity
-                  style={[styles.subTrackBtn, isRTL && { flexDirection: 'row-reverse' }]}
-                  onPress={() => {
-                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    router.push('/subscriptions');
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="eye-outline" size={12} color={Colors.white} />
-                  <Text style={styles.subTrackText}>{t('view_subscription')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.noSubCard}
-              onPress={() => {
-                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push('/');
-              }}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="ticket-outline" size={28} color={Colors.textMuted} />
-              <Text style={styles.noSubText}>{t('no_active_subscription')}</Text>
-              <Text style={styles.noSubAction}>{t('book_route_prompt')}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
-
-      {/* Driver Stats */}
-      {role === 'driver' && stats.tripCount > 0 && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('my_stats')}
-          </Text>
-          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }}>
-            <View style={styles.statBox}>
-              <Ionicons name="car-outline" size={22} color={Colors.primary} />
-              <Text style={styles.statNumber}>{stats.tripCount}</Text>
-              <Text style={styles.statLabel}>{t('completed_trips')}</Text>
-            </View>
-            {stats.avgRating > 0 && (
-              <View style={styles.statBox}>
-                <Ionicons name="star" size={22} color={Colors.warning} />
-                <Text style={styles.statNumber}>{stats.avgRating}</Text>
-                <Text style={styles.statLabel}>{t('avg_rating')}</Text>
-              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.noSubCard}
+                onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push('/');
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="ticket-outline" size={28} color={Colors.textMuted} />
+                <Text style={styles.noSubText}>{t('no_active_subscription')}</Text>
+                <Text style={styles.noSubAction}>{t('book_route_prompt')}</Text>
+              </TouchableOpacity>
             )}
           </View>
-        </View>
-      )}
+        )}
 
-      {/* Personal Info Form Card */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('personal_info')}
-        </Text>
-
-        <View style={styles.field}>
-          <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('full_name')}
-          </Text>
-          <FormInput
-            control={control}
-            name="full_name"
-            placeholder={t('enter_full_name')}
-            icon="person-outline"
-            autoCapitalize="words"
-            isRTL={isRTL}
-            style={{ marginBottom: 0 }}
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('phone')}
-          </Text>
-          <FormInput
-            control={control}
-            name="phone"
-            placeholder={t('phone_placeholder')}
-            icon="call-outline"
-            keyboardType="phone-pad"
-            isRTL={isRTL}
-            style={{ marginBottom: 0 }}
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('email')}
-          </Text>
-          <View
-            style={[
-              styles.inputWrapper,
-              styles.inputDisabled,
-              isRTL && { flexDirection: 'row-reverse' },
-            ]}
-          >
-            <Ionicons
-              name="mail-outline"
-              size={16}
-              color={Colors.textMuted}
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={[styles.input, isRTL && styles.inputRTL, { color: Colors.textMuted }]}
-              value={user?.email || ''}
-              editable={false}
-            />
-            <Ionicons name="lock-closed-outline" size={14} color={Colors.textMuted} />
-          </View>
-        </View>
-
-        <TouchableOpacity
-          style={[
-            styles.saveButton,
-            saving && { opacity: 0.7 },
-            isRTL && { flexDirection: 'row-reverse' },
-          ]}
-          onPress={handleSubmit(handleSave)}
-          disabled={saving}
-          activeOpacity={0.85}
-        >
-          {saving ? (
-            <ActivityIndicator color={Colors.white} />
-          ) : (
-            <>
-              <Ionicons name="checkmark-outline" size={18} color={Colors.white} />
-              <Text style={styles.saveButtonText}>{t('save_changes')}</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* Account Settings List Card */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('account')}
-        </Text>
-
-        <View style={styles.menuContainer}>
-          {/* Trip History for student */}
-          {role === 'student' && (
-            <>
-              <TouchableOpacity
-                style={[styles.menuItem, isRTL && { flexDirection: 'row-reverse' }]}
-                onPress={() => {
-                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push('/trip-history');
-                }}
-                activeOpacity={0.6}
-              >
-                <View style={[styles.menuItemLeft, isRTL && { flexDirection: 'row-reverse' }]}>
-                  <View style={styles.menuIconContainer}>
-                    <Ionicons name="time-outline" size={20} color={Colors.primary} />
-                  </View>
-                  <Text style={styles.menuItemText}>{t('trip_history')}</Text>
-                </View>
-                <Ionicons
-                  name={isRTL ? 'chevron-back' : 'chevron-forward'}
-                  size={16}
-                  color={Colors.textMuted}
-                />
-              </TouchableOpacity>
-              <View style={styles.divider} />
-            </>
-          )}
-
-          {/* Withdraw Request for driver */}
-          {role === 'driver' && (
-            <>
-              <TouchableOpacity
-                style={[styles.menuItem, isRTL && { flexDirection: 'row-reverse' }]}
-                onPress={() => {
-                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push('/payouts');
-                }}
-                activeOpacity={0.6}
-              >
-                <View style={[styles.menuItemLeft, isRTL && { flexDirection: 'row-reverse' }]}>
-                  <View style={styles.menuIconContainer}>
-                    <Ionicons name="cash-outline" size={20} color={Colors.primary} />
-                  </View>
-                  <Text style={styles.menuItemText}>{t('withdraw_request')}</Text>
-                </View>
-                <Ionicons
-                  name={isRTL ? 'chevron-back' : 'chevron-forward'}
-                  size={16}
-                  color={Colors.textMuted}
-                />
-              </TouchableOpacity>
-              <View style={styles.divider} />
-            </>
-          )}
-
-          {/* Help Center */}
-          <TouchableOpacity
-            style={[styles.menuItem, isRTL && { flexDirection: 'row-reverse' }]}
-            onPress={() => {
-              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push('/help');
-            }}
-            activeOpacity={0.6}
-          >
-            <View style={[styles.menuItemLeft, isRTL && { flexDirection: 'row-reverse' }]}>
-              <View style={styles.menuIconContainer}>
-                <Ionicons name="help-circle-outline" size={20} color={Colors.primary} />
+        {/* Driver Stats */}
+        {role === 'driver' && stats.tripCount > 0 && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('my_stats')}
+            </Text>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }}>
+              <View style={styles.statBox}>
+                <Ionicons name="car-outline" size={22} color={Colors.primary} />
+                <Text style={styles.statNumber}>{stats.tripCount}</Text>
+                <Text style={styles.statLabel}>{t('completed_trips')}</Text>
               </View>
-              <Text style={styles.menuItemText}>{t('help_center')}</Text>
+              {stats.avgRating > 0 && (
+                <View style={styles.statBox}>
+                  <Ionicons name="star" size={22} color={Colors.warning} />
+                  <Text style={styles.statNumber}>{stats.avgRating}</Text>
+                  <Text style={styles.statLabel}>{t('avg_rating')}</Text>
+                </View>
+              )}
             </View>
-            <Ionicons
-              name={isRTL ? 'chevron-back' : 'chevron-forward'}
-              size={16}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+          </View>
+        )}
 
-      {/* Language Section Card */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('language')}
-        </Text>
-        <View style={[styles.langRow, isRTL && { flexDirection: 'row-reverse' }]}>
-          {[
-            { code: 'ar', label: t('arabic') },
-            { code: 'en', label: t('english') },
-          ].map((lang) => (
-            <TouchableOpacity
-              key={lang.code}
-              style={[styles.langChip, language === lang.code && styles.langChipActive]}
-              onPress={() => {
-                if (language === lang.code) return;
-                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                showAlert(t('alert'), t('language_change_restart'), 'warning', [
-                  { text: t('cancel'), style: 'cancel' },
-                  {
-                    text: t('ok'),
-                    onPress: () => {
-                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setLanguage(lang.code as 'ar' | 'en');
-                      try {
-                        DevSettings.reload();
-                      } catch {
-                        // ignore
-                      }
-                    },
-                  },
-                ]);
-              }}
-              activeOpacity={0.7}
+        {/* Personal Info Form Card */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('personal_info')}
+          </Text>
+
+          <View style={styles.field}>
+            <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('full_name')}
+            </Text>
+            <FormInput
+              control={control}
+              name="full_name"
+              placeholder={t('enter_full_name')}
+              icon="person-outline"
+              autoCapitalize="words"
+              isRTL={isRTL}
+              style={{ marginBottom: 0 }}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('phone')}
+            </Text>
+            <FormInput
+              control={control}
+              name="phone"
+              placeholder={t('phone_placeholder')}
+              icon="call-outline"
+              keyboardType="phone-pad"
+              isRTL={isRTL}
+              style={{ marginBottom: 0 }}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('email')}
+            </Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                styles.inputDisabled,
+                isRTL && { flexDirection: 'row-reverse' },
+              ]}
             >
               <Ionicons
-                name="language-outline"
+                name="mail-outline"
                 size={16}
-                color={language === lang.code ? Colors.primary : Colors.textMuted}
+                color={Colors.textMuted}
+                style={styles.inputIcon}
               />
-              <Text
-                style={[styles.langChipText, language === lang.code && styles.langChipTextActive]}
-              >
-                {lang.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+              <TextInput
+                style={[styles.input, isRTL && styles.inputRTL, { color: Colors.textMuted }]}
+                value={user?.email || ''}
+                editable={false}
+              />
+              <Ionicons name="lock-closed-outline" size={14} color={Colors.textMuted} />
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={[
+              styles.saveButton,
+              saving && { opacity: 0.7 },
+              isRTL && { flexDirection: 'row-reverse' },
+            ]}
+            onPress={handleSubmit(handleSave)}
+            disabled={saving}
+            activeOpacity={0.85}
+          >
+            {saving ? (
+              <ActivityIndicator color={Colors.white} />
+            ) : (
+              <>
+                <Ionicons name="checkmark-outline" size={18} color={Colors.white} />
+                <Text style={styles.saveButtonText}>{t('save_changes')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Logout Button */}
-      <TouchableOpacity
-        style={[styles.logoutButton, isRTL && { flexDirection: 'row-reverse' }]}
-        onPress={handleLogout}
-        activeOpacity={0.85}
-      >
-        <Ionicons name="log-out-outline" size={18} color={Colors.error} />
-        <Text style={styles.logoutText}>{t('logout')}</Text>
-      </TouchableOpacity>
+        {/* Account Settings List Card */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('account')}
+          </Text>
 
-      {/* App Version */}
-      <Text style={styles.versionText}>v{Constants.expoConfig?.version ?? '1.0.0'}</Text>
+          <View style={styles.menuContainer}>
+            {/* Trip History for student */}
+            {role === 'student' && (
+              <>
+                <TouchableOpacity
+                  style={[styles.menuItem, isRTL && { flexDirection: 'row-reverse' }]}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    router.push('/trip-history');
+                  }}
+                  activeOpacity={0.6}
+                >
+                  <View style={[styles.menuItemLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+                    <View style={styles.menuIconContainer}>
+                      <Ionicons name="time-outline" size={20} color={Colors.primary} />
+                    </View>
+                    <Text style={styles.menuItemText}>{t('trip_history')}</Text>
+                  </View>
+                  <Ionicons
+                    name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                    size={16}
+                    color={Colors.textMuted}
+                  />
+                </TouchableOpacity>
+                <View style={styles.divider} />
+              </>
+            )}
 
-      <CustomAlert
-        visible={alertConfig.visible}
-        title={alertConfig.title}
-        message={alertConfig.message}
-        type={alertConfig.type}
-        buttons={alertConfig.buttons}
-        onClose={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
-      />
-    </ScrollView>
+            {/* Withdraw Request for driver */}
+            {role === 'driver' && (
+              <>
+                <TouchableOpacity
+                  style={[styles.menuItem, isRTL && { flexDirection: 'row-reverse' }]}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    router.push('/payouts');
+                  }}
+                  activeOpacity={0.6}
+                >
+                  <View style={[styles.menuItemLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+                    <View style={styles.menuIconContainer}>
+                      <Ionicons name="cash-outline" size={20} color={Colors.primary} />
+                    </View>
+                    <Text style={styles.menuItemText}>{t('withdraw_request')}</Text>
+                  </View>
+                  <Ionicons
+                    name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                    size={16}
+                    color={Colors.textMuted}
+                  />
+                </TouchableOpacity>
+                <View style={styles.divider} />
+              </>
+            )}
+
+            {/* Help Center */}
+            <TouchableOpacity
+              style={[styles.menuItem, isRTL && { flexDirection: 'row-reverse' }]}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/help');
+              }}
+              activeOpacity={0.6}
+            >
+              <View style={[styles.menuItemLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={styles.menuIconContainer}>
+                  <Ionicons name="help-circle-outline" size={20} color={Colors.primary} />
+                </View>
+                <Text style={styles.menuItemText}>{t('help_center')}</Text>
+              </View>
+              <Ionicons
+                name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                size={16}
+                color={Colors.textMuted}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Language Section Card */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('language')}
+          </Text>
+          <View style={[styles.langRow, isRTL && { flexDirection: 'row-reverse' }]}>
+            {[
+              { code: 'ar', label: t('arabic') },
+              { code: 'en', label: t('english') },
+            ].map((lang) => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[styles.langChip, language === lang.code && styles.langChipActive]}
+                onPress={() => {
+                  if (language === lang.code) return;
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  showAlert(t('alert'), t('language_change_restart'), 'warning', [
+                    { text: t('cancel'), style: 'cancel' },
+                    {
+                      text: t('ok'),
+                      onPress: () => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setLanguage(lang.code as 'ar' | 'en');
+                        try {
+                          DevSettings.reload();
+                        } catch {
+                          // ignore
+                        }
+                      },
+                    },
+                  ]);
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name="language-outline"
+                  size={16}
+                  color={language === lang.code ? Colors.primary : Colors.textMuted}
+                />
+                <Text
+                  style={[styles.langChipText, language === lang.code && styles.langChipTextActive]}
+                >
+                  {lang.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Logout Button */}
+        <TouchableOpacity
+          style={[styles.logoutButton, isRTL && { flexDirection: 'row-reverse' }]}
+          onPress={handleLogout}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="log-out-outline" size={18} color={Colors.error} />
+          <Text style={styles.logoutText}>{t('logout')}</Text>
+        </TouchableOpacity>
+
+        {/* App Version */}
+        <Text style={styles.versionText}>v{Constants.expoConfig?.version ?? '1.0.0'}</Text>
+
+        <CustomAlert
+          visible={alertConfig.visible}
+          title={alertConfig.title}
+          message={alertConfig.message}
+          type={alertConfig.type}
+          buttons={alertConfig.buttons}
+          onClose={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
+        />
+      </ScrollView>
+    </View>
   );
 }
 
@@ -597,20 +607,50 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+    position: 'relative',
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
     paddingBottom: Spacing.xxxl + 60, // added extra padding for floating tabs safety
   },
+  // Blobs
+  blob1: {
+    position: 'absolute',
+    top: -40,
+    left: -40,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: 'rgba(194, 112, 62, 0.16)', // warm earthy orange tint
+    zIndex: 0,
+  },
+  blob2: {
+    position: 'absolute',
+    top: 360,
+    right: -60,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: 'rgba(45, 45, 45, 0.08)', // charcoal neutral tint
+    zIndex: 0,
+  },
   // Header
   header: {
-    backgroundColor: '#EFECE9',
+    backgroundColor: 'rgba(255, 255, 255, 0.45)', // Translucent glass backdrop
     alignItems: 'center',
     paddingBottom: Spacing.xl,
     paddingHorizontal: Spacing.xl,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E6E2DE',
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    borderBottomWidth: 1.5,
+    borderBottomColor: 'rgba(255, 255, 255, 0.6)', // Glowing edge
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
   },
   avatarContainer: {
     position: 'relative',
@@ -618,11 +658,16 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 2,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.8)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.sm,
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   avatarCircle: {
     width: 70,
@@ -676,13 +721,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
-    backgroundColor: Colors.primarySurface,
+    backgroundColor: 'rgba(253, 240, 232, 0.6)', // glassified primary surface
     paddingHorizontal: Spacing.md,
     paddingVertical: 4,
     borderRadius: BorderRadius.pill,
     marginBottom: Spacing.sm,
     borderWidth: 1,
-    borderColor: '#E6E2DE',
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   roleBadgeText: {
     fontFamily: FontFamily.medium,
@@ -693,11 +738,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
-    backgroundColor: 'rgba(0,0,0,0.03)',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 3,
     borderRadius: BorderRadius.sm,
     marginBottom: Spacing.xs,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   institutionText: {
     fontFamily: FontFamily.medium,
@@ -710,16 +757,20 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 4,
   },
-  // Section
+  // Glassmorphic Section Cards
   section: {
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.72)', // Translucent glass look
     marginHorizontal: Spacing.lg,
     marginTop: Spacing.md,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
-    borderWidth: 1,
-    borderColor: '#E6E3DE',
-    ...Shadow.sm,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.6)', // Light reflection border
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
   },
   sectionTitle: {
     fontFamily: FontFamily.bold,
@@ -727,13 +778,13 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: Spacing.md,
   },
-  // Active Sub Card
+  // Glass Active Sub Card
   subCard: {
-    backgroundColor: Colors.primarySurface,
+    backgroundColor: 'rgba(194, 112, 62, 0.08)', // Tinted translucent subcard
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.primary + '18',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.7)',
   },
   subCardHeader: {
     flexDirection: 'row',
@@ -791,13 +842,13 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
   noSubCard: {
-    backgroundColor: Colors.surfaceMuted,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
     borderRadius: BorderRadius.md,
     padding: Spacing.lg,
     alignItems: 'center',
     gap: Spacing.xs,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
     borderStyle: 'dashed',
   },
   noSubText: {
@@ -814,7 +865,7 @@ const styles = StyleSheet.create({
   },
   // Menu settings list
   menuContainer: {
-    backgroundColor: Colors.surface,
+    backgroundColor: 'transparent',
   },
   menuItem: {
     flexDirection: 'row',
@@ -831,9 +882,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.primarySurface,
+    backgroundColor: 'rgba(253, 240, 232, 0.8)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
   },
   menuItemText: {
     fontFamily: FontFamily.medium,
@@ -842,7 +895,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.border,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
     opacity: 0.5,
   },
   // Field
@@ -858,15 +911,15 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
     borderWidth: 1.5,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
   inputDisabled: {
     opacity: 0.7,
-    backgroundColor: Colors.surfaceMuted,
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
   },
   inputIcon: {
     marginHorizontal: Spacing.xs,
@@ -917,8 +970,8 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
     borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: Colors.white,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
   },
   langChipActive: {
     borderColor: Colors.primary,
@@ -942,9 +995,9 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
     padding: Spacing.sm,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.errorSurface,
-    borderWidth: 1,
-    borderColor: Colors.error + '30',
+    backgroundColor: 'rgba(255, 235, 238, 0.8)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   logoutText: {
     fontFamily: FontFamily.bold,
@@ -955,10 +1008,12 @@ const styles = StyleSheet.create({
   statBox: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: Colors.primarySurface,
+    backgroundColor: 'rgba(253, 240, 232, 0.6)',
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     gap: Spacing.xs,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
   },
   statNumber: {
     fontFamily: FontFamily.bold,
