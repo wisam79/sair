@@ -10,9 +10,7 @@ import {
   Grid,
   Card,
   CardContent,
-  IconButton,
   Divider,
-  useTheme,
 } from '@mui/material';
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import TranslateIcon from '@mui/icons-material/Translate';
@@ -54,22 +52,22 @@ export default function LandingPage() {
         subtitle: 'صممنا المنصة لتلبية الاحتياجات اليومية للنقل الجامعي بأعلى كفاءة',
         list: [
           {
-            icon: <MapIcon sx={{ fontSize: 40, color: '#38bdf8' }} />,
+            icon: <MapIcon sx={{ fontSize: 40, color: '#8FA89B' }} />,
             title: 'تتبع حي للحافلة',
             desc: 'شاهد موقع الحافلة على الخريطة في الوقت الفعلي واعرف وقت وصولها الدقيق دون الحاجة للانتظار الطويل في الخارج.',
           },
           {
-            icon: <PaymentsIcon sx={{ fontSize: 40, color: '#10b981' }} />,
+            icon: <PaymentsIcon sx={{ fontSize: 40, color: '#D49A3B' }} />,
             title: 'اشتراكات التراخيص الرقمية',
             desc: 'احجز مقعدك الشهري أو الأسبوعي بتفعيل أكواد التراخيص المدفوعة مسبقاً (8 رموز) لتجنب عناء الدفع النقدي اليومي.',
           },
           {
-            icon: <NotificationsActiveIcon sx={{ fontSize: 40, color: '#f59e0b' }} />,
-            title: 'تنبيهات فورية وذكية',
+            icon: <NotificationsActiveIcon sx={{ fontSize: 40, color: '#D4845A' }} />,
+            title: 'تنببهات فورية وذكية',
             desc: 'استقبل إشعارات لحظية على هاتفك فور انطلاق الرحلة، أو عند اقتراب السائق من موقع الانتظار الخاص بك.',
           },
           {
-            icon: <SecurityIcon sx={{ fontSize: 40, color: '#ef4444' }} />,
+            icon: <SecurityIcon sx={{ fontSize: 40, color: '#C05C36' }} />,
             title: 'بيئة آمنة وموثقة',
             desc: 'جميع السائقين في شبكتنا موثقين ومعتمدين بعد مراجعة دقيقة لبياناتهم ومركباتهم لضمان رحلة دراسية آمنة تماماً.',
           },
@@ -110,22 +108,22 @@ export default function LandingPage() {
           'Designed to solve daily university transportation challenges with state-of-the-art tech.',
         list: [
           {
-            icon: <MapIcon sx={{ fontSize: 40, color: '#38bdf8' }} />,
+            icon: <MapIcon sx={{ fontSize: 40, color: '#8FA89B' }} />,
             title: 'Real-Time Bus Tracking',
             desc: 'Monitor your bus exact location live on the map. Know the estimated arrival time and never miss a bus or wait in the heat.',
           },
           {
-            icon: <PaymentsIcon sx={{ fontSize: 40, color: '#10b981' }} />,
+            icon: <PaymentsIcon sx={{ fontSize: 40, color: '#D49A3B' }} />,
             title: 'Prepaid Digital Licenses',
             desc: 'Secure your weekly or monthly seat subscription easily by activating official 8-digit license codes, without cash handling.',
           },
           {
-            icon: <NotificationsActiveIcon sx={{ fontSize: 40, color: '#f59e0b' }} />,
+            icon: <NotificationsActiveIcon sx={{ fontSize: 40, color: '#D4845A' }} />,
             title: 'Smart Push Alerts',
             desc: 'Receive instant push notifications when your ride is scheduled, when the driver starts, or when the bus approaches your stop.',
           },
           {
-            icon: <SecurityIcon sx={{ fontSize: 40, color: '#ef4444' }} />,
+            icon: <SecurityIcon sx={{ fontSize: 40, color: '#C05C36' }} />,
             title: 'Verified Fleet & Safe Rides',
             desc: 'All university drivers and buses are strictly verified for capacity, safety compliance, and official records to ensure complete safety.',
           },
@@ -152,9 +150,10 @@ export default function LandingPage() {
 
   return (
     <Box
+      className="grid-pattern-dark"
       sx={{
         minHeight: '100vh',
-        bgcolor: '#070a13',
+        bgcolor: '#1E1C1A',
         color: '#f8fafc',
         fontFamily: 'var(--font-ibm-arabic), sans-serif',
         overflowX: 'hidden',
@@ -166,14 +165,14 @@ export default function LandingPage() {
       <Box
         sx={{
           position: 'absolute',
-          top: '-10%',
-          right: isRtl ? 'auto' : '-10%',
-          left: isRtl ? '-10%' : 'auto',
-          width: '500px',
-          height: '500px',
+          top: '-12%',
+          right: isRtl ? 'auto' : '-8%',
+          left: isRtl ? '-8%' : 'auto',
+          width: '550px',
+          height: '550px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(37,99,235,0.15) 0%, rgba(0,0,0,0) 70%)',
-          filter: 'blur(80px)',
+          background: 'radial-gradient(circle, rgba(194,112,62,0.2) 0%, rgba(0,0,0,0) 70%)',
+          filter: 'blur(90px)',
           zIndex: 0,
           pointerEvents: 'none',
         }}
@@ -181,14 +180,14 @@ export default function LandingPage() {
       <Box
         sx={{
           position: 'absolute',
-          top: '30%',
-          right: isRtl ? '-15%' : 'auto',
-          left: isRtl ? 'auto' : '-15%',
-          width: '600px',
-          height: '600px',
+          top: '25%',
+          right: isRtl ? '-10%' : 'auto',
+          left: isRtl ? 'auto' : '-10%',
+          width: '650px',
+          height: '650px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(56,189,248,0.1) 0%, rgba(0,0,0,0) 70%)',
-          filter: 'blur(100px)',
+          background: 'radial-gradient(circle, rgba(212,132,90,0.12) 0%, rgba(0,0,0,0) 70%)',
+          filter: 'blur(110px)',
           zIndex: 0,
           pointerEvents: 'none',
         }}
@@ -197,12 +196,13 @@ export default function LandingPage() {
       {/* Navigation Header */}
       <Box
         sx={{
-          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-          backdropFilter: 'blur(16px)',
-          bgcolor: 'rgba(7, 10, 19, 0.7)',
+          borderBottom: '1px solid rgba(194, 112, 62, 0.12)',
+          backdropFilter: 'blur(20px)',
+          bgcolor: 'rgba(30, 28, 26, 0.85)',
           position: 'sticky',
           top: 0,
           zIndex: 100,
+          transition: 'all 0.3s ease',
         }}
       >
         <Container maxWidth="lg">
@@ -219,16 +219,16 @@ export default function LandingPage() {
                   width: 38,
                   height: 38,
                   borderRadius: 2,
-                  bgcolor: '#2563eb',
+                  bgcolor: '#C2703E',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 0 20px rgba(37, 99, 235, 0.5)',
+                  boxShadow: '0 0 24px rgba(194, 112, 62, 0.6)',
                 }}
               >
                 <DirectionsBusIcon sx={{ color: '#fff', fontSize: 20 }} />
               </Box>
-              <Typography variant="h5" fontWeight={900} sx={{ letterSpacing: 1, color: '#fff' }}>
+              <Typography variant="h5" fontWeight={900} sx={{ letterSpacing: 0.5, color: '#fff' }}>
                 {lang === 'ar' ? 'سير' : 'Sair'}
               </Typography>
             </Stack>
@@ -240,15 +240,18 @@ export default function LandingPage() {
                 onClick={toggleLanguage}
                 startIcon={<TranslateIcon sx={{ fontSize: 16 }} />}
                 sx={{
-                  color: '#38bdf8',
-                  borderColor: 'rgba(56, 189, 248, 0.3)',
+                  color: '#D4845A',
+                  borderColor: 'rgba(212, 132, 90, 0.35)',
                   borderRadius: 2,
-                  px: 2,
+                  px: 2.2,
+                  py: 0.8,
                   fontSize: '0.85rem',
                   textTransform: 'none',
+                  transition: 'all 0.2s ease',
                   '&:hover': {
-                    borderColor: '#38bdf8',
-                    bgcolor: 'rgba(56, 189, 248, 0.05)',
+                    borderColor: '#D4845A',
+                    bgcolor: 'rgba(212, 132, 90, 0.08)',
+                    transform: 'translateY(-1px)',
                   },
                 }}
               >
@@ -263,7 +266,12 @@ export default function LandingPage() {
                     fontWeight: 600,
                     textTransform: 'none',
                     display: { xs: 'none', sm: 'inline-flex' },
-                    '&:hover': { color: '#38bdf8', bgcolor: 'transparent' },
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      color: '#D4845A',
+                      bgcolor: 'transparent',
+                      transform: 'translateY(-1px)',
+                    },
                   }}
                 >
                   {t.nav.support}
@@ -275,17 +283,19 @@ export default function LandingPage() {
                   variant="contained"
                   startIcon={<LoginIcon sx={{ fontSize: 16 }} />}
                   sx={{
-                    bgcolor: '#2563eb',
+                    bgcolor: '#C2703E',
                     color: '#fff',
                     borderRadius: 2.5,
                     px: 3,
                     fontSize: '0.85rem',
                     fontWeight: 700,
                     textTransform: 'none',
-                    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)',
+                    boxShadow: '0 4px 16px rgba(194, 112, 62, 0.4)',
+                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                     '&:hover': {
-                      bgcolor: '#1d4ed8',
-                      boxShadow: '0 6px 20px rgba(37, 99, 235, 0.4)',
+                      bgcolor: '#A85C2E',
+                      boxShadow: '0 6px 22px rgba(194, 112, 62, 0.55)',
+                      transform: 'translateY(-2px)',
                     },
                   }}
                 >
@@ -312,14 +322,27 @@ export default function LandingPage() {
                     px: 2,
                     py: 0.8,
                     borderRadius: 5,
-                    bgcolor: 'rgba(37, 99, 235, 0.1)',
-                    border: '1px solid rgba(37, 99, 235, 0.2)',
+                    bgcolor: 'rgba(194, 112, 62, 0.08)',
+                    border: '1px solid rgba(194, 112, 62, 0.25)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 1,
+                    boxShadow: '0 4px 12px rgba(194, 112, 62, 0.05)',
                   }}
                 >
-                  <Typography variant="caption" sx={{ color: '#60a5fa', fontWeight: 700 }}>
+                  <Box
+                    sx={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      bgcolor: '#D4845A',
+                      className: 'live-dot',
+                    }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{ color: '#D4845A', fontWeight: 700, letterSpacing: 0.5 }}
+                  >
                     {t.hero.badge}
                   </Typography>
                 </Box>
@@ -339,11 +362,12 @@ export default function LandingPage() {
                 <Box
                   component="span"
                   sx={{
-                    background: 'linear-gradient(to right, #38bdf8, #2563eb)',
+                    background: 'linear-gradient(to right, #D4845A, #C2703E)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     display: 'inline-block',
                     position: 'relative',
+                    textShadow: '0 0 40px rgba(194, 112, 62, 0.15)',
                     '&::after': {
                       content: '""',
                       position: 'absolute',
@@ -352,7 +376,7 @@ export default function LandingPage() {
                       width: '100%',
                       height: '4px',
                       background:
-                        'linear-gradient(to right, rgba(56,189,248,0.5), rgba(37,99,235,0.5))',
+                        'linear-gradient(to right, rgba(212,132,90,0.6), rgba(194,112,62,0.6))',
                       borderRadius: 2,
                     },
                   }}
@@ -381,18 +405,21 @@ export default function LandingPage() {
                   variant="contained"
                   startIcon={<AppleIcon />}
                   sx={{
-                    bgcolor: '#1e293b',
+                    bgcolor: '#2D2D2D',
                     color: '#fff',
                     borderRadius: 3,
-                    px: 3,
+                    px: 3.5,
                     py: 1.5,
                     fontSize: '0.9rem',
                     fontWeight: 600,
                     textTransform: 'none',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(194, 112, 62, 0.12)',
+                    transition: 'all 0.25s ease',
                     '&:hover': {
-                      bgcolor: '#0f172a',
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
+                      bgcolor: '#1E1E1E',
+                      borderColor: 'rgba(194, 112, 62, 0.35)',
+                      boxShadow: '0 8px 20px rgba(0, 0, 0, 0.4)',
+                      transform: 'translateY(-3px)',
                     },
                   }}
                 >
@@ -410,18 +437,21 @@ export default function LandingPage() {
                   variant="contained"
                   startIcon={<PlayArrowIcon />}
                   sx={{
-                    bgcolor: '#1e293b',
+                    bgcolor: '#2D2D2D',
                     color: '#fff',
                     borderRadius: 3,
-                    px: 3,
+                    px: 3.5,
                     py: 1.5,
                     fontSize: '0.9rem',
                     fontWeight: 600,
                     textTransform: 'none',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(194, 112, 62, 0.12)',
+                    transition: 'all 0.25s ease',
                     '&:hover': {
-                      bgcolor: '#0f172a',
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
+                      bgcolor: '#1E1E1E',
+                      borderColor: 'rgba(194, 112, 62, 0.35)',
+                      boxShadow: '0 8px 20px rgba(0, 0, 0, 0.4)',
+                      transform: 'translateY(-3px)',
                     },
                   }}
                 >
@@ -438,32 +468,125 @@ export default function LandingPage() {
             </Stack>
           </Grid>
 
-          {/* Graphical Mockup representation */}
+          {/* Graphical Mockup representation (Interactive Smartphone Frame) */}
           <Grid item xs={12} md={5} sx={{ display: 'flex', justifyContent: 'center' }}>
             <Box
               sx={{
                 width: '100%',
-                maxWidth: '380px',
-                height: '420px',
-                borderRadius: '24px',
+                maxWidth: '340px',
+                height: '520px',
+                borderRadius: '40px',
                 background:
-                  'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(56, 189, 248, 0.1)',
+                  'linear-gradient(135deg, rgba(45, 43, 41, 0.85) 0%, rgba(26, 24, 23, 0.98) 100%)',
+                border: '4px solid #333130',
+                outline: '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow:
+                  '0 30px 70px -15px rgba(0, 0, 0, 0.9), 0 0 50px rgba(194, 112, 62, 0.18)',
                 position: 'relative',
                 p: 3,
+                pt: 7,
+                pb: 4,
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
+                overflow: 'hidden',
               }}
             >
-              {/* Glassmorphic inner card */}
+              {/* iPhone Dynamic Island Style Notch */}
               <Box
                 sx={{
-                  bgcolor: 'rgba(37, 99, 235, 0.05)',
-                  border: '1px solid rgba(37, 99, 235, 0.15)',
-                  borderRadius: '16px',
+                  position: 'absolute',
+                  top: 12,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 100,
+                  height: 24,
+                  borderRadius: '12px',
+                  bgcolor: '#000000',
+                  zIndex: 10,
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  px: 1.5,
+                }}
+              >
+                <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#0f172a' }} />
+                <Box
+                  sx={{ width: 40, height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.1)' }}
+                />
+                <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#10b981' }} />
+              </Box>
+
+              {/* Status Bar */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 16,
+                  left: 24,
+                  right: 24,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  zIndex: 9,
+                  opacity: 0.85,
+                  color: '#94a3b8',
+                }}
+              >
+                <Typography sx={{ fontSize: '0.72rem', fontWeight: 700 }}>12:30</Typography>
+                <Stack direction="row" spacing={0.6} alignItems="center">
+                  {/* Network Icon */}
+                  <Box sx={{ display: 'flex', gap: '2px', alignItems: 'flex-end', height: 8 }}>
+                    <Box sx={{ width: 2, height: 3, bgcolor: 'currentColor' }} />
+                    <Box sx={{ width: 2, height: 5, bgcolor: 'currentColor' }} />
+                    <Box sx={{ width: 2, height: 7, bgcolor: 'currentColor' }} />
+                    <Box sx={{ width: 2, height: 8, bgcolor: 'currentColor' }} />
+                  </Box>
+                  {/* Battery */}
+                  <Box
+                    sx={{
+                      width: 15,
+                      height: 8,
+                      borderRadius: '2px',
+                      border: '1px solid currentColor',
+                      position: 'relative',
+                      p: '0.5px',
+                      display: 'flex',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: '80%',
+                        height: '100%',
+                        bgcolor: '#10b981',
+                        borderRadius: '0.5px',
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        width: 1.5,
+                        height: 3,
+                        bgcolor: 'currentColor',
+                        borderRadius: '0 0.5px 0.5px 0',
+                        position: 'absolute',
+                        right: -2.5,
+                        top: 1.5,
+                      }}
+                    />
+                  </Box>
+                </Stack>
+              </Box>
+
+              {/* Glassmorphic live tracking card */}
+              <Box
+                sx={{
+                  bgcolor: 'rgba(30, 28, 26, 0.75)',
+                  border: '1px solid rgba(194, 112, 62, 0.22)',
+                  borderRadius: '18px',
                   p: 2,
+                  zIndex: 2,
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                  backdropFilter: 'blur(12px)',
                 }}
               >
                 <Stack
@@ -473,30 +596,43 @@ export default function LandingPage() {
                   sx={{ mb: 1.5 }}
                 >
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10b981' }} />
-                    <Typography variant="caption" fontWeight={700} color="#10b981">
-                      {lang === 'ar' ? 'رحلة نشطة حالياً' : 'Active Trip Now'}
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        bgcolor: '#D4845A',
+                        className: 'live-dot',
+                      }}
+                    />
+                    <Typography
+                      variant="caption"
+                      fontWeight={700}
+                      color="#D4845A"
+                      sx={{ letterSpacing: 0.5 }}
+                    >
+                      {lang === 'ar' ? 'تتبع حي نشط' : 'Active Tracking'}
                     </Typography>
                   </Stack>
                   <Typography variant="caption" color="#94a3b8">
                     12:30 PM
                   </Typography>
                 </Stack>
-                <Typography variant="body2" fontWeight={700} sx={{ mb: 0.5 }}>
+                <Typography variant="body2" fontWeight={700} sx={{ mb: 0.5, color: '#fff' }}>
                   {lang === 'ar' ? 'خط جامعة بغداد - الجادرية' : 'Baghdad Uni Route - Jaderiyah'}
                 </Typography>
-                <Typography variant="caption" color="#94a3b8" sx={{ display: 'block', mb: 1 }}>
+                <Typography variant="caption" color="#94a3b8" sx={{ display: 'block', mb: 1.5 }}>
                   {lang === 'ar'
-                    ? 'السائق: وسام سمير | حافلة رقم ٤٩٢ بابل'
-                    : 'Driver: Wisam Samir | Bus 492 Babil'}
+                    ? 'السائق: وسام سمير | حافلة رقم ٤٩٢ بغداد'
+                    : 'Driver: Wisam Samir | Bus 492 Baghdad'}
                 </Typography>
                 <Box
                   sx={{
                     width: '100%',
-                    height: '80px',
-                    borderRadius: '8px',
-                    bgcolor: '#070a13',
-                    border: '1px solid rgba(255,255,255,0.05)',
+                    height: '100px',
+                    borderRadius: '12px',
+                    bgcolor: '#1F1E1D',
+                    border: '1px solid rgba(194, 112, 62, 0.1)',
                     position: 'relative',
                     overflow: 'hidden',
                     display: 'flex',
@@ -504,76 +640,99 @@ export default function LandingPage() {
                     justifyContent: 'center',
                   }}
                 >
-                  {/* Visual simulated map */}
+                  {/* Dotted curve representing bus route */}
+                  <svg
+                    width="100%"
+                    height="100%"
+                    style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
+                  >
+                    <path
+                      d="M 30,70 Q 120,20 160,50 T 260,35"
+                      fill="none"
+                      stroke="rgba(194, 112, 62, 0.2)"
+                      strokeWidth="4"
+                      strokeDasharray="6,6"
+                    />
+                    <path
+                      d="M 30,70 Q 120,20 160,50"
+                      fill="none"
+                      stroke="#C2703E"
+                      strokeWidth="4"
+                    />
+                  </svg>
+
+                  {/* Start Point */}
                   <Box
                     sx={{
                       position: 'absolute',
-                      width: '100%',
-                      height: '2px',
-                      bgcolor: 'rgba(255,255,255,0.1)',
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      width: '2px',
-                      height: '100%',
-                      bgcolor: 'rgba(255,255,255,0.1)',
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      left: '30%',
-                      top: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      width: 14,
-                      height: 14,
+                      left: 25,
+                      top: 65,
+                      width: 8,
+                      height: 8,
                       borderRadius: '50%',
-                      bgcolor: '#2563eb',
-                      boxShadow: '0 0 10px #2563eb',
+                      bgcolor: '#D49A3B',
+                      boxShadow: '0 0 8px #D49A3B',
+                    }}
+                  />
+
+                  {/* Active Bus Icon */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: 154,
+                      top: 44,
+                      width: 22,
+                      height: 22,
+                      borderRadius: '50%',
+                      bgcolor: '#C2703E',
+                      boxShadow: '0 0 16px #C2703E, 0 0 0 4px rgba(194,112,62,0.2)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <DirectionsBusIcon sx={{ color: '#fff', fontSize: 10 }} />
+                    <DirectionsBusIcon sx={{ color: '#fff', fontSize: 13 }} />
                   </Box>
+
+                  {/* Destination Point */}
                   <Box
                     sx={{
                       position: 'absolute',
-                      left: '70%',
-                      top: '30%',
-                      width: 10,
-                      height: 10,
+                      left: 256,
+                      top: 31,
+                      width: 8,
+                      height: 8,
                       borderRadius: '50%',
-                      bgcolor: '#ef4444',
-                      boxShadow: '0 0 8px #ef4444',
+                      bgcolor: '#C05C36',
+                      boxShadow: '0 0 8px #C05C36',
                     }}
                   />
+
                   <Typography
                     variant="caption"
                     sx={{
                       position: 'absolute',
-                      bottom: 4,
-                      right: 6,
-                      fontSize: '0.65rem',
+                      bottom: 6,
+                      right: 10,
+                      fontSize: '0.62rem',
                       color: '#64748b',
+                      fontWeight: 600,
                     }}
                   >
-                    {lang === 'ar' ? 'تحديث تلقائي مفعّل 🟢' : 'Live Tracking Enabled 🟢'}
+                    {lang === 'ar' ? 'تحديث حي 🟢' : 'Live updates 🟢'}
                   </Typography>
                 </Box>
               </Box>
 
-              {/* License Card Sim */}
+              {/* License Card Sim (Bronze/Amber theme) */}
               <Box
                 sx={{
-                  bgcolor: 'rgba(255, 255, 255, 0.02)',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
-                  borderRadius: '16px',
+                  bgcolor: 'rgba(45, 43, 40, 0.85)',
+                  border: '1px solid rgba(212, 154, 59, 0.25)',
+                  borderRadius: '18px',
                   p: 2,
-                  mt: 2,
+                  zIndex: 2,
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
                 }}
               >
                 <Stack direction="row" spacing={1.5} alignItems="center">
@@ -582,37 +741,56 @@ export default function LandingPage() {
                       width: 36,
                       height: 36,
                       borderRadius: 1.5,
-                      bgcolor: 'rgba(56, 189, 248, 0.1)',
+                      bgcolor: 'rgba(212, 132, 90, 0.1)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <SecurityIcon sx={{ color: '#38bdf8', fontSize: 18 }} />
+                    <SecurityIcon sx={{ color: '#D4845A', fontSize: 18 }} />
                   </Box>
                   <Box sx={{ flexGrow: 1 }}>
-                    <Typography variant="caption" color="#94a3b8" sx={{ display: 'block' }}>
+                    <Typography
+                      variant="caption"
+                      color="#94a3b8"
+                      sx={{ display: 'block', fontSize: '0.68rem' }}
+                    >
                       {lang === 'ar' ? 'الاشتراك الرقمي النشط' : 'Active Digital License'}
                     </Typography>
-                    <Typography variant="body2" fontWeight={700}>
-                      SR-9382-X9
+                    <Typography variant="body2" fontWeight={800} color="#fff">
+                      SR-2026-X8
                     </Typography>
                   </Box>
                   <Box
                     sx={{
-                      px: 1.2,
-                      py: 0.4,
+                      px: 1.5,
+                      py: 0.5,
                       borderRadius: 1.5,
-                      bgcolor: 'rgba(16, 185, 129, 0.1)',
-                      border: '1px solid rgba(16, 185, 129, 0.2)',
+                      bgcolor: 'rgba(212, 154, 59, 0.12)',
+                      border: '1px solid rgba(212, 154, 59, 0.25)',
                     }}
                   >
-                    <Typography variant="caption" fontWeight={700} color="#10b981">
-                      {lang === 'ar' ? 'نشط' : 'Active'}
+                    <Typography variant="caption" fontWeight={700} color="#D49A3B">
+                      {lang === 'ar' ? 'فعّال' : 'Active'}
                     </Typography>
                   </Box>
                 </Stack>
               </Box>
+
+              {/* Home Indicator bar */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: 8,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 120,
+                  height: 4,
+                  borderRadius: 2,
+                  bgcolor: 'rgba(255,255,255,0.25)',
+                  zIndex: 10,
+                }}
+              />
             </Box>
           </Grid>
         </Grid>
@@ -621,9 +799,9 @@ export default function LandingPage() {
       {/* Features Section */}
       <Box
         sx={{
-          bgcolor: '#0b0f19',
+          bgcolor: '#151413',
           py: { xs: 8, md: 12 },
-          borderTop: '1px solid rgba(255,255,255,0.03)',
+          borderTop: '1px solid rgba(194, 112, 62, 0.1)',
         }}
       >
         <Container maxWidth="lg">
@@ -631,48 +809,53 @@ export default function LandingPage() {
             <Typography
               variant="h3"
               fontWeight={800}
-              sx={{ fontSize: { xs: '1.75rem', md: '2.5rem' } }}
+              sx={{ fontSize: { xs: '1.75rem', md: '2.5rem' }, color: '#fff' }}
             >
               {t.features.title}
             </Typography>
-            <Typography variant="subtitle1" sx={{ color: '#64748b', maxWidth: '600px' }}>
+            <Typography variant="subtitle1" sx={{ color: '#94a3b8', maxWidth: '600px' }}>
               {t.features.subtitle}
             </Typography>
           </Stack>
 
           <Grid container spacing={4}>
-            {t.features.list.map((feat, idx) => (
-              <Grid item xs={12} sm={6} md={3} key={idx}>
-                <Card
-                  elevation={0}
-                  sx={{
-                    height: '100%',
-                    bgcolor: 'rgba(30, 41, 59, 0.3)',
-                    border: '1px solid rgba(255, 255, 255, 0.04)',
-                    borderRadius: 4,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-6px)',
-                      borderColor: 'rgba(56, 189, 248, 0.2)',
-                      bgcolor: 'rgba(30, 41, 59, 0.5)',
-                      boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.5)',
-                    },
-                  }}
-                >
-                  <CardContent
-                    sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%' }}
+            {t.features.list.map((feat, idx) => {
+              return (
+                <Grid item xs={12} sm={6} md={3} key={idx}>
+                  <Card
+                    elevation={0}
+                    className="card-shine"
+                    sx={{
+                      height: '100%',
+                      bgcolor: 'rgba(45, 43, 41, 0.45)',
+                      border: '1px solid rgba(194, 112, 62, 0.08)',
+                      borderRadius: 5,
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&:hover': {
+                        transform: 'translateY(-8px)',
+                        borderColor: 'rgba(212, 132, 90, 0.3)',
+                        bgcolor: 'rgba(45, 43, 41, 0.75)',
+                        boxShadow: '0 20px 45px -15px rgba(0, 0, 0, 0.7)',
+                      },
+                    }}
                   >
-                    <Box sx={{ mb: 2 }}>{feat.icon}</Box>
-                    <Typography variant="h6" fontWeight={700} gutterBottom sx={{ color: '#fff' }}>
-                      {feat.title}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#94a3b8', lineHeight: 1.6 }}>
-                      {feat.desc}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
+                    <CardContent
+                      sx={{ p: 3.5, display: 'flex', flexDirection: 'column', height: '100%' }}
+                    >
+                      <Box sx={{ mb: 2.5 }}>{feat.icon}</Box>
+                      <Typography variant="h6" fontWeight={750} gutterBottom sx={{ color: '#fff' }}>
+                        {feat.title}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#94a3b8', lineHeight: 1.6 }}>
+                        {feat.desc}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })}
           </Grid>
         </Container>
       </Box>
@@ -680,45 +863,67 @@ export default function LandingPage() {
       {/* CTA Download Banner */}
       <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
         <Box
+          className="grid-pattern"
           sx={{
             p: { xs: 4, md: 8 },
             borderRadius: 6,
             background:
-              'linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(56, 189, 248, 0.05) 100%)',
-            border: '1px solid rgba(37, 99, 235, 0.2)',
-            boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.6)',
+              'linear-gradient(135deg, rgba(194, 112, 62, 0.16) 0%, rgba(21, 20, 19, 0.95) 100%)',
+            border: '1px solid rgba(194, 112, 62, 0.25)',
+            boxShadow: '0 24px 60px -15px rgba(0, 0, 0, 0.8)',
             textAlign: 'center',
             position: 'relative',
             overflow: 'hidden',
           }}
         >
-          <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 1 }}>
+          {/* Subtle orb shine */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '400px',
+              height: '400px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(194,112,62,0.12) 0%, rgba(0,0,0,0) 60%)',
+              filter: 'blur(60px)',
+              pointerEvents: 'none',
+            }}
+          />
+
+          <Stack spacing={3.5} alignItems="center" sx={{ position: 'relative', zIndex: 1 }}>
             <Typography
               variant="h4"
               fontWeight={900}
-              sx={{ fontSize: { xs: '1.75rem', md: '2.5rem' }, color: '#fff' }}
+              sx={{ fontSize: { xs: '1.75rem', md: '2.5rem' }, color: '#fff', letterSpacing: -0.5 }}
             >
               {t.cta.title}
             </Typography>
-            <Typography variant="subtitle1" sx={{ color: '#94a3b8', maxWidth: '600px' }}>
+            <Typography
+              variant="subtitle1"
+              sx={{ color: '#94a3b8', maxWidth: '600px', lineHeight: 1.6 }}
+            >
               {t.cta.subtitle}
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ pt: 2 }}>
               <Button
                 variant="contained"
                 sx={{
-                  bgcolor: '#2563eb',
+                  bgcolor: '#C2703E',
                   color: '#fff',
-                  px: 4,
-                  py: 1.5,
+                  px: 4.5,
+                  py: 1.6,
                   borderRadius: 2.5,
                   fontWeight: 700,
                   fontSize: '0.95rem',
                   textTransform: 'none',
-                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
+                  boxShadow: '0 4px 18px rgba(194, 112, 62, 0.45)',
+                  transition: 'all 0.2s ease',
                   '&:hover': {
-                    bgcolor: '#1d4ed8',
-                    boxShadow: '0 6px 20px rgba(37, 99, 235, 0.5)',
+                    bgcolor: '#A85C2E',
+                    boxShadow: '0 8px 24px rgba(194, 112, 62, 0.55)',
+                    transform: 'translateY(-2px)',
                   },
                 }}
               >
@@ -730,7 +935,7 @@ export default function LandingPage() {
       </Container>
 
       {/* Footer */}
-      <Box sx={{ borderTop: '1px solid rgba(255, 255, 255, 0.05)', bgcolor: '#05070d', py: 6 }}>
+      <Box sx={{ borderTop: '1px solid rgba(194, 112, 62, 0.08)', bgcolor: '#151413', py: 6 }}>
         <Container maxWidth="lg">
           <Grid container spacing={4} sx={{ mb: 4 }}>
             <Grid item xs={12} md={6}>
@@ -741,7 +946,7 @@ export default function LandingPage() {
                       width: 32,
                       height: 32,
                       borderRadius: 1.5,
-                      bgcolor: '#2563eb',
+                      bgcolor: '#C2703E',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -780,7 +985,8 @@ export default function LandingPage() {
                         textTransform: 'none',
                         p: 0,
                         minWidth: 0,
-                        '&:hover': { color: '#38bdf8' },
+                        transition: 'color 0.2s ease',
+                        '&:hover': { color: '#D4845A' },
                       }}
                     >
                       {t.footer.privacy}
@@ -794,7 +1000,8 @@ export default function LandingPage() {
                         textTransform: 'none',
                         p: 0,
                         minWidth: 0,
-                        '&:hover': { color: '#38bdf8' },
+                        transition: 'color 0.2s ease',
+                        '&:hover': { color: '#D4845A' },
                       }}
                     >
                       {t.footer.terms}
@@ -808,7 +1015,8 @@ export default function LandingPage() {
                         textTransform: 'none',
                         p: 0,
                         minWidth: 0,
-                        '&:hover': { color: '#38bdf8' },
+                        transition: 'color 0.2s ease',
+                        '&:hover': { color: '#D4845A' },
                       }}
                     >
                       {t.footer.support}
@@ -819,7 +1027,7 @@ export default function LandingPage() {
             </Grid>
           </Grid>
 
-          <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)', mb: 3 }} />
+          <Divider sx={{ borderColor: 'rgba(194, 112, 62, 0.08)', mb: 3 }} />
 
           <Typography
             variant="caption"

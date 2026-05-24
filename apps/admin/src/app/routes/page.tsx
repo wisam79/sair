@@ -19,6 +19,9 @@ export default function RouteList() {
       dataGridProps?.rows
         ?.map((item: { driver_id?: string }) => item?.driver_id)
         .filter((id): id is string => typeof id === 'string') ?? [],
+    meta: {
+      select: '*, profiles(full_name)',
+    },
     queryOptions: {
       enabled: !!dataGridProps?.rows,
       queryKey: [
@@ -26,6 +29,7 @@ export default function RouteList() {
         dataGridProps?.rows
           ?.map((item: { driver_id?: string }) => item?.driver_id)
           .filter((id): id is string => typeof id === 'string') ?? [],
+        'profiles-join',
       ],
     },
   });
@@ -58,7 +62,8 @@ export default function RouteList() {
           }
 
           const driver = driverData?.data?.find((item) => item.id === value);
-          return driver ? driver.license_number : value;
+          const profile = driver?.profiles as { full_name?: string } | null;
+          return profile?.full_name ?? driver?.license_number ?? value;
         },
       },
       {

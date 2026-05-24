@@ -18,21 +18,20 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import React, { useMemo } from 'react';
 
-import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
-import DirectionsBusFilledRoundedIcon from '@mui/icons-material/DirectionsBusFilledRounded';
-import RouteRoundedIcon from '@mui/icons-material/RouteRounded';
-import CreditScoreRoundedIcon from '@mui/icons-material/CreditScoreRounded';
-import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
-import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
-import AddRoadIcon from '@mui/icons-material/AddRoad';
-import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
-import LayersIcon from '@mui/icons-material/Layers';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import {
+  Users,
+  Bus,
+  Route,
+  CreditCard,
+  TrendingUp,
+  PlusCircle,
+  BellRing,
+  Layers,
+  RefreshCw,
+  DollarSign,
+  ChevronRight,
+  LineChart,
+} from 'lucide-react';
 
 // Recharts components
 import {
@@ -84,40 +83,58 @@ function StatCard({
       sx={{
         height: '100%',
         cursor: href ? 'pointer' : 'default',
-        borderRadius: 4,
+        borderRadius: 4.5,
         border: '1px solid',
         borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(148, 163, 184, 0.1)',
-        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : `0 4px 24px rgba(15,23,42,0.04)`,
+        background: isDark
+          ? 'linear-gradient(135deg, rgba(45, 45, 45, 0.45) 0%, rgba(35, 35, 35, 0.45) 100%)'
+          : 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 242, 239, 0.8) 100%)',
+        backdropFilter: 'blur(12px)',
+        boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.25)' : '0 8px 32px rgba(15, 23, 42, 0.04)',
         position: 'relative',
         overflow: 'hidden',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         '&:hover': {
-          transform: 'translateY(-5px)',
+          transform: 'translateY(-6px)',
           boxShadow: isDark
-            ? `0 12px 32px rgba(0,0,0,0.5), 0 0 0 1px ${color}25`
-            : `0 16px 40px ${color}12, 0 0 0 1px ${color}15`,
-          borderColor: `${color}35`,
+            ? `0 16px 40px rgba(0,0,0,0.45), 0 0 0 1px ${color}35`
+            : `0 16px 40px ${color}12, 0 0 0 1px ${color}20`,
+          borderColor: `${color}45`,
+          '& .icon-box': {
+            transform: 'scale(1.1) rotate(5deg)',
+            bgcolor: isDark ? `${color}25` : `${color}15`,
+            boxShadow: `0 6px 20px ${color}30`,
+          },
+          '&::after': {
+            opacity: isDark ? 0.22 : 0.15,
+            transform: 'scale(1.25)',
+          },
         },
-        '&::before': {
+        '&::after': {
           content: '""',
           position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 3,
-          background: `linear-gradient(90deg, ${color}, ${color}88, transparent)`,
-          borderRadius: '4px 4px 0 0',
+          bottom: -32,
+          right: -32,
+          width: 96,
+          height: 96,
+          borderRadius: '50%',
+          background: color,
+          filter: 'blur(32px)',
+          opacity: isDark ? 0.12 : 0.07,
+          zIndex: 0,
+          transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+          pointerEvents: 'none',
         },
       }}
     >
-      <CardContent sx={{ p: 2.5 }}>
+      <CardContent sx={{ p: 2.5, position: 'relative', zIndex: 1 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
           <Box sx={{ flex: 1 }}>
             <Typography
               color="text.secondary"
               gutterBottom
               sx={{
-                fontSize: '0.7rem',
+                fontSize: '0.68rem',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
@@ -133,7 +150,7 @@ function StatCard({
                 fontWeight: 800,
                 lineHeight: 1.1,
                 mb: 0.5,
-                fontSize: '1.75rem',
+                fontSize: '1.8rem',
               }}
             >
               {typeof value === 'number' ? value.toLocaleString() : value}
@@ -146,19 +163,20 @@ function StatCard({
             </Typography>
           </Box>
           <Box
+            className="icon-box"
             sx={{
-              width: 48,
-              height: 48,
+              width: 46,
+              height: 46,
               borderRadius: 3,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              bgcolor: isDark ? `${color}18` : `${color}0a`,
+              bgcolor: isDark ? `${color}18` : `${color}08`,
               color: color,
               border: `1px solid ${color}18`,
-              boxShadow: `0 4px 16px ${color}20`,
-              '& svg': { fontSize: 24 },
-              transition: 'all 0.3s ease',
+              boxShadow: `0 4px 16px ${color}15`,
+              '& svg': { fontSize: 22 },
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           >
             {icon}
@@ -259,10 +277,10 @@ function QuickAction({
               {description}
             </Typography>
           </Box>
-          <ArrowForwardIosIcon
+          <ChevronRight
             className="qa-arrow"
-            sx={{
-              fontSize: 11,
+            size={16}
+            style={{
               color: `${color}80`,
               opacity: 0.4,
               transition: 'opacity 0.2s, transform 0.2s',
@@ -296,6 +314,79 @@ export default function DashboardClient({
   const isDark = theme.palette.mode === 'dark';
   const isRTL = i18n.language?.startsWith('ar') || false;
   const [lastRefreshed, setLastRefreshed] = React.useState(() => new Date());
+
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: any[];
+    label?: string;
+  }) => {
+    if (active && payload && payload.length) {
+      return (
+        <Box
+          sx={{
+            bgcolor: isDark ? 'rgba(30, 30, 30, 0.85)' : 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(12px)',
+            border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15, 23, 42, 0.08)'}`,
+            borderRadius: 3.5,
+            p: 1.8,
+            boxShadow: isDark ? '0 12px 32px rgba(0,0,0,0.45)' : '0 12px 32px rgba(15,23,42,0.06)',
+            textAlign: 'start',
+          }}
+        >
+          <Typography
+            variant="subtitle2"
+            fontWeight={700}
+            sx={{ mb: 1, color: 'text.primary', fontSize: '0.8rem' }}
+          >
+            {label}
+          </Typography>
+          <Stack spacing={0.8}>
+            {payload.map((entry: any, index: number) => {
+              const isRevenue = entry.dataKey === 'revenue';
+              const formattedVal = isRevenue
+                ? `${Number(entry.value).toLocaleString()} ${t('common.iqd', 'د.ع')}`
+                : `${Number(entry.value).toLocaleString()} ${t('common.users', 'مشترك')}`;
+              return (
+                <Stack key={index} direction="row" spacing={1.5} alignItems="center">
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      bgcolor: entry.color || (isRevenue ? '#C2703E' : '#8b5cf6'),
+                      boxShadow: `0 0 8px ${entry.color || (isRevenue ? '#C2703E' : '#8b5cf6')}`,
+                    }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.72rem' }}
+                  >
+                    {entry.name}:
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.primary',
+                      fontWeight: 700,
+                      fontSize: '0.78rem',
+                      marginLeft: 'auto !important',
+                    }}
+                  >
+                    {formattedVal}
+                  </Typography>
+                </Stack>
+              );
+            })}
+          </Stack>
+        </Box>
+      );
+    }
+    return null;
+  };
 
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -334,8 +425,8 @@ export default function DashboardClient({
       key: 'users',
       title: t('dashboard.stats.total_users', 'إجمالي المستخدمين'),
       value: stats.total_users,
-      color: '#2563eb',
-      icon: <PeopleAltRoundedIcon />,
+      color: '#C2703E',
+      icon: <Users size={24} />,
       hint: t('dashboard.stats.hint_users', 'مسجلين في المنصة'),
       href: '/profiles',
     },
@@ -344,7 +435,7 @@ export default function DashboardClient({
       title: t('dashboard.stats.active_drivers', 'السائقين النشطين'),
       value: stats.total_drivers,
       color: '#16a34a',
-      icon: <DirectionsBusFilledRoundedIcon />,
+      icon: <Bus size={24} />,
       hint: t('dashboard.stats.hint_drivers', 'الأسطول المتاح حالياً'),
       href: '/drivers',
     },
@@ -353,7 +444,7 @@ export default function DashboardClient({
       title: t('dashboard.stats.active_routes', 'الخطوط الفعالة'),
       value: stats.active_routes,
       color: '#7c3aed',
-      icon: <RouteRoundedIcon />,
+      icon: <Route size={24} />,
       hint: `${t('dashboard.stats.of', 'من أصل')} ${stats.total_routes} ${t('dashboard.stats.total', 'إجمالي')}`,
       href: '/routes',
     },
@@ -362,7 +453,7 @@ export default function DashboardClient({
       title: t('dashboard.stats.active_trips', 'الرحلات الحية'),
       value: stats.active_trips,
       color: '#ea580c',
-      icon: <TrendingUpRoundedIcon />,
+      icon: <TrendingUp size={24} />,
       hint: t('dashboard.stats.hint_trips', 'رحلات قيد التنفيذ حالياً'),
       href: '/trips',
     },
@@ -371,7 +462,7 @@ export default function DashboardClient({
       title: t('dashboard.stats.active_subscriptions', 'الاشتراكات الفعالة'),
       value: stats.active_subscriptions,
       color: '#9333ea',
-      icon: <CreditScoreRoundedIcon />,
+      icon: <CreditCard size={24} />,
       hint: `${t('dashboard.stats.of', 'من أصل')} ${stats.total_subscriptions} ${t('dashboard.stats.total', 'إجمالي')}`,
       href: '/subscriptions',
     },
@@ -380,7 +471,7 @@ export default function DashboardClient({
       title: t('dashboard.stats.monthly_revenue', 'الأرباح الشهرية (د.ع)'),
       value: stats.monthly_revenue.toLocaleString(),
       color: '#d97706',
-      icon: <AttachMoneyIcon />,
+      icon: <DollarSign size={24} />,
       hint: t('dashboard.stats.hint_revenue', 'من الاشتراكات الفعالة'),
       href: '/revenue',
     },
@@ -389,7 +480,7 @@ export default function DashboardClient({
       title: t('dashboard.stats.total_trips', 'إجمالي الرحلات'),
       value: stats.total_trips,
       color: '#0891b2',
-      icon: <DirectionsBusFilledRoundedIcon />,
+      icon: <Bus size={24} />,
       hint: t('dashboard.stats.hint_total_trips', 'الرحلات المسجلة بالنظام'),
       href: '/trip-archive',
     },
@@ -398,7 +489,7 @@ export default function DashboardClient({
       title: t('dashboard.stats.total_routes', 'إجمالي الخطوط'),
       value: stats.total_routes,
       color: '#0f766e',
-      icon: <RouteRoundedIcon />,
+      icon: <Route size={24} />,
       hint: t('dashboard.stats.hint_total_routes', 'الخطوط المجهزة والمتاحة'),
       href: '/routes',
     },
@@ -406,28 +497,28 @@ export default function DashboardClient({
 
   const quickActions = [
     {
-      icon: <AddRoadIcon />,
+      icon: <PlusCircle size={20} />,
       label: t('dashboard.actions.addRoute', 'إضافة خط جديد'),
       description: t('dashboard.actions.addRouteDesc', 'إنشاء مسار نقل جديد للطلاب'),
       color: '#7c3aed',
       onClick: () => router.push('/routes/create'),
     },
     {
-      icon: <NotificationsActiveIcon />,
+      icon: <BellRing size={20} />,
       label: t('dashboard.actions.sendNotification', 'إرسال إشعار'),
       description: t('dashboard.actions.sendNotificationDesc', 'إرسال إشعار جماعي فوري للهواتف'),
       color: '#ea580c',
       onClick: () => router.push('/notifications'),
     },
     {
-      icon: <LayersIcon />,
+      icon: <Layers size={20} />,
       label: t('dashboard.actions.createLicenseBatch', 'دفعة تراخيص جديدة'),
       description: t('dashboard.actions.createLicenseBatchDesc', 'توليد وتصدير أكواد تراخيص جديدة'),
-      color: '#2563eb',
+      color: '#C2703E',
       onClick: () => router.push('/license_batches/create'),
     },
     {
-      icon: <DirectionsBusFilledRoundedIcon />,
+      icon: <Bus size={20} />,
       label: t('dashboard.actions.viewTrips', 'الرحلات الحية'),
       description: t('dashboard.actions.viewTripsDesc', 'مراقبة حركة الرحلات النشطة حالياً'),
       color: '#16a34a',
@@ -460,9 +551,15 @@ export default function DashboardClient({
             {stats.active_trips > 0 && (
               <Chip
                 icon={
-                  <FiberManualRecordIcon
+                  <Box
                     className="live-dot"
-                    sx={{ color: '#22c55e !important', fontSize: '9px !important' }}
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      bgcolor: '#22c55e',
+                      display: 'inline-block',
+                    }}
                   />
                 }
                 label={`${stats.active_trips} ${t('dashboard.liveTripsActive', 'رحلة نشطة')}`}
@@ -476,6 +573,12 @@ export default function DashboardClient({
                   cursor: 'pointer',
                   '&:hover': {
                     bgcolor: isDark ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.1)',
+                  },
+                  '& .MuiChip-icon': {
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: '4px !important',
                   },
                 }}
               />
@@ -500,7 +603,7 @@ export default function DashboardClient({
                   },
                 }}
               >
-                <RefreshIcon fontSize="small" />
+                <RefreshCw size={14} />
               </IconButton>
             </Tooltip>
           </Stack>
@@ -530,8 +633,22 @@ export default function DashboardClient({
               sx={{
                 height: '100%',
                 p: 3,
-                boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.3)' : '0 4px 24px rgba(15,23,42,0.05)',
-                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 4.5,
+                border: '1px solid',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(148, 163, 184, 0.1)',
+                background: isDark
+                  ? 'linear-gradient(135deg, rgba(45, 45, 45, 0.4) 0%, rgba(35, 35, 35, 0.4) 100%)'
+                  : 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 242, 239, 0.8) 100%)',
+                backdropFilter: 'blur(12px)',
+                boxShadow: isDark
+                  ? '0 12px 40px rgba(0, 0, 0, 0.25)'
+                  : '0 12px 40px rgba(15, 23, 42, 0.04)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: isDark
+                    ? '0 16px 48px rgba(0, 0, 0, 0.35)'
+                    : '0 16px 48px rgba(15, 23, 42, 0.06)',
+                },
               }}
             >
               <Stack
@@ -552,7 +669,7 @@ export default function DashboardClient({
                   </Typography>
                 </Box>
                 <Chip
-                  icon={<ShowChartIcon />}
+                  icon={<LineChart size={16} />}
                   label={t('dashboard.charts.live_analytics', 'تحليلات مباشرة')}
                   size="small"
                   color="primary"
@@ -574,58 +691,60 @@ export default function DashboardClient({
                   >
                     <defs>
                       <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#C2703E" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#C2703E" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.2} />
                         <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke={isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)'}
+                      vertical={false}
+                      strokeDasharray="4 4"
+                      stroke={isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'}
                     />
                     <XAxis
                       dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
                       stroke={theme.palette.text.secondary}
                       tick={{ fill: theme.palette.text.secondary, fontSize: 11, fontWeight: 600 }}
+                      dy={8}
                     />
                     <YAxis
                       yAxisId="left"
+                      axisLine={false}
+                      tickLine={false}
                       stroke={theme.palette.text.secondary}
                       tick={{ fill: theme.palette.text.secondary, fontSize: 11 }}
                       orientation={isRTL ? 'right' : 'left'}
+                      tickFormatter={(val: number) =>
+                        val >= 1000 ? `${(val / 1000).toFixed(0)}K` : val.toString()
+                      }
                     />
                     <YAxis
                       yAxisId="right"
+                      axisLine={false}
+                      tickLine={false}
                       orientation={isRTL ? 'left' : 'right'}
                       stroke={theme.palette.text.secondary}
                       tick={{ fill: theme.palette.text.secondary, fontSize: 11 }}
                     />
-                    <ChartTooltip
-                      contentStyle={{
-                        backgroundColor: isDark
-                          ? 'rgba(30, 41, 59, 0.9)'
-                          : 'rgba(255,255,255,0.95)',
-                        borderColor: theme.palette.divider,
-                        borderRadius: '12px',
-                        color: isDark ? '#fff' : '#000',
-                        fontFamily: "var(--font-ibm-arabic), 'Inter', sans-serif",
-                        fontSize: '12px',
-                        textAlign: isRTL ? 'right' : 'left',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                        backdropFilter: 'blur(12px)',
-                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(148,163,184,0.15)'}`,
-                      }}
-                    />
+                    <ChartTooltip content={<CustomTooltip />} />
                     <Area
                       yAxisId="left"
                       type="monotone"
                       dataKey="revenue"
                       name={t('dashboard.charts.revenue_label', 'الأرباح (د.ع)')}
-                      stroke="#3b82f6"
-                      strokeWidth={2.5}
+                      stroke="#C2703E"
+                      strokeWidth={3}
+                      activeDot={{
+                        r: 6,
+                        stroke: '#C2703E',
+                        strokeWidth: 2.5,
+                        fill: isDark ? '#1A1A1A' : '#F5F2EF',
+                      }}
                       fillOpacity={1}
                       fill="url(#colorRevenue)"
                     />
@@ -635,7 +754,13 @@ export default function DashboardClient({
                       dataKey="users"
                       name={t('dashboard.charts.users_label', 'المشتركون')}
                       stroke="#8b5cf6"
-                      strokeWidth={2.5}
+                      strokeWidth={3}
+                      activeDot={{
+                        r: 6,
+                        stroke: '#8b5cf6',
+                        strokeWidth: 2.5,
+                        fill: isDark ? '#1A1A1A' : '#F5F2EF',
+                      }}
                       fillOpacity={1}
                       fill="url(#colorUsers)"
                     />
@@ -651,11 +776,25 @@ export default function DashboardClient({
               sx={{
                 height: '100%',
                 p: 3,
-                boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.3)' : '0 4px 24px rgba(15,23,42,0.05)',
-                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 4.5,
+                border: '1px solid',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(148, 163, 184, 0.1)',
+                background: isDark
+                  ? 'linear-gradient(135deg, rgba(45, 45, 45, 0.4) 0%, rgba(35, 35, 35, 0.4) 100%)'
+                  : 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 242, 239, 0.8) 100%)',
+                backdropFilter: 'blur(12px)',
+                boxShadow: isDark
+                  ? '0 12px 40px rgba(0, 0, 0, 0.25)'
+                  : '0 12px 40px rgba(15, 23, 42, 0.04)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: isDark
+                    ? '0 16px 48px rgba(0, 0, 0, 0.35)'
+                    : '0 16px 48px rgba(15, 23, 42, 0.06)',
+                },
               }}
             >
               <Box>
@@ -676,7 +815,7 @@ export default function DashboardClient({
                       <Typography variant="body2" fontWeight={700}>
                         {t('dashboard.system.routes_covered', 'تغطية مسارات الطلاب')}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#3b82f6' }} fontWeight={700}>
+                      <Typography variant="body2" sx={{ color: '#C2703E' }} fontWeight={700}>
                         {stats.total_routes > 0
                           ? `${Math.round((stats.active_routes / stats.total_routes) * 100)}%`
                           : '0%'}
@@ -694,7 +833,7 @@ export default function DashboardClient({
                         borderRadius: 99,
                         bgcolor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
                         '& .MuiLinearProgress-bar': {
-                          background: 'linear-gradient(90deg, #3b82f6, #60a5fa)',
+                          background: 'linear-gradient(90deg, #C2703E, #D4845A)',
                         },
                       }}
                     />
@@ -705,7 +844,7 @@ export default function DashboardClient({
                       <Typography variant="body2" fontWeight={700}>
                         {t('dashboard.system.seats_booked', 'نشاط اشتراكات الطلاب')}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#8b5cf6' }} fontWeight={700}>
+                      <Typography variant="body2" sx={{ color: '#2D2D2D' }} fontWeight={700}>
                         {stats.total_subscriptions > 0
                           ? `${Math.round((stats.active_subscriptions / stats.total_subscriptions) * 100)}%`
                           : '0%'}
@@ -724,7 +863,7 @@ export default function DashboardClient({
                         borderRadius: 99,
                         bgcolor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
                         '& .MuiLinearProgress-bar': {
-                          background: 'linear-gradient(90deg, #8b5cf6, #a78bfa)',
+                          background: 'linear-gradient(90deg, #2D2D2D, #3D3D3D)',
                         },
                       }}
                     />

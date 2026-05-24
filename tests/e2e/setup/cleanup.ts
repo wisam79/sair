@@ -68,7 +68,6 @@ export async function cleanupAllTestData(
   // Subscriptions are automatically deleted via database CASCADE when routes or users are deleted.
   // We do not run an unfiltered query on the subscriptions table to avoid deleting real production subscriptions.
 
-
   // Delete test licenses
   const licensesResponse = await fetch(
     `${supabaseUrl}/rest/v1/licenses?code=ilike.${TestConfig.TEST_PREFIX}%&select=id`,

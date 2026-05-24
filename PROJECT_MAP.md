@@ -1,4 +1,4 @@
-# UniRide v2 - Project Map
+# Sair v2 - Project Map
 
 ## [TECH_STACK]
 

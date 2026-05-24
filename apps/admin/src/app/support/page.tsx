@@ -161,7 +161,7 @@ export default function SupportPage() {
     <Box
       sx={{
         minHeight: '100vh',
-        bgcolor: '#070a13',
+        bgcolor: '#1A1A1A',
         color: '#f8fafc',
         fontFamily: 'var(--font-ibm-arabic), sans-serif',
         overflowX: 'hidden',
@@ -180,7 +180,7 @@ export default function SupportPage() {
           width: '400px',
           height: '400px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(37,99,235,0.1) 0%, rgba(0,0,0,0) 70%)',
+          background: 'radial-gradient(circle, rgba(194,112,62,0.1) 0%, rgba(0,0,0,0) 70%)',
           filter: 'blur(80px)',
           zIndex: 0,
           pointerEvents: 'none',
@@ -192,7 +192,7 @@ export default function SupportPage() {
         sx={{
           borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
           backdropFilter: 'blur(16px)',
-          bgcolor: 'rgba(7, 10, 19, 0.7)',
+          bgcolor: 'rgba(26, 26, 26, 0.7)',
           position: 'sticky',
           top: 0,
           zIndex: 100,
@@ -214,7 +214,7 @@ export default function SupportPage() {
                     width: 32,
                     height: 32,
                     borderRadius: 1.5,
-                    bgcolor: '#2563eb',
+                    bgcolor: '#C2703E',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -237,7 +237,7 @@ export default function SupportPage() {
                     color: 'rgba(255, 255, 255, 0.7)',
                     fontSize: '0.85rem',
                     textTransform: 'none',
-                    '&:hover': { color: '#38bdf8', bgcolor: 'transparent' },
+                    '&:hover': { color: '#D4845A', bgcolor: 'transparent' },
                   }}
                 >
                   {t.nav.home}
@@ -249,15 +249,15 @@ export default function SupportPage() {
                 onClick={toggleLanguage}
                 startIcon={<TranslateIcon sx={{ fontSize: 16 }} />}
                 sx={{
-                  color: '#38bdf8',
-                  borderColor: 'rgba(56, 189, 248, 0.3)',
+                  color: '#D4845A',
+                  borderColor: 'rgba(212, 132, 90, 0.3)',
                   borderRadius: 2,
                   px: 2,
                   fontSize: '0.85rem',
                   textTransform: 'none',
                   '&:hover': {
-                    borderColor: '#38bdf8',
-                    bgcolor: 'rgba(56, 189, 248, 0.05)',
+                    borderColor: '#D4845A',
+                    bgcolor: 'rgba(212, 132, 90, 0.05)',
                   },
                 }}
               >
@@ -298,8 +298,8 @@ export default function SupportPage() {
           <Card
             elevation={0}
             sx={{
-              bgcolor: '#0f172a',
-              border: '1px solid #1e293b',
+              bgcolor: '#2D2D2D',
+              border: '1px solid #3D3D3D',
               borderRadius: 5,
               boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.4)',
               overflow: 'hidden',
@@ -338,13 +338,13 @@ export default function SupportPage() {
                     onClick={() => setSuccess(false)}
                     sx={{
                       mt: 2,
-                      color: '#38bdf8',
-                      borderColor: '#38bdf8',
+                      color: '#D4845A',
+                      borderColor: '#D4845A',
                       borderRadius: 2,
                       px: 3,
                       '&:hover': {
-                        borderColor: '#0284c7',
-                        bgcolor: 'rgba(56, 189, 248, 0.05)',
+                        borderColor: '#A85C2E',
+                        bgcolor: 'rgba(212, 132, 90, 0.05)',
                       },
                     }}
                   >
@@ -382,9 +382,9 @@ export default function SupportPage() {
                         '& .MuiOutlinedInput-root': {
                           color: '#fff',
                           bgcolor: 'rgba(255,255,255,0.02)',
-                          '& fieldset': { borderColor: '#334155' },
+                          '& fieldset': { borderColor: '#3D3D3D' },
                           '&:hover fieldset': { borderColor: '#475569' },
-                          '&.Mui-focused fieldset': { borderColor: '#2563eb' },
+                          '&.Mui-focused fieldset': { borderColor: '#C2703E' },
                         },
                       }}
                     />
@@ -402,9 +402,9 @@ export default function SupportPage() {
                         '& .MuiOutlinedInput-root': {
                           color: '#fff',
                           bgcolor: 'rgba(255,255,255,0.02)',
-                          '& fieldset': { borderColor: '#334155' },
+                          '& fieldset': { borderColor: '#3D3D3D' },
                           '&:hover fieldset': { borderColor: '#475569' },
-                          '&.Mui-focused fieldset': { borderColor: '#2563eb' },
+                          '&.Mui-focused fieldset': { borderColor: '#C2703E' },
                         },
                       }}
                     />
@@ -424,9 +424,9 @@ export default function SupportPage() {
                         '& .MuiOutlinedInput-root': {
                           color: '#fff',
                           bgcolor: 'rgba(255,255,255,0.02)',
-                          '& fieldset': { borderColor: '#334155' },
+                          '& fieldset': { borderColor: '#3D3D3D' },
                           '&:hover fieldset': { borderColor: '#475569' },
-                          '&.Mui-focused fieldset': { borderColor: '#2563eb' },
+                          '&.Mui-focused fieldset': { borderColor: '#C2703E' },
                         },
                       }}
                     >
@@ -488,9 +488,9 @@ export default function SupportPage() {
                         '& .MuiOutlinedInput-root': {
                           color: '#fff',
                           bgcolor: 'rgba(255,255,255,0.02)',
-                          '& fieldset': { borderColor: '#334155' },
+                          '& fieldset': { borderColor: '#3D3D3D' },
                           '&:hover fieldset': { borderColor: '#475569' },
-                          '&.Mui-focused fieldset': { borderColor: '#2563eb' },
+                          '&.Mui-focused fieldset': { borderColor: '#C2703E' },
                         },
                       }}
                     />
@@ -506,16 +506,16 @@ export default function SupportPage() {
                       disabled={loading}
                       endIcon={!loading && <SendIcon />}
                       sx={{
-                        bgcolor: requestType === 'account_deletion' ? '#dc2626' : '#2563eb',
+                        bgcolor: requestType === 'account_deletion' ? '#dc2626' : '#C2703E',
                         color: '#fff',
                         borderRadius: 2.5,
                         py: 1.8,
                         fontWeight: 700,
                         fontSize: '1rem',
                         textTransform: 'none',
-                        boxShadow: '0 4px 14px rgba(37, 99, 235, 0.2)',
+                        boxShadow: '0 4px 14px rgba(194, 112, 62, 0.2)',
                         '&:hover': {
-                          bgcolor: requestType === 'account_deletion' ? '#b91c1c' : '#1d4ed8',
+                          bgcolor: requestType === 'account_deletion' ? '#b91c1c' : '#A85C2E',
                         },
                       }}
                     >
@@ -545,7 +545,7 @@ export default function SupportPage() {
           borderTop: '1px solid rgba(255, 255, 255, 0.05)',
           py: 3,
           textAlign: 'center',
-          bgcolor: '#05070d',
+          bgcolor: '#1A1A1A',
         }}
       >
         <Typography variant="caption" sx={{ color: '#475569' }}>

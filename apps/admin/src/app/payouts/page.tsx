@@ -1,5 +1,6 @@
 'use client';
 
+import { useMany } from '@refinedev/core';
 import { List, useDataGrid } from '@refinedev/mui';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import React from 'react';
@@ -18,15 +19,45 @@ export default function PayoutsPage() {
     resource: 'driver_payouts',
   });
 
+  const { data: driverData, isLoading: driverIsLoading } = useMany({
+    resource: 'drivers',
+    ids:
+      dataGridProps?.rows
+        ?.map((item: { driver_id?: string }) => item?.driver_id)
+        .filter((id): id is string => typeof id === 'string') ?? [],
+    meta: {
+      select: '*, profiles(full_name)',
+    },
+    queryOptions: {
+      enabled: !!dataGridProps?.rows,
+      queryKey: [
+        'drivers',
+        dataGridProps?.rows
+          ?.map((item: { driver_id?: string }) => item?.driver_id)
+          .filter((id): id is string => typeof id === 'string') ?? [],
+        'profiles-join',
+      ],
+    },
+  });
+
   const columns = React.useMemo<GridColDef[]>(
     () => [
       { field: 'id', headerName: t('common.id', 'ID'), type: 'string', minWidth: 100, flex: 1 },
       {
         field: 'driver_id',
-        headerName: t('payouts.fields.driverId', 'Driver ID'),
+        headerName: t('payouts.fields.driver', 'Driver'),
         type: 'string',
-        minWidth: 250,
+        minWidth: 200,
         flex: 1,
+        renderCell: function render({ value }) {
+          if (driverIsLoading) {
+            return <>{t('common.loading', 'Loading...')}</>;
+          }
+
+          const driver = driverData?.data?.find((item) => item.id === value);
+          const profile = driver?.profiles as { full_name?: string } | null;
+          return profile?.full_name ?? driver?.license_number ?? value;
+        },
       },
       {
         field: 'amount',
@@ -84,7 +115,7 @@ export default function PayoutsPage() {
             : '-',
       },
     ],
-    [t],
+    [driverData?.data, driverIsLoading, t],
   );
 
   return (
