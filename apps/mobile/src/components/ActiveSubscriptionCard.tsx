@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.72)', // Translucent glass card background
     padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl, // Increased for smoother rounded corners
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.6)', // Light reflection edge
     ...Shadow.md,

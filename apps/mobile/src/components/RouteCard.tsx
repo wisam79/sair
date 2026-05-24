@@ -163,7 +163,7 @@ export const RouteCard: React.FC<RouteCardProps> = React.memo(
 const styles = StyleSheet.create({
   card: {
     backgroundColor: 'rgba(255, 255, 255, 0.72)', // Translucent glass card background
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl, // Increased for smoother rounded corners
     marginBottom: Spacing.md,
     flexDirection: 'row',
     overflow: 'hidden',
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.4)', // Translucent time badge
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
+    borderRadius: BorderRadius.md, // Increased for smoother rounded corners
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.5)',
   },
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.4)', // Translucent flat nested card
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.5)',
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.xl, // Increased to make it highly rounded
     marginBottom: Spacing.md,
     shadowOpacity: 0,
     shadowOffset: { width: 0, height: 0 },
