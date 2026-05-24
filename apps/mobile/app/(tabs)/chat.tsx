@@ -223,6 +223,9 @@ export default function ConversationsScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="dark" translucent />
+      {/* Background Decorative Glass Blobs */}
+      <View style={styles.blob1} />
+      <View style={styles.blob2} />
 
       {/* Branded Header Banner (Fixed at the top) */}
       <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
@@ -307,6 +310,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+    position: 'relative',
+    overflow: 'hidden',
   },
   centered: {
     flex: 1,
@@ -314,12 +319,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.background,
   },
+  // Blobs
+  blob1: {
+    position: 'absolute',
+    top: -40,
+    left: -40,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: 'rgba(194, 112, 62, 0.16)', // warm earthy orange tint
+    zIndex: 0,
+  },
+  blob2: {
+    position: 'absolute',
+    top: 360,
+    right: -60,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: 'rgba(45, 45, 45, 0.08)', // charcoal neutral tint
+    zIndex: 0,
+  },
   headerBanner: {
-    backgroundColor: '#EFECE9',
+    backgroundColor: 'rgba(255, 255, 255, 0.45)', // Translucent glass banner
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E6E2DE',
+    borderBottomWidth: 1.5,
+    borderBottomColor: 'rgba(255, 255, 255, 0.6)', // Glowing border
     ...Shadow.sm,
     zIndex: 10,
   },
@@ -332,20 +358,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xs,
-    backgroundColor: '#EFECE9',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E6E2DE',
+    backgroundColor: 'rgba(255, 255, 255, 0.45)', // Translucent glass backdrop
+    borderBottomWidth: 1.5,
+    borderBottomColor: 'rgba(255, 255, 255, 0.6)',
     gap: Spacing.xs,
+    zIndex: 10,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.sm,
     height: 38,
-    borderWidth: 1,
-    borderColor: '#E6E2DE',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
   searchInput: {
     flex: 1,
@@ -358,7 +385,7 @@ const styles = StyleSheet.create({
   },
   tabBarContainer: {
     flexDirection: 'row',
-    backgroundColor: '#E6E2DE',
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
     borderRadius: BorderRadius.md,
     padding: 2,
   },
@@ -370,7 +397,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabButtonActive: {
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
     ...Shadow.sm,
   },
   tabButtonText: {
@@ -385,15 +412,16 @@ const styles = StyleSheet.create({
   listContent: {
     padding: Spacing.md,
     paddingBottom: Spacing.xxl + 40,
+    backgroundColor: 'transparent',
   },
   conversationItem: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.72)', // Translucent glass card
     borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: '#EFECE9',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.6)', // Light reflection border
     ...Shadow.sm,
     gap: Spacing.md,
   },

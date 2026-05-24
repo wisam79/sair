@@ -162,13 +162,13 @@ export const RouteCard: React.FC<RouteCardProps> = React.memo(
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.surface,
+    backgroundColor: 'rgba(255, 255, 255, 0.72)', // Translucent glass card background
     borderRadius: BorderRadius.lg,
     marginBottom: Spacing.md,
     flexDirection: 'row',
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E6E3DE',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.6)', // Light reflection border
     ...Shadow.md,
   },
   cardRTL: {
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
   verticalConnector: {
     width: 1.5,
     flex: 1,
-    backgroundColor: Colors.border,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
     marginVertical: 2,
   },
   routeDetails: {
@@ -262,12 +262,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: Colors.surfaceMuted,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)', // Translucent time badge
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   timeText: {
     fontFamily: FontFamily.medium,
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: 'rgba(0, 0, 0, 0.05)',
     paddingTop: Spacing.sm,
     marginTop: Spacing.xs,
   },
@@ -303,9 +303,9 @@ const styles = StyleSheet.create({
     color: Colors.success,
   },
   flatCard: {
-    backgroundColor: '#F5F2EF', // warm off-white matching screen background for nested contrast
+    backgroundColor: 'rgba(255, 255, 255, 0.4)', // Translucent flat nested card
     borderWidth: 1,
-    borderColor: '#E6E3DE',
+    borderColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.md,
     shadowOpacity: 0,
@@ -317,6 +317,6 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
   },
   flatTimeBadge: {
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
 });
