@@ -16,16 +16,16 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
       palette: {
         mode,
         primary: {
-          main: isDark ? '#38bdf8' : '#2563eb', // Beautiful clean primary colors
-          light: isDark ? '#7dd3fc' : '#3b82f6',
-          dark: isDark ? '#0284c7' : '#1d4ed8',
+          main: isDark ? '#D4845A' : '#C2703E', // Sair Earthy Orange
+          light: isDark ? '#FDF0E8' : '#D4845A',
+          dark: isDark ? '#C2703E' : '#A85C2E',
           contrastText: '#ffffff',
         },
         secondary: {
-          main: isDark ? '#94a3b8' : '#475569',
-          light: isDark ? '#cbd5e1' : '#64748b',
-          dark: isDark ? '#64748b' : '#334155',
-          contrastText: isDark ? '#0f172a' : '#ffffff',
+          main: '#2D2D2D', // Sair Charcoal
+          light: '#3D3D3D',
+          dark: '#1A1A1A',
+          contrastText: '#ffffff',
         },
         error: {
           main: isDark ? '#f87171' : '#ef4444',
@@ -37,17 +37,17 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
           main: isDark ? '#fbbf24' : '#f59e0b',
         },
         info: {
-          main: isDark ? '#38bdf8' : '#0ea5e9',
+          main: isDark ? '#D4845A' : '#C2703E',
         },
         background: {
-          default: isDark ? '#0f172a' : '#f8fafc',
-          paper: isDark ? '#1e293b' : '#ffffff',
+          default: isDark ? '#1A1A1A' : '#F5F2EF', // Sair Warm Off-white / Charcoal
+          paper: isDark ? '#2D2D2D' : '#ffffff', // Sair Surface / Paper
         },
         text: {
-          primary: isDark ? '#f8fafc' : '#0f172a',
-          secondary: isDark ? '#94a3b8' : '#64748b',
+          primary: isDark ? '#ffffff' : '#1A1A1A',
+          secondary: isDark ? '#A8A8A8' : '#555555',
         },
-        divider: isDark ? '#334155' : '#e2e8f0',
+        divider: isDark ? '#3D3D3D' : '#E0DDD8', // Sair Warm Border
       },
       typography: {
         fontFamily: "var(--font-ibm-arabic), 'Inter', system-ui, -apple-system, sans-serif",
@@ -67,7 +67,7 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
         overline: { fontWeight: 600, letterSpacing: '0.08em', fontSize: '0.7rem' },
       },
       shape: {
-        borderRadius: 8, // Standard clean border radius
+        borderRadius: 8,
       },
       shadows: isDark
         ? ([
@@ -91,8 +91,8 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
           styleOverrides: {
             body: {
               fontFamily: "var(--font-ibm-arabic), 'Inter', system-ui, -apple-system, sans-serif",
-              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
-              color: isDark ? '#f8fafc' : '#0f172a',
+              backgroundColor: isDark ? '#1A1A1A' : '#F5F2EF',
+              color: isDark ? '#ffffff' : '#1A1A1A',
               transition: 'background-color 0.2s ease, color 0.2s ease',
               '::-webkit-scrollbar': {
                 width: '6px',
@@ -115,13 +115,13 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
           styleOverrides: {
             root: {
               borderRadius: 8,
-              backgroundColor: isDark ? '#1e293b' : '#ffffff',
+              backgroundColor: isDark ? '#2D2D2D' : '#ffffff',
               backgroundImage: 'none',
               boxShadow: isDark ? '0 1px 3px rgba(0,0,0,0.2)' : '0 1px 3px rgba(15,23,42,0.05)',
-              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+              border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
               transition: 'all 0.2s ease',
               '&:hover': {
-                borderColor: isDark ? '#475569' : '#cbd5e1',
+                borderColor: isDark ? '#3D3D3D' : '#E0DDD8',
                 boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(15,23,42,0.05)',
               },
             },
@@ -156,10 +156,10 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
           styleOverrides: {
             root: {
               borderRadius: '6px !important',
-              backgroundColor: isDark ? '#0f172a' : '#ffffff',
+              backgroundColor: isDark ? '#1A1A1A' : '#ffffff',
               transition: 'all 0.2s ease',
               '&.Mui-focused': {
-                backgroundColor: isDark ? '#0f172a' : '#ffffff',
+                backgroundColor: isDark ? '#1A1A1A' : '#ffffff',
               },
             },
           },
@@ -168,10 +168,10 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
           styleOverrides: {
             root: {
               '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: isDark ? '#475569' : '#cbd5e1',
+                borderColor: isDark ? '#3D3D3D' : '#E0DDD8',
               },
               '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: isDark ? '#38bdf8' : '#2563eb',
+                borderColor: isDark ? '#D4845A' : '#C2703E',
                 borderWidth: '1.5px',
               },
             },
@@ -188,38 +188,38 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
         MuiDataGrid: {
           styleOverrides: {
             root: {
-              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+              border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
               borderRadius: 8,
-              backgroundColor: isDark ? '#1e293b' : '#ffffff',
+              backgroundColor: isDark ? '#2D2D2D' : '#ffffff',
               fontFamily: "var(--font-ibm-arabic), 'Inter', system-ui, sans-serif",
-              color: isDark ? '#f8fafc' : '#0f172a',
+              color: isDark ? '#ffffff' : '#1A1A1A',
               '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+                backgroundColor: isDark ? '#1A1A1A' : '#F5F2EF',
                 borderRadius: '8px 8px 0 0',
-                borderBottom: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                borderBottom: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
               },
               '& .MuiDataGrid-columnHeaderTitle': {
                 fontWeight: 600,
                 fontSize: '0.75rem',
-                color: isDark ? '#94a3b8' : '#64748b',
+                color: isDark ? '#A8A8A8' : '#555555',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
               },
               '& .MuiDataGrid-row': {
-                borderBottom: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                borderBottom: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
                 transition: 'background-color 0.15s ease',
                 '&:hover': {
                   backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)',
                 },
               },
               '& .MuiDataGrid-cell': {
-                borderColor: isDark ? '#334155' : '#e2e8f0',
+                borderColor: isDark ? '#3D3D3D' : '#E0DDD8',
                 '&:focus': { outline: 'none' },
                 '&:focus-within': { outline: 'none' },
               },
               '& .MuiDataGrid-footerContainer': {
-                borderTop: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-                backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+                borderTop: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
+                backgroundColor: isDark ? '#1A1A1A' : '#F5F2EF',
               },
             },
           },
@@ -228,8 +228,8 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
           styleOverrides: {
             head: {
               fontWeight: 600,
-              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
-              color: isDark ? '#94a3b8' : '#64748b',
+              backgroundColor: isDark ? '#1A1A1A' : '#F5F2EF',
+              color: isDark ? '#A8A8A8' : '#555555',
               fontSize: '0.75rem',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
@@ -240,7 +240,7 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
           styleOverrides: {
             root: {
               borderRadius: 8,
-              backgroundColor: isDark ? '#1e293b' : '#ffffff',
+              backgroundColor: isDark ? '#2D2D2D' : '#ffffff',
               backgroundImage: 'none',
             },
           },
@@ -252,7 +252,7 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
               transition: 'all 0.2s ease',
               '&.Mui-selected': {
                 backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
-                color: isDark ? '#ffffff' : '#0f172a',
+                color: isDark ? '#ffffff' : '#1A1A1A',
                 fontWeight: 600,
                 '&:hover': {
                   backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
@@ -270,14 +270,14 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
               borderRadius: 6,
               fontSize: '0.75rem',
               fontWeight: 500,
-              backgroundColor: isDark ? '#0f172a' : '#0f172a',
+              backgroundColor: '#2D2D2D',
               color: '#ffffff',
-              border: `1px solid ${isDark ? '#334155' : '#334155'}`,
+              border: '1px solid #3D3D3D',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               padding: '6px 12px',
             },
             arrow: {
-              color: '#0f172a',
+              color: '#2D2D2D',
             },
           },
         },
@@ -286,7 +286,7 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
             root: {
               borderRadius: 99,
               height: 6,
-              backgroundColor: isDark ? '#334155' : '#e2e8f0',
+              backgroundColor: isDark ? '#3D3D3D' : '#E0DDD8',
             },
             bar: {
               borderRadius: 99,
@@ -305,7 +305,7 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
           styleOverrides: {
             paper: {
               borderRadius: 8,
-              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+              border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
               boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
             },
           },

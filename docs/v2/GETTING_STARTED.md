@@ -1,6 +1,6 @@
-# 🚀 Getting Started with UniRide v2
+# 🚀 Getting Started with Sair v2
 
-This guide will walk you through setting up the UniRide v2 environment on your local machine.
+This guide will walk you through setting up the Sair v2 environment on your local machine.
 
 ## Prerequisites
 
@@ -16,8 +16,8 @@ Before you begin, ensure you have the following installed:
 Clone the repository and install all monorepo dependencies:
 
 ```bash
-git clone <your-repo-url> uniride
-cd uniride
+git clone <your-repo-url> sair
+cd sair
 pnpm install
 ```
 
@@ -45,16 +45,10 @@ Start your local Supabase instance:
 supabase start
 ```
 
-Push the latest Drizzle schema to your local database:
+Apply migrations and seed the database (Supabase automatically applies the seed from `supabase/seed.sql` on reset):
 
 ```bash
-pnpm --filter @uniride/db push
-```
-
-Seed the database with mock data (Admin, Drivers, Routes):
-
-```bash
-pnpm --filter @uniride/db run seed
+supabase db reset
 ```
 
 ## 4. Running the Applications

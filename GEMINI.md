@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-UniRide v2 is a scalable, secure, and clean architecture-based platform designed to manage university student transportation in Iraq. It is structured as a symmetric monorepo using `pnpm` workspaces, separating domain logic from presentation layers.
+Sair v2 is a scalable, secure, and clean architecture-based platform designed to manage university student transportation in Iraq. It is structured as a symmetric monorepo using `pnpm` workspaces, separating domain logic from presentation layers.
 
 **Key Technologies:**
 
@@ -14,7 +14,7 @@ UniRide v2 is a scalable, secure, and clean architecture-based platform designed
 
 **Architectural Highlights:**
 
-- **Domain-Driven Design:** The `@uniride/core` package acts as the single source of truth for types, validation schemas, and state machine logic.
+- **Domain-Driven Design:** The `@sair/core` package acts as the single source of truth for types, validation schemas, and state machine logic.
 - **Database as Logic Engine:** High-integrity operations (like the atomic seat booking to prevent overbooking) are offloaded to PostgreSQL RPCs using pessimistic locking (`FOR UPDATE`).
 - **Edge Functions:** Supabase Edge Functions act as secure gateways for complex operations, handling rate limiting, idempotency, and CORS before interacting with the database.
 - **Security:** Heavy reliance on Row Level Security (RLS) driven by custom JWT claims stored in `app_metadata` to minimize database query overhead.
@@ -36,7 +36,7 @@ The project utilizes `pnpm` (v10+) as its package manager.
 ## Development Conventions
 
 - **Naming Conventions:** `snake_case` is strictly enforced across the stack. This applies to database columns, Supabase RPC parameters, and their corresponding TypeScript interfaces in the core and client apps. The database is considered the ultimate source of truth for naming.
-- **Type Safety:** Strict TypeScript is required. The use of `any` is prohibited in both the mobile and admin applications. Input and output validation must utilize Zod schemas defined in `@uniride/core`.
+- **Type Safety:** Strict TypeScript is required. The use of `any` is prohibited in both the mobile and admin applications. Input and output validation must utilize Zod schemas defined in `@sair/core`.
 - **Business Logic Enforcement:** Critical business rules, such as trip state transitions (`scheduled` -> `completed`) and seat reservations, must be enforced at the database level via PL/pgSQL to guarantee consistency.
-- **Internationalization (i18n):** The platform is bilingual (Arabic/English) with full RTL support. Hardcoded UI strings are prohibited; developers must utilize centralized translation keys from `@uniride/core`.
+- **Internationalization (i18n):** The platform is bilingual (Arabic/English) with full RTL support. Hardcoded UI strings are prohibited; developers must utilize centralized translation keys from `@sair/core`.
 - **Pre-commit Standards:** The project utilizes Husky and lint-staged to automatically format code using Prettier prior to any commit.

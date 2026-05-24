@@ -6,13 +6,13 @@
 
 ## 1. نظرة عامة على المشروع
 
-### 1.1 ما هو UniRide؟
+### 1.1 ما هو Sair؟
 
-UniRide هو **منصة نقل ذكي للجامعة** مبنية للعراق. تربط الطلاب بالسائقين عبر نظام اشتراكات مسبق بدل الحجز المباشر.
+Sair هو **منصة نقل ذكي للجامعة** مبنية للعراق. تربط الطلاب بالسائقين عبر نظام اشتراكات مسبق بدل الحجز المباشر.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      UniRide Architecture                   │
+│                        Sair Architecture                    │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │   Student                          Driver                   │
@@ -51,12 +51,12 @@ sair/
 
 ### 1.3 المسؤوليات
 
-| الطبقة | المسؤول | تقنية |
-|--------|---------|-------|
-| Presentation | واجهة المستخدم | Next.js (Admin), Expo (Mobile) |
-| Service | تنسيق العمليات | Edge Functions (Deno) |
-| Data/Logic | المنطق وقواعد البيانات | PostgreSQL RPCs |
-| Core | التحقق والأنواع | Zod Schemas |
+| الطبقة       | المسؤول                | تقنية                          |
+| ------------ | ---------------------- | ------------------------------ |
+| Presentation | واجهة المستخدم         | Next.js (Admin), Expo (Mobile) |
+| Service      | تنسيق العمليات         | Edge Functions (Deno)          |
+| Data/Logic   | المنطق وقواعد البيانات | PostgreSQL RPCs                |
+| Core         | التحقق والأنواع        | Zod Schemas                    |
 
 ---
 
@@ -88,27 +88,27 @@ $$ LANGUAGE sql SECURITY DEFINER;
 
 ```typescript
 // ممنوع منعاً باتاً!
-user.user_metadata?.role
-auth.jwt().user_metadata?.role
+user.user_metadata?.role;
+auth.jwt().user_metadata?.role;
 ```
 
 ### 2.4 تأمين مسارات البحث وصلاحيات الدوال (Functions & RLS Hardening)
 
-* **منع mutable search path:** عند كتابة أو تعديل أي دالة في PostgreSQL، يجب دائماً وضع `SET search_path = public` (أو المخطط المحدد) صراحةً لمنع ثغرات مسارات البحث المتغيرة.
-* **تحديد صلاحيات التنفيذ (Execution Privileges):**
-  * يجب دائماً سحب صلاحيات التنفيذ العامة عن الدوال الحساسة لمنع استدعائها بشكل مجهول:
+- **منع mutable search path:** عند كتابة أو تعديل أي دالة في PostgreSQL، يجب دائماً وضع `SET search_path = public` (أو المخطط المحدد) صراحةً لمنع ثغرات مسارات البحث المتغيرة.
+- **تحديد صلاحيات التنفيذ (Execution Privileges):**
+  - يجب دائماً سحب صلاحيات التنفيذ العامة عن الدوال الحساسة لمنع استدعائها بشكل مجهول:
     ```sql
     REVOKE EXECUTE ON FUNCTION public.admin_cancel_trip(uuid) FROM PUBLIC;
     GRANT EXECUTE ON FUNCTION public.admin_cancel_trip(uuid) TO authenticated, service_role;
     ```
-  * دوال التريجرات (Trigger Functions) لا يجوز إتاحتها للـ RPC إطلاقاً. يجب سحب صلاحيات التنفيذ منها بالكامل:
+  - دوال التريجرات (Trigger Functions) لا يجوز إتاحتها للـ RPC إطلاقاً. يجب سحب صلاحيات التنفيذ منها بالكامل:
     ```sql
     REVOKE EXECUTE ON FUNCTION public.sync_driver_role_promotion() FROM PUBLIC, anon, authenticated;
     ```
-* **حظر كائنات العرض غير الآمنة (No Security Definer Views in Public):** يمنع تماماً إنشاء Views بـ `SECURITY DEFINER` داخل مخطط `public` لأنها تنكشف تلقائياً لواجهة البرمجة (PostgREST API) وتُسرب بيانات حساسة دون حماية.
-* **حظر سياسات RLS المفتوحة (No Blanket RLS Policies for Write Operations):**
-  * يمنع استخدام سياسات إدخال أو تعديل مفتوحة دائماً مثل `WITH CHECK (true)` للجداول الحساسة.
-  * يجب تقييد الإدخال للأدوار المحددة (مثل `TO service_role` لجدول `notification_log` أو إدراج شروط تحقق حقيقية مثل `WITH CHECK (email IS NOT NULL)`).
+- **حظر كائنات العرض غير الآمنة (No Security Definer Views in Public):** يمنع تماماً إنشاء Views بـ `SECURITY DEFINER` داخل مخطط `public` لأنها تنكشف تلقائياً لواجهة البرمجة (PostgREST API) وتُسرب بيانات حساسة دون حماية.
+- **حظر سياسات RLS المفتوحة (No Blanket RLS Policies for Write Operations):**
+  - يمنع استخدام سياسات إدخال أو تعديل مفتوحة دائماً مثل `WITH CHECK (true)` للجداول الحساسة.
+  - يجب تقييد الإدخال للأدوار المحددة (مثل `TO service_role` لجدول `notification_log` أو إدراج شروط تحقق حقيقية مثل `WITH CHECK (email IS NOT NULL)`).
 
 ---
 
@@ -163,18 +163,18 @@ Admin                               Student
 
 ### 4.2 الجداول الرئيسية
 
-| الجدول | الوصف |
-|--------|-------|
-| `license_batches` | دفعة تراخيص (أدمن يضيفها) |
-| `licenses` | أكواد التراخيص الفردية |
-| `subscriptions` | اشتراكات الطلاب (مرتبطة بالـ route) |
+| الجدول            | الوصف                               |
+| ----------------- | ----------------------------------- |
+| `license_batches` | دفعة تراخيص (أدمن يضيفها)           |
+| `licenses`        | أكواد التراخيص الفردية              |
+| `subscriptions`   | اشتراكات الطلاب (مرتبطة بالـ route) |
 
 ### 4.3 طول كود الترخيص = 8 أحرف بالضبط
 
 ```typescript
 // packages/core/index.ts
 export const LicenseSchema = z.object({
-  code: z.string().length(8),  // ليس 12!
+  code: z.string().length(8), // ليس 12!
 });
 ```
 
@@ -202,12 +202,12 @@ export const LicenseSchema = z.object({
 
 ### 5.2 ملاحظات مهمة
 
-| القاعدة | التوضيح |
-|---------|---------|
-| `in_transit` → `absent` | **ممنوع!** لا يمكن تسجيل غياب بعد الانطلاق |
-| `in_transit` → `cancelled` | **مسموح** (حالات الطوارئ فقط) |
-| `absent` → `cancelled` | **مسموح** |
-| Admin يمكنه إلغاء `scheduled` و `driver_waiting` | لا يمكنه إلغاء `in_transit` |
+| القاعدة                                          | التوضيح                                    |
+| ------------------------------------------------ | ------------------------------------------ |
+| `in_transit` → `absent`                          | **ممنوع!** لا يمكن تسجيل غياب بعد الانطلاق |
+| `in_transit` → `cancelled`                       | **مسموح** (حالات الطوارئ فقط)              |
+| `absent` → `cancelled`                           | **مسموح**                                  |
+| Admin يمكنه إلغاء `scheduled` و `driver_waiting` | لا يمكنه إلغاء `in_transit`                |
 
 ---
 
@@ -294,7 +294,7 @@ check_rate_limit(p_user_id, p_action, p_limit, p_window_seconds)
 ### 9.2 Zod هي مصدر truth
 
 ```typescript
-// Edge Functions تستخدم @uniride/core للتحقق
+// Edge Functions تستخدم @sair/core للتحقق
 import { TripUpdateRequest } from '../../../packages/core/index.ts';
 const parsed = TripUpdateRequest.safeParse(payload);
 ```
@@ -344,74 +344,74 @@ const renderItem = useCallback(({ item }) => <Text>{item.name}</Text>, []);
 ### 10.3 i18n & RTL
 
 - لا تضع نصوص صلبة في الكود
-- استخدم مفاتيح الترجمة من `@sair/core` 
+- استخدم مفاتيح الترجمة من `@sair/core`
 
 ---
 
 ## 11. Supabase Projects
 
-| البيئة | ref | الملف |
-|--------|-----|-------|
+| البيئة     | ref                    | الملف                  |
+| ---------- | ---------------------- | ---------------------- |
 | Production | `zpcvvyxtmxzplmojobbv` | `.temp/linked-project` |
-| Local dev | `pfjsqgqrxnrlrfnchnqf` | `.env` |
+| Local dev  | `pfjsqgqrxnrlrfnchnqf` | `.env`                 |
 
 ---
 
 ## 12. قائمة RPCs الرئيسية
 
-| RPC | الغرض | الأمان |
-|-----|-------|--------|
-| `activate_license(code)` | تفعيل ترخيص | student only |
-| `create_trip(route_id, scheduled_at)` | إنشاء رحلة | driver + verified |
-| `admin_cancel_trip(trip_id)` | إلغاء رحلة | admin only |
-| `submit_rating(trip_id, rating, comment)` | تقييم | student only |
-| `cancel_subscription(subscription_id)` | إلغاء اشتراك | student/admin |
-| `request_payout(amount)` | طلب صرف | driver only |
-| `get_dashboard_stats()` | إحصائيات | admin only |
+| RPC                                       | الغرض        | الأمان            |
+| ----------------------------------------- | ------------ | ----------------- |
+| `activate_license(code)`                  | تفعيل ترخيص  | student only      |
+| `create_trip(route_id, scheduled_at)`     | إنشاء رحلة   | driver + verified |
+| `admin_cancel_trip(trip_id)`              | إلغاء رحلة   | admin only        |
+| `submit_rating(trip_id, rating, comment)` | تقييم        | student only      |
+| `cancel_subscription(subscription_id)`    | إلغاء اشتراك | student/admin     |
+| `request_payout(amount)`                  | طلب صرف      | driver only       |
+| `get_dashboard_stats()`                   | إحصائيات     | admin only        |
 
 ---
 
 ## 13. قائمة Edge Functions
 
-| Function | الغرض |
-|----------|-------|
-| `trip-engine` | تحديث حالة الرحلة + GPS |
-| `send-notification` | إرسال push notifications |
-| `zaincash-webhook` | معالجة الدفع (معطل حالياً) |
-| `zaincash-checkout` | إنشاء طلب دفع (معطل) |
-| `log-error` | تسجيل الأخطاء |
+| Function            | الغرض                      |
+| ------------------- | -------------------------- |
+| `trip-engine`       | تحديث حالة الرحلة + GPS    |
+| `send-notification` | إرسال push notifications   |
+| `zaincash-webhook`  | معالجة الدفع (معطل حالياً) |
+| `zaincash-checkout` | إنشاء طلب دفع (معطل)       |
+| `log-error`         | تسجيل الأخطاء              |
 
 ---
 
 ## 14. الجداول الرئيسية
 
-| الجدول | الوصف | RLS |
-|--------|-------|-----|
-| `profiles` | بيانات المستخدمين | ✅ |
-| `drivers` | بيانات السائقين | ✅ |
-| `routes` | الخطوط والمقاعد | ✅ |
-| `subscriptions` | اشتراكات الطلاب | ✅ |
-| `trips` | الرحلات الفعلية | ✅ |
-| `payments` | سجلات الدفع | ✅ |
-| `audit_logs` | سجل التدقيق | ✅ |
-| `ratings` | التقييمات | ✅ |
-| `messages` | الرسائل | ✅ |
-| `conversations` | المحادثات | ✅ |
-| `notification_log` | سجل الإشعارات | ✅ |
+| الجدول             | الوصف             | RLS |
+| ------------------ | ----------------- | --- |
+| `profiles`         | بيانات المستخدمين | ✅  |
+| `drivers`          | بيانات السائقين   | ✅  |
+| `routes`           | الخطوط والمقاعد   | ✅  |
+| `subscriptions`    | اشتراكات الطلاب   | ✅  |
+| `trips`            | الرحلات الفعلية   | ✅  |
+| `payments`         | سجلات الدفع       | ✅  |
+| `audit_logs`       | سجل التدقيق       | ✅  |
+| `ratings`          | التقييمات         | ✅  |
+| `messages`         | الرسائل           | ✅  |
+| `conversations`    | المحادثات         | ✅  |
+| `notification_log` | سجل الإشعارات     | ✅  |
 
 ---
 
 ## 15. الـ Triggers
 
-| Trigger | الجدول | الوظيفة |
-|---------|--------|---------|
-| `set_trips_updated_at` | trips | تحديث updated_at |
-| `update_payments_updated_at` | payments | تحديث updated_at |
-| `update_conversations_updated_at` | conversations | تحديث updated_at |
-| `on_driver_created` | drivers | sync role to auth |
-| `on_driver_deleted` | drivers | remove from auth |
-| `enforce_profile_privileged_fields_trigger` | profiles | منع تعديل privileged fields |
-| `on_profile_role_changed` | profiles | sync role to auth |
+| Trigger                                     | الجدول        | الوظيفة                     |
+| ------------------------------------------- | ------------- | --------------------------- |
+| `set_trips_updated_at`                      | trips         | تحديث updated_at            |
+| `update_payments_updated_at`                | payments      | تحديث updated_at            |
+| `update_conversations_updated_at`           | conversations | تحديث updated_at            |
+| `on_driver_created`                         | drivers       | sync role to auth           |
+| `on_driver_deleted`                         | drivers       | remove from auth            |
+| `enforce_profile_privileged_fields_trigger` | profiles      | منع تعديل privileged fields |
+| `on_profile_role_changed`                   | profiles      | sync role to auth           |
 
 ---
 

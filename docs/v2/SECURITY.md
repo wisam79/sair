@@ -1,6 +1,6 @@
 # 🛡️ Security Model
 
-Security in UniRide v2 is built around **Supabase Row Level Security (RLS)** and **JWT Claims**, ensuring that users can only access their own data without sacrificing database performance.
+Security in Sair v2 is built around **Supabase Row Level Security (RLS)** and **JWT Claims**, ensuring that users can only access their own data without sacrificing database performance.
 
 ## 1. High-Performance RLS via JWT Claims
 
@@ -36,7 +36,7 @@ If two students press "Book" at the exact same millisecond:
 
 ## 3. Data Validation
 
-All inputs from clients (Mobile, Admin) MUST pass through Zod schemas defined in `@uniride/core` before hitting Edge Functions or the Database.
+All inputs from clients (Mobile, Admin) MUST pass through Zod schemas defined in `@sair/core` before hitting Edge Functions or the Database.
 
 ```typescript
 // Example from packages/core/index.ts

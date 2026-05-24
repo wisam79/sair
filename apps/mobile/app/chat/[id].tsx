@@ -205,7 +205,9 @@ export default function ChatScreen() {
                   isRTL && { flexDirection: 'row-reverse' },
                 ]}
               >
-                <Text style={[styles.messageTime, isOwnMessage ? styles.ownTime : styles.otherTime]}>
+                <Text
+                  style={[styles.messageTime, isOwnMessage ? styles.ownTime : styles.otherTime]}
+                >
                   {new Date(item.created_at).toLocaleTimeString(isRTL ? 'ar-IQ' : 'en-US', {
                     hour: '2-digit',
                     minute: '2-digit',
@@ -248,8 +250,11 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : (keyboardVisible ? 'height' : undefined)}
-      keyboardVerticalOffset={Platform.select({ ios: 90 + bottom, android: keyboardVisible ? 24 : 0 })}
+      behavior={Platform.OS === 'ios' ? 'padding' : keyboardVisible ? 'height' : undefined}
+      keyboardVerticalOffset={Platform.select({
+        ios: 90 + bottom,
+        android: keyboardVisible ? 24 : 0,
+      })}
     >
       <StatusBar style="dark" translucent />
       <View

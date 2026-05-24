@@ -20,35 +20,37 @@ import {
   useTheme,
   Stack,
 } from '@mui/material';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import PeopleIcon from '@mui/icons-material/People';
-import AltRouteIcon from '@mui/icons-material/AltRoute';
-import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
-import CardMembershipIcon from '@mui/icons-material/CardMembership';
-import LogoutIcon from '@mui/icons-material/Logout';
-import MenuIcon from '@mui/icons-material/Menu';
-import PersonIcon from '@mui/icons-material/Person';
-import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
-import LayersIcon from '@mui/icons-material/Layers';
-import SchoolIcon from '@mui/icons-material/School';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import FlagIcon from '@mui/icons-material/Flag';
-import PaymentsIcon from '@mui/icons-material/Payments';
-import StarIcon from '@mui/icons-material/Star';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import ArchiveIcon from '@mui/icons-material/Archive';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import SettingsIcon from '@mui/icons-material/Settings';
-import HistoryIcon from '@mui/icons-material/History';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import TranslateIcon from '@mui/icons-material/Translate';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import {
+  LayoutDashboard,
+  Users,
+  Route,
+  Bus,
+  CreditCard,
+  LogOut,
+  Menu,
+  User,
+  Ticket,
+  Layers,
+  GraduationCap,
+  BarChart3,
+  Flag,
+  Wallet,
+  Star,
+  Bell,
+  Archive,
+  DollarSign,
+  ShieldAlert,
+  Upload,
+  Settings,
+  History,
+  ChevronLeft,
+  ChevronRight,
+  Languages,
+  Moon,
+  Sun,
+} from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { useColorMode } from '../providers/AppProvider';
 
@@ -73,23 +75,28 @@ const NAV_GROUPS: NavGroup[] = [
     groupKey: 'nav.group.operations',
     defaultGroupLabel: 'Operations',
     items: [
-      { labelKey: 'nav.dashboard', defaultLabel: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+      {
+        labelKey: 'nav.dashboard',
+        defaultLabel: 'Dashboard',
+        icon: <LayoutDashboard size={20} />,
+        path: '/',
+      },
       {
         labelKey: 'nav.liveTrips',
         defaultLabel: 'Live Trips',
-        icon: <DirectionsBusIcon />,
+        icon: <Bus size={20} />,
         path: '/trips',
       },
       {
         labelKey: 'nav.tripArchive',
         defaultLabel: 'Trip Archive',
-        icon: <ArchiveIcon />,
+        icon: <Archive size={20} />,
         path: '/trip-archive',
       },
       {
         labelKey: 'nav.analytics',
         defaultLabel: 'Analytics',
-        icon: <BarChartIcon />,
+        icon: <BarChart3 size={20} />,
         path: '/analytics',
       },
     ],
@@ -98,12 +105,22 @@ const NAV_GROUPS: NavGroup[] = [
     groupKey: 'nav.group.people',
     defaultGroupLabel: 'People',
     items: [
-      { labelKey: 'nav.users', defaultLabel: 'Users', icon: <PeopleIcon />, path: '/profiles' },
-      { labelKey: 'nav.drivers', defaultLabel: 'Drivers', icon: <PersonIcon />, path: '/drivers' },
+      {
+        labelKey: 'nav.users',
+        defaultLabel: 'Users',
+        icon: <Users size={20} />,
+        path: '/profiles',
+      },
+      {
+        labelKey: 'nav.drivers',
+        defaultLabel: 'Drivers',
+        icon: <User size={20} />,
+        path: '/drivers',
+      },
       {
         labelKey: 'nav.institutions',
         defaultLabel: 'Institutions',
-        icon: <SchoolIcon />,
+        icon: <GraduationCap size={20} />,
         path: '/institutions',
       },
     ],
@@ -112,23 +129,28 @@ const NAV_GROUPS: NavGroup[] = [
     groupKey: 'nav.group.network',
     defaultGroupLabel: 'Network',
     items: [
-      { labelKey: 'nav.routes', defaultLabel: 'Routes', icon: <AltRouteIcon />, path: '/routes' },
+      {
+        labelKey: 'nav.routes',
+        defaultLabel: 'Routes',
+        icon: <Route size={20} />,
+        path: '/routes',
+      },
       {
         labelKey: 'nav.subscriptions',
         defaultLabel: 'Subscriptions',
-        icon: <CardMembershipIcon />,
+        icon: <CreditCard size={20} />,
         path: '/subscriptions',
       },
       {
         labelKey: 'nav.licenseBatches',
         defaultLabel: 'License Batches',
-        icon: <LayersIcon />,
+        icon: <Layers size={20} />,
         path: '/license_batches',
       },
       {
         labelKey: 'nav.licenses',
         defaultLabel: 'Licenses',
-        icon: <ConfirmationNumberIcon />,
+        icon: <Ticket size={20} />,
         path: '/licenses',
       },
     ],
@@ -140,16 +162,21 @@ const NAV_GROUPS: NavGroup[] = [
       {
         labelKey: 'nav.revenue',
         defaultLabel: 'Revenue',
-        icon: <AttachMoneyIcon />,
+        icon: <DollarSign size={20} />,
         path: '/revenue',
       },
       {
         labelKey: 'nav.payouts',
         defaultLabel: 'Payouts',
-        icon: <PaymentsIcon />,
+        icon: <Wallet size={20} />,
         path: '/payouts',
       },
-      { labelKey: 'nav.ratings', defaultLabel: 'Ratings', icon: <StarIcon />, path: '/ratings' },
+      {
+        labelKey: 'nav.ratings',
+        defaultLabel: 'Ratings',
+        icon: <Star size={20} />,
+        path: '/ratings',
+      },
     ],
   },
   {
@@ -159,37 +186,37 @@ const NAV_GROUPS: NavGroup[] = [
       {
         labelKey: 'nav.notifications',
         defaultLabel: 'Notifications',
-        icon: <NotificationsIcon />,
+        icon: <Bell size={20} />,
         path: '/notifications',
       },
       {
         labelKey: 'nav.featureFlags',
         defaultLabel: 'Feature Flags',
-        icon: <FlagIcon />,
+        icon: <Flag size={20} />,
         path: '/feature-flags',
       },
       {
         labelKey: 'nav.bulkImport',
         defaultLabel: 'Bulk Import',
-        icon: <UploadFileIcon />,
+        icon: <Upload size={20} />,
         path: '/bulk-import',
       },
       {
         labelKey: 'nav.systemHealth',
         defaultLabel: 'System Health',
-        icon: <HealthAndSafetyIcon />,
+        icon: <ShieldAlert size={20} />,
         path: '/system-health',
       },
       {
         labelKey: 'nav.activityLog',
         defaultLabel: 'Activity Log',
-        icon: <HistoryIcon />,
+        icon: <History size={20} />,
         path: '/activity-log',
       },
       {
         labelKey: 'nav.settings',
         defaultLabel: 'Settings',
-        icon: <SettingsIcon />,
+        icon: <Settings size={20} />,
         path: '/settings',
       },
     ],
@@ -232,7 +259,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: isDark ? '#0b0f19' : '#f8fafc',
+          bgcolor: isDark ? '#1A1A1A' : '#F5F2EF',
           transition: 'background-color 0.2s ease',
         }}
       >
@@ -250,11 +277,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         arrow
       >
         <ListItemButton
+          component={Link}
+          href={item.path}
           selected={isActive}
-          onClick={() => {
-            router.push(item.path);
-            setMobileOpen(false);
-          }}
+          onClick={() => setMobileOpen(false)}
           sx={{
             px: 1.5,
             py: 1,
@@ -265,38 +291,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             position: 'relative',
             color: isActive
               ? isDark
-                ? '#38bdf8'
-                : '#2563eb'
+                ? '#D4845A'
+                : '#C2703E'
               : isDark
                 ? 'rgba(255,255,255,0.65)'
                 : 'rgba(15,23,42,0.7)',
             background: isActive
               ? isDark
-                ? 'rgba(56,189,248,0.08)'
-                : 'rgba(37,99,235,0.06)'
+                ? 'rgba(212,132,90,0.08)'
+                : 'rgba(194,112,62,0.06)'
               : 'transparent',
             // Active line
             '&::before': isActive
               ? {
                   content: '""',
                   position: 'absolute',
-                  [isRTL ? 'right' : 'left']: 0,
+                  left: 0,
                   top: '20%',
                   bottom: '20%',
                   width: 3,
                   borderRadius: 99,
-                  background: isDark ? '#38bdf8' : '#2563eb',
+                  background: isDark ? '#D4845A' : '#C2703E',
                 }
               : {},
             '&:hover': {
               background: isActive
                 ? isDark
-                  ? 'rgba(56,189,248,0.12)'
-                  : 'rgba(37,99,235,0.1)'
+                  ? 'rgba(212,132,90,0.12)'
+                  : 'rgba(194,112,62,0.1)'
                 : isDark
                   ? 'rgba(255,255,255,0.04)'
                   : 'rgba(15,23,42,0.03)',
-              color: isActive ? (isDark ? '#38bdf8' : '#2563eb') : isDark ? '#ffffff' : '#0f172a',
+              color: isActive ? (isDark ? '#D4845A' : '#C2703E') : isDark ? '#ffffff' : '#0f172a',
             },
             transition: 'all 0.15s ease',
           }}
@@ -333,9 +359,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        background: isDark ? '#0f172a' : '#ffffff',
-        color: isDark ? '#f8fafc' : '#0f172a',
-        borderRight: `1px solid ${isDark ? '#1e293b' : '#e2e8f0'}`,
+        background: isDark ? '#2D2D2D' : '#ffffff',
+        color: isDark ? '#ffffff' : '#1A1A1A',
+        borderRight: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
         overflowX: 'hidden',
         transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1)',
         position: 'relative',
@@ -348,7 +374,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             p: collapsed ? 0.75 : 1.5,
             borderRadius: 2,
             background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-            border: `1px solid ${isDark ? '#1e293b' : '#e2e8f0'}`,
+            border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
             display: 'flex',
             alignItems: 'center',
             gap: collapsed ? 0 : 1.5,
@@ -363,14 +389,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               height: 32,
               minWidth: 32,
               borderRadius: 1.5,
-              background: '#2563eb',
+              background: '#C2703E',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               position: 'relative',
             }}
           >
-            <DirectionsBusIcon sx={{ color: '#fff', fontSize: 18 }} />
+            <Bus size={18} color="#fff" />
           </Box>
           {!collapsed && (
             <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
@@ -380,7 +406,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 sx={{
                   lineHeight: 1.2,
                   whiteSpace: 'nowrap',
-                  color: isDark ? '#f8fafc' : '#0f172a',
+                  color: isDark ? '#ffffff' : '#1A1A1A',
                 }}
               >
                 {t('nav.appTitle', 'Sair Admin')}
@@ -403,7 +429,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {!collapsed && !!identity && (
           <Chip
             avatar={
-              <Avatar sx={{ bgcolor: '#2563eb', color: '#fff', fontSize: 11 }}>
+              <Avatar sx={{ bgcolor: '#C2703E', color: '#fff', fontSize: 11 }}>
                 {(identity as { name?: string })?.name?.[0]?.toUpperCase() || 'A'}
               </Avatar>
             }
@@ -412,9 +438,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               mt: 1,
               width: '100%',
               justifyContent: 'flex-start',
-              color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(15,23,42,0.85)',
+              color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(26,26,26,0.85)',
               bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
-              border: `1px solid ${isDark ? '#1e293b' : '#e2e8f0'}`,
+              border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
               height: 30,
               '& .MuiChip-label': { fontWeight: 500, fontSize: 12 },
               transition: 'all 0.2s ease',
@@ -455,7 +481,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         {NAV_GROUPS.map((group, gi) => (
           <React.Fragment key={group.groupKey}>
-            {gi > 0 && <Divider sx={{ my: 1, borderColor: isDark ? '#1e293b' : '#e2e8f0' }} />}
+            {gi > 0 && <Divider sx={{ my: 1, borderColor: isDark ? '#3D3D3D' : '#E0DDD8' }} />}
             {!collapsed && (
               <Typography
                 variant="overline"
@@ -483,7 +509,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Bottom actions */}
       <Box sx={{ p: collapsed ? 0.5 : 1, position: 'relative', zIndex: 1 }}>
-        <Divider sx={{ mb: 1, borderColor: isDark ? '#1e293b' : '#e2e8f0' }} />
+        <Divider sx={{ mb: 1, borderColor: isDark ? '#3D3D3D' : '#E0DDD8' }} />
 
         {/* Language toggle */}
         <Tooltip
@@ -507,7 +533,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             }}
           >
             <ListItemIcon sx={{ minWidth: 0, color: 'inherit', mr: collapsed ? 0 : 1.5 }}>
-              <TranslateIcon sx={{ fontSize: 18 }} />
+              <Languages size={18} />
             </ListItemIcon>
             {!collapsed && (
               <ListItemText
@@ -539,7 +565,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             }}
           >
             <ListItemIcon sx={{ minWidth: 0, color: 'inherit', mr: collapsed ? 0 : 1.5 }}>
-              <LogoutIcon sx={{ fontSize: 18 }} />
+              <LogOut size={18} />
             </ListItemIcon>
             {!collapsed && (
               <ListItemText
@@ -571,14 +597,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               {isRTL ? (
                 collapsed ? (
-                  <ChevronLeftIcon />
+                  <ChevronLeft />
                 ) : (
-                  <ChevronRightIcon />
+                  <ChevronRight />
                 )
               ) : collapsed ? (
-                <ChevronRightIcon />
+                <ChevronRight />
               ) : (
-                <ChevronLeftIcon />
+                <ChevronLeft />
               )}
             </IconButton>
           </Tooltip>
@@ -594,13 +620,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         position="fixed"
         elevation={0}
         sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-          bgcolor: isDark ? '#0f172a' : '#ffffff',
-          borderBottom: `1px solid ${theme.palette.divider}`,
-          boxShadow: 'none',
+          top: { xs: '12px', sm: '16px' },
+          left: { xs: '12px', sm: `calc(${drawerWidth}px + 24px)` },
+          right: { xs: '12px', sm: '24px' },
+          width: 'auto',
+          bgcolor: isDark ? 'rgba(45, 45, 45, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(12px)',
+          borderRadius: '16px',
+          border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'}`,
+          boxShadow: isDark
+            ? '0 8px 32px rgba(0, 0, 0, 0.37)'
+            : '0 8px 32px rgba(15, 23, 42, 0.05)',
           transition:
-            'width 0.22s cubic-bezier(0.4,0,0.2,1), margin 0.22s cubic-bezier(0.4,0,0.2,1), background-color 0.2s ease',
+            'left 0.22s cubic-bezier(0.4,0,0.2,1), right 0.22s cubic-bezier(0.4,0,0.2,1), background-color 0.2s ease',
         }}
       >
         <Toolbar sx={{ gap: 1, position: 'relative' }}>
@@ -609,7 +641,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             onClick={() => setMobileOpen(!mobileOpen)}
             sx={{ display: { sm: 'none' }, color: 'text.secondary' }}
           >
-            <MenuIcon />
+            <Menu />
           </IconButton>
 
           <Box sx={{ flexGrow: 1 }}>
@@ -640,7 +672,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 size="small"
                 sx={{
                   bgcolor: 'transparent',
-                  border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                  border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
                   borderRadius: 1.5,
                   px: 1.2,
                   py: 0.6,
@@ -648,12 +680,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   color: 'text.secondary',
                   transition: 'all 0.15s ease',
                   '&:hover': {
-                    bgcolor: isDark ? '#1e293b' : '#f1f5f9',
-                    borderColor: isDark ? '#475569' : '#cbd5e1',
+                    bgcolor: isDark ? '#3D3D3D' : '#F5F2EF',
+                    borderColor: isDark ? '#3D3D3D' : '#E0DDD8',
                   },
                 }}
               >
-                <TranslateIcon sx={{ fontSize: 16 }} />
+                <Languages size={16} />
                 <Typography variant="caption" fontWeight={600} sx={{ fontSize: '0.72rem' }}>
                   {isRTL ? 'EN' : 'عر'}
                 </Typography>
@@ -667,22 +699,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 size="small"
                 sx={{
                   bgcolor: 'transparent',
-                  border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                  border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
                   borderRadius: 1.5,
                   p: 0.6,
                   color: 'text.secondary',
                   transition: 'all 0.15s ease',
                   '&:hover': {
-                    bgcolor: isDark ? '#1e293b' : '#f1f5f9',
-                    borderColor: isDark ? '#475569' : '#cbd5e1',
+                    bgcolor: isDark ? '#3D3D3D' : '#F5F2EF',
+                    borderColor: isDark ? '#3D3D3D' : '#E0DDD8',
                   },
                 }}
               >
-                {isDark ? (
-                  <LightModeIcon sx={{ fontSize: 18 }} />
-                ) : (
-                  <DarkModeIcon sx={{ fontSize: 18 }} />
-                )}
+                {isDark ? <Sun size={18} /> : <Moon size={18} />}
               </IconButton>
             </Tooltip>
 
@@ -696,11 +724,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   px: 1.2,
                   py: 0.6,
                   borderRadius: 8,
-                  bgcolor: isDark ? '#1e293b' : '#f1f5f9',
-                  border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                  bgcolor: isDark ? '#2D2D2D' : '#ffffff',
+                  border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
                   transition: 'all 0.15s ease',
                   '&:hover': {
-                    bgcolor: isDark ? '#334155' : '#e2e8f0',
+                    bgcolor: isDark ? '#3D3D3D' : '#F5F2EF',
                   },
                 }}
               >
@@ -708,7 +736,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   sx={{
                     width: 24,
                     height: 24,
-                    bgcolor: '#2563eb',
+                    bgcolor: '#C2703E',
                     fontSize: 11,
                     fontWeight: 700,
                   }}
@@ -783,9 +811,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         sx={{
           flexGrow: 1,
           p: { xs: 2, sm: 3 },
-          mt: 8,
+          mt: { xs: 11, sm: 13 },
           minHeight: '100vh',
-          bgcolor: isDark ? '#0b0f19' : '#f8fafc',
+          bgcolor: isDark ? '#1A1A1A' : '#F5F2EF',
           transition: 'background-color 0.2s ease',
           minWidth: 0,
         }}

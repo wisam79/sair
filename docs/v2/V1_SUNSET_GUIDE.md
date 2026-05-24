@@ -1,4 +1,4 @@
-# UniRide: V1 Sunset & Migration Justification 🌅
+# Sair: V1 Sunset & Migration Justification 🌅
 
 This document serves as the official engineering justification for deprecating and safely deleting the legacy `v1` codebase. It outlines the comparative advantages of `v2` and provides a safe deletion protocol.
 
@@ -6,11 +6,11 @@ This document serves as the official engineering justification for deprecating a
 
 The decision to rewrite was not taken lightly. `v1` suffered from fundamental architectural flaws that could not be patched without rewriting the core.
 
-| Feature Area              | Legacy V1 (The Problem)                                                                                                                    | UniRide V2 (The Solution)                                                                                                         |
+| Feature Area              | Legacy V1 (The Problem)                                                                                                                    | Sair V2 (The Solution)                                                                                                            |
 | :------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
 | **Concurrency (Booking)** | Vulnerable to **Overbooking**. Used a "check-then-act" pattern in SQL/TS, allowing multiple students to book the same seat simultaneously. | **Zero Overbooking Guarantee**. Uses strictly atomic `FOR UPDATE` pessimistic locking inside Postgres RPCs.                       |
 | **Security (RLS)**        | Relied on slow `SELECT` subqueries (N+1 problem) to verify user roles for every row accessed.                                              | **Blazing Fast**. Uses **JWT Claims** (`auth.jwt()->'user_metadata'`). Zero database reads required for role verification.        |
-| **State Management**      | Spread across SQL RPCs, React state, and Edge functions inconsistently.                                                                    | Centralized in `@uniride/core` via strict Zod schemas and a unified Edge Function (`trip-engine`).                                |
+| **State Management**      | Spread across SQL RPCs, React state, and Edge functions inconsistently.                                                                    | Centralized in `@sair/core` via strict Zod schemas and a unified Edge Function (`trip-engine`).                                   |
 | **Monorepo Structure**    | Tangled dependencies. `admin` and `mobile` apps had conflicting React versions causing runtime errors.                                     | **Symmetric Workspaces**. `packages/*` for logic, `apps/*` for presentation. Strictly managed by PNPM with synchronized versions. |
 | **Developer Experience**  | Required manual database manipulation to test features. Poor CI/CD integration.                                                            | Automated DB Seeding (`pnpm seed`), enforced formatting (Husky/Lint-staged), and comprehensive architecture docs.                 |
 

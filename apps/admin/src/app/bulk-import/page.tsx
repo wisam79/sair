@@ -91,7 +91,12 @@ export default function BulkImportPage() {
         const id = row.id || row.user_id || '';
         const fullName = row.full_name || row.name || '';
         const phone = row.phone || '';
-        const role = row.role || defaultRole;
+
+        let role = (row.role || defaultRole).toLowerCase().trim();
+        // Restrict role strictly to student or driver to prevent privilege escalation (e.g. creating admins via CSV)
+        if (role !== 'student' && role !== 'driver') {
+          role = defaultRole;
+        }
 
         if (!id) {
           skippedCount++;

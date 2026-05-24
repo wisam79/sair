@@ -1,13 +1,13 @@
-# UniRide v2 - Architectural Deep-Dive 🧠
+# Sair v2 - Architectural Deep-Dive 🧠
 
 ## 1. Design Philosophy
 
-UniRide v2 follows the **Clean Architecture** and **Domain-Driven Design (DDD)** principles. The goal is to separate business rules from technical implementation details.
+Sair v2 follows the **Clean Architecture** and **Domain-Driven Design (DDD)** principles. The goal is to separate business rules from technical implementation details.
 
 ## 2. Layered Structure
 
 - **Core Layer (`packages/core`)**: The "Pure" layer. Contains no dependencies on databases or frameworks. It defines the "What" (Schemas, Types, State Machines, i18n keys). **Strictly uses `snake_case` for all properties.**
-- **Service Layer (`supabase/functions`)**: Orchestrates business processes. Edge functions act as secure gateways and MUST utilize `@uniride/core` Zod schemas for input validation before touching the database.
+- **Service Layer (`supabase/functions`)**: Orchestrates business processes. Edge functions act as secure gateways and MUST utilize `@sair/core` Zod schemas for input validation before touching the database.
 - **Data/Logic Layer (`supabase/migrations`)**: The "How" of data. The database acts as a logic engine. High-integrity operations (like transactions and concurrency controls) are offloaded to PostgreSQL RPCs. Note: We do **NOT** use `packages/db` or any external ORM for logic; Supabase Migrations are the single source of truth.
 - **Presentation Layer (`apps/*`)**: Pure UI.
   - **Admin App**: Built with Next.js App Router. Should heavily leverage React Server Components (RSC) for initial data fetching and Server Actions for mutations to reduce waterfalls.

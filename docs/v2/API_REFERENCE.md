@@ -1,4 +1,4 @@
-# UniRide v2 - API & Functions Reference 📡
+# Sair v2 - API & Functions Reference 📡
 
 ## Edge Functions
 

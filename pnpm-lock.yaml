@@ -109,22 +109,22 @@ importers:
         version: 7.27.0(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react@19.1.0))(@mui/material@6.1.8(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@mui/system@6.1.8(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@refinedev/core':
         specifier: ^4.53.0
-        version: 4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
+        version: 4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
       '@refinedev/kbar':
         specifier: ^2.0.1
-        version: 2.0.1(@refinedev/core@4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        version: 2.0.1(@refinedev/core@4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@refinedev/mui':
         specifier: ^6.3.0
-        version: 6.3.0(6a1c9360f7ef27643b21a167df29bb47)
+        version: 6.3.0(db7feead30198c3827275bf4706518ff)
       '@refinedev/nextjs-router':
         specifier: ^6.0.4
-        version: 6.2.3(@refinedev/core@4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(next@16.2.6(@babel/core@7.29.0)(@playwright/test@1.60.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        version: 6.2.3(@refinedev/core@4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(next@16.2.6(@babel/core@7.29.0)(@playwright/test@1.60.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@refinedev/react-hook-form':
         specifier: ^5.0.4
-        version: 5.0.4(@refinedev/core@4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-hook-form@7.76.0(react@19.1.0))(react@19.1.0)
+        version: 5.0.4(@refinedev/core@4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-hook-form@7.76.0(react@19.1.0))(react@19.1.0)
       '@refinedev/supabase':
         specifier: ^5.8.4
-        version: 5.9.8(@refinedev/core@4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@supabase/supabase-js@2.106.1)
+        version: 5.9.8(@refinedev/core@4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@supabase/supabase-js@2.106.1)
       '@sair/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -134,9 +134,15 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.105.3
         version: 2.106.1
+      '@tanstack/react-query':
+        specifier: ^4.36.1
+        version: 4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
       i18next:
         specifier: ^26.1.0
         version: 26.2.0(typescript@5.9.3)
+      lucide-react:
+        specifier: ^0.468.0
+        version: 0.468.0(react@19.1.0)
       next:
         specifier: 16.2.6
         version: 16.2.6(@babel/core@7.29.0)(@playwright/test@1.60.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -4960,6 +4966,11 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
+  lucide-react@0.468.0:
+    resolution: {integrity: sha512-6koYRhnM2N0GGZIdXzSeiNwguv1gt/FAjZOiPl76roBi3xKEXa4WmfpxgQwTTL4KipXjefrnf3oV4IsYhi4JFA==}
+    peerDependencies:
+      react: 19.1.0
+
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
@@ -9562,10 +9573,10 @@ snapshots:
       react: 19.1.0
       react-redux: 9.3.0(@types/react@19.1.10)(react@19.1.0)(redux@5.0.1)
 
-  '@refinedev/core@4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)':
+  '@refinedev/core@4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)':
     dependencies:
       '@refinedev/devtools-internal': 1.1.16(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
-      '@tanstack/react-query': 5.100.11(react@19.1.0)
+      '@tanstack/react-query': 4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
       '@types/react': 19.1.10
       '@types/react-dom': 19.2.3(@types/react@19.1.10)
       lodash: 4.18.1
@@ -9603,9 +9614,9 @@ snapshots:
     transitivePeerDependencies:
       - react-native
 
-  '@refinedev/kbar@2.0.1(@refinedev/core@4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@refinedev/kbar@2.0.1(@refinedev/core@4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@refinedev/core': 4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
+      '@refinedev/core': 4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
       kbar: 0.1.0-beta.40(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
@@ -9613,7 +9624,7 @@ snapshots:
       - '@types/react'
       - '@types/react-dom'
 
-  '@refinedev/mui@6.3.0(6a1c9360f7ef27643b21a167df29bb47)':
+  '@refinedev/mui@6.3.0(db7feead30198c3827275bf4706518ff)':
     dependencies:
       '@emotion/react': 11.14.0(@types/react@19.1.10)(react@19.1.0)
       '@emotion/styled': 11.14.1(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react@19.1.0)
@@ -9622,9 +9633,9 @@ snapshots:
       '@mui/material': 6.1.8(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@mui/system': 6.1.8(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react@19.1.0)
       '@mui/x-data-grid': 7.27.0(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react@19.1.0))(@mui/material@6.1.8(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@mui/system@6.1.8(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react@19.1.0))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      '@refinedev/core': 4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
-      '@refinedev/react-hook-form': 5.0.4(@refinedev/core@4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-hook-form@7.76.0(react@19.1.0))(react@19.1.0)
-      '@refinedev/ui-types': 1.24.2(@refinedev/core@4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@refinedev/core': 4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
+      '@refinedev/react-hook-form': 5.0.4(@refinedev/core@4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-hook-form@7.76.0(react@19.1.0))(react@19.1.0)
+      '@refinedev/ui-types': 1.24.2(@refinedev/core@4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       dayjs: 1.11.20
       lodash: 4.18.1
       lodash-es: 4.18.1
@@ -9640,9 +9651,9 @@ snapshots:
       - '@types/react'
       - supports-color
 
-  '@refinedev/nextjs-router@6.2.3(@refinedev/core@4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(next@16.2.6(@babel/core@7.29.0)(@playwright/test@1.60.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@refinedev/nextjs-router@6.2.3(@refinedev/core@4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(next@16.2.6(@babel/core@7.29.0)(@playwright/test@1.60.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@refinedev/core': 4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
+      '@refinedev/core': 4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
       '@types/react': 19.1.10
       '@types/react-dom': 19.2.3(@types/react@19.1.10)
       next: 16.2.6(@babel/core@7.29.0)(@playwright/test@1.60.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -9651,9 +9662,9 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
       warn-once: 0.1.1
 
-  '@refinedev/react-hook-form@5.0.4(@refinedev/core@4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-hook-form@7.76.0(react@19.1.0))(react@19.1.0)':
+  '@refinedev/react-hook-form@5.0.4(@refinedev/core@4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-hook-form@7.76.0(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@refinedev/core': 4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
+      '@refinedev/core': 4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
       '@types/react': 19.1.10
       '@types/react-dom': 19.2.3(@types/react@19.1.10)
       lodash: 4.18.1
@@ -9662,14 +9673,14 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
       react-hook-form: 7.76.0(react@19.1.0)
 
-  '@refinedev/supabase@5.9.8(@refinedev/core@4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@supabase/supabase-js@2.106.1)':
+  '@refinedev/supabase@5.9.8(@refinedev/core@4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@supabase/supabase-js@2.106.1)':
     dependencies:
-      '@refinedev/core': 4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
+      '@refinedev/core': 4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
       '@supabase/supabase-js': 2.106.1
 
-  '@refinedev/ui-types@1.24.2(@refinedev/core@4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@refinedev/ui-types@1.24.2(@refinedev/core@4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@refinedev/core': 4.58.0(@tanstack/react-query@5.100.11(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
+      '@refinedev/core': 4.58.0(@tanstack/react-query@4.44.0(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0))(@types/react-dom@19.2.3(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.10)(react@19.1.0))(react@19.1.0)
       dayjs: 1.11.20
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
@@ -12402,6 +12413,10 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  lucide-react@0.468.0(react@19.1.0):
+    dependencies:
+      react: 19.1.0
 
   magic-string@0.30.21:
     dependencies:

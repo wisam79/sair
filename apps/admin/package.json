@@ -25,6 +25,8 @@
     "@refinedev/supabase": "^5.8.4",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.105.3",
+    "@tanstack/react-query": "^4.36.1",
+    "lucide-react": "^0.468.0",
     "@sair/core": "workspace:*",
     "i18next": "^26.1.0",
     "next": "16.2.6",

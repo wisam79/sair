@@ -1,6 +1,6 @@
 # 🔄 State Machine & Core Logic
 
-UniRide relies on strict state machines to manage the lifecycle of Trips and Subscriptions. This document outlines the allowed transitions. These transitions are defined in `@uniride/core` and rigorously enforced by database triggers/RPCs.
+Sair relies on strict state machines to manage the lifecycle of Trips and Subscriptions. This document outlines the allowed transitions. These transitions are defined in `@sair/core` and rigorously enforced by database triggers/RPCs.
 
 ## 1. Trip Status Lifecycle
 
