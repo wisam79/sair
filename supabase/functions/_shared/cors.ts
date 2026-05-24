@@ -15,7 +15,7 @@ export function resolveOrigin(origin: string | null): string {
   return ALLOWED_ORIGINS[0];
 }
 
-export function corsHeaders(req: Request, permissive = false) {
+export function corsHeaders(req: Request, permissive = true) {
   const origin = req.headers.get('Origin');
   return {
     ...CORS_HEADERS,
@@ -23,7 +23,7 @@ export function corsHeaders(req: Request, permissive = false) {
   };
 }
 
-export function corsResponse(req: Request, body: unknown, status = 200, permissive = false) {
+export function corsResponse(req: Request, body: unknown, status = 200, permissive = true) {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders(req, permissive) });
   }
