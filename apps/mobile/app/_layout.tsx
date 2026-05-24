@@ -117,7 +117,7 @@ export default function Layout() {
             // Also fetch role to detect admin-side promotions (e.g. student → driver)
             const { data: profileData } = await supabase
               .from('profiles')
-              .select('full_name, phone, institution_id, role')
+              .select('full_name, phone, institution_id, role, is_verified')
               .eq('id', session.user.id)
               .single();
 
@@ -150,6 +150,7 @@ export default function Layout() {
                 full_name: profileData.full_name || '',
                 phone: profileData.phone || '',
                 institution_id: profileData.institution_id,
+                is_verified: profileData.is_verified,
               });
             }
           }
@@ -185,7 +186,7 @@ export default function Layout() {
           // Fetch full profile from DB (includes institution_id for smart matching)
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('full_name, phone, institution_id')
+            .select('full_name, phone, institution_id, is_verified')
             .eq('id', session.user.id)
             .single();
           if (profileData) {
@@ -193,6 +194,7 @@ export default function Layout() {
               full_name: profileData.full_name || '',
               phone: profileData.phone || '',
               institution_id: profileData.institution_id,
+              is_verified: profileData.is_verified,
             });
           }
         } else {

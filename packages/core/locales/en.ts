@@ -275,4 +275,9 @@ export default {
   or: 'Or',
   notifications: 'Notifications',
   clear_all: 'Clear All',
+  verified: 'Verified',
+  unverified: 'Unverified',
+  institution: 'Institution',
+  active_subscription_desc: 'Track and manage your current subscription',
+  no_active_subscription: 'No active subscription currently',
 } as const;

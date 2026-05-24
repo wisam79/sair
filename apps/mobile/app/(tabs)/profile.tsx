@@ -9,12 +9,13 @@ import {
   ActivityIndicator,
   DevSettings,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../src/lib/supabase';
 import { useAuthStore } from '../../src/hooks/useStore';
 import { useTranslation } from '../../src/hooks/useTranslation';
+import { useSubscriptions } from '../../src/hooks/useTrips';
 import Constants from 'expo-constants';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../../src/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -31,6 +32,18 @@ const ProfileEditSchema = z.object({
 });
 type ProfileEditRequest = z.infer<typeof ProfileEditSchema>;
 
+// Helper to extract initials from full name
+function getInitials(name: string): string {
+  if (!name) return '';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) {
+    return parts[0].substring(0, 2).toUpperCase();
+  }
+  const first = parts[0]?.charAt(0) || '';
+  const last = parts[parts.length - 1]?.charAt(0) || '';
+  return `${first}${last}`.toUpperCase();
+}
+
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, role, profile, setProfile, logout } = useAuthStore();
@@ -38,6 +51,12 @@ export default function ProfileScreen() {
   const { top } = useSafeAreaInsets();
   const [saving, setSaving] = useState(false);
   const [stats, setStats] = useState({ tripCount: 0, avgRating: 0 });
+  const [institutionName, setInstitutionName] = useState<string | null>(null);
+
+  // Fetch student subscriptions to display active summary card
+  const { subscriptions, isLoading: loadingSubs } = useSubscriptions(0);
+  const activeSub =
+    role === 'student' ? subscriptions.find((sub: any) => sub.status === 'active') : null;
 
   const { control, handleSubmit, reset } = useForm<ProfileEditRequest>({
     resolver: zodResolver(ProfileEditSchema),
@@ -55,6 +74,30 @@ export default function ProfileScreen() {
       });
     }
   }, [profile, reset]);
+
+  // Fetch institution name if institution_id exists
+  useEffect(() => {
+    if (!profile?.institution_id) {
+      setInstitutionName(null);
+      return;
+    }
+    async function loadInstitution() {
+      try {
+        const { data, error } = await supabase
+          .from('institutions')
+          .select('name')
+          .eq('id', profile!.institution_id!)
+          .single();
+        if (error) throw error;
+        if (data?.name) {
+          setInstitutionName(data.name);
+        }
+      } catch (err) {
+        console.warn('[Profile] Error loading institution:', err);
+      }
+    }
+    loadInstitution();
+  }, [profile?.institution_id]);
 
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
@@ -132,7 +175,11 @@ export default function ProfileScreen() {
         .eq('id', user?.id);
 
       if (error) throw error;
-      setProfile({ full_name: data.full_name.trim(), phone: data.phone?.trim() || null });
+      setProfile({
+        ...profile,
+        full_name: data.full_name.trim(),
+        phone: data.phone?.trim() || null,
+      });
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       showAlert(t('success'), t('updated_successfully'), 'success');
     } catch (err: unknown) {
@@ -160,6 +207,8 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const initials = profile?.full_name ? getInitials(profile.full_name) : '';
+
   return (
     <ScrollView
       style={styles.container}
@@ -168,23 +217,141 @@ export default function ProfileScreen() {
     >
       <StatusBar style="dark" translucent />
 
-      {/* Header */}
+      {/* Premium Header */}
       <View style={[styles.header, { paddingTop: top + Spacing.md }]}>
         {/* Avatar Ring */}
         <View style={styles.avatarContainer}>
           <View style={styles.avatarCircle}>
-            <Ionicons name="person" size={32} color={Colors.white} />
+            {initials ? (
+              <Text style={styles.avatarInitialsText}>{initials}</Text>
+            ) : (
+              <Ionicons name="person" size={32} color={Colors.white} />
+            )}
           </View>
+          {profile?.is_verified && (
+            <View style={styles.verifiedBadgeFloating}>
+              <Ionicons name="checkmark-circle" size={18} color={Colors.info} />
+            </View>
+          )}
         </View>
-        <Text style={styles.headerName}>{profile?.full_name || t('user')}</Text>
+
+        <View style={[styles.nameRow, isRTL && { flexDirection: 'row-reverse' }]}>
+          <Text style={styles.headerName}>{profile?.full_name || t('user')}</Text>
+          {profile?.is_verified && (
+            <Ionicons
+              name="checkmark-circle"
+              size={16}
+              color={Colors.info}
+              style={styles.verifiedInlineIcon}
+            />
+          )}
+        </View>
+
         <View style={[styles.roleBadge, isRTL && { flexDirection: 'row-reverse' }]}>
           <Ionicons name={roleIcon} size={13} color={Colors.primary} />
           <Text style={styles.roleBadgeText}>{roleLabel}</Text>
         </View>
+
+        {institutionName ? (
+          <View style={[styles.institutionBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+            <Ionicons name="school-outline" size={13} color={Colors.textSecondary} />
+            <Text style={styles.institutionText}>{institutionName}</Text>
+          </View>
+        ) : profile?.institution_id ? (
+          <ActivityIndicator size="small" color={Colors.textMuted} style={{ marginVertical: 2 }} />
+        ) : null}
+
         <Text style={styles.headerEmail}>{user?.email}</Text>
       </View>
 
-      {/* Info Form */}
+      {/* Student Active Subscription summary card */}
+      {role === 'student' && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('active_subscription')}
+          </Text>
+
+          {loadingSubs ? (
+            <ActivityIndicator
+              color={Colors.primary}
+              size="small"
+              style={{ padding: Spacing.md }}
+            />
+          ) : activeSub ? (
+            <View style={styles.subCard}>
+              <View style={[styles.subCardHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Text style={[styles.subCardTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+                  {activeSub.routes?.title || t('route')}
+                </Text>
+                <View style={[styles.activeBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <Ionicons name="checkmark-circle" size={12} color={Colors.white} />
+                  <Text style={styles.activeBadgeText}>{t('active')}</Text>
+                </View>
+              </View>
+
+              <Text style={[styles.subCardDesc, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {activeSub.routes?.start_location} ➔ {activeSub.routes?.end_location}
+              </Text>
+
+              <View style={[styles.subCardFooter, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Text style={styles.subCardDate}>
+                  {t('expires')}:{' '}
+                  {new Date(activeSub.end_date).toLocaleDateString(isRTL ? 'ar-IQ' : 'en-US')}
+                </Text>
+                <TouchableOpacity
+                  style={[styles.subTrackBtn, isRTL && { flexDirection: 'row-reverse' }]}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    router.push('/subscriptions');
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="eye-outline" size={12} color={Colors.white} />
+                  <Text style={styles.subTrackText}>{t('view_subscription')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.noSubCard}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/');
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="ticket-outline" size={28} color={Colors.textMuted} />
+              <Text style={styles.noSubText}>{t('no_active_subscription')}</Text>
+              <Text style={styles.noSubAction}>{t('book_route_prompt')}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {/* Driver Stats */}
+      {role === 'driver' && stats.tripCount > 0 && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('my_stats')}
+          </Text>
+          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }}>
+            <View style={styles.statBox}>
+              <Ionicons name="car-outline" size={22} color={Colors.primary} />
+              <Text style={styles.statNumber}>{stats.tripCount}</Text>
+              <Text style={styles.statLabel}>{t('completed_trips')}</Text>
+            </View>
+            {stats.avgRating > 0 && (
+              <View style={styles.statBox}>
+                <Ionicons name="star" size={22} color={Colors.warning} />
+                <Text style={styles.statNumber}>{stats.avgRating}</Text>
+                <Text style={styles.statLabel}>{t('avg_rating')}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      )}
+
+      {/* Personal Info Form Card */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
           {t('personal_info')}
@@ -267,109 +434,92 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Navigation Links */}
-      {role === 'driver' && stats.tripCount > 0 && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('my_stats')}
-          </Text>
-          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }}>
-            <View style={styles.statBox}>
-              <Ionicons name="car-outline" size={22} color={Colors.primary} />
-              <Text style={styles.statNumber}>{stats.tripCount}</Text>
-              <Text style={styles.statLabel}>{t('completed_trips')}</Text>
-            </View>
-            {stats.avgRating > 0 && (
-              <View style={styles.statBox}>
-                <Ionicons name="star" size={22} color={Colors.warning} />
-                <Text style={styles.statNumber}>{stats.avgRating}</Text>
-                <Text style={styles.statLabel}>{t('avg_rating')}</Text>
-              </View>
-            )}
-          </View>
-        </View>
-      )}
-      {role === 'student' && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('trip_history')}
-          </Text>
-          <TouchableOpacity
-            style={[styles.navLinkCard, isRTL && { flexDirection: 'row-reverse' }]}
-            onPress={() => router.push('/trip-history')}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.navLinkLeft, isRTL && { flexDirection: 'row-reverse' }]}>
-              <View style={styles.navIconContainer}>
-                <Ionicons name="time-outline" size={20} color={Colors.primary} />
-              </View>
-              <Text style={[styles.navLinkText, { textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('trip_history')}
-              </Text>
-            </View>
-            <Ionicons
-              name={isRTL ? 'chevron-back' : 'chevron-forward'}
-              size={18}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {role === 'driver' && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('withdraw_request')}
-          </Text>
-          <TouchableOpacity
-            style={[styles.navLinkCard, isRTL && { flexDirection: 'row-reverse' }]}
-            onPress={() => router.push('/payouts')}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.navLinkLeft, isRTL && { flexDirection: 'row-reverse' }]}>
-              <View style={styles.navIconContainer}>
-                <Ionicons name="cash-outline" size={20} color={Colors.primary} />
-              </View>
-              <Text style={[styles.navLinkText, { textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('withdraw_request')}
-              </Text>
-            </View>
-            <Ionicons
-              name={isRTL ? 'chevron-back' : 'chevron-forward'}
-              size={18}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Help Center */}
+      {/* Account Settings List Card */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('support')}
+          {t('account')}
         </Text>
-        <TouchableOpacity
-          style={[styles.navLinkCard, isRTL && { flexDirection: 'row-reverse' }]}
-          onPress={() => router.push('/help')}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.navLinkLeft, isRTL && { flexDirection: 'row-reverse' }]}>
-            <View style={styles.navIconContainer}>
-              <Ionicons name="help-circle-outline" size={20} color={Colors.primary} />
+
+        <View style={styles.menuContainer}>
+          {/* Trip History for student */}
+          {role === 'student' && (
+            <>
+              <TouchableOpacity
+                style={[styles.menuItem, isRTL && { flexDirection: 'row-reverse' }]}
+                onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push('/trip-history');
+                }}
+                activeOpacity={0.6}
+              >
+                <View style={[styles.menuItemLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <View style={styles.menuIconContainer}>
+                    <Ionicons name="time-outline" size={20} color={Colors.primary} />
+                  </View>
+                  <Text style={styles.menuItemText}>{t('trip_history')}</Text>
+                </View>
+                <Ionicons
+                  name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                  size={16}
+                  color={Colors.textMuted}
+                />
+              </TouchableOpacity>
+              <View style={styles.divider} />
+            </>
+          )}
+
+          {/* Withdraw Request for driver */}
+          {role === 'driver' && (
+            <>
+              <TouchableOpacity
+                style={[styles.menuItem, isRTL && { flexDirection: 'row-reverse' }]}
+                onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push('/payouts');
+                }}
+                activeOpacity={0.6}
+              >
+                <View style={[styles.menuItemLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <View style={styles.menuIconContainer}>
+                    <Ionicons name="cash-outline" size={20} color={Colors.primary} />
+                  </View>
+                  <Text style={styles.menuItemText}>{t('withdraw_request')}</Text>
+                </View>
+                <Ionicons
+                  name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                  size={16}
+                  color={Colors.textMuted}
+                />
+              </TouchableOpacity>
+              <View style={styles.divider} />
+            </>
+          )}
+
+          {/* Help Center */}
+          <TouchableOpacity
+            style={[styles.menuItem, isRTL && { flexDirection: 'row-reverse' }]}
+            onPress={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push('/help');
+            }}
+            activeOpacity={0.6}
+          >
+            <View style={[styles.menuItemLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={styles.menuIconContainer}>
+                <Ionicons name="help-circle-outline" size={20} color={Colors.primary} />
+              </View>
+              <Text style={styles.menuItemText}>{t('help_center')}</Text>
             </View>
-            <Text style={[styles.navLinkText, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('help_center')}
-            </Text>
-          </View>
-          <Ionicons
-            name={isRTL ? 'chevron-back' : 'chevron-forward'}
-            size={18}
-            color={Colors.textMuted}
-          />
-        </TouchableOpacity>
+            <Ionicons
+              name={isRTL ? 'chevron-back' : 'chevron-forward'}
+              size={16}
+              color={Colors.textMuted}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Language */}
+      {/* Language Section Card */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
           {t('language')}
@@ -401,7 +551,13 @@ export default function ProfileScreen() {
                   },
                 ]);
               }}
+              activeOpacity={0.7}
             >
+              <Ionicons
+                name="language-outline"
+                size={16}
+                color={language === lang.code ? Colors.primary : Colors.textMuted}
+              />
               <Text
                 style={[styles.langChipText, language === lang.code && styles.langChipTextActive]}
               >
@@ -412,12 +568,10 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      {/* Logout */}
+      {/* Logout Button */}
       <TouchableOpacity
         style={[styles.logoutButton, isRTL && { flexDirection: 'row-reverse' }]}
-        onPress={() => {
-          handleLogout();
-        }}
+        onPress={handleLogout}
         activeOpacity={0.85}
       >
         <Ionicons name="log-out-outline" size={18} color={Colors.error} />
@@ -459,38 +613,64 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 24,
   },
   avatarContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    position: 'relative',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     borderWidth: 2,
     borderColor: 'rgba(0, 0, 0, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.sm,
+    backgroundColor: Colors.white,
   },
   avatarCircle: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  avatarText: {
+  avatarInitialsText: {
     fontFamily: FontFamily.bold,
-    fontSize: 24,
+    fontSize: 22,
     color: Colors.white,
+  },
+  verifiedBadgeFloating: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: Colors.white,
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: Spacing.xs,
+  },
+  verifiedInlineIcon: {
+    marginLeft: 2,
   },
   headerName: {
     fontFamily: FontFamily.bold,
     fontSize: 18,
     color: Colors.text,
-    marginBottom: Spacing.xs,
   },
   roleBadge: {
     flexDirection: 'row',
@@ -509,10 +689,26 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.primary,
   },
+  institutionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.sm,
+    marginBottom: Spacing.xs,
+  },
+  institutionText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
   headerEmail: {
     fontFamily: FontFamily.regular,
     fontSize: 13,
     color: Colors.textSecondary,
+    marginTop: 4,
   },
   // Section
   section: {
@@ -531,35 +727,123 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: Spacing.md,
   },
-  // Navigation Links
-  navLinkCard: {
+  // Active Sub Card
+  subCard: {
+    backgroundColor: Colors.primarySurface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.primary + '18',
+  },
+  subCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
+  subCardTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 15,
+    color: Colors.text,
+  },
+  activeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.success,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.pill,
+  },
+  activeBadgeText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 11,
+    color: Colors.white,
+  },
+  subCardDesc: {
+    fontFamily: FontFamily.medium,
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+  },
+  subCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  subCardDate: {
+    fontFamily: FontFamily.regular,
+    fontSize: 12,
+    color: Colors.textMuted,
+  },
+  subTrackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+  },
+  subTrackText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 11,
+    color: Colors.white,
+  },
+  noSubCard: {
+    backgroundColor: Colors.surfaceMuted,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    alignItems: 'center',
+    gap: Spacing.xs,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderStyle: 'dashed',
+  },
+  noSubText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
+  },
+  noSubAction: {
+    fontFamily: FontFamily.bold,
+    fontSize: 13,
+    color: Colors.primary,
+    textDecorationLine: 'underline',
+  },
+  // Menu settings list
+  menuContainer: {
+    backgroundColor: Colors.surface,
+  },
+  menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.sm,
-    backgroundColor: Colors.surfaceMuted,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    paddingVertical: Spacing.md,
   },
-  navLinkLeft: {
+  menuItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
-  navIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: BorderRadius.sm,
+  menuIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.md,
     backgroundColor: Colors.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  navLinkText: {
+  menuItemText: {
     fontFamily: FontFamily.medium,
     fontSize: 15,
     color: Colors.text,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    opacity: 0.5,
   },
   // Field
   field: {
@@ -579,14 +863,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     borderWidth: 1.5,
     borderColor: Colors.border,
-  },
-  inputFocused: {
-    borderColor: Colors.primary,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   inputDisabled: {
     opacity: 0.7,
@@ -634,9 +910,12 @@ const styles = StyleSheet.create({
   },
   langChip: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
-    alignItems: 'center',
     borderWidth: 1.5,
     borderColor: Colors.border,
     backgroundColor: Colors.white,

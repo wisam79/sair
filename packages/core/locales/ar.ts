@@ -271,4 +271,9 @@ export default {
   or: 'أو',
   notifications: 'الإشعارات',
   clear_all: 'مسح الكل',
+  verified: 'حساب موثق',
+  unverified: 'حساب غير موثق',
+  institution: 'المؤسسة التعليمية',
+  active_subscription_desc: 'تتبع والتحكم باشتراكك الحالي',
+  no_active_subscription: 'لا يوجد اشتراك نشط حالياً',
 } as const;
