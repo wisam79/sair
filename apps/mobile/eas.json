@@ -9,18 +9,12 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      },
-      "hooks": {
-        "postPrebuild": "node scripts/optimize-apk-size.js"
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      },
-      "hooks": {
-        "postPrebuild": "node scripts/optimize-apk-size.js"
       }
     },
     "production": {
