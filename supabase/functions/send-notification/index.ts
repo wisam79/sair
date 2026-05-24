@@ -101,10 +101,13 @@ Deno.serve(async (req: Request) => {
       if (userIds.length > 0) {
         tokensQuery = tokensQuery.in('user_id', userIds);
       } else {
-        return corsResponse(req, {
-          success: true,
-          message: `No users found for role ${target_role}`,
-        });
+        return corsResponse(
+          req,
+          {
+            error: `No users found for role ${target_role}`,
+          },
+          404,
+        );
       }
     }
 
@@ -113,10 +116,13 @@ Deno.serve(async (req: Request) => {
     if (tokenError) throw tokenError;
 
     if (!pushTokens || pushTokens.length === 0) {
-      return corsResponse(req, {
-        success: false,
-        message: 'No valid push tokens found for target',
-      });
+      return corsResponse(
+        req,
+        {
+          error: 'No valid push tokens found for target',
+        },
+        404,
+      );
     }
 
     // Expo Push API allows sending up to 100 messages at once
@@ -149,7 +155,7 @@ Deno.serve(async (req: Request) => {
 
     const expoResult = await expoResponse.json();
 
-    return corsResponse(req, { success: true, expoResult });
+    return corsResponse(req, { success: true, sent_count: pushTokens.length, expoResult });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error';
     return corsResponse(req, { error: message }, 400);

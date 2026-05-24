@@ -38,6 +38,10 @@
       }
     },
     "plugins": ["expo-font", "expo-secure-store", "expo-web-browser"],
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#C2703E"
+    },
     "owner": "wisam99sr"
   }
 }
