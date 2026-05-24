@@ -161,281 +161,294 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={styles.container}>
       <StatusBar style="dark" translucent />
 
-      {/* Header */}
+      {/* Fixed Header */}
       <View style={[styles.header, { paddingTop: top + Spacing.md }]}>
-        {/* Avatar Ring */}
-        <View style={styles.avatarContainer}>
-          <View style={styles.avatarCircle}>
-            <Ionicons name="person" size={32} color={Colors.white} />
+        <View style={[styles.headerRow, isRTL && { flexDirection: 'row-reverse' }]}>
+          {/* Left Group: Avatar + Details */}
+          <View style={[styles.headerLeftGroup, isRTL && { flexDirection: 'row-reverse' }]}>
+            {/* Avatar Ring */}
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatarCircle}>
+                <Ionicons name="person" size={24} color={Colors.white} />
+              </View>
+            </View>
+
+            {/* User Info Stack */}
+            <View style={[styles.userInfo, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+              <Text style={styles.headerName}>{profile?.full_name || t('user')}</Text>
+              <Text style={styles.headerEmail}>{user?.email}</Text>
+            </View>
+          </View>
+
+          {/* Right Group: Role Badge */}
+          <View style={[styles.roleBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+            <Ionicons name={roleIcon} size={11} color={Colors.primary} />
+            <Text style={styles.roleBadgeText}>{roleLabel}</Text>
           </View>
         </View>
-        <Text style={styles.headerName}>{profile?.full_name || t('user')}</Text>
-        <View style={[styles.roleBadge, isRTL && { flexDirection: 'row-reverse' }]}>
-          <Ionicons name={roleIcon} size={13} color={Colors.primary} />
-          <Text style={styles.roleBadgeText}>{roleLabel}</Text>
-        </View>
-        <Text style={styles.headerEmail}>{user?.email}</Text>
       </View>
 
-      {/* Info Form */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('personal_info')}
-        </Text>
-
-        <View style={styles.field}>
-          <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('full_name')}
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Info Form */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('personal_info')}
           </Text>
-          <FormInput
-            control={control}
-            name="full_name"
-            placeholder={t('enter_full_name')}
-            icon="person-outline"
-            autoCapitalize="words"
-            isRTL={isRTL}
-            style={{ marginBottom: 0 }}
-          />
-        </View>
 
-        <View style={styles.field}>
-          <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('phone')}
-          </Text>
-          <FormInput
-            control={control}
-            name="phone"
-            placeholder={t('phone_placeholder')}
-            icon="call-outline"
-            keyboardType="phone-pad"
-            isRTL={isRTL}
-            style={{ marginBottom: 0 }}
-          />
-        </View>
+          <View style={styles.field}>
+            <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('full_name')}
+            </Text>
+            <FormInput
+              control={control}
+              name="full_name"
+              placeholder={t('enter_full_name')}
+              icon="person-outline"
+              autoCapitalize="words"
+              isRTL={isRTL}
+              style={{ marginBottom: 0 }}
+            />
+          </View>
 
-        <View style={styles.field}>
-          <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('email')}
-          </Text>
-          <View
+          <View style={styles.field}>
+            <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('phone')}
+            </Text>
+            <FormInput
+              control={control}
+              name="phone"
+              placeholder={t('phone_placeholder')}
+              icon="call-outline"
+              keyboardType="phone-pad"
+              isRTL={isRTL}
+              style={{ marginBottom: 0 }}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('email')}
+            </Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                styles.inputDisabled,
+                isRTL && { flexDirection: 'row-reverse' },
+              ]}
+            >
+              <Ionicons
+                name="mail-outline"
+                size={16}
+                color={Colors.textMuted}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={[styles.input, isRTL && styles.inputRTL, { color: Colors.textMuted }]}
+                value={user?.email || ''}
+                editable={false}
+              />
+              <Ionicons name="lock-closed-outline" size={14} color={Colors.textMuted} />
+            </View>
+          </View>
+
+          <TouchableOpacity
             style={[
-              styles.inputWrapper,
-              styles.inputDisabled,
+              styles.saveButton,
+              saving && { opacity: 0.7 },
               isRTL && { flexDirection: 'row-reverse' },
             ]}
+            onPress={handleSubmit(handleSave)}
+            disabled={saving}
+            activeOpacity={0.85}
           >
+            {saving ? (
+              <ActivityIndicator color={Colors.white} />
+            ) : (
+              <>
+                <Ionicons name="checkmark-outline" size={18} color={Colors.white} />
+                <Text style={styles.saveButtonText}>{t('save_changes')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Navigation Links */}
+        {role === 'driver' && stats.tripCount > 0 && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('my_stats')}
+            </Text>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }}>
+              <View style={styles.statBox}>
+                <Ionicons name="car-outline" size={22} color={Colors.primary} />
+                <Text style={styles.statNumber}>{stats.tripCount}</Text>
+                <Text style={styles.statLabel}>{t('completed_trips')}</Text>
+              </View>
+              {stats.avgRating > 0 && (
+                <View style={styles.statBox}>
+                  <Ionicons name="star" size={22} color={Colors.warning} />
+                  <Text style={styles.statNumber}>{stats.avgRating}</Text>
+                  <Text style={styles.statLabel}>{t('avg_rating')}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+        {role === 'student' && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('trip_history')}
+            </Text>
+            <TouchableOpacity
+              style={[styles.navLinkCard, isRTL && { flexDirection: 'row-reverse' }]}
+              onPress={() => router.push('/trip-history')}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.navLinkLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={styles.navIconContainer}>
+                  <Ionicons name="time-outline" size={20} color={Colors.primary} />
+                </View>
+                <Text style={[styles.navLinkText, { textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('trip_history')}
+                </Text>
+              </View>
+              <Ionicons
+                name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                size={18}
+                color={Colors.textMuted}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {role === 'driver' && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('withdraw_request')}
+            </Text>
+            <TouchableOpacity
+              style={[styles.navLinkCard, isRTL && { flexDirection: 'row-reverse' }]}
+              onPress={() => router.push('/payouts')}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.navLinkLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={styles.navIconContainer}>
+                  <Ionicons name="cash-outline" size={20} color={Colors.primary} />
+                </View>
+                <Text style={[styles.navLinkText, { textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('withdraw_request')}
+                </Text>
+              </View>
+              <Ionicons
+                name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                size={18}
+                color={Colors.textMuted}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Help Center */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('support')}
+          </Text>
+          <TouchableOpacity
+            style={[styles.navLinkCard, isRTL && { flexDirection: 'row-reverse' }]}
+            onPress={() => router.push('/help')}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.navLinkLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={styles.navIconContainer}>
+                <Ionicons name="help-circle-outline" size={20} color={Colors.primary} />
+              </View>
+              <Text style={[styles.navLinkText, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('help_center')}
+              </Text>
+            </View>
             <Ionicons
-              name="mail-outline"
-              size={16}
+              name={isRTL ? 'chevron-back' : 'chevron-forward'}
+              size={18}
               color={Colors.textMuted}
-              style={styles.inputIcon}
             />
-            <TextInput
-              style={[styles.input, isRTL && styles.inputRTL, { color: Colors.textMuted }]}
-              value={user?.email || ''}
-              editable={false}
-            />
-            <Ionicons name="lock-closed-outline" size={14} color={Colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Language */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('language')}
+          </Text>
+          <View style={[styles.langRow, isRTL && { flexDirection: 'row-reverse' }]}>
+            {[
+              { code: 'ar', label: t('arabic') },
+              { code: 'en', label: t('english') },
+            ].map((lang) => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[styles.langChip, language === lang.code && styles.langChipActive]}
+                onPress={() => {
+                  if (language === lang.code) return;
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  showAlert(t('alert'), t('language_change_restart'), 'warning', [
+                    { text: t('cancel'), style: 'cancel' },
+                    {
+                      text: t('ok'),
+                      onPress: () => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setLanguage(lang.code as 'ar' | 'en');
+                        try {
+                          DevSettings.reload();
+                        } catch {
+                          // ignore
+                        }
+                      },
+                    },
+                  ]);
+                }}
+              >
+                <Text
+                  style={[styles.langChipText, language === lang.code && styles.langChipTextActive]}
+                >
+                  {lang.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
+        {/* Logout */}
         <TouchableOpacity
-          style={[
-            styles.saveButton,
-            saving && { opacity: 0.7 },
-            isRTL && { flexDirection: 'row-reverse' },
-          ]}
-          onPress={handleSubmit(handleSave)}
-          disabled={saving}
+          style={[styles.logoutButton, isRTL && { flexDirection: 'row-reverse' }]}
+          onPress={() => {
+            handleLogout();
+          }}
           activeOpacity={0.85}
         >
-          {saving ? (
-            <ActivityIndicator color={Colors.white} />
-          ) : (
-            <>
-              <Ionicons name="checkmark-outline" size={18} color={Colors.white} />
-              <Text style={styles.saveButtonText}>{t('save_changes')}</Text>
-            </>
-          )}
+          <Ionicons name="log-out-outline" size={18} color={Colors.error} />
+          <Text style={styles.logoutText}>{t('logout')}</Text>
         </TouchableOpacity>
-      </View>
 
-      {/* Navigation Links */}
-      {role === 'driver' && stats.tripCount > 0 && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('my_stats')}
-          </Text>
-          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }}>
-            <View style={styles.statBox}>
-              <Ionicons name="car-outline" size={22} color={Colors.primary} />
-              <Text style={styles.statNumber}>{stats.tripCount}</Text>
-              <Text style={styles.statLabel}>{t('completed_trips')}</Text>
-            </View>
-            {stats.avgRating > 0 && (
-              <View style={styles.statBox}>
-                <Ionicons name="star" size={22} color={Colors.warning} />
-                <Text style={styles.statNumber}>{stats.avgRating}</Text>
-                <Text style={styles.statLabel}>{t('avg_rating')}</Text>
-              </View>
-            )}
-          </View>
-        </View>
-      )}
-      {role === 'student' && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('trip_history')}
-          </Text>
-          <TouchableOpacity
-            style={[styles.navLinkCard, isRTL && { flexDirection: 'row-reverse' }]}
-            onPress={() => router.push('/trip-history')}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.navLinkLeft, isRTL && { flexDirection: 'row-reverse' }]}>
-              <View style={styles.navIconContainer}>
-                <Ionicons name="time-outline" size={20} color={Colors.primary} />
-              </View>
-              <Text style={[styles.navLinkText, { textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('trip_history')}
-              </Text>
-            </View>
-            <Ionicons
-              name={isRTL ? 'chevron-back' : 'chevron-forward'}
-              size={18}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
-        </View>
-      )}
+        {/* App Version */}
+        <Text style={styles.versionText}>v{Constants.expoConfig?.version ?? '1.0.0'}</Text>
 
-      {role === 'driver' && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('withdraw_request')}
-          </Text>
-          <TouchableOpacity
-            style={[styles.navLinkCard, isRTL && { flexDirection: 'row-reverse' }]}
-            onPress={() => router.push('/payouts')}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.navLinkLeft, isRTL && { flexDirection: 'row-reverse' }]}>
-              <View style={styles.navIconContainer}>
-                <Ionicons name="cash-outline" size={20} color={Colors.primary} />
-              </View>
-              <Text style={[styles.navLinkText, { textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('withdraw_request')}
-              </Text>
-            </View>
-            <Ionicons
-              name={isRTL ? 'chevron-back' : 'chevron-forward'}
-              size={18}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Help Center */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('support')}
-        </Text>
-        <TouchableOpacity
-          style={[styles.navLinkCard, isRTL && { flexDirection: 'row-reverse' }]}
-          onPress={() => router.push('/help')}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.navLinkLeft, isRTL && { flexDirection: 'row-reverse' }]}>
-            <View style={styles.navIconContainer}>
-              <Ionicons name="help-circle-outline" size={20} color={Colors.primary} />
-            </View>
-            <Text style={[styles.navLinkText, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('help_center')}
-            </Text>
-          </View>
-          <Ionicons
-            name={isRTL ? 'chevron-back' : 'chevron-forward'}
-            size={18}
-            color={Colors.textMuted}
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Language */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('language')}
-        </Text>
-        <View style={[styles.langRow, isRTL && { flexDirection: 'row-reverse' }]}>
-          {[
-            { code: 'ar', label: t('arabic') },
-            { code: 'en', label: t('english') },
-          ].map((lang) => (
-            <TouchableOpacity
-              key={lang.code}
-              style={[styles.langChip, language === lang.code && styles.langChipActive]}
-              onPress={() => {
-                if (language === lang.code) return;
-                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                showAlert(t('alert'), t('language_change_restart'), 'warning', [
-                  { text: t('cancel'), style: 'cancel' },
-                  {
-                    text: t('ok'),
-                    onPress: () => {
-                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setLanguage(lang.code as 'ar' | 'en');
-                      try {
-                        DevSettings.reload();
-                      } catch {
-                        // ignore
-                      }
-                    },
-                  },
-                ]);
-              }}
-            >
-              <Text
-                style={[styles.langChipText, language === lang.code && styles.langChipTextActive]}
-              >
-                {lang.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {/* Logout */}
-      <TouchableOpacity
-        style={[styles.logoutButton, isRTL && { flexDirection: 'row-reverse' }]}
-        onPress={() => {
-          handleLogout();
-        }}
-        activeOpacity={0.85}
-      >
-        <Ionicons name="log-out-outline" size={18} color={Colors.error} />
-        <Text style={styles.logoutText}>{t('logout')}</Text>
-      </TouchableOpacity>
-
-      {/* App Version */}
-      <Text style={styles.versionText}>v{Constants.expoConfig?.version ?? '1.0.0'}</Text>
-
-      <CustomAlert
-        visible={alertConfig.visible}
-        title={alertConfig.title}
-        message={alertConfig.message}
-        type={alertConfig.type}
-        buttons={alertConfig.buttons}
-        onClose={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
-      />
-    </ScrollView>
+        <CustomAlert
+          visible={alertConfig.visible}
+          title={alertConfig.title}
+          message={alertConfig.message}
+          type={alertConfig.type}
+          buttons={alertConfig.buttons}
+          onClose={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
+        />
+      </ScrollView>
+    </View>
   );
 }
 
@@ -450,69 +463,85 @@ const styles = StyleSheet.create({
   // Header
   header: {
     backgroundColor: '#EFECE9',
-    alignItems: 'center',
-    paddingBottom: Spacing.xl,
-    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.md,
+    paddingHorizontal: Spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: '#E6E2DE',
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    ...Shadow.sm,
+    zIndex: 10,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerLeftGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    flex: 1,
   },
   avatarContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     borderWidth: 2,
     borderColor: 'rgba(0, 0, 0, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.sm,
   },
   avatarCircle: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowRadius: 6,
+    elevation: 4,
   },
   avatarText: {
     fontFamily: FontFamily.bold,
-    fontSize: 24,
+    fontSize: 18,
     color: Colors.white,
+  },
+  userInfo: {
+    flex: 1,
+    gap: 2,
   },
   headerName: {
     fontFamily: FontFamily.bold,
-    fontSize: 18,
+    fontSize: 17,
     color: Colors.text,
-    marginBottom: Spacing.xs,
   },
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
+    gap: 4,
     backgroundColor: Colors.primarySurface,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
     borderRadius: BorderRadius.pill,
-    marginBottom: Spacing.sm,
     borderWidth: 1,
     borderColor: '#E6E2DE',
   },
   roleBadgeText: {
     fontFamily: FontFamily.medium,
-    fontSize: 13,
+    fontSize: 11,
     color: Colors.primary,
   },
   headerEmail: {
     fontFamily: FontFamily.regular,
-    fontSize: 13,
+    fontSize: 12.5,
     color: Colors.textSecondary,
+  },
+  scrollContainer: {
+    flex: 1,
   },
   // Section
   section: {

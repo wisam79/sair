@@ -696,17 +696,12 @@ const styles = StyleSheet.create({
   stopTimeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.surfaceMuted,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    gap: 6,
+    backgroundColor: 'transparent',
   },
   stopTimeText: {
     fontFamily: FontFamily.bold,
-    fontSize: 12,
+    fontSize: 12.5,
     color: Colors.textSecondary,
   },
   // Ticket Divider
@@ -748,11 +743,11 @@ const styles = StyleSheet.create({
   // Stats Strip
   statsStrip: {
     flexDirection: 'row',
-    backgroundColor: Colors.surfaceMuted,
+    backgroundColor: 'rgba(194, 112, 62, 0.04)', // Warm tinted translucent card
     borderRadius: BorderRadius.lg,
     paddingVertical: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(194, 112, 62, 0.08)',
     marginBottom: Spacing.xl,
   },
   statCol: {
@@ -772,7 +767,7 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    backgroundColor: Colors.border,
+    backgroundColor: 'rgba(194, 112, 62, 0.15)', // Softer divider
     height: '60%',
     alignSelf: 'center',
   },

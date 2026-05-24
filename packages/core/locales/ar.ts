@@ -271,4 +271,11 @@ export default {
   or: 'أو',
   notifications: 'الإشعارات',
   clear_all: 'مسح الكل',
+  distance_to_pickup: 'المسافة إلى نقطة الركوب',
+  distance_to_destination: 'المسافة إلى وجهتك',
+  estimated_arrival: 'الوصول المتوقع',
+  minutes_short: 'دقيقة',
+  km_short: 'كم',
+  driver_gps_inactive: 'موقع السائق غير نشط حالياً',
+  live: 'مباشر',
 } as const;

@@ -46,13 +46,24 @@ export default function NotificationsPage() {
         body: {
           title,
           body,
-          targetRole: targetRole === 'all' ? undefined : targetRole,
+          target_role: targetRole,
         },
       });
 
       if (response.error) {
-        const errorMsg =
+        let errorMsg =
           response.error instanceof Error ? response.error.message : String(response.error);
+        try {
+          const errObj = response.error as any;
+          if (errObj.context && typeof errObj.context.json === 'function') {
+            const body = await errObj.context.json();
+            if (body && body.error) {
+              errorMsg = body.error;
+            }
+          }
+        } catch {
+          // Ignore json parsing failures and use fallback message
+        }
         setResult({ success: false, message: errorMsg });
       } else {
         const responseData = response.data as Record<string, unknown> | null;

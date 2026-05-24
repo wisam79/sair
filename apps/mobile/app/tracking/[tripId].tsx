@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,6 +10,8 @@ import {
   Share,
   Alert,
   Linking,
+  Animated,
+  Easing,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
@@ -24,37 +26,184 @@ import { DriverBottomSheet } from '../../src/components/DriverBottomSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
+// ─── Distance & ETA Helper Functions ─────────────────────────────────────────
+
+function getDistanceInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Radius of the earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c; // Distance in km
+  return Math.round(d * 10) / 10;
+}
+
+function getEstimatedTime(distanceInKm: number): number {
+  // Assuming average city traffic speed of 30 km/h:
+  // time (hours) = distance / speed => minutes = (distance / 30) * 60 = distance * 2
+  return Math.max(1, Math.round(distanceInKm * 2));
+}
+
+// ─── ETA & Distance Indicator Card Component ────────────────────────────────
+
+interface ETAIndicatorCardProps {
+  status: string;
+  driverLat: number | null;
+  driverLng: number | null;
+  startLat: number | null;
+  startLng: number | null;
+  endLat: number | null;
+  endLng: number | null;
+}
+
+function ETAIndicatorCard({
+  status,
+  driverLat,
+  driverLng,
+  startLat,
+  startLng,
+  endLat,
+  endLng,
+}: ETAIndicatorCardProps) {
+  const { t, isRTL } = useTranslation();
+
+  if (status === 'completed' || status === 'cancelled' || status === 'absent') {
+    return null;
+  }
+
+  if (driverLat === null || driverLng === null) {
+    return (
+      <View style={[styles.etaCard, isRTL && { flexDirection: 'row-reverse' }]}>
+        <Ionicons name="location-outline" size={20} color={Colors.textMuted} />
+        <Text style={[styles.etaInactiveText, { textAlign: isRTL ? 'right' : 'left' }]}>
+          {t('driver_gps_inactive')}
+        </Text>
+      </View>
+    );
+  }
+
+  const isGoingToPickup = status === 'scheduled' || status === 'driver_waiting';
+  const targetLat = isGoingToPickup ? startLat : endLat;
+  const targetLng = isGoingToPickup ? startLng : endLng;
+
+  if (targetLat === null || targetLng === null) {
+    return null;
+  }
+
+  const distance = getDistanceInKm(driverLat, driverLng, targetLat, targetLng);
+  const etaMinutes = getEstimatedTime(distance);
+
+  return (
+    <View style={styles.etaCard}>
+      <View style={[styles.etaHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
+        <View style={[styles.etaBadgeLive, isRTL && { flexDirection: 'row-reverse' }]}>
+          <View style={styles.liveGreenDot} />
+          <Text style={styles.etaLiveLabel}>{t('live')}</Text>
+        </View>
+        <Text style={[styles.etaTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+          {isGoingToPickup ? t('distance_to_pickup') : t('distance_to_destination')}
+        </Text>
+      </View>
+      <View style={[styles.etaBodyRow, isRTL && { flexDirection: 'row-reverse' }]}>
+        <View style={styles.etaCol}>
+          <Text style={styles.etaLabel}>{t('estimated_arrival')}</Text>
+          <Text style={styles.etaValue}>
+            {etaMinutes} {t('minutes_short')}
+          </Text>
+        </View>
+        <View style={styles.etaDivider} />
+        <View style={styles.etaCol}>
+          <Text style={styles.etaLabel}>{isGoingToPickup ? t('start_point') : t('end_point')}</Text>
+          <Text style={styles.etaValue}>
+            {distance} {t('km_short')}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// ─── Pulse Animation Dot Component ──────────────────────────────────────────
+
+function PulseDot({ active }: { active: boolean }) {
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const opacityAnim = useRef(new Animated.Value(0.4)).current;
+
+  useEffect(() => {
+    if (active) {
+      Animated.loop(
+        Animated.parallel([
+          Animated.timing(pulseAnim, {
+            toValue: 1.8,
+            duration: 1200,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacityAnim, {
+            toValue: 0,
+            duration: 1200,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]),
+      ).start();
+    } else {
+      pulseAnim.setValue(1);
+      opacityAnim.setValue(0);
+    }
+  }, [active, pulseAnim, opacityAnim]);
+
+  if (!active) return null;
+
+  return (
+    <Animated.View
+      style={{
+        position: 'absolute',
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        backgroundColor: Colors.primary,
+        opacity: opacityAnim,
+        transform: [{ scale: pulseAnim }],
+      }}
+    />
+  );
+}
+
 // ─── Trip Timeline Component ────────────────────────────────────────────────
 
-const TIMELINE_STEPS = [
-  { key: 'scheduled', label: 'مجدولة' },
-  { key: 'driver_waiting', label: 'السائق ينتظر' },
-  { key: 'in_transit', label: 'في الطريق' },
-  { key: 'completed', label: 'اكتملت' },
-];
-const STATUS_ORDER = ['scheduled', 'driver_waiting', 'in_transit', 'completed'];
+const TIMELINE_STEPS = ['scheduled', 'driver_waiting', 'in_transit', 'completed'] as const;
 
 function TripTimeline({ status }: { status: string }) {
-  const currentIdx = STATUS_ORDER.indexOf(status);
+  const currentIdx = TIMELINE_STEPS.indexOf(status as any);
   const { t, isRTL } = useTranslation();
   return (
     <View style={[timelineStyles.container, isRTL && { flexDirection: 'row-reverse' }]}>
       {TIMELINE_STEPS.map((step, idx) => {
         const done = idx <= currentIdx;
         const isLast = idx === TIMELINE_STEPS.length - 1;
+        const isPulsing =
+          idx === currentIdx &&
+          status !== 'completed' &&
+          status !== 'cancelled' &&
+          status !== 'absent';
         return (
-          <View key={step.key} style={timelineStyles.stepWrapper}>
+          <View key={step} style={timelineStyles.stepWrapper}>
             <View
               style={[
                 timelineStyles.dot,
                 done && { backgroundColor: Colors.primary, borderColor: Colors.primary },
               ]}
             >
+              <PulseDot active={isPulsing} />
               {done && <Ionicons name="checkmark" size={10} color={Colors.white} />}
             </View>
-            <Text style={[timelineStyles.label, done && { color: Colors.primary }]}>
-              {t(step.key)}
-            </Text>
+            <Text style={[timelineStyles.label, done && { color: Colors.primary }]}>{t(step)}</Text>
             {!isLast && (
               <View
                 style={[
@@ -228,7 +377,7 @@ export default function TrackingScreen() {
       <View
         style={[
           styles.header,
-          { paddingTop: top + Spacing.xs },
+          { paddingTop: top + Spacing.md },
           isRTL && { flexDirection: 'row-reverse' },
         ]}
       >
@@ -242,7 +391,18 @@ export default function TrackingScreen() {
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('live_tracking')}</Text>
-        <View style={{ width: 40 }} />
+
+        {/* Pulsing Live Badge */}
+        {trip.status !== 'completed' && trip.status !== 'cancelled' && trip.status !== 'absent' ? (
+          <View style={[styles.headerLiveBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+            <View style={styles.livePulseContainer}>
+              <View style={styles.livePulseDot} />
+            </View>
+            <Text style={styles.headerLiveText}>{t('live')}</Text>
+          </View>
+        ) : (
+          <View style={{ width: 48 }} />
+        )}
       </View>
 
       <ScrollView
@@ -273,6 +433,17 @@ export default function TrackingScreen() {
             <Text style={[styles.statusLabel, { color: status.color }]}>{t(trip.status)}</Text>
           </View>
         </View>
+
+        {/* ETA & Distance Card */}
+        <ETAIndicatorCard
+          status={trip.status}
+          driverLat={trip.last_lat ? Number(trip.last_lat) : null}
+          driverLng={trip.last_lng ? Number(trip.last_lng) : null}
+          startLat={trip.routes?.start_lat ? Number(trip.routes.start_lat) : null}
+          startLng={trip.routes?.start_lng ? Number(trip.routes.start_lng) : null}
+          endLat={trip.routes?.end_lat ? Number(trip.routes.end_lat) : null}
+          endLng={trip.routes?.end_lng ? Number(trip.routes.end_lng) : null}
+        />
 
         {/* Map Container */}
         <View style={styles.mapContainer}>
@@ -431,10 +602,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.sm,
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1.5,
-    borderBottomColor: Colors.surfaceMuted,
+    paddingBottom: Spacing.md,
+    backgroundColor: '#EFECE9',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E6E2DE',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    ...Shadow.sm,
+    zIndex: 10,
   },
   headerBackBtn: {
     padding: 6,
@@ -443,6 +618,109 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     fontSize: 18,
     color: Colors.secondary,
+  },
+  headerLiveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(76, 175, 80, 0.15)',
+  },
+  livePulseContainer: {
+    width: 8,
+    height: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  livePulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.success,
+  },
+  headerLiveText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 10,
+    color: Colors.success,
+  },
+
+  // ETA Card
+  etaCard: {
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: Spacing.md,
+    gap: Spacing.md,
+    ...Shadow.sm,
+  },
+  etaHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  etaBadgeLive: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.successSurface,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.pill,
+  },
+  liveGreenDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.success,
+  },
+  etaLiveLabel: {
+    fontFamily: FontFamily.bold,
+    fontSize: 9.5,
+    color: Colors.success,
+    textTransform: 'uppercase',
+  },
+  etaTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 13,
+    color: Colors.text,
+  },
+  etaInactiveText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 13,
+    color: Colors.textSecondary,
+    flex: 1,
+    marginLeft: Spacing.xs,
+  },
+  etaBodyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: Spacing.xs,
+  },
+  etaCol: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  etaLabel: {
+    fontFamily: FontFamily.regular,
+    fontSize: 11,
+    color: Colors.textSecondary,
+    marginBottom: 2,
+  },
+  etaValue: {
+    fontFamily: FontFamily.bold,
+    fontSize: 15,
+    color: Colors.primary,
+  },
+  etaDivider: {
+    width: 1,
+    height: '60%',
+    backgroundColor: Colors.border,
   },
 
   // Trip Header Card

@@ -36,10 +36,16 @@ function AnimatedTabIcon({ name, color, focused }: AnimatedTabIconProps) {
     }
   }, [focused, scale]);
 
+  const activeName = focused
+    ? name.endsWith('-outline')
+      ? (name.replace('-outline', '') as IoniconsName)
+      : name
+    : name;
+
   return (
     <View style={[tabStyles.iconWrapper, focused && tabStyles.activeWrapper]}>
       <Animated.View style={{ transform: [{ scale }] }}>
-        <Ionicons name={name} size={20} color={focused ? Colors.primary : Colors.textMuted} />
+        <Ionicons name={activeName} size={20} color={focused ? Colors.primary : Colors.textMuted} />
       </Animated.View>
     </View>
   );
@@ -101,7 +107,7 @@ export default function TabLayout() {
         headerShown: false,
         href: isDriver ? null : ('/(tabs)/subscriptions' as Href),
         tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
-          <AnimatedTabIcon name="card-outline" color={color} focused={focused} />
+          <AnimatedTabIcon name="ticket-outline" color={color} focused={focused} />
         ),
       },
     },

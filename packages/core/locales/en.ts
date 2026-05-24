@@ -275,4 +275,11 @@ export default {
   or: 'Or',
   notifications: 'Notifications',
   clear_all: 'Clear All',
+  distance_to_pickup: 'Distance to pickup',
+  distance_to_destination: 'Distance to destination',
+  estimated_arrival: 'Estimated arrival',
+  minutes_short: 'min',
+  km_short: 'km',
+  driver_gps_inactive: 'Driver GPS currently inactive',
+  live: 'Live',
 } as const;
