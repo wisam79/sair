@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, Alert, ActivityIndicator } from 'react-native';
 import MapView, { Marker, Polyline, UrlTile, PROVIDER_DEFAULT, LatLng } from 'react-native-maps';
 import { Colors } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../hooks/useTranslation';
+import * as Location from 'expo-location';
 
 interface TripMapProps {
   startLat: number;
@@ -12,6 +13,7 @@ interface TripMapProps {
   endLng: number;
   driverLat: number | null;
   driverLng: number | null;
+  mapStyle?: 'streets' | 'dark' | 'satellite';
 }
 
 export const TripMap: React.FC<TripMapProps> = ({
@@ -21,13 +23,121 @@ export const TripMap: React.FC<TripMapProps> = ({
   endLng,
   driverLat,
   driverLng,
+  mapStyle = 'streets',
 }) => {
   const mapRef = useRef<MapView>(null);
-  const { t } = useTranslation();
+  const { t, isRTL } = useTranslation();
 
   // Cache OSRM route — fetch once, never re-fetch on driver location updates
   const [routeCoords, setRouteCoords] = useState<LatLng[]>([]);
+  const [isLocating, setIsLocating] = useState(false);
   const routeFetched = useRef(false);
+  
+  // Track user location
+  const userLocationRef = useRef<LatLng | null>(null);
+
+  // Request permissions and seed location on mount
+  useEffect(() => {
+    const requestPermission = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+          userLocationRef.current = {
+            latitude: loc.coords.latitude,
+            longitude: loc.coords.longitude,
+          };
+        }
+      } catch {
+        // Fail silently on mount permissions check
+      }
+    };
+    requestPermission();
+  }, []);
+
+  const getUrlTemplate = () => {
+    const key = process.env.EXPO_PUBLIC_MAPTILER_API_KEY;
+    if (key) {
+      switch (mapStyle) {
+        case 'dark':
+          return `https://api.maptiler.com/maps/dataviz-dark/256/{z}/{x}/{y}.png?key=${key}`;
+        case 'satellite':
+          return `https://api.maptiler.com/maps/hybrid/256/{z}/{x}/{y}.png?key=${key}`;
+        case 'streets':
+        default:
+          return `https://api.maptiler.com/maps/dataviz-light/256/{z}/{x}/{y}.png?key=${key}`;
+      }
+    } else {
+      switch (mapStyle) {
+        case 'dark':
+          return 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
+        case 'satellite':
+          return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+        case 'streets':
+        default:
+          return 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
+      }
+    }
+  };
+
+  const handleCenterOnUser = async () => {
+    if (isLocating) return;
+    setIsLocating(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          t('alert') || 'تنبيه',
+          t('location_permission_denied') || 'تم رفض صلاحية الوصول للموقع. يرجى تفعيلها من الإعدادات.'
+        );
+        return;
+      }
+
+      const loc = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      const coords = {
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
+      };
+
+      userLocationRef.current = coords;
+
+      if (mapRef.current) {
+        mapRef.current.animateToRegion(
+          {
+            ...coords,
+            latitudeDelta: 0.015,
+            longitudeDelta: 0.015,
+          },
+          1000
+        );
+      }
+    } catch (error) {
+      // Fallback if getCurrentPositionAsync fails, try to use ref if available
+      if (userLocationRef.current && mapRef.current) {
+        mapRef.current.animateToRegion(
+          {
+            latitude: userLocationRef.current.latitude,
+            longitude: userLocationRef.current.longitude,
+            latitudeDelta: 0.015,
+            longitudeDelta: 0.015,
+          },
+          1000
+        );
+      } else {
+        Alert.alert(
+          t('error') || 'خطأ',
+          t('location_fetch_error') || 'تعذر تحديد موقعك الحالي. يرجى التأكد من تفعيل الـ GPS.'
+        );
+      }
+    } finally {
+      setIsLocating(false);
+    }
+  };
 
   useEffect(() => {
     if (routeFetched.current) return;
@@ -78,6 +188,16 @@ export const TripMap: React.FC<TripMapProps> = ({
         ref={mapRef}
         style={styles.map}
         provider={PROVIDER_DEFAULT}
+        showsUserLocation={true}
+        showsMyLocationButton={false}
+        onUserLocationChange={(event) => {
+          if (event.nativeEvent.coordinate) {
+            userLocationRef.current = {
+              latitude: event.nativeEvent.coordinate.latitude,
+              longitude: event.nativeEvent.coordinate.longitude,
+            };
+          }
+        }}
         initialRegion={{
           latitude: (startLat + endLat) / 2,
           longitude: (startLng + endLng) / 2,
@@ -85,6 +205,12 @@ export const TripMap: React.FC<TripMapProps> = ({
           longitudeDelta: Math.abs(startLng - endLng) * 2 || 0.05,
         }}
       >
+        <UrlTile
+          urlTemplate={getUrlTemplate()}
+          tileSize={256}
+          maximumZ={19}
+          flipY={false}
+        />
         {/* Route Line — OSRM or fallback straight line */}
         {routeCoords.length > 1 ? (
           <Polyline coordinates={routeCoords} strokeColor={Colors.primary} strokeWidth={4} />
@@ -131,6 +257,20 @@ export const TripMap: React.FC<TripMapProps> = ({
           </Marker>
         )}
       </MapView>
+
+      {/* Floating My Location Button */}
+      <TouchableOpacity
+        style={[styles.locateButton, isRTL ? { left: 16 } : { right: 16 }]}
+        onPress={handleCenterOnUser}
+        activeOpacity={0.7}
+        disabled={isLocating}
+      >
+        {isLocating ? (
+          <ActivityIndicator size="small" color={Colors.primary} />
+        ) : (
+          <Ionicons name="locate" size={22} color={Colors.primary} />
+        )}
+      </TouchableOpacity>
     </View>
   );
 };
@@ -158,5 +298,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  locateButton: {
+    position: 'absolute',
+    bottom: 112,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 100,
   },
 });

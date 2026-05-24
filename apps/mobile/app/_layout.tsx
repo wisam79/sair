@@ -29,6 +29,7 @@ import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import { Linking } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AnimatedSplashScreen } from '../src/components/AnimatedSplashScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,6 +66,7 @@ export default function Layout() {
   const { top } = useSafeAreaInsets();
 
   const [forceUpdateRequired, setForceUpdateRequired] = useState(false);
+  const [animationFinished, setAnimationFinished] = useState(false);
   // Prevent infinite refresh loop: only attempt session refresh once per mount
   const refreshAttemptedRef = useRef(false);
 
@@ -232,9 +234,15 @@ export default function Layout() {
   // Hide splash screen once fonts are ready
   const appIsReady = (fontsLoaded || fontError) && initialized && allStoresHydrated;
 
+  useEffect(() => {
+    if (appIsReady) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [appIsReady]);
+
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
-      await SplashScreen.hideAsync();
+      await SplashScreen.hideAsync().catch(() => {});
     }
   }, [appIsReady]);
 
@@ -259,6 +267,10 @@ export default function Layout() {
         </TouchableOpacity>
       </View>
     );
+  }
+
+  if (!animationFinished) {
+    return <AnimatedSplashScreen onAnimationFinished={() => setAnimationFinished(true)} />;
   }
 
   return (

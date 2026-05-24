@@ -3,9 +3,17 @@ import {
   createServiceClient,
   createAuthenticatedClient,
   cleanupTestData,
+  isDBAvailable,
 } from '../helpers/test-helpers';
 
+const runIntegration = isDBAvailable();
+
 describe('Database Schema Inspector & RPC Tester', () => {
+  if (!runIntegration) {
+    it.skip('Skipping integration tests: Supabase service role key not set', () => {});
+    return;
+  }
+
   it('should call get_or_create_conversation and log results/errors', async () => {
     const serviceClient = createServiceClient();
 

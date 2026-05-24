@@ -1,0 +1,142 @@
+name: Build Mobile App
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Target Platform'
+        required: true
+        default: 'android'
+        type: choice
+        options:
+          - android
+          - ios
+          - all
+      profile:
+        description: 'EAS Build Profile'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - development
+          - production
+
+jobs:
+  build-android:
+    name: Build Android
+    if: ${{ github.event.inputs.platform == 'android' || github.event.inputs.platform == 'all' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Restore pnpm Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build Android App (Local)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        working-directory: apps/mobile
+        run: |
+          mkdir -p builds
+          npx eas-cli build --platform android --local --profile ${{ github.event.inputs.profile }} --output=builds/sair-android-${{ github.event.inputs.profile }}.${{ github.event.inputs.profile == 'production' && 'aab' || 'apk' }} --non-interactive
+
+      - name: Upload Android Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sair-Android-${{ github.event.inputs.profile }}
+          path: apps/mobile/builds/
+          retention-days: 7
+
+  build-ios:
+    name: Build iOS
+    if: ${{ github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'all' }}
+    runs-on: macos-14
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Restore pnpm Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: apps/mobile/ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Build iOS App (Local)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        working-directory: apps/mobile
+        run: |
+          mkdir -p builds
+          npx eas-cli build --platform ios --local --profile ${{ github.event.inputs.profile }} --output=builds/sair-ios-${{ github.event.inputs.profile }}.tar.gz --non-interactive
+
+      - name: Upload iOS Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sair-iOS-${{ github.event.inputs.profile }}
+          path: apps/mobile/builds/
+          retention-days: 7
