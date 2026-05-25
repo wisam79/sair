@@ -20,6 +20,40 @@ const ASSETS_DIR = path.join(__dirname, 'assets');
 if (!fs.existsSync(ASSETS_DIR)) fs.mkdirSync(ASSETS_DIR);
 
 /**
+ * دالة توليد تأثيرات الظل والضوء للأجزاء المفرغة والبارزة
+ */
+const getShadowsAndHighlights = (isNotification) => {
+  if (isNotification) return '';
+  return `
+    <!-- Cutout Highlight (Top-left crescent) & Raised Button Outer Shadow -->
+    <g transform="translate(-2, -3)">
+      <g fill="#FFD2B8" opacity="0.6">
+        <path d="M 512 280 L 742 360 L 512 440 L 282 360 Z" />
+        <path d="M 380 415 Q 512 495 644 415 L 644 485 Q 512 565 380 485 Z" />
+        <path d="M 512 800 C 412 720, 612 640, 512 560" fill="none" stroke="#FFD2B8" stroke-width="22" stroke-dasharray="0, 55" stroke-linecap="round" />
+        <path d="M 512 360 Q 670 370 680 430" fill="none" stroke="#FFD2B8" stroke-width="12" stroke-linecap="round" />
+        <rect x="668" y="430" width="24" height="40" rx="12" />
+        <circle cx="512" cy="360" r="6" />
+      </g>
+      <circle cx="512" cy="360" r="16" fill="#3D1B0B" />
+    </g>
+
+    <!-- Cutout Shadow (Bottom-right crescent) & Raised Button Outer Highlight -->
+    <g transform="translate(2, 3)">
+      <g fill="#3D1B0B">
+        <path d="M 512 280 L 742 360 L 512 440 L 282 360 Z" />
+        <path d="M 380 415 Q 512 495 644 415 L 644 485 Q 512 565 380 485 Z" />
+        <path d="M 512 800 C 412 720, 612 640, 512 560" fill="none" stroke="#3D1B0B" stroke-width="22" stroke-dasharray="0, 55" stroke-linecap="round" />
+        <path d="M 512 360 Q 670 370 680 430" fill="none" stroke="#3D1B0B" stroke-width="12" stroke-linecap="round" />
+        <rect x="668" y="430" width="24" height="40" rx="12" />
+        <circle cx="512" cy="360" r="6" />
+      </g>
+      <circle cx="512" cy="360" r="16" fill="#FFD2B8" opacity="0.6" />
+    </g>
+  `;
+};
+
+/**
  * دالة إنشاء الشعار المطور (Flat Minimalist, Perfect Math)
  */
 const createLogoSvg = (includeBackground = false, isNotification = false) => {
@@ -35,21 +69,7 @@ const createLogoSvg = (includeBackground = false, isNotification = false) => {
     </linearGradient>
   `;
 
-  const shadowsAndHighlights = isNotification ? '' : `
-    <!-- Cutout Highlight (Top-left crescent) -->
-    <g transform="translate(-2, -3)" fill="#FFD2B8" opacity="0.6">
-      <path d="M 512 280 L 742 360 L 512 440 L 282 360 Z" />
-      <path d="M 380 415 Q 512 495 644 415 L 644 485 Q 512 565 380 485 Z" />
-      <path d="M 512 800 C 412 720, 612 640, 512 560" fill="none" stroke="#FFD2B8" stroke-width="22" stroke-dasharray="0, 55" stroke-linecap="round" />
-    </g>
-
-    <!-- Cutout Shadow (Bottom-right crescent) -->
-    <g transform="translate(2, 3)" fill="#3D1B0B">
-      <path d="M 512 280 L 742 360 L 512 440 L 282 360 Z" />
-      <path d="M 380 415 Q 512 495 644 415 L 644 485 Q 512 565 380 485 Z" />
-      <path d="M 512 800 C 412 720, 612 640, 512 560" fill="none" stroke="#3D1B0B" stroke-width="22" stroke-dasharray="0, 55" stroke-linecap="round" />
-    </g>
-  `;
+  const shadowsAndHighlights = getShadowsAndHighlights(isNotification);
 
   return `
 <svg width="1024" height="1024" viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg">
@@ -83,7 +103,8 @@ const createLogoSvg = (includeBackground = false, isNotification = false) => {
     </mask>
   </defs>
 
-  <g transform="translate(88, 70)" mask="url(#capMask)">
+  <!-- تم تعديل الإزاحة من 70 إلى 50 لضمان توسط الأيقونة التكيفية وبقائها في المنطقة الآمنة بأندرويد -->
+  <g transform="translate(88, 50)" mask="url(#capMask)">
     <!-- Perfect Location Pin Shape -->
     <path d="M 286.84 530 A 260 260 0 1 1 737.16 530 L 512 920 Z" fill="${pinFill}" />
     ${shadowsAndHighlights}
@@ -94,6 +115,7 @@ const createLogoSvg = (includeBackground = false, isNotification = false) => {
 
 // الشاشة الترحيبية الكاملة (Splash Screen)
 const getSplashSvg = () => {
+  const shadowsAndHighlights = getShadowsAndHighlights(false);
   return `
 <svg width="1284" height="2778" viewBox="0 0 1284 2778" xmlns="http://www.w3.org/2000/svg">
   <!-- الخلفية الداكنة المصمتة -->
@@ -135,20 +157,7 @@ const getSplashSvg = () => {
   <!-- الشعار متمركزاً -->
   <g transform="translate(130, 600)" mask="url(#splashCapMask)">
     <path d="M 286.84 530 A 260 260 0 1 1 737.16 530 L 512 920 Z" fill="url(#splashMetalCopper)" />
-    
-    <!-- Cutout Highlight (Top-left crescent) -->
-    <g transform="translate(-2, -3)" fill="#FFD2B8" opacity="0.6">
-      <path d="M 512 280 L 742 360 L 512 440 L 282 360 Z" />
-      <path d="M 380 415 Q 512 495 644 415 L 644 485 Q 512 565 380 485 Z" />
-      <path d="M 512 800 C 412 720, 612 640, 512 560" fill="none" stroke="#FFD2B8" stroke-width="22" stroke-dasharray="0, 55" stroke-linecap="round" />
-    </g>
-
-    <!-- Cutout Shadow (Bottom-right crescent) -->
-    <g transform="translate(2, 3)" fill="#3D1B0B">
-      <path d="M 512 280 L 742 360 L 512 440 L 282 360 Z" />
-      <path d="M 380 415 Q 512 495 644 415 L 644 485 Q 512 565 380 485 Z" />
-      <path d="M 512 800 C 412 720, 612 640, 512 560" fill="none" stroke="#3D1B0B" stroke-width="22" stroke-dasharray="0, 55" stroke-linecap="round" />
-    </g>
+    ${shadowsAndHighlights}
   </g>
   
   <!-- اسم التطبيق والترجمة متمركزة في الأسفل -->
@@ -158,6 +167,7 @@ const getSplashSvg = () => {
     <text x="0" y="150" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="normal" fill="#CF7C4B" text-anchor="middle" opacity="0.8">سير — نقل جامعي ذكي</text>
   </g>
 </svg>
+
 `;
 };
 

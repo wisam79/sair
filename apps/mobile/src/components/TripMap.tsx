@@ -93,20 +93,39 @@ export const TripMap: React.FC<TripMapProps> = ({
         return;
       }
 
+      // 1. Attempt to get the last known location instantly (takes < 50ms)
+      const lastKnown = await Location.getLastKnownPositionAsync({});
+      let lastKnownCoords: [number, number] | null = null;
+      
+      if (lastKnown) {
+        lastKnownCoords = [lastKnown.coords.longitude, lastKnown.coords.latitude];
+        userLocationRef.current = {
+          latitude: lastKnown.coords.latitude,
+          longitude: lastKnown.coords.longitude,
+        };
+        cameraRef.current?.easeTo({
+          center: lastKnownCoords,
+          zoom: 15,
+          duration: 800,
+        });
+      }
+
+      // 2. Fetch fresh position (might take a few seconds if GPS is cold)
       const loc = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
 
-      const coords: [number, number] = [loc.coords.longitude, loc.coords.latitude];
+      const freshCoords: [number, number] = [loc.coords.longitude, loc.coords.latitude];
       userLocationRef.current = {
         latitude: loc.coords.latitude,
         longitude: loc.coords.longitude,
       };
 
+      // Animate smoothly to the refined position, with a faster transition if we already centered
       cameraRef.current?.easeTo({
-        center: coords,
+        center: freshCoords,
         zoom: 15,
-        duration: 1000,
+        duration: lastKnownCoords ? 500 : 1000,
       });
     } catch (error) {
       if (userLocationRef.current && cameraRef.current) {
@@ -209,6 +228,8 @@ export const TripMap: React.FC<TripMapProps> = ({
         mapStyle={getStyleURL()}
         logo={false}
         attribution={false}
+        compass={true}
+        compassPosition={isRTL ? { bottom: 112, right: 20 } : { bottom: 112, left: 20 }}
       >
         <Camera
           ref={cameraRef}
