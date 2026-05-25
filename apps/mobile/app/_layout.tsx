@@ -30,7 +30,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { Linking } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AnimatedSplashScreen } from '../src/components/AnimatedSplashScreen';
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -66,8 +65,7 @@ export default function Layout() {
   const { top } = useSafeAreaInsets();
 
   const [forceUpdateRequired, setForceUpdateRequired] = useState(false);
-  const [animationFinished, setAnimationFinished] = useState(false);
-  // Prevent infinite refresh loop: only attempt session refresh once per mount
+  const [animationFinished, setAnimationFinished] = useState(false);  // Prevent infinite refresh loop: only attempt session refresh once per mount
   const refreshAttemptedRef = useRef(false);
 
   // Initialize push notifications globally
