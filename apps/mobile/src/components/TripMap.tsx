@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, Alert, ActivityIndicator } from 'react-native';
-import MapView, { Marker, Polyline, UrlTile, PROVIDER_DEFAULT, LatLng } from 'react-native-maps';
+import { StyleSheet, View, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import MapView, { Marker, Polyline, UrlTile, PROVIDER_DEFAULT, LatLng, AnimatedRegion } from 'react-native-maps';
 import { Colors } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../hooks/useTranslation';
@@ -26,6 +26,7 @@ export const TripMap: React.FC<TripMapProps> = ({
   mapStyle = 'streets',
 }) => {
   const mapRef = useRef<MapView>(null);
+  const driverMarkerRef = useRef<any>(null);
   const { t, isRTL } = useTranslation();
 
   // Cache OSRM route — fetch once, never re-fetch on driver location updates
@@ -35,6 +36,32 @@ export const TripMap: React.FC<TripMapProps> = ({
   
   // Track user location
   const userLocationRef = useRef<LatLng | null>(null);
+
+  // Smooth driver marker movement using AnimatedRegion
+  const [driverCoordinate] = useState(
+    () => new AnimatedRegion({
+      latitude: driverLat || startLat,
+      longitude: driverLng || startLng,
+      latitudeDelta: 0.015,
+      longitudeDelta: 0.015,
+    })
+  );
+
+  // Animate driver marker location changes smoothly
+  useEffect(() => {
+    if (driverLat && driverLng) {
+      driverCoordinate.timing({
+        toValue: {
+          latitude: driverLat,
+          longitude: driverLng,
+          latitudeDelta: 0.015,
+          longitudeDelta: 0.015,
+        },
+        duration: 3000,
+        useNativeDriver: false,
+      } as any).start();
+    }
+  }, [driverLat, driverLng]);
 
   // Request permissions and seed location on mount
   useEffect(() => {
@@ -67,7 +94,7 @@ export const TripMap: React.FC<TripMapProps> = ({
           return `https://api.maptiler.com/maps/hybrid/256/{z}/{x}/{y}.png?key=${key}`;
         case 'streets':
         default:
-          return `https://api.maptiler.com/maps/dataviz-light/256/{z}/{x}/{y}.png?key=${key}`;
+          return `https://api.maptiler.com/maps/outdoor-v2/256/{z}/{x}/{y}.png?key=${key}`;
       }
     } else {
       switch (mapStyle) {
@@ -77,7 +104,7 @@ export const TripMap: React.FC<TripMapProps> = ({
           return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
         case 'streets':
         default:
-          return 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
+          return 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'; // Voyager is a rich streets basemap
       }
     }
   };
@@ -162,7 +189,38 @@ export const TripMap: React.FC<TripMapProps> = ({
     fetchRoute();
   }, [startLat, startLng, endLat, endLng]);
 
+  // Fit map to coordinates only once initially, and once when driver first joins.
+  const initialFitDone = useRef(false);
+  const driverJoined = useRef(false);
+
   useEffect(() => {
+    if (mapRef.current) {
+      const hasDriver = !!(driverLat && driverLng);
+      const shouldFit = !initialFitDone.current || (hasDriver && !driverJoined.current);
+
+      if (shouldFit) {
+        const coordinates = [
+          { latitude: startLat, longitude: startLng },
+          { latitude: endLat, longitude: endLng },
+        ];
+        if (hasDriver) {
+          coordinates.push({ latitude: driverLat!, longitude: driverLng! });
+          driverJoined.current = true;
+        }
+        initialFitDone.current = true;
+
+        setTimeout(() => {
+          mapRef.current?.fitToCoordinates(coordinates, {
+            edgePadding: { top: 60, right: 60, bottom: 120, left: 60 },
+            animated: true,
+          });
+        }, 500);
+      }
+    }
+  }, [startLat, startLng, driverLat, driverLng]);
+
+  // Manual re-centering to fit whole trip
+  const handleCenterOnTrip = () => {
     if (mapRef.current) {
       const coordinates = [
         { latitude: startLat, longitude: startLng },
@@ -171,16 +229,12 @@ export const TripMap: React.FC<TripMapProps> = ({
       if (driverLat && driverLng) {
         coordinates.push({ latitude: driverLat, longitude: driverLng });
       }
-
-      // Small delay to ensure map layout is calculated before fitting coordinates
-      setTimeout(() => {
-        mapRef.current?.fitToCoordinates(coordinates, {
-          edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
-          animated: true,
-        });
-      }, 500);
+      mapRef.current.fitToCoordinates(coordinates, {
+        edgePadding: { top: 60, right: 60, bottom: 120, left: 60 },
+        animated: true,
+      });
     }
-  }, [startLat, startLng, endLat, endLng, driverLat, driverLng]);
+  };
 
   return (
     <View style={styles.container}>
@@ -210,10 +264,17 @@ export const TripMap: React.FC<TripMapProps> = ({
           tileSize={256}
           maximumZ={19}
           flipY={false}
+          shouldReplaceMapContent={true}
         />
         {/* Route Line — OSRM or fallback straight line */}
         {routeCoords.length > 1 ? (
-          <Polyline coordinates={routeCoords} strokeColor={Colors.primary} strokeWidth={4} />
+          <Polyline
+            coordinates={routeCoords}
+            strokeColor={Colors.primary}
+            strokeWidth={4}
+            lineCap="round"
+            lineJoin="round"
+          />
         ) : (
           <Polyline
             coordinates={[
@@ -223,6 +284,8 @@ export const TripMap: React.FC<TripMapProps> = ({
             strokeColor={Colors.primary}
             strokeWidth={4}
             lineDashPattern={[10, 5]}
+            lineCap="round"
+            lineJoin="round"
           />
         )}
 
@@ -242,8 +305,9 @@ export const TripMap: React.FC<TripMapProps> = ({
 
         {/* Driver Point */}
         {driverLat && driverLng && (
-          <Marker
-            coordinate={{ latitude: driverLat, longitude: driverLng }}
+          <Marker.Animated
+            ref={driverMarkerRef}
+            coordinate={driverCoordinate as any}
             title={t('driver_location')}
           >
             <View
@@ -254,9 +318,18 @@ export const TripMap: React.FC<TripMapProps> = ({
             >
               <Ionicons name="car" size={20} color={Colors.white} />
             </View>
-          </Marker>
+          </Marker.Animated>
         )}
       </MapView>
+
+      {/* Floating Center on Trip Button */}
+      <TouchableOpacity
+        style={[styles.tripCenterButton, isRTL ? { left: 16 } : { right: 16 }]}
+        onPress={handleCenterOnTrip}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="map" size={22} color={Colors.primary} />
+      </TouchableOpacity>
 
       {/* Floating My Location Button */}
       <TouchableOpacity
@@ -302,6 +375,24 @@ const styles = StyleSheet.create({
   locateButton: {
     position: 'absolute',
     bottom: 112,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 100,
+  },
+  tripCenterButton: {
+    position: 'absolute',
+    bottom: 168,
     width: 44,
     height: 44,
     borderRadius: 22,
