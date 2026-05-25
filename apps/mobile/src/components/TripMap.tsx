@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import MapView, { Marker, Polyline, UrlTile, PROVIDER_DEFAULT, LatLng } from 'react-native-maps';
+import { Map, Camera, Marker, GeoJSONSource, Layer, UserLocation, CameraRef } from '@maplibre/maplibre-react-native';
 import { Colors } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../hooks/useTranslation';
@@ -16,6 +16,11 @@ interface TripMapProps {
   mapStyle?: 'streets' | 'dark' | 'satellite';
 }
 
+interface LatLng {
+  latitude: number;
+  longitude: number;
+}
+
 export const TripMap: React.FC<TripMapProps> = ({
   startLat,
   startLng,
@@ -25,7 +30,7 @@ export const TripMap: React.FC<TripMapProps> = ({
   driverLng,
   mapStyle = 'streets',
 }) => {
-    const mapRef = useRef<MapView>(null);
+  const cameraRef = useRef<CameraRef>(null);
   const { t, isRTL } = useTranslation();
 
   // Cache OSRM route — fetch once, never re-fetch on driver location updates
@@ -57,28 +62,21 @@ export const TripMap: React.FC<TripMapProps> = ({
     requestPermission();
   }, []);
 
-  const getUrlTemplate = () => {
+  const getStyleURL = () => {
     const key = process.env.EXPO_PUBLIC_MAPTILER_API_KEY;
     if (key) {
       switch (mapStyle) {
         case 'dark':
-          return `https://api.maptiler.com/maps/dataviz-dark/256/{z}/{x}/{y}.png?key=${key}`;
+          return `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${key}`;
         case 'satellite':
-          return `https://api.maptiler.com/maps/hybrid/256/{z}/{x}/{y}.png?key=${key}`;
+          return `https://api.maptiler.com/maps/hybrid/style.json?key=${key}`;
         case 'streets':
         default:
-          return `https://api.maptiler.com/maps/outdoor-v2/256/{z}/{x}/{y}.png?key=${key}`;
+          return `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${key}`;
       }
     } else {
-      switch (mapStyle) {
-        case 'dark':
-          return 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
-        case 'satellite':
-          return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-        case 'streets':
-        default:
-          return 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'; // Voyager is a rich streets basemap
-      }
+      // Fallback style if no MapTiler API Key is found (standard MapLibre demo style JSON)
+      return 'https://demotiles.maplibre.org/style.json';
     }
   };
 
@@ -99,35 +97,24 @@ export const TripMap: React.FC<TripMapProps> = ({
         accuracy: Location.Accuracy.Balanced,
       });
 
-      const coords = {
+      const coords: [number, number] = [loc.coords.longitude, loc.coords.latitude];
+      userLocationRef.current = {
         latitude: loc.coords.latitude,
         longitude: loc.coords.longitude,
       };
 
-      userLocationRef.current = coords;
-
-      if (mapRef.current) {
-        mapRef.current.animateToRegion(
-          {
-            ...coords,
-            latitudeDelta: 0.015,
-            longitudeDelta: 0.015,
-          },
-          1000
-        );
-      }
+      cameraRef.current?.easeTo({
+        center: coords,
+        zoom: 15,
+        duration: 1000,
+      });
     } catch (error) {
-      // Fallback if getCurrentPositionAsync fails, try to use ref if available
-      if (userLocationRef.current && mapRef.current) {
-        mapRef.current.animateToRegion(
-          {
-            latitude: userLocationRef.current.latitude,
-            longitude: userLocationRef.current.longitude,
-            latitudeDelta: 0.015,
-            longitudeDelta: 0.015,
-          },
-          1000
-        );
+      if (userLocationRef.current && cameraRef.current) {
+        cameraRef.current.easeTo({
+          center: [userLocationRef.current.longitude, userLocationRef.current.latitude],
+          zoom: 15,
+          duration: 1000,
+        });
       } else {
         Alert.alert(
           t('error') || 'خطأ',
@@ -155,7 +142,7 @@ export const TripMap: React.FC<TripMapProps> = ({
           setRouteCoords(coords);
         }
       } catch {
-        // Fallback: straight line (already rendered below)
+        // Fallback: straight line
       }
     };
 
@@ -166,122 +153,117 @@ export const TripMap: React.FC<TripMapProps> = ({
   const initialFitDone = useRef(false);
   const driverJoined = useRef(false);
 
-  useEffect(() => {
-    if (mapRef.current) {
-      const hasDriver = !!(driverLat && driverLng);
-      const shouldFit = !initialFitDone.current || (hasDriver && !driverJoined.current);
+  const handleCenterOnTrip = () => {
+    if (!cameraRef.current) return;
+    const lats = [startLat, endLat];
+    const lngs = [startLng, endLng];
+    if (driverLat && driverLng) {
+      lats.push(driverLat);
+      lngs.push(driverLng);
+    }
+    const maxLat = Math.max(...lats);
+    const minLat = Math.min(...lats);
+    const maxLng = Math.max(...lngs);
+    const minLng = Math.min(...lngs);
 
-      if (shouldFit) {
-        const coordinates = [
-          { latitude: startLat, longitude: startLng },
-          { latitude: endLat, longitude: endLng },
-        ];
-        if (hasDriver) {
-          coordinates.push({ latitude: driverLat!, longitude: driverLng! });
-          driverJoined.current = true;
-        }
-        initialFitDone.current = true;
-
-        setTimeout(() => {
-          mapRef.current?.fitToCoordinates(coordinates, {
-            edgePadding: { top: 60, right: 60, bottom: 120, left: 60 },
-            animated: true,
-          });
-        }, 500);
+    cameraRef.current.fitBounds(
+      [minLng, minLat, maxLng, maxLat],
+      {
+        padding: { top: 60, right: 60, bottom: 120, left: 60 },
+        duration: 1000,
       }
+    );
+  };
+
+  useEffect(() => {
+    const hasDriver = !!(driverLat && driverLng);
+    const shouldFit = !initialFitDone.current || (hasDriver && !driverJoined.current);
+
+    if (shouldFit) {
+      if (hasDriver) {
+        driverJoined.current = true;
+      }
+      initialFitDone.current = true;
+
+      setTimeout(() => {
+        handleCenterOnTrip();
+      }, 500);
     }
   }, [startLat, startLng, driverLat, driverLng]);
 
-  // Manual re-centering to fit whole trip
-  const handleCenterOnTrip = () => {
-    if (mapRef.current) {
-      const coordinates = [
-        { latitude: startLat, longitude: startLng },
-        { latitude: endLat, longitude: endLng },
-      ];
-      if (driverLat && driverLng) {
-        coordinates.push({ latitude: driverLat, longitude: driverLng });
-      }
-      mapRef.current.fitToCoordinates(coordinates, {
-        edgePadding: { top: 60, right: 60, bottom: 120, left: 60 },
-        animated: true,
-      });
+  // Generate GeoJSON line coordinates
+  const getLineCoordinates = (): number[][] => {
+    if (routeCoords.length > 1) {
+      return routeCoords.map((c) => [c.longitude, c.latitude]);
     }
+    return [
+      [startLng, startLat],
+      [endLng, endLat],
+    ];
   };
 
   return (
     <View style={styles.container}>
-      <MapView
-        ref={mapRef}
+      <Map
         style={styles.map}
-        provider={PROVIDER_DEFAULT}
-        showsUserLocation={true}
-        showsMyLocationButton={false}
-        onUserLocationChange={(event) => {
-          if (event.nativeEvent.coordinate) {
-            userLocationRef.current = {
-              latitude: event.nativeEvent.coordinate.latitude,
-              longitude: event.nativeEvent.coordinate.longitude,
-            };
-          }
-        }}
-        initialRegion={{
-          latitude: (startLat + endLat) / 2,
-          longitude: (startLng + endLng) / 2,
-          latitudeDelta: Math.abs(startLat - endLat) * 2 || 0.05,
-          longitudeDelta: Math.abs(startLng - endLng) * 2 || 0.05,
-        }}
+        mapStyle={getStyleURL()}
+        logo={false}
+        attribution={false}
       >
-        <UrlTile
-          urlTemplate={getUrlTemplate()}
-          tileSize={256}
-          maximumZ={19}
-          flipY={false}
-          shouldReplaceMapContent={true}
+        <Camera
+          ref={cameraRef}
+          initialViewState={{
+            center: [(startLng + endLng) / 2, (startLat + endLat) / 2],
+            zoom: 10,
+          }}
         />
-        {/* Route Line — OSRM or fallback straight line */}
-        {routeCoords.length > 1 ? (
-          <Polyline
-            coordinates={routeCoords}
-            strokeColor={Colors.primary}
-            strokeWidth={4}
-            lineCap="round"
-            lineJoin="round"
-          />
-        ) : (
-          <Polyline
-            coordinates={[
-              { latitude: startLat, longitude: startLng },
-              { latitude: endLat, longitude: endLng },
-            ]}
-            strokeColor={Colors.primary}
-            strokeWidth={4}
-            lineDashPattern={[10, 5]}
-            lineCap="round"
-            lineJoin="round"
-          />
-        )}
 
-        {/* Start Point */}
-        <Marker coordinate={{ latitude: startLat, longitude: startLng }} title={t('start_point')}>
+        {/* User Location */}
+        <UserLocation />
+
+        {/* Route Line */}
+        <GeoJSONSource
+          id="routeSource"
+          data={{
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: getLineCoordinates(),
+            },
+            properties: {},
+          }}
+        >
+          <Layer
+            id="routeLine"
+            type="line"
+            paint={{
+              'line-color': Colors.primary,
+              'line-width': 4,
+            }}
+            layout={{
+              'line-cap': 'round',
+              'line-join': 'round',
+            }}
+          />
+        </GeoJSONSource>
+
+        {/* Start Point Marker */}
+        <Marker id="startPoint" lngLat={[startLng, startLat]}>
           <View style={[styles.markerCircle, { backgroundColor: Colors.primary }]}>
             <Ionicons name="radio-button-on" size={16} color={Colors.white} />
           </View>
         </Marker>
 
-        {/* End Point */}
-        <Marker coordinate={{ latitude: endLat, longitude: endLng }} title={t('end_point')}>
+        {/* End Point Marker */}
+        <Marker id="endPoint" lngLat={[endLng, endLat]}>
           <View style={[styles.markerCircle, { backgroundColor: Colors.secondary }]}>
             <Ionicons name="flag" size={16} color={Colors.white} />
           </View>
         </Marker>
 
-        {/* Driver Point */}
+        {/* Driver Location Marker */}
         {driverLat && driverLng && (
-          <Marker
-            coordinate={{ latitude: driverLat, longitude: driverLng }}
-            title={t('driver_location')}
-          >
+          <Marker id="driverPoint" lngLat={[driverLng, driverLat]}>
             <View
               style={[
                 styles.markerCircle,
@@ -292,7 +274,7 @@ export const TripMap: React.FC<TripMapProps> = ({
             </View>
           </Marker>
         )}
-      </MapView>
+      </Map>
 
       {/* Floating Center on Trip Button */}
       <TouchableOpacity
@@ -327,8 +309,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   map: {
-    width: '100%',
-    height: '100%',
+    flex: 1,
   },
   markerCircle: {
     width: 28,
