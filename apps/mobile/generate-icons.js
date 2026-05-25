@@ -103,8 +103,8 @@ const createLogoSvg = (includeBackground = false, isNotification = false) => {
     </mask>
   </defs>
 
-  <!-- تم تعديل الإزاحة من 70 إلى 50 لضمان توسط الأيقونة التكيفية وبقائها في المنطقة الآمنة بأندرويد -->
-  <g transform="translate(88, 50)" mask="url(#capMask)">
+  <!-- تم تعديل التحجيم والإزاحة لضمان توسط الأيقونة وبقائها بالكامل داخل المنطقة الآمنة بأندرويد (Adaptive Icon Safe Zone) لتفادي القص -->
+  <g transform="translate(600, 600) scale(0.78) translate(-512, -600)" mask="url(#capMask)">
     <!-- Perfect Location Pin Shape -->
     <path d="M 286.84 530 A 260 260 0 1 1 737.16 530 L 512 920 Z" fill="${pinFill}" />
     ${shadowsAndHighlights}
@@ -154,8 +154,8 @@ const getSplashSvg = () => {
     </mask>
   </defs>
 
-  <!-- الشعار متمركزاً -->
-  <g transform="translate(130, 600)" mask="url(#splashCapMask)">
+  <!-- الشعار متمركزاً ومحجماً بنفس النسبة للتناسق -->
+  <g transform="translate(642, 900) scale(0.78) translate(-512, -600)" mask="url(#splashCapMask)">
     <path d="M 286.84 530 A 260 260 0 1 1 737.16 530 L 512 920 Z" fill="url(#splashMetalCopper)" />
     ${shadowsAndHighlights}
   </g>
