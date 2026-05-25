@@ -316,6 +316,7 @@ export default function TrackingScreen() {
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [sheetExpanded, setSheetExpanded] = useState(false);
   const [mapStyle, setMapStyle] = useState<'streets' | 'dark' | 'satellite'>('streets');
+  const [showStyleSelector, setShowStyleSelector] = useState(false);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -545,30 +546,62 @@ export default function TrackingScreen() {
 
             {/* Right Side Panel (Controls) */}
             <View style={[styles.rightSidePanel, isRTL ? { right: undefined, left: 16 } : { left: undefined, right: 16 }]}>
-              {/* Map Style Selector Button */}
+              {/* Map Style Selector Button & Panel */}
               <View style={styles.sideActionWrapper}>
+                {showStyleSelector && (
+                  <View style={[styles.styleSelectorPanel, isRTL ? { left: 56, flexDirection: 'row' } : { right: 56, flexDirection: 'row-reverse' }]}>
+                    {/* Street Style Option */}
+                    <TouchableOpacity
+                      style={[styles.styleOptionButton, mapStyle === 'streets' && styles.styleOptionActive]}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setMapStyle('streets');
+                        setShowStyleSelector(false);
+                      }}
+                    >
+                      <Ionicons name="map" size={18} color={mapStyle === 'streets' ? Colors.white : Colors.primary} />
+                    </TouchableOpacity>
+
+                    {/* Dark Style Option */}
+                    <TouchableOpacity
+                      style={[styles.styleOptionButton, mapStyle === 'dark' && styles.styleOptionActive]}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setMapStyle('dark');
+                        setShowStyleSelector(false);
+                      }}
+                    >
+                      <Ionicons name="moon" size={18} color={mapStyle === 'dark' ? Colors.white : Colors.primary} />
+                    </TouchableOpacity>
+
+                    {/* Satellite Style Option */}
+                    <TouchableOpacity
+                      style={[styles.styleOptionButton, mapStyle === 'satellite' && styles.styleOptionActive]}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setMapStyle('satellite');
+                        setShowStyleSelector(false);
+                      }}
+                    >
+                      <Ionicons name="earth" size={18} color={mapStyle === 'satellite' ? Colors.white : Colors.primary} />
+                    </TouchableOpacity>
+                  </View>
+                )}
+
                 <TouchableOpacity
-                  style={styles.sideActionButton}
+                  style={[styles.sideActionButton, showStyleSelector && styles.sideActionButtonActive]}
                   onPress={() => {
-                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setMapStyle((prev) =>
-                      prev === 'streets' ? 'dark' : prev === 'dark' ? 'satellite' : 'streets'
-                    );
-                    showTooltip('map_style');
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    setShowStyleSelector((prev) => !prev);
                   }}
                   activeOpacity={0.7}
                 >
                   <Ionicons
                     name={mapStyle === 'streets' ? 'map' : mapStyle === 'dark' ? 'moon' : 'earth'}
-                    size={18}
-                    color={Colors.primary}
+                    size={22}
+                    color={showStyleSelector ? Colors.white : Colors.primary}
                   />
                 </TouchableOpacity>
-                {activeTooltip === 'map_style' && (
-                  <View style={[styles.tooltipContainer, isRTL ? { left: 52 } : { right: 52 }]}>
-                    <Text style={styles.tooltipText}>{t('map_style') || (isRTL ? 'الخريطة' : 'Map')}</Text>
-                  </View>
-                )}
               </View>
 
               {/* Chat Button */}
@@ -581,10 +614,10 @@ export default function TrackingScreen() {
                   }}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
+                  <Ionicons name="chatbubble-outline" size={22} color={Colors.primary} />
                 </TouchableOpacity>
                 {activeTooltip === 'chat' && (
-                  <View style={[styles.tooltipContainer, isRTL ? { left: 52 } : { right: 52 }]}>
+                  <View style={[styles.tooltipContainer, isRTL ? { left: 64 } : { right: 64 }]}>
                     <Text style={styles.tooltipText}>{t('chat') || (isRTL ? 'الدردشة' : 'Chat')}</Text>
                   </View>
                 )}
@@ -601,10 +634,10 @@ export default function TrackingScreen() {
                     }}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="call-outline" size={18} color={Colors.success} />
+                    <Ionicons name="call-outline" size={22} color={Colors.success} />
                   </TouchableOpacity>
                   {activeTooltip === 'call' && (
-                    <View style={[styles.tooltipContainer, isRTL ? { left: 52 } : { right: 52 }]}>
+                    <View style={[styles.tooltipContainer, isRTL ? { left: 64 } : { right: 64 }]}>
                       <Text style={styles.tooltipText}>{t('call') || (isRTL ? 'اتصال' : 'Call')}</Text>
                     </View>
                   )}
@@ -621,10 +654,10 @@ export default function TrackingScreen() {
                   }}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="share-social-outline" size={18} color={Colors.primary} />
+                  <Ionicons name="share-social-outline" size={22} color={Colors.primary} />
                 </TouchableOpacity>
                 {activeTooltip === 'share' && (
-                  <View style={[styles.tooltipContainer, isRTL ? { left: 52 } : { right: 52 }]}>
+                  <View style={[styles.tooltipContainer, isRTL ? { left: 64 } : { right: 64 }]}>
                     <Text style={styles.tooltipText}>{t('share') || (isRTL ? 'مشاركة' : 'Share')}</Text>
                   </View>
                 )}
@@ -642,10 +675,10 @@ export default function TrackingScreen() {
                     }}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="alert-circle" size={20} color={Colors.error} />
+                    <Ionicons name="alert-circle" size={24} color={Colors.error} />
                   </TouchableOpacity>
                   {activeTooltip === 'sos' && (
-                    <View style={[styles.tooltipContainer, isRTL ? { left: 52 } : { right: 52 }]}>
+                    <View style={[styles.tooltipContainer, isRTL ? { left: 64 } : { right: 64 }]}>
                       <Text style={styles.tooltipText}>{t('sos') || (isRTL ? 'طوارئ' : 'SOS')}</Text>
                     </View>
                   )}
@@ -665,9 +698,12 @@ export default function TrackingScreen() {
             }}
             activeOpacity={0.9}
           >
+            {/* Drag Handle Indicator to indicate expandability */}
+            <View style={styles.bottomBarDragHandle} />
+
             <View style={[styles.bottomBarContent, isRTL && { flexDirection: 'row-reverse' }]}>
               <View style={[styles.bottomBarIconBox, { backgroundColor: Colors.primarySurface }]}>
-                <Ionicons name="bus-outline" size={20} color={Colors.primary} />
+                <Ionicons name="bus-outline" size={22} color={Colors.primary} />
               </View>
               
               <View style={[styles.bottomBarTextContainer, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
@@ -685,9 +721,10 @@ export default function TrackingScreen() {
                 </Text>
               </View>
 
+              {/* Chevron Up is much more intuitive for sliding drawer expansion */}
               <Ionicons
-                name={isRTL ? 'chevron-back' : 'chevron-forward'}
-                size={16}
+                name="chevron-up"
+                size={20}
                 color={Colors.textMuted}
                 style={{ marginLeft: 4 }}
               />
@@ -1110,10 +1147,10 @@ const styles = StyleSheet.create({
   rightSidePanel: {
     position: 'absolute',
     top: 16,
-    width: 46,
+    width: 56,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 24,
-    paddingVertical: 12,
+    borderRadius: 28,
+    paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -1124,12 +1161,12 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 5,
     zIndex: 10,
-    gap: 10,
+    gap: 12,
   },
   sideActionButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: Colors.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1361,8 +1398,10 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     backgroundColor: Colors.white,
-    borderRadius: 20,
-    padding: 12,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 14,
     borderWidth: 1,
     borderColor: Colors.border,
     shadowColor: '#000',
@@ -1372,14 +1411,22 @@ const styles = StyleSheet.create({
     elevation: 6,
     zIndex: 10,
   },
+  bottomBarDragHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.border,
+    alignSelf: 'center',
+    marginBottom: 8,
+  },
   bottomBarContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
   bottomBarIconBox: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1389,14 +1436,56 @@ const styles = StyleSheet.create({
   },
   bottomBarTitle: {
     fontFamily: FontFamily.bold,
-    fontSize: 13.5,
+    fontSize: 14.5,
     color: Colors.text,
   },
   bottomBarSubtitle: {
     fontFamily: FontFamily.medium,
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.textSecondary,
     marginTop: 1,
+  },
+
+  // Map Style Selector Panel
+  styleSelectorPanel: {
+    position: 'absolute',
+    top: 0,
+    width: 128,
+    height: 44,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 4,
+    gap: 6,
+  },
+  styleOptionButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  styleOptionActive: {
+    backgroundColor: Colors.primary,
+  },
+  styleOptionText: {
+    fontSize: 11,
+    fontFamily: FontFamily.medium,
+    color: Colors.secondary,
+  },
+  styleOptionTextActive: {
+    color: Colors.white,
+  },
+  sideActionButtonActive: {
+    backgroundColor: Colors.primary,
   },
 
   // Tooltip Styles

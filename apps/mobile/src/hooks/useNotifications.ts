@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import Constants from 'expo-constants';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from './useStore';
 
 /**
  * useNotifications — Safe for both Expo Go and Development Builds.
@@ -20,6 +21,8 @@ function isExpoGo(): boolean {
 export function useNotifications() {
   const cleanupRef = useRef<(() => void) | null>(null);
   const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id;
 
   useEffect(() => {
     // Skip notifications entirely in Expo Go — they are not supported since SDK 53
@@ -57,13 +60,14 @@ export function useNotifications() {
 
         if (!Device.isDevice) {
           console.warn('[Notifications] Must use physical device for Push Notifications');
+          Alert.alert('Push Notifications', '⚠️ Must use a physical device for Push Notifications.');
           return;
         }
 
         const {
-          data: { user },
+          data: { user: supabaseUser },
         } = await supabase.auth.getUser();
-        if (!user || !isMounted) return;
+        if (!supabaseUser || !isMounted) return;
 
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
         let finalStatus = existingStatus;
@@ -73,6 +77,7 @@ export function useNotifications() {
         }
         if (finalStatus !== 'granted') {
           console.warn('[Notifications] Permission not granted');
+          Alert.alert('Push Notifications', '❌ Permission not granted for Push Notifications.');
           return;
         }
 
@@ -87,7 +92,12 @@ export function useNotifications() {
           });
           if (error) {
             console.warn('[Notifications] Error saving push token:', error.message);
+            Alert.alert('Push Notifications', `❌ Failed to save token in Database: ${error.message}`);
+          } else {
+            console.log('[Notifications] Push token registered successfully:', token);
           }
+        } else if (!token) {
+          Alert.alert('Push Notifications', '❌ Failed to retrieve Expo Push Token (token is empty).');
         }
 
         // Setup listeners
@@ -117,8 +127,9 @@ export function useNotifications() {
             responseSub.remove();
           };
         }
-      } catch (error) {
+      } catch (error: any) {
         console.warn('[Notifications] Init failed:', error);
+        Alert.alert('Push Notifications Error', error?.message || String(error));
       }
     }
 
@@ -130,5 +141,5 @@ export function useNotifications() {
         cleanupRef.current();
       }
     };
-  }, [router]);
+  }, [router, userId]);
 }

@@ -37,22 +37,35 @@
     </mask>
   </defs>
 
-  <g transform="translate(88, 70)" mask="url(#capMask)">
+  <!-- تم تعديل التحجيم والإزاحة لضمان بقاء الأيقونة بالكامل داخل المنطقة الآمنة بأندرويد (Adaptive Icon Safe Zone) وتمركزها البصري (Optically Centered) -->
+  <g transform="translate(600, 655) scale(0.78) translate(-512, -600)" mask="url(#capMask)">
     <!-- Perfect Location Pin Shape -->
     <path d="M 286.84 530 A 260 260 0 1 1 737.16 530 L 512 920 Z" fill="url(#metalCopper)" />
     
-    <!-- Cutout Highlight (Top-left crescent) -->
-    <g transform="translate(-2, -3)" fill="#FFD2B8" opacity="0.6">
-      <path d="M 512 280 L 742 360 L 512 440 L 282 360 Z" />
-      <path d="M 380 415 Q 512 495 644 415 L 644 485 Q 512 565 380 485 Z" />
-      <path d="M 512 800 C 412 720, 612 640, 512 560" fill="none" stroke="#FFD2B8" stroke-width="22" stroke-dasharray="0, 55" stroke-linecap="round" />
+    <!-- Cutout Highlight (Top-left crescent) & Raised Button Outer Shadow -->
+    <g transform="translate(-2, -3)">
+      <g fill="#FFD2B8" opacity="0.6">
+        <path d="M 512 280 L 742 360 L 512 440 L 282 360 Z" />
+        <path d="M 380 415 Q 512 495 644 415 L 644 485 Q 512 565 380 485 Z" />
+        <path d="M 512 800 C 412 720, 612 640, 512 560" fill="none" stroke="#FFD2B8" stroke-width="22" stroke-dasharray="0, 55" stroke-linecap="round" />
+        <path d="M 512 360 Q 670 370 680 430" fill="none" stroke="#FFD2B8" stroke-width="12" stroke-linecap="round" />
+        <rect x="668" y="430" width="24" height="40" rx="12" />
+        <circle cx="512" cy="360" r="6" />
+      </g>
+      <circle cx="512" cy="360" r="16" fill="#3D1B0B" />
     </g>
 
-    <!-- Cutout Shadow (Bottom-right crescent) -->
-    <g transform="translate(2, 3)" fill="#3D1B0B">
-      <path d="M 512 280 L 742 360 L 512 440 L 282 360 Z" />
-      <path d="M 380 415 Q 512 495 644 415 L 644 485 Q 512 565 380 485 Z" />
-      <path d="M 512 800 C 412 720, 612 640, 512 560" fill="none" stroke="#3D1B0B" stroke-width="22" stroke-dasharray="0, 55" stroke-linecap="round" />
+    <!-- Cutout Shadow (Bottom-right crescent) & Raised Button Outer Highlight -->
+    <g transform="translate(2, 3)">
+      <g fill="#3D1B0B">
+        <path d="M 512 280 L 742 360 L 512 440 L 282 360 Z" />
+        <path d="M 380 415 Q 512 495 644 415 L 644 485 Q 512 565 380 485 Z" />
+        <path d="M 512 800 C 412 720, 612 640, 512 560" fill="none" stroke="#3D1B0B" stroke-width="22" stroke-dasharray="0, 55" stroke-linecap="round" />
+        <path d="M 512 360 Q 670 370 680 430" fill="none" stroke="#3D1B0B" stroke-width="12" stroke-linecap="round" />
+        <rect x="668" y="430" width="24" height="40" rx="12" />
+        <circle cx="512" cy="360" r="6" />
+      </g>
+      <circle cx="512" cy="360" r="16" fill="#FFD2B8" opacity="0.6" />
     </g>
   
   </g>

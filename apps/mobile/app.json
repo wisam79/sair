@@ -21,6 +21,7 @@
     },
     "android": {
       "package": "com.wisam99sr.sair",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1D1F21"
@@ -37,7 +38,12 @@
         "projectId": "56de5863-9707-4eb0-a22f-23e58c5e5a2f"
       }
     },
-    "plugins": ["expo-font", "expo-secure-store", "expo-web-browser"],
+    "plugins": [
+      "expo-font",
+      "expo-secure-store",
+      "expo-web-browser",
+      "@maplibre/maplibre-react-native"
+    ],
     "notification": {
       "icon": "./assets/notification-icon.png",
       "color": "#CF7C4B"
