@@ -36,8 +36,8 @@
     </mask>
   </defs>
 
-  <!-- الشعار متمركزاً ومحجماً بنفس النسبة للتناسق -->
-  <g transform="translate(642, 900) scale(0.78) translate(-512, -600)" mask="url(#splashCapMask)">
+  <!-- الشعار متمركزاً ومحجماً بنفس النسبة للتناسق البصري -->
+  <g transform="translate(642, 955) scale(0.78) translate(-512, -600)" mask="url(#splashCapMask)">
     <path d="M 286.84 530 A 260 260 0 1 1 737.16 530 L 512 920 Z" fill="url(#splashMetalCopper)" />
     
     <!-- Cutout Highlight (Top-left crescent) & Raised Button Outer Shadow -->
