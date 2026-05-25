@@ -313,6 +313,29 @@ export default function TrackingScreen() {
   const { getOrCreate } = useConversationForTrip(tripId);
   const router = useRouter();
   const [driverModalVisible, setDriverModalVisible] = useState(false);
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const [sheetExpanded, setSheetExpanded] = useState(false);
+  const [mapStyle, setMapStyle] = useState<'streets' | 'dark' | 'satellite'>('streets');
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+  const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showTooltip = (tooltipId: string) => {
+    setActiveTooltip(tooltipId);
+    if (tooltipTimerRef.current) {
+      clearTimeout(tooltipTimerRef.current);
+    }
+    tooltipTimerRef.current = setTimeout(() => {
+      setActiveTooltip(null);
+    }, 1800);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (tooltipTimerRef.current) {
+        clearTimeout(tooltipTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (trip?.status === 'completed') {
@@ -369,15 +392,43 @@ export default function TrackingScreen() {
 
   const status = STATUS_CONFIG[trip.status] || STATUS_CONFIG.scheduled;
 
+  // Pre-calculate ETA & Distance
+  const driverLat = trip.last_lat ? Number(trip.last_lat) : null;
+  const driverLng = trip.last_lng ? Number(trip.last_lng) : null;
+  const startLat = trip.routes?.start_lat ? Number(trip.routes.start_lat) : null;
+  const startLng = trip.routes?.start_lng ? Number(trip.routes.start_lng) : null;
+  const endLat = trip.routes?.end_lat ? Number(trip.routes.end_lat) : null;
+  const endLng = trip.routes?.end_lng ? Number(trip.routes.end_lng) : null;
+
+  const isGoingToPickup = trip.status === 'scheduled' || trip.status === 'driver_waiting';
+  const targetLat = isGoingToPickup ? startLat : endLat;
+  const targetLng = isGoingToPickup ? startLng : endLng;
+
+  let etaText = '';
+  let compactEta = '';
+  let compactDistance = '';
+
+  if (driverLat !== null && driverLng !== null && targetLat !== null && targetLng !== null) {
+    const distance = getDistanceInKm(driverLat, driverLng, targetLat, targetLng);
+    const etaMinutes = getEstimatedTime(distance);
+    etaText = `${etaMinutes} ${t('minutes_short')} (${distance} ${t('km_short')})`;
+    compactEta = `${etaMinutes} ${t('minutes_short')}`;
+    compactDistance = `${distance} ${t('km_short')}`;
+  } else if (trip.status !== 'completed' && trip.status !== 'cancelled' && trip.status !== 'absent') {
+    etaText = t('driver_gps_inactive');
+    compactEta = '--';
+    compactDistance = '--';
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      {/* Header */}
+      {/* Static Solid Header (below StatusBar, not overlaying the map) */}
       <View
         style={[
           styles.header,
-          { paddingTop: top + Spacing.md },
+          { paddingTop: top + 12 },
           isRTL && { flexDirection: 'row-reverse' },
         ]}
       >
@@ -388,7 +439,7 @@ export default function TrackingScreen() {
             router.back();
           }}
         >
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
+          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.secondary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('live_tracking')}</Text>
 
@@ -405,48 +456,10 @@ export default function TrackingScreen() {
         )}
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Trip Header Info & Status Card */}
-        <View style={[styles.tripHeaderCard, isRTL && { flexDirection: 'row-reverse' }]}>
-          <View
-            style={[{ flex: 1 }, isRTL ? { alignItems: 'flex-end' } : { alignItems: 'flex-start' }]}
-          >
-            <Text style={[styles.routeTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {trip.routes?.title || t('route')}
-            </Text>
-            <Text style={[styles.routeSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {trip.routes?.start_location} ← {trip.routes?.end_location}
-            </Text>
-          </View>
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: status.bg },
-              isRTL && { flexDirection: 'row-reverse' },
-            ]}
-          >
-            <Ionicons name={status.icon} size={16} color={status.color} />
-            <Text style={[styles.statusLabel, { color: status.color }]}>{t(trip.status)}</Text>
-          </View>
-        </View>
-
-        {/* ETA & Distance Card */}
-        <ETAIndicatorCard
-          status={trip.status}
-          driverLat={trip.last_lat ? Number(trip.last_lat) : null}
-          driverLng={trip.last_lng ? Number(trip.last_lng) : null}
-          startLat={trip.routes?.start_lat ? Number(trip.routes.start_lat) : null}
-          startLng={trip.routes?.start_lng ? Number(trip.routes.start_lng) : null}
-          endLat={trip.routes?.end_lat ? Number(trip.routes.end_lat) : null}
-          endLng={trip.routes?.end_lng ? Number(trip.routes.end_lng) : null}
-        />
-
-        {/* Map Container */}
-        <View style={styles.mapContainer}>
+      {/* Map & Overlays Container */}
+      <View style={styles.mapContainer}>
+        {/* Map Background */}
+        <View style={styles.mapBackground}>
           {trip.routes &&
           trip.routes.start_lat &&
           trip.routes.start_lng &&
@@ -459,6 +472,7 @@ export default function TrackingScreen() {
               endLng={Number(trip.routes.end_lng)}
               driverLat={trip.last_lat ? Number(trip.last_lat) : null}
               driverLng={trip.last_lng ? Number(trip.last_lng) : null}
+              mapStyle={mapStyle}
             />
           ) : (
             <View style={styles.mapPlaceholderInner}>
@@ -468,113 +482,396 @@ export default function TrackingScreen() {
           )}
         </View>
 
-        {/* Driver Section */}
-        <View style={[styles.driverCard, isRTL && { flexDirection: 'row-reverse' }]}>
-          <TouchableOpacity
-            style={[styles.driverInfo, isRTL && { flexDirection: 'row-reverse' }]}
-            activeOpacity={0.7}
-            onPress={() => setDriverModalVisible(true)}
-          >
-            <View style={styles.avatar}>
-              <Ionicons name="person" size={24} color={Colors.white} />
+        {/* Floating Side Panels (Left & Right) */}
+        {!sheetExpanded && (
+          <>
+            {/* Left Side Panel (Driver Avatar, status dot, compact ETA / Distance) */}
+            <View style={[styles.leftSideWrapper, isRTL ? { left: undefined, right: 16 } : { right: undefined, left: 16 }]}>
+              <TouchableOpacity
+                style={styles.leftSidePanel}
+                onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  showTooltip('details');
+                  setSheetExpanded(true);
+                }}
+                activeOpacity={0.85}
+              >
+                <View style={styles.sideAvatar}>
+                  {trip.driver?.full_name ? (
+                    <Text style={styles.sideAvatarText}>
+                      {trip.driver.full_name.charAt(0).toUpperCase()}
+                    </Text>
+                  ) : (
+                    <Ionicons name="person" size={16} color={Colors.white} />
+                  )}
+                </View>
+
+                {/* Status pulse dot */}
+                <View style={[styles.sideStatusDot, { backgroundColor: status.color }]} />
+
+                <View style={styles.sidePillContainer}>
+                  {compactEta !== '--' && compactEta !== '' && (
+                    <View style={[styles.sidePill, { backgroundColor: Colors.primarySurface }]}>
+                      <Ionicons name="time" size={10} color={Colors.primary} />
+                      <Text style={styles.sidePillText}>{compactEta}</Text>
+                    </View>
+                  )}
+
+                  {compactDistance !== '--' && compactDistance !== '' && (
+                    <View style={[styles.sidePill, { backgroundColor: Colors.successSurface }]}>
+                      <Ionicons name="location" size={10} color={Colors.success} />
+                      <Text style={styles.sidePillText}>{compactDistance}</Text>
+                    </View>
+                  )}
+
+                  {compactEta === '--' && (
+                    <View style={[styles.sidePill, { backgroundColor: Colors.surfaceMuted }]}>
+                      <Ionicons name="location-outline" size={10} color={Colors.textMuted} />
+                      <Text style={[styles.sidePillText, { color: Colors.textMuted }]}>{t('no_gps') || 'لا يوجد GPS'}</Text>
+                    </View>
+                  )}
+                </View>
+
+                <Text style={styles.sideTapDetailsText}>{t('details') || 'تفاصيل'}</Text>
+              </TouchableOpacity>
+              
+              {/* Tooltip for the Left Details Panel */}
+              {activeTooltip === 'details' && (
+                <View style={[styles.tooltipContainer, isRTL ? { right: 76 } : { left: 76 }]}>
+                  <Text style={styles.tooltipText}>{t('details') || (isRTL ? 'التفاصيل' : 'Details')}</Text>
+                </View>
+              )}
             </View>
-            <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
-              <Text style={styles.driverName}>{trip.driver?.full_name || t('driver_sair')}</Text>
-              <Text style={styles.driverLabel}>{t('current_driver_hint')}</Text>
+
+            {/* Right Side Panel (Controls) */}
+            <View style={[styles.rightSidePanel, isRTL ? { right: undefined, left: 16 } : { left: undefined, right: 16 }]}>
+              {/* Map Style Selector Button */}
+              <View style={styles.sideActionWrapper}>
+                <TouchableOpacity
+                  style={styles.sideActionButton}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setMapStyle((prev) =>
+                      prev === 'streets' ? 'dark' : prev === 'dark' ? 'satellite' : 'streets'
+                    );
+                    showTooltip('map_style');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={mapStyle === 'streets' ? 'map' : mapStyle === 'dark' ? 'moon' : 'earth'}
+                    size={18}
+                    color={Colors.primary}
+                  />
+                </TouchableOpacity>
+                {activeTooltip === 'map_style' && (
+                  <View style={[styles.tooltipContainer, isRTL ? { left: 52 } : { right: 52 }]}>
+                    <Text style={styles.tooltipText}>{t('map_style') || (isRTL ? 'الخريطة' : 'Map')}</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Chat Button */}
+              <View style={styles.sideActionWrapper}>
+                <TouchableOpacity
+                  style={styles.sideActionButton}
+                  onPress={() => {
+                    showTooltip('chat');
+                    void handleOpenChat();
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
+                </TouchableOpacity>
+                {activeTooltip === 'chat' && (
+                  <View style={[styles.tooltipContainer, isRTL ? { left: 52 } : { right: 52 }]}>
+                    <Text style={styles.tooltipText}>{t('chat') || (isRTL ? 'الدردشة' : 'Chat')}</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Call Button */}
+              {trip.driver?.phone && (
+                <View style={styles.sideActionWrapper}>
+                  <TouchableOpacity
+                    style={[styles.sideActionButton, styles.sideCallButton]}
+                    onPress={() => {
+                      showTooltip('call');
+                      void Linking.openURL(`tel:${trip.driver!.phone}`);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="call-outline" size={18} color={Colors.success} />
+                  </TouchableOpacity>
+                  {activeTooltip === 'call' && (
+                    <View style={[styles.tooltipContainer, isRTL ? { left: 52 } : { right: 52 }]}>
+                      <Text style={styles.tooltipText}>{t('call') || (isRTL ? 'اتصال' : 'Call')}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* Share Button */}
+              <View style={styles.sideActionWrapper}>
+                <TouchableOpacity
+                  style={styles.sideActionButton}
+                  onPress={() => {
+                    showTooltip('share');
+                    void handleShare();
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="share-social-outline" size={18} color={Colors.primary} />
+                </TouchableOpacity>
+                {activeTooltip === 'share' && (
+                  <View style={[styles.tooltipContainer, isRTL ? { left: 52 } : { right: 52 }]}>
+                    <Text style={styles.tooltipText}>{t('share') || (isRTL ? 'مشاركة' : 'Share')}</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* SOS Button (only when in_transit) */}
+              {trip.status === 'in_transit' && (
+                <View style={styles.sideActionWrapper}>
+                  <TouchableOpacity
+                    style={[styles.sideActionButton, styles.sideSOSButton]}
+                    onPress={() => {
+                      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                      showTooltip('sos');
+                      setSheetExpanded(true);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="alert-circle" size={20} color={Colors.error} />
+                  </TouchableOpacity>
+                  {activeTooltip === 'sos' && (
+                    <View style={[styles.tooltipContainer, isRTL ? { left: 52 } : { right: 52 }]}>
+                      <Text style={styles.tooltipText}>{t('sos') || (isRTL ? 'طوارئ' : 'SOS')}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          </>
+        )}
+
+        {/* Floating Bottom Bar (Route & Trip Status) */}
+        {!sheetExpanded && (
+          <TouchableOpacity
+            style={styles.floatingBottomBar}
+            onPress={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setSheetExpanded(true);
+            }}
+            activeOpacity={0.9}
+          >
+            <View style={[styles.bottomBarContent, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={[styles.bottomBarIconBox, { backgroundColor: Colors.primarySurface }]}>
+                <Ionicons name="bus-outline" size={20} color={Colors.primary} />
+              </View>
+              
+              <View style={[styles.bottomBarTextContainer, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+                <Text style={styles.bottomBarTitle}>
+                  {trip.routes?.title || t('route')}
+                </Text>
+                <Text style={styles.bottomBarSubtitle} numberOfLines={1}>
+                  {trip.routes?.start_location} ⇄ {trip.routes?.end_location}
+                </Text>
+              </View>
+
+              <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
+                <Text style={[styles.statusLabel, { color: status.color, fontSize: 10.5 }]}>
+                  {t(trip.status)}
+                </Text>
+              </View>
+
+              <Ionicons
+                name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                size={16}
+                color={Colors.textMuted}
+                style={{ marginLeft: 4 }}
+              />
             </View>
           </TouchableOpacity>
-          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.sm }}>
-            {trip.driver?.phone && (
-              <TouchableOpacity
-                style={[styles.actionCircleButton, styles.callCircleButton]}
-                onPress={() => Linking.openURL(`tel:${trip.driver!.phone}`)}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="call-outline" size={20} color={Colors.success} />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={styles.actionCircleButton}
-              onPress={handleOpenChat}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="chatbubble-outline" size={20} color={Colors.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionCircleButton}
-              onPress={handleShare}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="share-social-outline" size={20} color={Colors.primary} />
-            </TouchableOpacity>
+        )}
+
+        {/* Detailed Expanded Overlay Card */}
+        {sheetExpanded && (
+          <View style={styles.overlayDimmer}>
+            <View style={styles.expandedFloatingCard}>
+              <View style={[styles.expandedCardHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Text style={styles.expandedCardTitle}>{t('trip_details') || 'تفاصيل الرحلة'}</Text>
+                <TouchableOpacity
+                  style={styles.closeCardButton}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setSheetExpanded(false);
+                  }}
+                >
+                  <Ionicons name="close" size={20} color={Colors.secondary} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.expandedScroll} showsVerticalScrollIndicator={false}>
+                {/* Route Header Info & Status Card */}
+                <View style={[styles.sheetHeaderCard, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <View
+                    style={[{ flex: 1 }, isRTL ? { alignItems: 'flex-end' } : { alignItems: 'flex-start' }]}
+                  >
+                    <Text style={[styles.routeTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+                      {trip.routes?.title || t('route')}
+                    </Text>
+                    <Text style={[styles.routeSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+                      {trip.routes?.start_location} ← {trip.routes?.end_location}
+                    </Text>
+                  </View>
+                  <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
+                    <Ionicons name={status.icon} size={14} color={status.color} />
+                    <Text style={[styles.statusLabel, { color: status.color }]}>{t(trip.status)}</Text>
+                  </View>
+                </View>
+
+                {/* Driver Section */}
+                <View style={[styles.driverCard, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <TouchableOpacity
+                    style={[styles.driverInfo, isRTL && { flexDirection: 'row-reverse' }]}
+                    activeOpacity={0.7}
+                    onPress={() => setDriverModalVisible(true)}
+                  >
+                    <View style={styles.avatar}>
+                      <Ionicons name="person" size={22} color={Colors.white} />
+                    </View>
+                    <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                      <Text style={styles.driverName}>{trip.driver?.full_name || t('driver_sair')}</Text>
+                      <Text style={styles.driverLabel}>{t('current_driver_hint')}</Text>
+                    </View>
+                  </TouchableOpacity>
+                  <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.sm }}>
+                    {trip.driver?.phone && (
+                      <TouchableOpacity
+                        style={[styles.actionCircleButton, styles.callCircleButton]}
+                        onPress={() => Linking.openURL(`tel:${trip.driver!.phone}`)}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="call-outline" size={18} color={Colors.success} />
+                      </TouchableOpacity>
+                    )}
+                    <TouchableOpacity
+                      style={styles.actionCircleButton}
+                      onPress={handleOpenChat}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.actionCircleButton}
+                      onPress={handleShare}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="share-social-outline" size={18} color={Colors.primary} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Detailed ETA indicator (inside the scrollview) */}
+                <ETAIndicatorCard
+                  status={trip.status}
+                  driverLat={driverLat}
+                  driverLng={driverLng}
+                  startLat={startLat}
+                  startLng={startLng}
+                  endLat={endLat}
+                  endLng={endLng}
+                />
+
+                {/* Trip Timeline */}
+                <TripTimeline status={trip.status as string} />
+
+                {/* SOS Button */}
+                {trip.status === 'in_transit' && (
+                  <View style={{ marginTop: Spacing.md }}>
+                    <SOSButton tripId={trip.id} />
+                  </View>
+                )}
+
+                {/* Expandable Details Header */}
+                <TouchableOpacity
+                  style={[styles.expandableHeader, isRTL && { flexDirection: 'row-reverse' }]}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setDetailsExpanded(!detailsExpanded);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.expandableTitle}>{t('route_details')}</Text>
+                  <Ionicons
+                    name={detailsExpanded ? 'chevron-up' : 'chevron-down'}
+                    size={20}
+                    color={Colors.secondary}
+                  />
+                </TouchableOpacity>
+
+                {/* Expandable Details Content */}
+                {detailsExpanded && (
+                  <Animated.View style={styles.detailsList}>
+                    <View style={[styles.infoRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                      <View style={styles.infoIconBox}>
+                        <Ionicons name="bus-outline" size={18} color={Colors.secondary} />
+                      </View>
+                      <View style={styles.infoTextContainer}>
+                        <Text style={[styles.infoLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+                          {t('route')}
+                        </Text>
+                        <Text style={[styles.infoValue, { textAlign: isRTL ? 'right' : 'left' }]}>
+                          {trip.routes?.title || t('route')}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {trip.started_at && (
+                      <View style={[styles.infoRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                        <View style={styles.infoIconBox}>
+                          <Ionicons name="time-outline" size={18} color={Colors.secondary} />
+                        </View>
+                        <View style={styles.infoTextContainer}>
+                          <Text style={[styles.infoLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+                            {t('departure_time')}
+                          </Text>
+                          <Text style={[styles.infoValue, { textAlign: isRTL ? 'right' : 'left' }]}>
+                            {new Date(trip.started_at).toLocaleTimeString(isRTL ? 'ar-IQ' : 'en-US', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+
+                    {trip.ended_at && (
+                      <View style={[styles.infoRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                        <View style={styles.infoIconBox}>
+                          <Ionicons name="flag-outline" size={18} color={Colors.secondary} />
+                        </View>
+                        <View style={styles.infoTextContainer}>
+                          <Text style={[styles.infoLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+                            {t('arrival_time')}
+                          </Text>
+                          <Text style={[styles.infoValue, { textAlign: isRTL ? 'right' : 'left' }]}>
+                            {new Date(trip.ended_at).toLocaleTimeString(isRTL ? 'ar-IQ' : 'en-US', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                  </Animated.View>
+                )}
+              </ScrollView>
+            </View>
           </View>
-        </View>
-
-        {/* Trip Timeline */}
-        <TripTimeline status={trip.status as string} />
-
-        {/* Phase 5: SOS Button */}
-        {trip.status === 'in_transit' && <SOSButton tripId={trip.id} />}
-
-        {/* Details Card */}
-        <View style={styles.detailsCard}>
-          <Text style={[styles.detailsCardTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('route_details')}
-          </Text>
-
-          <View style={[styles.infoRow, isRTL && { flexDirection: 'row-reverse' }]}>
-            <View style={styles.infoIconBox}>
-              <Ionicons name="bus-outline" size={20} color={Colors.secondary} />
-            </View>
-            <View style={styles.infoTextContainer}>
-              <Text style={[styles.infoLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('route')}
-              </Text>
-              <Text style={[styles.infoValue, { textAlign: isRTL ? 'right' : 'left' }]}>
-                {trip.routes?.title || t('route')}
-              </Text>
-            </View>
-          </View>
-
-          {trip.started_at && (
-            <View style={[styles.infoRow, isRTL && { flexDirection: 'row-reverse' }]}>
-              <View style={styles.infoIconBox}>
-                <Ionicons name="time-outline" size={20} color={Colors.secondary} />
-              </View>
-              <View style={styles.infoTextContainer}>
-                <Text style={[styles.infoLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t('departure_time')}
-                </Text>
-                <Text style={[styles.infoValue, { textAlign: isRTL ? 'right' : 'left' }]}>
-                  {new Date(trip.started_at).toLocaleTimeString(isRTL ? 'ar-IQ' : 'en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {trip.ended_at && (
-            <View style={[styles.infoRow, isRTL && { flexDirection: 'row-reverse' }]}>
-              <View style={styles.infoIconBox}>
-                <Ionicons name="flag-outline" size={20} color={Colors.secondary} />
-              </View>
-              <View style={styles.infoTextContainer}>
-                <Text style={[styles.infoLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t('arrival_time')}
-                </Text>
-                <Text style={[styles.infoValue, { textAlign: isRTL ? 'right' : 'left' }]}>
-                  {new Date(trip.ended_at).toLocaleTimeString(isRTL ? 'ar-IQ' : 'en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </Text>
-              </View>
-            </View>
-          )}
-        </View>
-      </ScrollView>
+        )}
+      </View>
 
       <DriverBottomSheet
         visible={driverModalVisible}
@@ -592,10 +889,8 @@ export default function TrackingScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scrollView: { flex: 1 },
-  content: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.md },
-
+  
   // Header
   header: {
     flexDirection: 'row',
@@ -603,11 +898,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    backgroundColor: '#EFECE9',
+    backgroundColor: Colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#E6E2DE',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    borderBottomColor: Colors.border,
     ...Shadow.sm,
     zIndex: 10,
   },
@@ -648,16 +941,32 @@ const styles = StyleSheet.create({
     color: Colors.success,
   },
 
-  // ETA Card
+  // Map Container
+  mapContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  mapBackground: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+  },
+  mapPlaceholderInner: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+  },
+
+  // Detailed ETA Card
   etaCard: {
     backgroundColor: Colors.white,
     borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
     borderWidth: 1,
     borderColor: Colors.border,
-    marginBottom: Spacing.md,
     gap: Spacing.md,
     ...Shadow.sm,
+    marginBottom: Spacing.md,
   },
   etaHeaderRow: {
     flexDirection: 'row',
@@ -723,50 +1032,183 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.border,
   },
 
-  // Trip Header Card
-  tripHeaderCard: {
+  // Floating Side Panels (Left & Right)
+  leftSideWrapper: {
+    position: 'absolute',
+    top: 16,
+    zIndex: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  leftSidePanel: {
+    width: 68,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 24,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  sideAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  sideAvatarText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 14,
+    color: Colors.white,
+  },
+  sideStatusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: Colors.white,
+    position: 'absolute',
+    top: 38,
+    left: 42,
+    zIndex: 11,
+  },
+  sidePillContainer: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 6,
+    marginVertical: 4,
+  },
+  sidePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 10,
+    width: '85%',
+  },
+  sidePillText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 8.5,
+    color: Colors.text,
+  },
+  sideTapDetailsText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 9,
+    color: Colors.primary,
+    marginTop: 4,
+  },
+  rightSidePanel: {
+    position: 'absolute',
+    top: 16,
+    width: 46,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 24,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
+    zIndex: 10,
+    gap: 10,
+  },
+  sideActionButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: Colors.primarySurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(194, 112, 62, 0.15)',
+  },
+  sideCallButton: {
+    backgroundColor: Colors.successSurface,
+    borderColor: 'rgba(76, 175, 80, 0.15)',
+  },
+  sideSOSButton: {
+    backgroundColor: Colors.errorSurface,
+    borderColor: 'rgba(229, 57, 53, 0.15)',
+  },
+
+  // Detailed Modal/Card
+  overlayDimmer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
+  },
+  expandedFloatingCard: {
+    width: '90%',
+    maxHeight: '80%',
     backgroundColor: Colors.white,
-    borderRadius: BorderRadius.xl,
+    borderRadius: 24,
     padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
+    elevation: 12,
+  },
+  expandedCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: Spacing.md,
-    ...Shadow.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    paddingBottom: Spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  expandedCardTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 16,
+    color: Colors.secondary,
+  },
+  closeCardButton: {
+    padding: 4,
+  },
+  expandedScroll: {
+    flexGrow: 0,
+  },
+
+  // Compact sheet headers
+  sheetHeaderCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.surfaceMuted,
   },
   routeTitle: {
     fontFamily: FontFamily.bold,
-    fontSize: 18,
+    fontSize: 17,
     color: Colors.secondary,
     marginBottom: 4,
   },
   routeSubtitle: {
     fontFamily: FontFamily.medium,
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.textMuted,
   },
-
-  // Map Container
-  mapContainer: {
-    height: 260,
-    backgroundColor: Colors.surfaceMuted,
-    borderRadius: BorderRadius.xl,
-    overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    marginBottom: Spacing.md,
-    ...Shadow.sm,
-  },
-  mapPlaceholderInner: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-  },
-
-  // Status Badge
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -799,29 +1241,29 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   driverName: {
     fontFamily: FontFamily.bold,
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.text,
   },
   driverLabel: {
     fontFamily: FontFamily.regular,
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.textSecondary,
   },
 
   // Action Buttons
   actionCircleButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: Colors.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -833,31 +1275,28 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(76, 175, 80, 0.15)',
   },
 
-  // Details Card
-  detailsCard: {
-    backgroundColor: Colors.white,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
+  // Expandable Details
+  expandableHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.md,
     marginTop: Spacing.md,
-    ...Shadow.sm,
-    gap: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.surfaceMuted,
   },
-  detailsCardTitle: {
+  expandableTitle: {
     fontFamily: FontFamily.bold,
-    fontSize: 16,
-    color: Colors.secondary,
-    marginBottom: Spacing.xs,
-  },
-  noLocation: {
-    fontFamily: FontFamily.regular,
-    color: Colors.textSecondary,
     fontSize: 14,
-    marginTop: Spacing.sm,
+    color: Colors.secondary,
+  },
+  detailsList: {
+    gap: Spacing.sm,
+    marginTop: Spacing.xs,
+    paddingBottom: Spacing.md,
   },
 
-  // Details list
+  // Details items
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -867,8 +1306,8 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   infoIconBox: {
-    width: 40,
-    height: 40,
+    width: 38,
+    height: 38,
     borderRadius: BorderRadius.sm,
     backgroundColor: Colors.white,
     alignItems: 'center',
@@ -880,17 +1319,23 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontFamily: FontFamily.regular,
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.textSecondary,
     marginBottom: 2,
   },
   infoValue: {
     fontFamily: FontFamily.bold,
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.text,
   },
 
-  // Error
+  // Miscellanous
+  noLocation: {
+    fontFamily: FontFamily.regular,
+    color: Colors.textSecondary,
+    fontSize: 14,
+    marginTop: Spacing.sm,
+  },
   errorText: {
     fontFamily: FontFamily.bold,
     color: Colors.textSecondary,
@@ -907,5 +1352,78 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     color: Colors.white,
     fontSize: 14,
+  },
+  
+  // Floating Bottom Bar
+  floatingBottomBar: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    right: 16,
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 6,
+    zIndex: 10,
+  },
+  bottomBarContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  bottomBarIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bottomBarTextContainer: {
+    flex: 1,
+  },
+  bottomBarTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 13.5,
+    color: Colors.text,
+  },
+  bottomBarSubtitle: {
+    fontFamily: FontFamily.medium,
+    fontSize: 11,
+    color: Colors.textSecondary,
+    marginTop: 1,
+  },
+
+  // Tooltip Styles
+  sideActionWrapper: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tooltipContainer: {
+    position: 'absolute',
+    backgroundColor: 'rgba(45, 45, 45, 0.9)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    width: 70,
+  },
+  tooltipText: {
+    color: Colors.white,
+    fontSize: 9,
+    fontFamily: FontFamily.bold,
+    textAlign: 'center',
   },
 });

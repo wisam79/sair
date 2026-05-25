@@ -278,4 +278,13 @@ export default {
   km_short: 'كم',
   driver_gps_inactive: 'موقع السائق غير نشط حالياً',
   live: 'مباشر',
+  map_style: 'نمط الخريطة',
+  share: 'مشاركة',
+  details: 'التفاصيل',
+  call: 'اتصال',
+  sos: 'طوارئ',
+  no_gps: 'لا يوجد GPS',
+  trip_details: 'تفاصيل الرحلة',
+  location_permission_denied: 'تم رفض صلاحية الوصول للموقع. يرجى تفعيلها من الإعدادات.',
+  location_fetch_error: 'تعذر تحديد موقعك الحالي. يرجى التأكد من تفعيل الـ GPS.',
 } as const;

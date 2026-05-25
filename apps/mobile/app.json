@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#2D2D2D"
+      "backgroundColor": "#1D1F21"
     },
     "assetBundlePatterns": ["**/*"],
     "runtimeVersion": {
@@ -23,7 +23,7 @@
       "package": "com.wisam99sr.sair",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#C2703E"
+        "backgroundColor": "#1D1F21"
       }
     },
     "web": {
@@ -34,10 +34,14 @@
         "origin": false
       },
       "eas": {
-        "projectId": "28fa1803-2b1d-4c78-b4af-9b0fd8cce561"
+        "projectId": "56de5863-9707-4eb0-a22f-23e58c5e5a2f"
       }
     },
     "plugins": ["expo-font", "expo-secure-store", "expo-web-browser"],
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#CF7C4B"
+    },
     "owner": "wisam99sr"
   }
 }

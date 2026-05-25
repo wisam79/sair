@@ -282,4 +282,13 @@ export default {
   km_short: 'km',
   driver_gps_inactive: 'Driver GPS currently inactive',
   live: 'Live',
+  map_style: 'Map Style',
+  share: 'Share',
+  details: 'Details',
+  call: 'Call',
+  sos: 'SOS',
+  no_gps: 'No GPS Signal',
+  trip_details: 'Trip Details',
+  location_permission_denied: 'Location permission denied. Please enable it in settings.',
+  location_fetch_error: 'Could not fetch your location. Please ensure GPS is enabled.',
 } as const;

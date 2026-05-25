@@ -3,7 +3,7 @@
   "bundler": "metro",
   "fileMetadata": {
     "android": {
-      "bundle": "_expo/static/js/android/entry-13a71a82856df30c3d72b3d7c45c2eed.hbc",
+      "bundle": "_expo/static/js/android/entry-0899dcbe2e70d88db1c9655bcee35a59.hbc",
       "assets": [
         { "path": "assets\\778ffc9fe8773a878e9c30a6304784de", "ext": "png" },
         { "path": "assets\\c79c3606a1cf168006ad3979763c7e0c", "ext": "png" },
@@ -56,7 +56,8 @@
         { "path": "assets\\ba73b8c18f3ecabea995bfe7535607e1", "ext": "ttf" },
         { "path": "assets\\daa38886b4ccd0f6e51cf6d2f5c6fb92", "ext": "ttf" },
         { "path": "assets\\719a0ad23789571b3e5f40f95e50c791", "ext": "ttf" },
-        { "path": "assets\\db14cbdd87f0e4ad48c703f5313038f3", "ext": "ttf" }
+        { "path": "assets\\db14cbdd87f0e4ad48c703f5313038f3", "ext": "ttf" },
+        { "path": "assets\\d848347ce66e9df6447f9b0c945cd21c", "ext": "ttf" }
       ]
     }
   }
