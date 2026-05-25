@@ -21,6 +21,11 @@
     },
     "android": {
       "package": "com.wisam99sr.sair",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDummyKeyForInitializationOnly"
+        }
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1D1F21"
