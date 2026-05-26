@@ -1,4 +1,4 @@
-import { Expo } from 'npm:expo-server-sdk';
+import { Expo, type ExpoPushMessage } from 'npm:expo-server-sdk';
 import { corsResponse } from '../_shared/cors.ts';
 import { verifyAuth, supabaseAdmin } from '../_shared/auth.ts';
 import { retryWithBackoff } from '../../../packages/core/index.ts';
@@ -127,8 +127,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Expo Push API allows sending up to 100 messages at once
-    const expo = new Expo();
-    const messages: any[] = [];
+    const messages: ExpoPushMessage[] = [];
     const invalidTokens: string[] = [];
 
     for (const pt of pushTokens) {
