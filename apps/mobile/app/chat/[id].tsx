@@ -20,6 +20,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMessages, useConversations, type Message } from '../../src/hooks/useMessages';
 import { useTranslation } from '../../src/hooks/useTranslation';
 import { useAuthStore } from '../../src/hooks/useStore';
+import { useNetworkStatus } from '../../src/hooks/useNetworkStatus';
+import CustomAlert from '../../src/components/CustomAlert';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../../src/theme';
 import * as Haptics from 'expo-haptics';
 
@@ -31,11 +33,24 @@ export default function ChatScreen() {
   const { user, role } = useAuthStore();
   const { messages, loading, error, sendMessage } = useMessages(id || null);
   const { conversations } = useConversations();
+  const { isOnline } = useNetworkStatus();
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const sendBtnScale = useRef(new Animated.Value(0.9)).current;
+
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'error' | 'warning' | 'info' | 'question';
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'info',
+  });
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -107,22 +122,62 @@ export default function ChatScreen() {
   const handleSend = async () => {
     if (!inputText.trim() || sending) return;
 
+    if (!isOnline) {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setAlertConfig({
+        visible: true,
+        title: t('error'),
+        message: t('no_internet'),
+        type: 'error',
+      });
+      return;
+    }
+
     setSending(true);
     try {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      await sendMessage(inputText);
-      setInputText('');
-    } catch {
+      const res = await sendMessage(inputText);
+      if (res) {
+        setInputText('');
+      } else {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        setAlertConfig({
+          visible: true,
+          title: t('error'),
+          message: t('error_generic'),
+          type: 'error',
+        });
+      }
+    } catch (err: any) {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setAlertConfig({
+        visible: true,
+        title: t('error'),
+        message: err?.message || t('error_generic'),
+        type: 'error',
+      });
     } finally {
       setSending(false);
     }
   };
 
-  const handleQuickReply = async (text: string) => {
+  const handleQuickReply = useCallback(async (text: string) => {
     setInputText(text);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  };
+  }, []);
+
+  const renderQuickReply = useCallback(
+    ({ item }: { item: string }) => (
+      <TouchableOpacity
+        style={styles.quickReplyChip}
+        onPress={() => handleQuickReply(item)}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.quickReplyText}>{item}</Text>
+      </TouchableOpacity>
+    ),
+    [handleQuickReply],
+  );
 
   const renderMessage = useCallback(
     ({ item, index }: { item: Message; index: number }) => {
@@ -230,7 +285,10 @@ export default function ChatScreen() {
     [user?.id, isRTL, reversedMessages],
   );
 
-  if (loading) {
+  const showLoading = loading && reversedMessages.length === 0;
+  const showError = error && reversedMessages.length === 0;
+
+  if (showLoading) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={Colors.primary} />
@@ -238,7 +296,7 @@ export default function ChatScreen() {
     );
   }
 
-  if (error) {
+  if (showError) {
     return (
       <View style={styles.centered}>
         <Ionicons name="alert-circle" size={48} color={Colors.error} />
@@ -295,6 +353,13 @@ export default function ChatScreen() {
         )}
       </View>
 
+      {!isOnline && (
+        <View style={[styles.offlineBanner, isRTL && { flexDirection: 'row-reverse' }]}>
+          <Ionicons name="cloud-offline" size={16} color="#B07B00" />
+          <Text style={styles.offlineText}>{t('no_internet')}</Text>
+        </View>
+      )}
+
       <FlatList
         ref={flatListRef}
         data={reversedMessages}
@@ -321,15 +386,7 @@ export default function ChatScreen() {
             styles.quickRepliesContainer,
             isRTL && { flexDirection: 'row-reverse' },
           ]}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.quickReplyChip}
-              onPress={() => handleQuickReply(item)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.quickReplyText}>{item}</Text>
-            </TouchableOpacity>
-          )}
+          renderItem={renderQuickReply}
         />
       </View>
 
@@ -368,6 +425,14 @@ export default function ChatScreen() {
           </TouchableOpacity>
         </Animated.View>
       </View>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -550,5 +615,22 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: Colors.success,
+  },
+  offlineBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF8E1',
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFE082',
+    gap: 6,
+    zIndex: 5,
+  },
+  offlineText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 13,
+    color: '#B07B00',
   },
 });

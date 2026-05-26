@@ -62,21 +62,21 @@ Multiple RPCs lacked `REVOKE EXECUTE FROM PUBLIC`, allowing anon users to call t
 
 ### Functions Fixed
 
-| Function | Had Internal Auth Check | Risk |
-|----------|------------------------|------|
-| `send_message` | Yes | Anon could attempt calls (rejected internally) |
-| `get_messages` | Yes | Anon could attempt calls (rejected internally) |
-| `mark_messages_read` | Yes (but no participant check) | See Vuln #3 |
-| `get_my_conversations` | Yes | Anon could attempt calls (rejected internally) |
-| `get_or_create_conversation` | Yes | Anon could attempt calls (rejected internally) |
-| `validate_trip_transition` | No | Anon could probe trip states via error messages |
-| `create_trip` | Yes | Already had partial REVOKE |
-| `admin_cancel_trip` | Yes | Already had partial REVOKE |
-| `admin_create_trip` | Yes | Already had partial REVOKE |
-| `get_my_role` | No (returns caller's own role) | Low risk |
-| `is_admin` | No (returns caller's own status) | Low risk |
-| `ping` | No (returns TRUE) | No risk |
-| `get_analytics_summary` | No | Could expose analytics data |
+| Function                     | Had Internal Auth Check          | Risk                                            |
+| ---------------------------- | -------------------------------- | ----------------------------------------------- |
+| `send_message`               | Yes                              | Anon could attempt calls (rejected internally)  |
+| `get_messages`               | Yes                              | Anon could attempt calls (rejected internally)  |
+| `mark_messages_read`         | Yes (but no participant check)   | See Vuln #3                                     |
+| `get_my_conversations`       | Yes                              | Anon could attempt calls (rejected internally)  |
+| `get_or_create_conversation` | Yes                              | Anon could attempt calls (rejected internally)  |
+| `validate_trip_transition`   | No                               | Anon could probe trip states via error messages |
+| `create_trip`                | Yes                              | Already had partial REVOKE                      |
+| `admin_cancel_trip`          | Yes                              | Already had partial REVOKE                      |
+| `admin_create_trip`          | Yes                              | Already had partial REVOKE                      |
+| `get_my_role`                | No (returns caller's own role)   | Low risk                                        |
+| `is_admin`                   | No (returns caller's own status) | Low risk                                        |
+| `ping`                       | No (returns TRUE)                | No risk                                         |
+| `get_analytics_summary`      | No                               | Could expose analytics data                     |
 
 ---
 
@@ -156,13 +156,13 @@ Added check: student must have an active subscription on the trip's route, OR ca
 
 ## Summary Table
 
-| # | Vulnerability | Status | Severity | Migration |
-|---|--------------|--------|----------|-----------|
-| 1 | Race condition in complete_payment | PENDING | HIGH | (ZainCash not active) |
-| 2 | No rate limit on send_message | ✅ FIXED | HIGH | 20260523000002 |
-| 3 | mark_messages_read no participant check | ✅ FIXED | HIGH | 20260525000001 |
-| 4 | Missing REVOKE FROM PUBLIC on RPCs | ✅ FIXED | HIGH | 20260525000001 |
-| 5 | admin_cancel_trip seat restoration | ✅ FIXED | HIGH | 20260525000001 |
-| 6 | notification_log INSERT WITH CHECK (true) | ✅ FIXED | MEDIUM | 20260525000001 |
-| 7 | cancel_subscription fragile auth pattern | ✅ FIXED | MEDIUM | 20260525000001 |
-| 8 | emergency_reports no trip participation check | ✅ FIXED | MEDIUM | 20260525000001 |
+| #   | Vulnerability                                 | Status   | Severity | Migration             |
+| --- | --------------------------------------------- | -------- | -------- | --------------------- |
+| 1   | Race condition in complete_payment            | PENDING  | HIGH     | (ZainCash not active) |
+| 2   | No rate limit on send_message                 | ✅ FIXED | HIGH     | 20260523000002        |
+| 3   | mark_messages_read no participant check       | ✅ FIXED | HIGH     | 20260525000001        |
+| 4   | Missing REVOKE FROM PUBLIC on RPCs            | ✅ FIXED | HIGH     | 20260525000001        |
+| 5   | admin_cancel_trip seat restoration            | ✅ FIXED | HIGH     | 20260525000001        |
+| 6   | notification_log INSERT WITH CHECK (true)     | ✅ FIXED | MEDIUM   | 20260525000001        |
+| 7   | cancel_subscription fragile auth pattern      | ✅ FIXED | MEDIUM   | 20260525000001        |
+| 8   | emergency_reports no trip participation check | ✅ FIXED | MEDIUM   | 20260525000001        |

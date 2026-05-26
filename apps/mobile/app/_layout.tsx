@@ -65,7 +65,7 @@ export default function Layout() {
   const { top } = useSafeAreaInsets();
 
   const [forceUpdateRequired, setForceUpdateRequired] = useState(false);
-  const [animationFinished, setAnimationFinished] = useState(false);  // Prevent infinite refresh loop: only attempt session refresh once per mount
+  const [animationFinished, setAnimationFinished] = useState(false); // Prevent infinite refresh loop: only attempt session refresh once per mount
   const refreshAttemptedRef = useRef(false);
 
   // Initialize push notifications globally
@@ -108,34 +108,10 @@ export default function Layout() {
   useEffect(() => {
     supabase.auth
       .getSession()
-      .then(async ({ data: { session } }) => {
+      .then(({ data: { session } }) => {
         try {
           if (session?.user) {
             const jwtRole = session.user.app_metadata?.role || 'student'; // SECURITY: app_metadata only
-
-            // Fetch full profile from DB (includes institution_id for smart matching)
-            // Also fetch role to detect admin-side promotions (e.g. student → driver)
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('full_name, phone, institution_id, role')
-              .eq('id', session.user.id)
-              .single();
-
-            const dbRole = profileData?.role as string | undefined;
-
-            // If the DB role differs from the JWT role, the admin promoted/demoted this user.
-            // Refresh the session so the new JWT reflects the updated app_metadata role.
-            if (dbRole && dbRole !== jwtRole && !refreshAttemptedRef.current) {
-              refreshAttemptedRef.current = true;
-              console.log(
-                `[Auth] Role mismatch detected: JWT=${jwtRole}, DB=${dbRole}. Refreshing session...`,
-              );
-              const { data: refreshed } = await supabase.auth.refreshSession();
-              if (refreshed?.session?.user) {
-                // onAuthStateChange will fire automatically with the new session
-                return;
-              }
-            }
 
             setAuth(
               {
@@ -145,17 +121,46 @@ export default function Layout() {
               },
               jwtRole,
             );
-            if (profileData) {
-              setProfile({
-                full_name: profileData.full_name || '',
-                phone: profileData.phone || '',
-                institution_id: profileData.institution_id,
-              });
-            }
+            setInitialized(true);
+
+            // Fetch full profile and check role promotions in the background
+            const fetchProfile = async () => {
+              try {
+                const { data: profileData } = await supabase
+                  .from('profiles')
+                  .select('full_name, phone, institution_id, role')
+                  .eq('id', session.user.id)
+                  .single();
+
+                if (profileData) {
+                  const dbRole = profileData.role as string | undefined;
+
+                  // If the DB role differs from the JWT role, the admin promoted/demoted this user.
+                  // Refresh the session so the new JWT reflects the updated app_metadata role.
+                  if (dbRole && dbRole !== jwtRole && !refreshAttemptedRef.current) {
+                    refreshAttemptedRef.current = true;
+                    console.log(
+                      `[Auth] Role mismatch detected: JWT=${jwtRole}, DB=${dbRole}. Refreshing session...`,
+                    );
+                    supabase.auth.refreshSession();
+                  }
+
+                  setProfile({
+                    full_name: profileData.full_name || '',
+                    phone: profileData.phone || '',
+                    institution_id: profileData.institution_id,
+                  });
+                }
+              } catch (err) {
+                console.warn('[Auth] Background profile fetch failed:', err);
+              }
+            };
+            fetchProfile();
+          } else {
+            setInitialized(true);
           }
         } catch (error) {
           console.warn('[Auth] getSession inner error:', error);
-        } finally {
           setInitialized(true);
         }
       })
@@ -166,7 +171,7 @@ export default function Layout() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       try {
         if (session?.user) {
           const jwtRole = session.user.app_metadata?.role || 'student'; // SECURITY: app_metadata only
@@ -182,25 +187,34 @@ export default function Layout() {
             },
             jwtRole,
           );
-          // Fetch full profile from DB (includes institution_id for smart matching)
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('full_name, phone, institution_id')
-            .eq('id', session.user.id)
-            .single();
-          if (profileData) {
-            setProfile({
-              full_name: profileData.full_name || '',
-              phone: profileData.phone || '',
-              institution_id: profileData.institution_id,
-            });
-          }
+          setInitialized(true);
+
+          // Fetch full profile from DB in the background
+          const fetchProfile = async () => {
+            try {
+              const { data: profileData } = await supabase
+                .from('profiles')
+                .select('full_name, phone, institution_id')
+                .eq('id', session.user.id)
+                .single();
+              if (profileData) {
+                setProfile({
+                  full_name: profileData.full_name || '',
+                  phone: profileData.phone || '',
+                  institution_id: profileData.institution_id,
+                });
+              }
+            } catch (err) {
+              console.warn('[Auth] Background auth state change profile fetch failed:', err);
+            }
+          };
+          fetchProfile();
         } else {
           useAuthStore.getState().logout();
+          setInitialized(true);
         }
       } catch (error) {
         console.warn('[Auth] onAuthStateChange inner error:', error);
-      } finally {
         setInitialized(true);
       }
     });

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,6 +7,8 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   RefreshControl,
+  Modal,
+  Animated,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -14,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../src/lib/supabase';
 import { useSubscriptions } from '../../src/hooks/useTrips';
 import { useTranslation } from '../../src/hooks/useTranslation';
+import { useAuthStore } from '../../src/hooks/useStore';
 import { ClientRateLimiter } from '../../src/lib/rateLimiter';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
@@ -73,10 +76,11 @@ interface SubscriptionCardProps {
   t: (key: string) => string;
   onCancel: (id: string) => void;
   onTrack: (routeId: string) => void;
+  onShowBoardingPass: (item: SubscriptionWithRoute) => void;
 }
 
 const SubscriptionCard = React.memo(
-  ({ item, isRTL, t, onCancel, onTrack }: SubscriptionCardProps) => {
+  ({ item, isRTL, t, onCancel, onTrack, onShowBoardingPass }: SubscriptionCardProps) => {
     const status = STATUS_CONFIG[item.status] || STATUS_CONFIG.expired;
     const startDate = new Date(item.start_date).toLocaleDateString(isRTL ? 'ar-IQ' : 'en-US');
     const endDate = new Date(item.end_date).toLocaleDateString(isRTL ? 'ar-IQ' : 'en-US');
@@ -88,6 +92,10 @@ const SubscriptionCard = React.memo(
     const handleTrack = useCallback(() => {
       onTrack(item.route_id);
     }, [item.route_id, onTrack]);
+
+    const handleShowBoardingPass = useCallback(() => {
+      onShowBoardingPass(item);
+    }, [item, onShowBoardingPass]);
 
     return (
       <View style={styles.card}>
@@ -163,7 +171,7 @@ const SubscriptionCard = React.memo(
 
         {/* Actions */}
         {item.status === 'active' && item.routes && (
-          <View style={styles.actions}>
+          <View style={[styles.actions, isRTL && { flexDirection: 'row-reverse' }]}>
             <TouchableOpacity
               style={[styles.trackButton, isRTL && { flexDirection: 'row-reverse' }]}
               activeOpacity={0.85}
@@ -171,6 +179,14 @@ const SubscriptionCard = React.memo(
             >
               <Ionicons name="navigate-outline" size={14} color={Colors.white} />
               <Text style={styles.trackButtonText}>{t('track_trip')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.boardingPassButton, isRTL && { flexDirection: 'row-reverse' }]}
+              activeOpacity={0.85}
+              onPress={handleShowBoardingPass}
+            >
+              <Ionicons name="qr-code-outline" size={14} color={Colors.white} />
+              <Text style={styles.boardingPassButtonText}>{t('show_boarding_pass')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -190,6 +206,13 @@ export default function SubscriptionsScreen() {
   const { t, isRTL } = useTranslation();
   const { top } = useSafeAreaInsets();
   const router = useRouter();
+  const profile = useAuthStore((state) => state.profile);
+
+  // Boarding Pass Modal states
+  const [boardingPassVisible, setBoardingPassVisible] = useState(false);
+  const [selectedSub, setSelectedSub] = useState<SubscriptionWithRoute | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   // Alert states
   const [alertVisible, setAlertVisible] = useState(false);
@@ -199,6 +222,58 @@ export default function SubscriptionsScreen() {
     'info',
   );
   const [alertButtons, setAlertButtons] = useState<AlertButton[]>([]);
+
+  // Animate heartbeat/pulse ring and tick current time
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    let animation: Animated.CompositeAnimation;
+
+    if (boardingPassVisible) {
+      setCurrentTime(new Date());
+      interval = setInterval(() => {
+        setCurrentTime(new Date());
+      }, 1000);
+
+      animation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.18,
+            duration: 650,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1.0,
+            duration: 650,
+            useNativeDriver: true,
+          }),
+        ]),
+      );
+      animation.start();
+    } else {
+      pulseAnim.setValue(1);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+      if (animation) animation.stop();
+    };
+  }, [boardingPassVisible, pulseAnim]);
+
+  const handleShowBoardingPass = useCallback((item: SubscriptionWithRoute) => {
+    setSelectedSub(item);
+    setBoardingPassVisible(true);
+  }, []);
+
+  const getVerificationCode = useCallback((subId: string) => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const diff = now.getTime() - start.getTime();
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
+    const yearShort = now.getFullYear().toString().slice(-2);
+    const cleanSubId = subId.replace(/-/g, '').slice(0, 4).toUpperCase();
+    return `SA-${cleanSubId}-${dayOfYear}-${yearShort}`;
+  }, []);
 
   const handleCancelSubscription = useCallback(
     async (subscriptionId: string) => {
@@ -275,9 +350,10 @@ export default function SubscriptionsScreen() {
         t={t}
         onCancel={handleCancelSubscription}
         onTrack={handleTrackTrip}
+        onShowBoardingPass={handleShowBoardingPass}
       />
     ),
-    [isRTL, t, handleCancelSubscription, handleTrackTrip],
+    [isRTL, t, handleCancelSubscription, handleTrackTrip, handleShowBoardingPass],
   );
 
   const ListEmpty = useCallback(
@@ -348,6 +424,161 @@ export default function SubscriptionsScreen() {
         buttons={alertButtons}
         onClose={() => setAlertVisible(false)}
       />
+
+      {/* Boarding Pass Modal */}
+      <Modal
+        visible={boardingPassVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setBoardingPassVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.ticketCard}>
+            {/* Ticket Header */}
+            <View style={styles.ticketHeader}>
+              <View style={[styles.ticketHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Ionicons name="bus-outline" size={20} color={Colors.white} />
+                <Text style={styles.ticketHeaderTitle}>{t('boarding_pass')}</Text>
+              </View>
+              <Text style={styles.ticketHeaderSubtitle}>{t('live_ticket')}</Text>
+            </View>
+
+            <View style={styles.ticketBody}>
+              {/* Student Info */}
+              <View style={[styles.infoRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Ionicons name="person-outline" size={16} color={Colors.textSecondary} />
+                <View
+                  style={[
+                    styles.infoTextContainer,
+                    isRTL
+                      ? { marginRight: Spacing.sm, alignItems: 'flex-end' }
+                      : { marginLeft: Spacing.sm },
+                  ]}
+                >
+                  <Text style={styles.infoLabel}>{t('passenger')}</Text>
+                  <Text style={styles.infoValue}>{profile?.full_name || ''}</Text>
+                </View>
+              </View>
+
+              {/* Route Info */}
+              {selectedSub?.routes && (
+                <View style={[styles.infoRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <Ionicons name="git-compare-outline" size={16} color={Colors.textSecondary} />
+                  <View
+                    style={[
+                      styles.infoTextContainer,
+                      isRTL
+                        ? { marginRight: Spacing.sm, alignItems: 'flex-end' }
+                        : { marginLeft: Spacing.sm },
+                    ]}
+                  >
+                    <Text style={styles.infoLabel}>{t('route')}</Text>
+                    <Text style={styles.infoValue} numberOfLines={1}>
+                      {selectedSub.routes.title}
+                    </Text>
+                    <Text style={styles.infoRouteDetail} numberOfLines={1}>
+                      {selectedSub.routes.start_location} → {selectedSub.routes.end_location}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Status Info */}
+              <View style={[styles.infoRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Ionicons
+                  name="checkmark-done-circle-outline"
+                  size={16}
+                  color={Colors.textSecondary}
+                />
+                <View
+                  style={[
+                    styles.infoTextContainer,
+                    isRTL
+                      ? { marginRight: Spacing.sm, alignItems: 'flex-end' }
+                      : { marginLeft: Spacing.sm },
+                  ]}
+                >
+                  <Text style={styles.infoLabel}>{t('status')}</Text>
+                  <View
+                    style={[styles.ticketStatusBadge, isRTL && { flexDirection: 'row-reverse' }]}
+                  >
+                    <View style={styles.statusDot} />
+                    <Text style={styles.ticketStatusText}>{t('subscription_active')}</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Ticket Dashed Separator */}
+              <View style={styles.ticketDividerContainer}>
+                <View style={styles.ticketDividerLeftCircle} />
+                <View style={styles.ticketDividerLine} />
+                <View style={styles.ticketDividerRightCircle} />
+              </View>
+
+              {/* Code Verification Section */}
+              <View style={styles.verificationSection}>
+                <Text style={styles.verificationLabel}>{t('validation_code')}</Text>
+                <View style={styles.codeContainer}>
+                  <Animated.View
+                    style={[
+                      styles.pulseRing,
+                      {
+                        transform: [{ scale: pulseAnim }],
+                      },
+                    ]}
+                  />
+                  <Text style={styles.codeText}>
+                    {selectedSub ? getVerificationCode(selectedSub.id) : ''}
+                  </Text>
+                </View>
+
+                {/* Clock Ticker */}
+                <View style={styles.clockContainer}>
+                  <Ionicons
+                    name="time-outline"
+                    size={14}
+                    color={Colors.primary}
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text style={styles.clockTime}>
+                    {currentTime.toLocaleTimeString(isRTL ? 'ar-IQ' : 'en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                      hour12: true,
+                    })}
+                  </Text>
+                </View>
+                <Text style={styles.clockDate}>
+                  {currentTime.toLocaleDateString(isRTL ? 'ar-IQ' : 'en-US', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                </Text>
+
+                {/* Locally Verified Shield */}
+                <View style={[styles.verifiedBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <Ionicons name="shield-checkmark" size={14} color={Colors.success} />
+                  <Text style={styles.verifiedText}>{t('verified_device')}</Text>
+                </View>
+
+                <Text style={styles.instructionsText}>{t('scan_instructions')}</Text>
+              </View>
+            </View>
+
+            {/* Modal Close Action */}
+            <TouchableOpacity
+              style={styles.closeButton}
+              activeOpacity={0.85}
+              onPress={() => setBoardingPassVisible(false)}
+            >
+              <Text style={styles.closeButtonText}>{t('close')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -493,6 +724,21 @@ const styles = StyleSheet.create({
     color: Colors.error,
     textDecorationLine: 'underline',
   },
+  boardingPassButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    backgroundColor: Colors.secondary,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  boardingPassButtonText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 13,
+    color: Colors.white,
+  },
   // Empty
   emptyContainer: {
     alignItems: 'center',
@@ -509,5 +755,208 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.regular,
     fontSize: 14,
     color: Colors.textMuted,
+  },
+  // Modal & Ticket Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: Colors.overlay,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  ticketCard: {
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.lg,
+    width: '100%',
+    maxWidth: 340,
+    ...Shadow.lg,
+    overflow: 'hidden',
+  },
+  ticketHeader: {
+    backgroundColor: Colors.primary,
+    padding: Spacing.md,
+    alignItems: 'center',
+    gap: 2,
+  },
+  ticketHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  ticketHeaderTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 17,
+    color: Colors.white,
+  },
+  ticketHeaderSubtitle: {
+    fontFamily: FontFamily.medium,
+    fontSize: 12,
+    color: Colors.primarySurface,
+    opacity: 0.9,
+  },
+  ticketBody: {
+    padding: Spacing.md,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.md,
+  },
+  infoTextContainer: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontFamily: FontFamily.regular,
+    fontSize: 11,
+    color: Colors.textMuted,
+    marginBottom: 2,
+  },
+  infoValue: {
+    fontFamily: FontFamily.bold,
+    fontSize: 14,
+    color: Colors.text,
+  },
+  infoRouteDetail: {
+    fontFamily: FontFamily.medium,
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  ticketStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.successSurface,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.pill,
+    alignSelf: 'flex-start',
+    gap: 5,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.success,
+  },
+  ticketStatusText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 11,
+    color: Colors.success,
+  },
+  // Dashed Separator
+  ticketDividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: Spacing.md,
+    position: 'relative',
+    height: 20,
+  },
+  ticketDividerLeftCircle: {
+    position: 'absolute',
+    left: -Spacing.md - 10,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.overlay,
+  },
+  ticketDividerRightCircle: {
+    position: 'absolute',
+    right: -Spacing.md - 10,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.overlay,
+  },
+  ticketDividerLine: {
+    flex: 1,
+    height: 1,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderStyle: 'dashed',
+  },
+  // Verification Section
+  verificationSection: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  verificationLabel: {
+    fontFamily: FontFamily.medium,
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
+  codeContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    backgroundColor: Colors.primarySurface,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pulseRing: {
+    position: 'absolute',
+    top: -6,
+    left: -6,
+    right: -6,
+    bottom: -6,
+    borderWidth: 2,
+    borderColor: Colors.primaryLight,
+    borderRadius: BorderRadius.md + 4,
+    opacity: 0.35,
+  },
+  codeText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 20,
+    color: Colors.primaryDark,
+    letterSpacing: 1.5,
+  },
+  clockContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.xs,
+  },
+  clockTime: {
+    fontFamily: FontFamily.bold,
+    fontSize: 16,
+    color: Colors.text,
+  },
+  clockDate: {
+    fontFamily: FontFamily.medium,
+    fontSize: 11,
+    color: Colors.textMuted,
+  },
+  verifiedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: Spacing.xs,
+  },
+  verifiedText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 11,
+    color: Colors.success,
+  },
+  instructionsText: {
+    fontFamily: FontFamily.regular,
+    fontSize: 11,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    paddingHorizontal: Spacing.md,
+    marginTop: Spacing.xs,
+  },
+  closeButton: {
+    backgroundColor: Colors.surfaceMuted,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  closeButtonText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 14,
+    color: Colors.textSecondary,
   },
 });

@@ -291,4 +291,13 @@ export default {
   trip_details: 'Trip Details',
   location_permission_denied: 'Location permission denied. Please enable it in settings.',
   location_fetch_error: 'Could not fetch your location. Please ensure GPS is enabled.',
+  show_boarding_pass: 'Show Boarding Pass',
+  boarding_pass: 'Digital Boarding Pass',
+  security_verification: 'Active Security Verification',
+  live_ticket: 'Live Verified Ticket',
+  validation_code: 'Daily Verification Code',
+  scan_instructions: 'Show this screen to the driver for direct visual check-in.',
+  verified_device: 'Student Device Locally Verified',
+  close: 'Close',
+  time_now: 'Live Running Time',
 } as const;

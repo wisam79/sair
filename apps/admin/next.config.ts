@@ -3,9 +3,9 @@ import type { NextConfig } from 'next';
 const cspHeader = `
   default-src 'self';
   script-src 'self' 'unsafe-eval' 'unsafe-inline';
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  img-src 'self' blob: data: https://*.supabase.co;
-  connect-src 'self' https://*.supabase.co wss://*.supabase.co;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com;
+  img-src 'self' blob: data: https://*.supabase.co https://*.openstreetmap.org https://raw.githubusercontent.com https://cdnjs.cloudflare.com https://unpkg.com;
+  connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://router.project-osrm.org;
   font-src 'self' data: https://fonts.gstatic.com;
   object-src 'none';
   base-uri 'self';

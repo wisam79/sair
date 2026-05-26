@@ -287,4 +287,13 @@ export default {
   trip_details: 'تفاصيل الرحلة',
   location_permission_denied: 'تم رفض صلاحية الوصول للموقع. يرجى تفعيلها من الإعدادات.',
   location_fetch_error: 'تعذر تحديد موقعك الحالي. يرجى التأكد من تفعيل الـ GPS.',
+  show_boarding_pass: 'عرض بطاقة الركوب',
+  boarding_pass: 'بطاقة الركوب الرقمية',
+  security_verification: 'تأكيد الأمان الفعال',
+  live_ticket: 'تذكرة نشطة وموثقة',
+  validation_code: 'رمز التحقق اليومي',
+  scan_instructions: 'أظهر هذه الشاشة للسائق للتحقق البصري المباشر.',
+  verified_device: 'جهاز الطالب موثق محلياً',
+  close: 'إغلاق',
+  time_now: 'الوقت الحالي الحركي',
 } as const;

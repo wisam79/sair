@@ -1,10 +1,10 @@
 'use client';
 
 import { useMany } from '@refinedev/core';
-import { List, useDataGrid } from '@refinedev/mui';
+import { List, useDataGrid, DeleteButton } from '@refinedev/mui';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import React from 'react';
-import { Chip } from '@mui/material';
+import { Chip, Stack, Box } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 const STATUS_COLORS: Record<
@@ -126,25 +126,48 @@ export default function TripList() {
           return value ? parseFloat(value).toFixed(4) : '-';
         },
       },
+      {
+        field: 'actions',
+        headerName: t('actions.actions', 'Actions'),
+        sortable: false,
+        renderCell: function render({ row }) {
+          return (
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              justifyContent="center"
+              height="100%"
+            >
+              <DeleteButton hideText recordItemId={row.id} />
+            </Stack>
+          );
+        },
+        align: 'center',
+        headerAlign: 'center',
+        minWidth: 80,
+      },
     ],
     [routeData?.data, routeIsLoading, t],
   );
 
   return (
     <List breadcrumb={null}>
-      <DataGrid
-        {...dataGridProps}
-        columns={columns}
-        autoHeight
-        density="comfortable"
-        slots={{ toolbar: GridToolbar }}
-        slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
-        sx={{
-          border: 'none',
-          '& .MuiDataGrid-cell:focus': { outline: 'none' },
-          '& .MuiDataGrid-cell:focus-within': { outline: 'none' },
-        }}
-      />
+      <Box sx={{ width: '100%', overflowX: 'auto', display: 'grid' }}>
+        <DataGrid
+          {...dataGridProps}
+          columns={columns}
+          autoHeight
+          density="comfortable"
+          slots={{ toolbar: GridToolbar }}
+          slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
+          sx={{
+            border: 'none',
+            '& .MuiDataGrid-cell:focus': { outline: 'none' },
+            '& .MuiDataGrid-cell:focus-within': { outline: 'none' },
+          }}
+        />
+      </Box>
     </List>
   );
 }

@@ -60,7 +60,10 @@ export function useNotifications() {
 
         if (!Device.isDevice) {
           console.warn('[Notifications] Must use physical device for Push Notifications');
-          Alert.alert('Push Notifications', '⚠️ Must use a physical device for Push Notifications.');
+          Alert.alert(
+            'Push Notifications',
+            '⚠️ Must use a physical device for Push Notifications.',
+          );
           return;
         }
 
@@ -92,12 +95,18 @@ export function useNotifications() {
           });
           if (error) {
             console.warn('[Notifications] Error saving push token:', error.message);
-            Alert.alert('Push Notifications', `❌ Failed to save token in Database: ${error.message}`);
+            Alert.alert(
+              'Push Notifications',
+              `❌ Failed to save token in Database: ${error.message}`,
+            );
           } else {
             console.log('[Notifications] Push token registered successfully:', token);
           }
         } else if (!token) {
-          Alert.alert('Push Notifications', '❌ Failed to retrieve Expo Push Token (token is empty).');
+          Alert.alert(
+            'Push Notifications',
+            '❌ Failed to retrieve Expo Push Token (token is empty).',
+          );
         }
 
         // Setup listeners

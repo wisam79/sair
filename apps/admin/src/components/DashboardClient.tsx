@@ -679,7 +679,7 @@ export default function DashboardClient({
               </Stack>
 
               <Box sx={{ width: '100%', height: 320 }}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <AreaChart
                     data={chartData}
                     margin={{

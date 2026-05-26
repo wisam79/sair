@@ -415,7 +415,11 @@ export default function TrackingScreen() {
     etaText = `${etaMinutes} ${t('minutes_short')} (${distance} ${t('km_short')})`;
     compactEta = `${etaMinutes} ${t('minutes_short')}`;
     compactDistance = `${distance} ${t('km_short')}`;
-  } else if (trip.status !== 'completed' && trip.status !== 'cancelled' && trip.status !== 'absent') {
+  } else if (
+    trip.status !== 'completed' &&
+    trip.status !== 'cancelled' &&
+    trip.status !== 'absent'
+  ) {
     etaText = t('driver_gps_inactive');
     compactEta = '--';
     compactDistance = '--';
@@ -427,11 +431,7 @@ export default function TrackingScreen() {
 
       {/* Static Solid Header (below StatusBar, not overlaying the map) */}
       <View
-        style={[
-          styles.header,
-          { paddingTop: top + 12 },
-          isRTL && { flexDirection: 'row-reverse' },
-        ]}
+        style={[styles.header, { paddingTop: top + 12 }, isRTL && { flexDirection: 'row-reverse' }]}
       >
         <TouchableOpacity
           style={styles.headerBackBtn}
@@ -440,7 +440,11 @@ export default function TrackingScreen() {
             router.back();
           }}
         >
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.secondary} />
+          <Ionicons
+            name={isRTL ? 'arrow-forward' : 'arrow-back'}
+            size={24}
+            color={Colors.secondary}
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('live_tracking')}</Text>
 
@@ -487,7 +491,12 @@ export default function TrackingScreen() {
         {!sheetExpanded && (
           <>
             {/* Left Side Panel (Driver Avatar, status dot, compact ETA / Distance) */}
-            <View style={[styles.leftSideWrapper, isRTL ? { left: undefined, right: 16 } : { right: undefined, left: 16 }]}>
+            <View
+              style={[
+                styles.leftSideWrapper,
+                isRTL ? { left: undefined, right: 16 } : { right: undefined, left: 16 },
+              ]}
+            >
               <TouchableOpacity
                 style={styles.leftSidePanel}
                 onPress={() => {
@@ -528,68 +537,108 @@ export default function TrackingScreen() {
                   {compactEta === '--' && (
                     <View style={[styles.sidePill, { backgroundColor: Colors.surfaceMuted }]}>
                       <Ionicons name="location-outline" size={10} color={Colors.textMuted} />
-                      <Text style={[styles.sidePillText, { color: Colors.textMuted }]}>{t('no_gps') || 'لا يوجد GPS'}</Text>
+                      <Text style={[styles.sidePillText, { color: Colors.textMuted }]}>
+                        {t('no_gps') || 'لا يوجد GPS'}
+                      </Text>
                     </View>
                   )}
                 </View>
 
                 <Text style={styles.sideTapDetailsText}>{t('details') || 'تفاصيل'}</Text>
               </TouchableOpacity>
-              
+
               {/* Tooltip for the Left Details Panel */}
               {activeTooltip === 'details' && (
                 <View style={[styles.tooltipContainer, isRTL ? { right: 76 } : { left: 76 }]}>
-                  <Text style={styles.tooltipText}>{t('details') || (isRTL ? 'التفاصيل' : 'Details')}</Text>
+                  <Text style={styles.tooltipText}>
+                    {t('details') || (isRTL ? 'التفاصيل' : 'Details')}
+                  </Text>
                 </View>
               )}
             </View>
 
             {/* Right Side Panel (Controls) */}
-            <View style={[styles.rightSidePanel, isRTL ? { right: undefined, left: 16 } : { left: undefined, right: 16 }]}>
+            <View
+              style={[
+                styles.rightSidePanel,
+                isRTL ? { right: undefined, left: 16 } : { left: undefined, right: 16 },
+              ]}
+            >
               {/* Map Style Selector Button & Panel */}
               <View style={styles.sideActionWrapper}>
                 {showStyleSelector && (
-                  <View style={[styles.styleSelectorPanel, isRTL ? { left: 56, flexDirection: 'row' } : { right: 56, flexDirection: 'row-reverse' }]}>
+                  <View
+                    style={[
+                      styles.styleSelectorPanel,
+                      isRTL
+                        ? { left: 56, flexDirection: 'row' }
+                        : { right: 56, flexDirection: 'row-reverse' },
+                    ]}
+                  >
                     {/* Street Style Option */}
                     <TouchableOpacity
-                      style={[styles.styleOptionButton, mapStyle === 'streets' && styles.styleOptionActive]}
+                      style={[
+                        styles.styleOptionButton,
+                        mapStyle === 'streets' && styles.styleOptionActive,
+                      ]}
                       onPress={() => {
                         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         setMapStyle('streets');
                         setShowStyleSelector(false);
                       }}
                     >
-                      <Ionicons name="map" size={18} color={mapStyle === 'streets' ? Colors.white : Colors.primary} />
+                      <Ionicons
+                        name="map"
+                        size={18}
+                        color={mapStyle === 'streets' ? Colors.white : Colors.primary}
+                      />
                     </TouchableOpacity>
 
                     {/* Dark Style Option */}
                     <TouchableOpacity
-                      style={[styles.styleOptionButton, mapStyle === 'dark' && styles.styleOptionActive]}
+                      style={[
+                        styles.styleOptionButton,
+                        mapStyle === 'dark' && styles.styleOptionActive,
+                      ]}
                       onPress={() => {
                         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         setMapStyle('dark');
                         setShowStyleSelector(false);
                       }}
                     >
-                      <Ionicons name="moon" size={18} color={mapStyle === 'dark' ? Colors.white : Colors.primary} />
+                      <Ionicons
+                        name="moon"
+                        size={18}
+                        color={mapStyle === 'dark' ? Colors.white : Colors.primary}
+                      />
                     </TouchableOpacity>
 
                     {/* Satellite Style Option */}
                     <TouchableOpacity
-                      style={[styles.styleOptionButton, mapStyle === 'satellite' && styles.styleOptionActive]}
+                      style={[
+                        styles.styleOptionButton,
+                        mapStyle === 'satellite' && styles.styleOptionActive,
+                      ]}
                       onPress={() => {
                         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         setMapStyle('satellite');
                         setShowStyleSelector(false);
                       }}
                     >
-                      <Ionicons name="earth" size={18} color={mapStyle === 'satellite' ? Colors.white : Colors.primary} />
+                      <Ionicons
+                        name="earth"
+                        size={18}
+                        color={mapStyle === 'satellite' ? Colors.white : Colors.primary}
+                      />
                     </TouchableOpacity>
                   </View>
                 )}
 
                 <TouchableOpacity
-                  style={[styles.sideActionButton, showStyleSelector && styles.sideActionButtonActive]}
+                  style={[
+                    styles.sideActionButton,
+                    showStyleSelector && styles.sideActionButtonActive,
+                  ]}
                   onPress={() => {
                     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                     setShowStyleSelector((prev) => !prev);
@@ -618,7 +667,9 @@ export default function TrackingScreen() {
                 </TouchableOpacity>
                 {activeTooltip === 'chat' && (
                   <View style={[styles.tooltipContainer, isRTL ? { left: 64 } : { right: 64 }]}>
-                    <Text style={styles.tooltipText}>{t('chat') || (isRTL ? 'الدردشة' : 'Chat')}</Text>
+                    <Text style={styles.tooltipText}>
+                      {t('chat') || (isRTL ? 'الدردشة' : 'Chat')}
+                    </Text>
                   </View>
                 )}
               </View>
@@ -638,7 +689,9 @@ export default function TrackingScreen() {
                   </TouchableOpacity>
                   {activeTooltip === 'call' && (
                     <View style={[styles.tooltipContainer, isRTL ? { left: 64 } : { right: 64 }]}>
-                      <Text style={styles.tooltipText}>{t('call') || (isRTL ? 'اتصال' : 'Call')}</Text>
+                      <Text style={styles.tooltipText}>
+                        {t('call') || (isRTL ? 'اتصال' : 'Call')}
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -658,7 +711,9 @@ export default function TrackingScreen() {
                 </TouchableOpacity>
                 {activeTooltip === 'share' && (
                   <View style={[styles.tooltipContainer, isRTL ? { left: 64 } : { right: 64 }]}>
-                    <Text style={styles.tooltipText}>{t('share') || (isRTL ? 'مشاركة' : 'Share')}</Text>
+                    <Text style={styles.tooltipText}>
+                      {t('share') || (isRTL ? 'مشاركة' : 'Share')}
+                    </Text>
                   </View>
                 )}
               </View>
@@ -679,7 +734,9 @@ export default function TrackingScreen() {
                   </TouchableOpacity>
                   {activeTooltip === 'sos' && (
                     <View style={[styles.tooltipContainer, isRTL ? { left: 64 } : { right: 64 }]}>
-                      <Text style={styles.tooltipText}>{t('sos') || (isRTL ? 'طوارئ' : 'SOS')}</Text>
+                      <Text style={styles.tooltipText}>
+                        {t('sos') || (isRTL ? 'طوارئ' : 'SOS')}
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -705,11 +762,14 @@ export default function TrackingScreen() {
               <View style={[styles.bottomBarIconBox, { backgroundColor: Colors.primarySurface }]}>
                 <Ionicons name="bus-outline" size={22} color={Colors.primary} />
               </View>
-              
-              <View style={[styles.bottomBarTextContainer, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                <Text style={styles.bottomBarTitle}>
-                  {trip.routes?.title || t('route')}
-                </Text>
+
+              <View
+                style={[
+                  styles.bottomBarTextContainer,
+                  { alignItems: isRTL ? 'flex-end' : 'flex-start' },
+                ]}
+              >
+                <Text style={styles.bottomBarTitle}>{trip.routes?.title || t('route')}</Text>
                 <Text style={styles.bottomBarSubtitle} numberOfLines={1}>
                   {trip.routes?.start_location} ⇄ {trip.routes?.end_location}
                 </Text>
@@ -753,7 +813,10 @@ export default function TrackingScreen() {
                 {/* Route Header Info & Status Card */}
                 <View style={[styles.sheetHeaderCard, isRTL && { flexDirection: 'row-reverse' }]}>
                   <View
-                    style={[{ flex: 1 }, isRTL ? { alignItems: 'flex-end' } : { alignItems: 'flex-start' }]}
+                    style={[
+                      { flex: 1 },
+                      isRTL ? { alignItems: 'flex-end' } : { alignItems: 'flex-start' },
+                    ]}
                   >
                     <Text style={[styles.routeTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
                       {trip.routes?.title || t('route')}
@@ -764,7 +827,9 @@ export default function TrackingScreen() {
                   </View>
                   <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
                     <Ionicons name={status.icon} size={14} color={status.color} />
-                    <Text style={[styles.statusLabel, { color: status.color }]}>{t(trip.status)}</Text>
+                    <Text style={[styles.statusLabel, { color: status.color }]}>
+                      {t(trip.status)}
+                    </Text>
                   </View>
                 </View>
 
@@ -779,7 +844,9 @@ export default function TrackingScreen() {
                       <Ionicons name="person" size={22} color={Colors.white} />
                     </View>
                     <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
-                      <Text style={styles.driverName}>{trip.driver?.full_name || t('driver_sair')}</Text>
+                      <Text style={styles.driverName}>
+                        {trip.driver?.full_name || t('driver_sair')}
+                      </Text>
                       <Text style={styles.driverLabel}>{t('current_driver_hint')}</Text>
                     </View>
                   </TouchableOpacity>
@@ -875,10 +942,13 @@ export default function TrackingScreen() {
                             {t('departure_time')}
                           </Text>
                           <Text style={[styles.infoValue, { textAlign: isRTL ? 'right' : 'left' }]}>
-                            {new Date(trip.started_at).toLocaleTimeString(isRTL ? 'ar-IQ' : 'en-US', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                            {new Date(trip.started_at).toLocaleTimeString(
+                              isRTL ? 'ar-IQ' : 'en-US',
+                              {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              },
+                            )}
                           </Text>
                         </View>
                       </View>
@@ -927,7 +997,7 @@ export default function TrackingScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.md },
-  
+
   // Header
   header: {
     flexDirection: 'row',
@@ -1390,7 +1460,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: 14,
   },
-  
+
   // Floating Bottom Bar
   floatingBottomBar: {
     position: 'absolute',
