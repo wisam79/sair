@@ -2,11 +2,12 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
-import { Trip, TripStatus, Subscription } from '@sair/core';
-import { useAuthStore } from './useStore';
+import { Trip, TripStatus, Subscription, Route } from '@sair/core';
+import { useAuthStore, useTripStore } from './useStore';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { OfflineCache } from '../lib/offlineCache';
 import { logger } from '../lib/logger';
+import NetInfo from '@react-native-community/netinfo';
 
 const GPS_QUEUE_KEY = 'gps_offline_queue';
 const PAGE_SIZE = 20;
@@ -173,7 +174,12 @@ export function useActiveTrips() {
         })
         .subscribe((status) => {
           if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') && isMounted) {
-            refetch();
+            NetInfo.fetch().then((state) => {
+              const isOnline = !!state.isConnected && state.isInternetReachable !== false;
+              if (isOnline && isMounted) {
+                refetch();
+              }
+            });
           }
         });
     };
@@ -289,7 +295,12 @@ export function useTripTracking(tripId: string | null) {
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           logger.warn('[Realtime] trip tracking reconnecting...', { status });
-          refetch();
+          NetInfo.fetch().then((state) => {
+            const isOnline = !!state.isConnected && state.isInternetReachable !== false;
+            if (isOnline) {
+              refetch();
+            }
+          });
         }
       });
 
@@ -304,6 +315,7 @@ export function useTripTracking(tripId: string | null) {
 export function useDriverTrips(page = 0) {
   const queryClient = useQueryClient();
   const driverIdRef = useRef<string | null>(null);
+  const { activeTripId, currentStatus, tripRouteId } = useTripStore();
 
   const {
     data = [],
@@ -313,35 +325,128 @@ export function useDriverTrips(page = 0) {
   } = useQuery({
     queryKey: ['driverTrips', page],
     queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return [];
+      let currentUser: any = null;
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        currentUser = user;
+        if (!user) {
+          const cached = await AsyncStorage.getItem('driver_trips_cache');
+          return cached ? (JSON.parse(cached) as TripWithRoute[]) : [];
+        }
 
-      const { data: driverData, error: driverError } = await supabase
-        .from('drivers')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
+        const netState = await NetInfo.fetch();
+        const isOnline = !!netState.isConnected && netState.isInternetReachable !== false;
+        const cacheKey = `driver_trips_cache_${user.id}`;
 
-      if (driverError || !driverData) {
-        throw new Error('Driver profile not found');
+        if (!isOnline) {
+          const cached = await AsyncStorage.getItem(cacheKey);
+          return cached ? (JSON.parse(cached) as TripWithRoute[]) : [];
+        }
+
+        const { data: driverData, error: driverError } = await supabase
+          .from('drivers')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (driverError || !driverData) {
+          throw new Error('Driver profile not found');
+        }
+
+        driverIdRef.current = driverData.id;
+
+        const from = page * PAGE_SIZE;
+        const { data: list, error: err } = await supabase
+          .from('trips')
+          .select('*, routes(*)')
+          .eq('driver_id', driverData.id)
+          .order('scheduled_at', { ascending: false })
+          .range(from, from + PAGE_SIZE - 1);
+
+        if (err) throw err;
+        const fetchedTrips = (list as TripWithRoute[]) || [];
+
+        if (page === 0) {
+          await AsyncStorage.setItem(cacheKey, JSON.stringify(fetchedTrips));
+        }
+
+        return fetchedTrips;
+      } catch (err) {
+        try {
+          const user = currentUser || (await supabase.auth.getUser()).data.user;
+          if (user) {
+            const cached = await AsyncStorage.getItem(`driver_trips_cache_${user.id}`);
+            if (cached) {
+              return JSON.parse(cached) as TripWithRoute[];
+            }
+          }
+        } catch (_) {
+          logger.warn('[Cache] Failed to load offline driver trips');
+        }
+        throw err;
       }
-
-      driverIdRef.current = driverData.id;
-
-      const from = page * PAGE_SIZE;
-      const { data: list, error: err } = await supabase
-        .from('trips')
-        .select('*, routes(*)')
-        .eq('driver_id', driverData.id)
-        .order('scheduled_at', { ascending: false })
-        .range(from, from + PAGE_SIZE - 1);
-
-      if (err) throw err;
-      return (list as TripWithRoute[]) || [];
     },
   });
+
+  const [mergedTrips, setMergedTrips] = useState<TripWithRoute[]>(data);
+
+  useEffect(() => {
+    if (activeTripId && activeTripId.startsWith('local_trip_')) {
+      const getLocalTrip = async () => {
+        try {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (!user) return;
+          const cachedRoutesRaw = await AsyncStorage.getItem(`driver_routes_${user.id}`);
+          if (cachedRoutesRaw) {
+            const cachedRoutes = JSON.parse(cachedRoutesRaw) as Route[];
+            const matchingRoute = cachedRoutes.find((r) => r.id === tripRouteId);
+            if (matchingRoute) {
+              const localTrip: TripWithRoute = {
+                id: activeTripId,
+                route_id: tripRouteId || '',
+                driver_id: '',
+                status: currentStatus || 'scheduled',
+                scheduled_at: new Date().toISOString(),
+                started_at: null,
+                ended_at: null,
+                last_lat: null,
+                last_lng: null,
+                routes: {
+                  start_lat: matchingRoute.start_lat ?? null,
+                  start_lng: matchingRoute.start_lng ?? null,
+                  end_lat: matchingRoute.end_lat ?? null,
+                  end_lng: matchingRoute.end_lng ?? null,
+                  title: matchingRoute.title,
+                  start_location: matchingRoute.start_location,
+                  end_location: matchingRoute.end_location,
+                },
+                driver: null,
+              };
+
+              setMergedTrips((prev) => {
+                const exists = prev.some((t) => t.id === activeTripId);
+                if (exists) {
+                  return prev.map((t) =>
+                    t.id === activeTripId ? { ...t, status: currentStatus || t.status } : t,
+                  );
+                }
+                return [localTrip, ...prev.filter((t) => t.id !== activeTripId)];
+              });
+            }
+          }
+        } catch (_) {
+          logger.warn('[Cache] Failed to load local route information for trip merge');
+        }
+      };
+      getLocalTrip();
+    } else {
+      setMergedTrips(data);
+    }
+  }, [data, activeTripId, currentStatus, tripRouteId]);
 
   useEffect(() => {
     const channel = supabase
@@ -369,7 +474,12 @@ export function useDriverTrips(page = 0) {
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           logger.warn('[Realtime] driver-trips channel error, re-fetching...', { status });
-          refetch();
+          NetInfo.fetch().then((state) => {
+            const isOnline = !!state.isConnected && state.isInternetReachable !== false;
+            if (isOnline) {
+              refetch();
+            }
+          });
         }
       });
 
@@ -379,7 +489,7 @@ export function useDriverTrips(page = 0) {
   }, [page, queryClient, refetch]);
 
   return {
-    trips: data,
+    trips: mergedTrips,
     isLoading,
     error: error ? getErrorMessage(error) : null,
     refetch,
@@ -399,7 +509,10 @@ let memoryGpsQueue: QueuedLocation[] = [];
 let writeTimeout: ReturnType<typeof setTimeout> | null = null;
 
 function scheduleQueueWrite() {
-  if (writeTimeout) return;
+  // Debounce: reset timer on each call so we always write the latest state
+  if (writeTimeout) {
+    clearTimeout(writeTimeout);
+  }
   writeTimeout = setTimeout(async () => {
     writeTimeout = null;
     try {
@@ -411,7 +524,7 @@ function scheduleQueueWrite() {
     } catch (err) {
       logger.warn('Failed to write GPS queue to AsyncStorage', { error: getErrorMessage(err) });
     }
-  }, 10000);
+  }, 3000);
 }
 
 async function persistQueueImmediately() {
@@ -432,54 +545,195 @@ async function persistQueueImmediately() {
 
 async function flushGpsQueue() {
   try {
+    // CRITICAL FIX: persist in-memory queue to AsyncStorage first.
+    // Without this, memoryGpsQueue may contain locations not yet written
+    // by scheduleQueueWrite (which has a 3s debounce delay), causing
+    // flushGpsQueue to read stale/empty data from AsyncStorage.
+    await persistQueueImmediately();
+
     const queueData = await AsyncStorage.getItem(GPS_QUEUE_KEY);
     if (!queueData) return;
 
     let queue: QueuedLocation[] = JSON.parse(queueData);
     if (queue.length === 0) return;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
+    // Filter out locations that still have local trip IDs (not synced yet)
+    const readyLocations = queue.filter((q) => !q.tripId.startsWith('local_trip_'));
+    const notReadyLocations = queue.filter((q) => q.tripId.startsWith('local_trip_'));
 
-    const { error, data } = await supabase.rpc('bulk_update_trip_locations', {
-      p_locations: queue.map((q) => ({ trip_id: q.tripId, lat: q.lat, lng: q.lng })),
-    });
+    if (readyLocations.length > 0) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
 
-    if (error) {
-      queue = queue
-        .map((item) => ({ ...item, retries: item.retries + 1 }))
-        .filter((item) => {
-          if (item.retries >= 3) {
-            logger.warn('[GPS Queue] Dropping item after 3 retries', { item });
-            return false;
-          }
-          return true;
-        });
-
-      if (queue.length > 0) {
-        await AsyncStorage.setItem(GPS_QUEUE_KEY, JSON.stringify(queue));
-      } else {
-        await AsyncStorage.removeItem(GPS_QUEUE_KEY);
-      }
-      memoryGpsQueue = queue;
-      return;
-    }
-
-    const responseData = data as { success_count: number; failed: unknown[] } | null;
-    if (responseData?.failed && responseData.failed.length > 0) {
-      logger.warn('[GPS Queue] Some locations were rejected by the server', {
-        failed: responseData.failed,
+      const { error, data } = await supabase.rpc('bulk_update_trip_locations', {
+        p_locations: readyLocations.map((q) => ({ trip_id: q.tripId, lat: q.lat, lng: q.lng })),
       });
+
+      if (error) {
+        let failedQueue = queue
+          .map((item) => {
+            if (!item.tripId.startsWith('local_trip_')) {
+              return { ...item, retries: item.retries + 1 };
+            }
+            return item;
+          })
+          .filter((item) => {
+            if (item.retries >= 3) {
+              logger.warn('[GPS Queue] Dropping item after 3 retries', { item });
+              return false;
+            }
+            return true;
+          });
+
+        if (failedQueue.length > 0) {
+          await AsyncStorage.setItem(GPS_QUEUE_KEY, JSON.stringify(failedQueue));
+        } else {
+          await AsyncStorage.removeItem(GPS_QUEUE_KEY);
+        }
+        memoryGpsQueue = failedQueue;
+        return;
+      }
+
+      const responseData = data as { success_count: number; failed: unknown[] } | null;
+      if (responseData?.failed && responseData.failed.length > 0) {
+        logger.warn('[GPS Queue] Some locations were rejected by the server', {
+          failed: responseData.failed,
+        });
+      }
     }
 
-    await AsyncStorage.removeItem(GPS_QUEUE_KEY);
-    memoryGpsQueue = [];
+    if (notReadyLocations.length > 0) {
+      await AsyncStorage.setItem(GPS_QUEUE_KEY, JSON.stringify(notReadyLocations));
+      memoryGpsQueue = notReadyLocations;
+    } else {
+      if (readyLocations.length > 0) {
+        await AsyncStorage.removeItem(GPS_QUEUE_KEY);
+        memoryGpsQueue = [];
+      }
+    }
   } catch (err) {
     logger.warn('Failed to flush GPS queue', { error: getErrorMessage(err) });
   }
 }
+
+// Cascading Offline Sync Manager
+let isSyncing = false;
+export async function syncOfflineData() {
+  if (isSyncing) return;
+  isSyncing = true;
+  try {
+    const netState = await NetInfo.fetch();
+    const isOnline = !!netState.isConnected && netState.isInternetReachable !== false;
+    if (!isOnline) return;
+
+    try {
+      // 1. Sync Offline Trips Creation
+      const pendingTripsKey = 'pending_trips_creation_queue';
+      const pendingTripsRaw = await AsyncStorage.getItem(pendingTripsKey);
+      let pendingTrips = pendingTripsRaw ? JSON.parse(pendingTripsRaw) : [];
+      if (pendingTrips.length > 0) {
+        const activeTripStore = useTripStore.getState();
+        const remainingTrips = [];
+
+        for (const item of pendingTrips) {
+          try {
+            const { data: realTripId, error } = await supabase.rpc('create_trip', {
+              p_route_id: item.routeId,
+              p_scheduled_at: item.scheduledAt,
+            });
+
+            if (error) throw error;
+
+            // Swap local ID with real ID in useTripStore if it matches
+            if (activeTripStore.activeTripId === item.localId) {
+              activeTripStore.setActiveTrip(
+                realTripId,
+                activeTripStore.currentStatus || 'driver_waiting',
+                item.routeId,
+              );
+            }
+
+            // Swap ID in pending status updates
+            const statusKey = 'pending_status_updates';
+            const statusRaw = await AsyncStorage.getItem(statusKey);
+            let statusUpdates = statusRaw ? JSON.parse(statusRaw) : [];
+            statusUpdates = statusUpdates.map((u: any) =>
+              u.tripId === item.localId ? { ...u, tripId: realTripId } : u,
+            );
+            await AsyncStorage.setItem(statusKey, JSON.stringify(statusUpdates));
+
+            // Swap ID in GPS offline queue
+            const gpsRaw = await AsyncStorage.getItem(GPS_QUEUE_KEY);
+            let gpsQueue = gpsRaw ? JSON.parse(gpsRaw) : [];
+            gpsQueue = gpsQueue.map((g: any) =>
+              g.tripId === item.localId ? { ...g, tripId: realTripId } : g,
+            );
+            await AsyncStorage.setItem(GPS_QUEUE_KEY, JSON.stringify(gpsQueue));
+
+            memoryGpsQueue = memoryGpsQueue.map((g) =>
+              g.tripId === item.localId ? { ...g, tripId: realTripId } : g,
+            );
+          } catch (err) {
+            logger.warn('[Offline Sync] Failed to create trip, leaving in queue', err);
+            remainingTrips.push(item);
+          }
+        }
+
+        await AsyncStorage.setItem(pendingTripsKey, JSON.stringify(remainingTrips));
+      }
+
+      // 2. Sync Offline Status Transitions
+      const statusKey = 'pending_status_updates';
+      const statusRaw = await AsyncStorage.getItem(statusKey);
+      let statusUpdates = statusRaw ? JSON.parse(statusRaw) : [];
+      if (statusUpdates.length > 0) {
+        const remainingStatusUpdates = [];
+
+        for (const update of statusUpdates) {
+          if (update.tripId.startsWith('local_trip_')) {
+            remainingStatusUpdates.push(update);
+            continue;
+          }
+
+          try {
+            const { error } = await supabase.functions.invoke('trip-engine', {
+              body: {
+                trip_id: update.tripId,
+                new_status: update.newStatus,
+                lat: update.lat,
+                lng: update.lng,
+              },
+            });
+
+            if (error) throw error;
+          } catch (err) {
+            logger.warn('[Offline Sync] Failed to update status, leaving in queue', err);
+            remainingStatusUpdates.push(update);
+          }
+        }
+
+        await AsyncStorage.setItem(statusKey, JSON.stringify(remainingStatusUpdates));
+      }
+
+      // 3. Flush GPS location queue
+      await flushGpsQueue();
+    } catch (err) {
+      logger.warn('[Offline Sync] General sync error', err);
+    }
+  } finally {
+    isSyncing = false;
+  }
+}
+
+// Global network listener to sync data automatically when internet returns
+NetInfo.addEventListener((state) => {
+  const isOnline = !!state.isConnected && state.isInternetReachable !== false;
+  if (isOnline) {
+    syncOfflineData().catch(() => {});
+  }
+});
 
 export { flushGpsQueue as flushGpsQueueForTest };
 

@@ -74,6 +74,25 @@ export default function OnboardingScreen() {
     router.replace('/login');
   };
 
+  const renderSlide = useCallback(
+    ({ item }: { item: (typeof SLIDES)[number] }) => (
+      <View style={styles.slide}>
+        <View style={styles.iconGlowContainer}>
+          <View style={styles.iconCircle}>
+            <Ionicons
+              name={item.icon as React.ComponentProps<typeof Ionicons>['name']}
+              size={72}
+              color={Colors.white}
+            />
+          </View>
+        </View>
+        <Text style={styles.title}>{t(item.titleKey)}</Text>
+        <Text style={styles.description}>{t(item.descriptionKey)}</Text>
+      </View>
+    ),
+    [t],
+  );
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
@@ -86,21 +105,7 @@ export default function OnboardingScreen() {
 
       <Animated.FlatList
         data={SLIDES}
-        renderItem={({ item }) => (
-          <View style={styles.slide}>
-            <View style={styles.iconGlowContainer}>
-              <View style={styles.iconCircle}>
-                <Ionicons
-                  name={item.icon as React.ComponentProps<typeof Ionicons>['name']}
-                  size={72}
-                  color={Colors.white}
-                />
-              </View>
-            </View>
-            <Text style={styles.title}>{t(item.titleKey)}</Text>
-            <Text style={styles.description}>{t(item.descriptionKey)}</Text>
-          </View>
-        )}
+        renderItem={renderSlide}
         horizontal
         showsHorizontalScrollIndicator={false}
         pagingEnabled

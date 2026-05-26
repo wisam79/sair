@@ -17,6 +17,8 @@ import { supabase } from '../../src/lib/supabase';
 import { useAuthStore, useTripStore } from '../../src/hooks/useStore';
 import { useDriverTrips, useLocationTracker, TripWithRoute } from '../../src/hooks/useTrips';
 import { useTranslation } from '../../src/hooks/useTranslation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
 import { ClientRateLimiter } from '../../src/lib/rateLimiter';
 import { TripStatus, canTransition } from '@sair/core';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../../src/theme';
@@ -140,6 +142,46 @@ export default function DriverDashboard() {
           lng = loc.lng;
         }
 
+        const netState = await NetInfo.fetch();
+        const isOnline = !!netState.isConnected && netState.isInternetReachable !== false;
+        const isLocalTrip = tripId.startsWith('local_trip_');
+
+        if (!isOnline || isLocalTrip) {
+          // Queue the status update locally
+          const statusKey = 'pending_status_updates';
+          const rawStatus = await AsyncStorage.getItem(statusKey);
+          const statusUpdates = rawStatus ? JSON.parse(rawStatus) : [];
+          statusUpdates.push({
+            tripId,
+            newStatus,
+            lat,
+            lng,
+            timestamp: Date.now(),
+          });
+          await AsyncStorage.setItem(statusKey, JSON.stringify(statusUpdates));
+
+          // Apply state transitions locally
+          if (newStatus === 'in_transit') {
+            setActiveTrip(tripId, newStatus, '');
+            startTracking(tripId);
+          } else if (
+            newStatus === 'completed' ||
+            newStatus === 'absent' ||
+            newStatus === 'cancelled'
+          ) {
+            stopTracking();
+            if (activeTripId === tripId) {
+              clearTrip();
+            }
+          } else {
+            updateStatus(newStatus);
+          }
+
+          refetch();
+          setUpdatingTripId(null);
+          return;
+        }
+
         const { error } = await supabase.functions.invoke('trip-engine', {
           body: {
             trip_id: tripId,
@@ -149,7 +191,43 @@ export default function DriverDashboard() {
           },
         });
 
-        if (error) throw error;
+        if (error) {
+          // Fallback to local queue on network failure
+          const isNetworkError = error.message?.includes('network') || !error.status;
+          if (isNetworkError) {
+            const statusKey = 'pending_status_updates';
+            const rawStatus = await AsyncStorage.getItem(statusKey);
+            const statusUpdates = rawStatus ? JSON.parse(rawStatus) : [];
+            statusUpdates.push({
+              tripId,
+              newStatus,
+              lat,
+              lng,
+              timestamp: Date.now(),
+            });
+            await AsyncStorage.setItem(statusKey, JSON.stringify(statusUpdates));
+
+            if (newStatus === 'in_transit') {
+              setActiveTrip(tripId, newStatus, '');
+              startTracking(tripId);
+            } else if (
+              newStatus === 'completed' ||
+              newStatus === 'absent' ||
+              newStatus === 'cancelled'
+            ) {
+              stopTracking();
+              if (activeTripId === tripId) {
+                clearTrip();
+              }
+            } else {
+              updateStatus(newStatus);
+            }
+
+            refetch();
+            return;
+          }
+          throw error;
+        }
 
         if (newStatus === 'in_transit') {
           setActiveTrip(tripId, newStatus, '');
@@ -194,7 +272,11 @@ export default function DriverDashboard() {
   const handleLogout = async () => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     stopTracking();
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      // Ignore offline network errors during sign out
+    }
     logout();
   };
 

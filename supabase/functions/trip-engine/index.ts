@@ -131,8 +131,6 @@ async function notifyStudentsForTripStatus(supabaseClient: any, tripId: string, 
 
       if (messages.length > 0) {
         const chunks = expo.chunkPushNotifications(messages);
-        const ticketIds: string[] = [];
-        const ticketToTokenMap = new Map<string, string>();
 
         for (const chunk of chunks) {
           try {
@@ -147,42 +145,13 @@ async function notifyStudentsForTripStatus(supabaseClient: any, tripId: string, 
                   await supabaseClient.from('push_tokens').delete().eq('token', token);
                   console.log(`[Notification] Removed unregistered device token: ${token}`);
                 }
-              } else if (ticket.status === 'ok') {
-                ticketIds.push(ticket.id);
-                ticketToTokenMap.set(ticket.id, token);
               }
+              // NOTE: Receipt checking should be done via a separate cron job
+              // ~15 minutes after sending (per Expo docs). Checking immediately
+              // returns empty results and wastes an API call.
             }
           } catch (error) {
             console.error('[Notification] Error sending notification chunk:', error);
-          }
-        }
-
-        // Fetch receipts to cleanup stale tokens
-        if (ticketIds.length > 0) {
-          try {
-            const receiptIdChunks = expo.chunkPushNotificationReceiptIds(ticketIds);
-            for (const receiptIdChunk of receiptIdChunks) {
-              const receipts = await expo.getPushNotificationReceiptsAsync(receiptIdChunk);
-              for (const [ticketId, receipt] of Object.entries(receipts)) {
-                if (receipt.status === 'error') {
-                  console.error(
-                    `[Notification] Receipt error for ticket ${ticketId}:`,
-                    receipt.details?.error,
-                  );
-                  if (receipt.details?.error === 'DeviceNotRegistered') {
-                    const token = ticketToTokenMap.get(ticketId);
-                    if (token) {
-                      await supabaseClient.from('push_tokens').delete().eq('token', token);
-                      console.log(
-                        `[Notification] Removed unregistered device token from receipt: ${token}`,
-                      );
-                    }
-                  }
-                }
-              }
-            }
-          } catch (e) {
-            console.error('[Notification] Error fetching receipts:', e);
           }
         }
       }

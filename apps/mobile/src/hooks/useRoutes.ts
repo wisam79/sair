@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Route } from '@sair/core';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import NetInfo from '@react-native-community/netinfo';
 
 const PAGE_SIZE = 20;
 
@@ -167,7 +168,12 @@ export function useRouteById(routeId: string | null) {
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.warn('[Realtime] route channel error, re-fetching...');
-          refetch();
+          NetInfo.fetch().then((state) => {
+            const isOnline = !!state.isConnected && state.isInternetReachable !== false;
+            if (isOnline) {
+              refetch();
+            }
+          });
         }
       });
 

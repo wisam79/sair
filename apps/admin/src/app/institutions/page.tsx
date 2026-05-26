@@ -10,7 +10,7 @@ import {
 } from '@refinedev/mui';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import React from 'react';
-import { Stack } from '@mui/material';
+import { Stack, Box } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 export default function InstitutionList() {
@@ -85,19 +85,21 @@ export default function InstitutionList() {
 
   return (
     <List breadcrumb={null} headerButtons={<CreateButton />}>
-      <DataGrid
-        {...dataGridProps}
-        columns={columns}
-        autoHeight
-        density="comfortable"
-        slots={{ toolbar: GridToolbar }}
-        slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
-        sx={{
-          border: 'none',
-          '& .MuiDataGrid-cell:focus': { outline: 'none' },
-          '& .MuiDataGrid-cell:focus-within': { outline: 'none' },
-        }}
-      />
+      <Box sx={{ width: '100%', overflowX: 'auto', display: 'grid' }}>
+        <DataGrid
+          {...dataGridProps}
+          columns={columns}
+          autoHeight
+          density="comfortable"
+          slots={{ toolbar: GridToolbar }}
+          slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
+          sx={{
+            border: 'none',
+            '& .MuiDataGrid-cell:focus': { outline: 'none' },
+            '& .MuiDataGrid-cell:focus-within': { outline: 'none' },
+          }}
+        />
+      </Box>
     </List>
   );
 }

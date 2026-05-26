@@ -1,10 +1,23 @@
 'use client';
 
 import { Create } from '@refinedev/mui';
-import { Box, TextField, MenuItem, Alert } from '@mui/material';
+import {
+  Box,
+  TextField,
+  MenuItem,
+  Alert,
+  Grid,
+  Card,
+  CardContent,
+  Stack,
+  Typography,
+  Divider,
+} from '@mui/material';
 import { useForm } from '@refinedev/react-hook-form';
 import { useSelect, useNavigation, BaseRecord, HttpError } from '@refinedev/core';
 import { supabaseClient } from '../../../providers/supabaseClient';
+import React from 'react';
+import CardMembershipIcon from '@mui/icons-material/CardMembership';
 
 interface LicenseBatchFormValues {
   batch_name: string;
@@ -22,13 +35,18 @@ export default function LicenseBatchCreate() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<BaseRecord, HttpError, LicenseBatchFormValues>();
+  } = useForm<BaseRecord, HttpError, LicenseBatchFormValues>({
+    defaultValues: {
+      valid_days: 30,
+    },
+  });
 
   const { options: rawRouteOptions } = useSelect({
     resource: 'routes',
     optionLabel: 'title',
     optionValue: 'id',
     pagination: {
+      mode: 'server',
       pageSize: 100,
     },
   });
@@ -71,79 +89,126 @@ export default function LicenseBatchCreate() {
       }}
       isLoading={formLoading}
     >
-      <Box component="form" sx={{ display: 'flex', flexDirection: 'column' }} autoComplete="off">
-        <TextField
-          {...register('batch_name', { required: 'This field is required' })}
-          error={!!errors?.batch_name}
-          helperText={errors?.batch_name?.message}
-          margin="normal"
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-          type="text"
-          label="Batch Name (e.g. 'Month 5 - Route A')"
-          name="batch_name"
-        />
+      <Box component="form" autoComplete="off" sx={{ mt: 1 }}>
+        <Card variant="outlined" sx={{ maxWidth: '900px', mx: 'auto', mb: 3 }}>
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: 'background.paper',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <CardMembershipIcon color="primary" />
+              <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+                إنشاء دفعة تراخيص جديدة (أكواد اشتراك الطلاب)
+              </Typography>
+            </Stack>
+          </Box>
 
-        <TextField
-          select
-          {...register('route_id', { required: 'This field is required' })}
-          error={!!errors?.route_id}
-          helperText={errors?.route_id?.message}
-          margin="normal"
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-          label="Route"
-          name="route_id"
-          defaultValue=""
-        >
-          {routeOptions?.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </TextField>
+          <CardContent sx={{ p: 3 }}>
+            <Grid container spacing={3}>
+              {/* Batch Name */}
+              <Grid item xs={12} md={8}>
+                <TextField
+                  {...register('batch_name', { required: 'اسم الدفعة مطلوب' })}
+                  error={!!errors?.batch_name}
+                  helperText={errors?.batch_name?.message ?? 'مثال: اشتراكات شهر مايو - خط الكرادة'}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  type="text"
+                  label="اسم دفعة التراخيص"
+                  name="batch_name"
+                  size="small"
+                />
+              </Grid>
 
-        <TextField
-          {...register('quantity', { required: 'This field is required', min: 1 })}
-          error={!!errors?.quantity}
-          helperText={errors?.quantity?.message}
-          margin="normal"
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-          type="number"
-          label="Quantity (Number of codes to generate)"
-          name="quantity"
-        />
+              {/* Route */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  select
+                  {...register('route_id', { required: 'يجب اختيار خط النقل' })}
+                  error={!!errors?.route_id}
+                  helperText={errors?.route_id?.message ?? 'اختر الخط المخصص لهذه الدفعة'}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  label="خط النقل المستهدف"
+                  name="route_id"
+                  defaultValue=""
+                  size="small"
+                >
+                  {routeOptions?.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
 
-        <TextField
-          {...register('price', { required: 'This field is required', min: 0 })}
-          error={!!errors?.price}
-          helperText={errors?.price?.message}
-          margin="normal"
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-          type="number"
-          label="Price (per license code)"
-          name="price"
-        />
+              <Grid item xs={12}>
+                <Divider />
+              </Grid>
 
-        <TextField
-          {...register('valid_days', { required: 'This field is required', min: 1 })}
-          error={!!errors?.valid_days}
-          helperText={errors?.valid_days?.message}
-          margin="normal"
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-          type="number"
-          label="Valid Days (e.g. 30)"
-          name="valid_days"
-          defaultValue={30}
-        />
+              {/* Price */}
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  {...register('price', { required: 'السعر مطلوب', min: 0 })}
+                  error={!!errors?.price}
+                  helperText={errors?.price?.message ?? 'سعر الكود الواحد بالدينار العراقي'}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  type="number"
+                  label="سعر الترخيص الواحد (IQD)"
+                  name="price"
+                  size="small"
+                  inputProps={{ min: 0, step: 500 }}
+                />
+              </Grid>
 
-        <Alert severity="info" sx={{ mt: 2 }}>
-          Generating a batch will securely create the requested quantity of unique 8-character codes
-          immediately.
-        </Alert>
+              {/* Quantity */}
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  {...register('quantity', { required: 'الكمية مطلوبة', min: 1 })}
+                  error={!!errors?.quantity}
+                  helperText={errors?.quantity?.message ?? 'عدد الرموز المراد توليدها'}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  type="number"
+                  label="الكمية (عدد الرموز)"
+                  name="quantity"
+                  size="small"
+                  inputProps={{ min: 1 }}
+                />
+              </Grid>
+
+              {/* Valid Days */}
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  {...register('valid_days', { required: 'صلاحية الأيام مطلوبة', min: 1 })}
+                  error={!!errors?.valid_days}
+                  helperText={errors?.valid_days?.message ?? 'فترة صلاحية الرمز بعد التفعيل باليوم'}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  type="number"
+                  label="مدة الصلاحية باليوم"
+                  name="valid_days"
+                  size="small"
+                  inputProps={{ min: 1 }}
+                />
+              </Grid>
+
+              {/* Info Alert */}
+              <Grid item xs={12} sx={{ mt: 1 }}>
+                <Alert severity="info" sx={{ py: 1 }}>
+                  تنبيه: عند حفظ دفعة التراخيص، سيقوم النظام تلقائياً وبشكل آمن بتوليد أكواد
+                  اشتراكات فريدة مكونة من 8 أحرف بعدد الكمية المطلوبة، وربطها بالخط المحدد لتفعيلها
+                  من قبل الطلاب.
+                </Alert>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
       </Box>
     </Create>
   );
