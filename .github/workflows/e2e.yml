@@ -42,6 +42,8 @@ jobs:
         env:
           EXPO_PUBLIC_SUPABASE_URL: ${{ inputs.supabase_url || secrets.SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ inputs.supabase_anon_key || secrets.SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ inputs.supabase_url || secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ inputs.supabase_anon_key || secrets.SUPABASE_ANON_KEY }}
 
       - name: Upload Test Results
         if: always()
