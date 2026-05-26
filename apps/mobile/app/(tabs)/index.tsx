@@ -189,11 +189,14 @@ export default function DiscoveryPage() {
         (sub) => sub.route_id === item.id && (sub.status === 'active' || sub.status === 'pending'),
       );
       return (
-        <RouteCard
-          item={item}
-          isSubscribed={isSubscribed}
-          driverRating={driverRatings[item.driver_id] ?? null}
-        />
+        <View style={{ marginHorizontal: Spacing.lg }}>
+          <RouteCard
+            item={item}
+            isSubscribed={isSubscribed}
+            driverRating={driverRatings[item.driver_id] ?? null}
+            flat={false}
+          />
+        </View>
       );
     },
     [subscriptions, driverRatings],
@@ -239,7 +242,227 @@ export default function DiscoveryPage() {
     },
     [handleTrackActiveTrip],
   );
+  const ListHeader = useMemo(() => {
+    return (
+      <View style={styles.mainContent}>
+        {/* Container 1: Widgets Dashboard Card */}
+        <View style={styles.widgetsMainContainer}>
+          {/* Quick Stats Strip */}
+          <View style={[styles.statsRow, isRTL && { flexDirection: 'row-reverse' }]}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setSearchQuery('');
+              }}
+              style={styles.statItem}
+            >
+              <View style={[styles.statIcon, { backgroundColor: Colors.primarySurface }]}>
+                <Ionicons name="bus" size={20} color={Colors.primary} />
+              </View>
+              <Text style={styles.statValue}>{routes.length}</Text>
+              <Text style={styles.statLabel} numberOfLines={1}>
+                {t('available_routes')}
+              </Text>
+            </TouchableOpacity>
 
+            <View style={styles.statDivider} />
+
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/subscriptions');
+              }}
+              style={styles.statItem}
+            >
+              <View style={[styles.statIcon, { backgroundColor: Colors.successSurface }]}>
+                <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
+              </View>
+              <Text style={styles.statValue}>{activeSubs.length}</Text>
+              <Text style={styles.statLabel} numberOfLines={1}>
+                {t('my_subscriptions')}
+              </Text>
+            </TouchableOpacity>
+
+            <View style={styles.statDivider} />
+
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setAlertTitle(t('seats_available'));
+                setAlertMessage(
+                  isRTL
+                    ? 'يتم تخصيص المقاعد تلقائياً للمشتركين الفعالين في الرحلة فور حضورك.'
+                    : 'Seats are dynamically allocated to active subscribers once you board the vehicle.',
+                );
+                setAlertType('info');
+                setAlertButtons([{ text: t('ok'), style: 'default' }]);
+                setAlertVisible(true);
+              }}
+              style={styles.statItem}
+            >
+              <View style={[styles.statIcon, { backgroundColor: Colors.warningSurface }]}>
+                <Ionicons name="car" size={20} color={Colors.warning} />
+              </View>
+              <Text style={styles.statValue}>
+                {routes.reduce((sum, r) => sum + r.available_seats, 0)}
+              </Text>
+              <Text style={styles.statLabel} numberOfLines={1}>
+                {t('seats_available')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.widgetDivider} />
+
+          {/* Saved Locations Strip (Favorites) */}
+          <View style={[styles.favoritesHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
+            <Ionicons name="star" size={14} color={Colors.warning} />
+            <Text style={styles.favoritesHeaderTitle}>{t('favorites')}</Text>
+          </View>
+          <View style={styles.favoritesContainer}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={[
+                styles.favoritesScroll,
+                isRTL && { flexDirection: 'row-reverse' },
+              ]}
+            >
+              {favorites.map((fav) => {
+                const isActive = searchQuery === fav;
+                return (
+                  <TouchableOpacity
+                    key={fav}
+                    style={[
+                      styles.favoriteChip,
+                      isActive && styles.favoriteChipActive,
+                      isRTL && { flexDirection: 'row-reverse' },
+                    ]}
+                    onPress={() => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setSearchQuery(isActive ? '' : fav);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons
+                      name={isActive ? 'location' : 'location-outline'}
+                      size={13}
+                      color={isActive ? Colors.primary : Colors.textMuted}
+                      style={isRTL ? { marginLeft: 4 } : { marginRight: 4 }}
+                    />
+                    <Text
+                      style={[styles.favoriteChipText, isActive && styles.favoriteChipTextActive]}
+                    >
+                      {fav}
+                    </Text>
+                    {isActive && (
+                      <Ionicons
+                        name="close-circle"
+                        size={13}
+                        color={Colors.primary}
+                        style={isRTL ? { marginRight: 4 } : { marginLeft: 4 }}
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          {/* Subscriptions / License Section */}
+          {!subsLoading && (
+            <View style={styles.subscriptionSection}>
+              {activeSubs.length > 0 ? (
+                <View style={{ gap: Spacing.xs }}>
+                  <Text
+                    style={[styles.nestedSectionHeader, { textAlign: isRTL ? 'right' : 'left' }]}
+                  >
+                    {t('my_subscriptions')}
+                  </Text>
+                  <FlatList
+                    horizontal
+                    data={activeSubs}
+                    keyExtractor={subKeyExtractor}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingHorizontal: Spacing.md, gap: 12 }}
+                    renderItem={renderActiveSubscription}
+                    inverted={isRTL}
+                    initialNumToRender={2}
+                    windowSize={3}
+                  />
+                </View>
+              ) : role === 'student' ? (
+                <View style={{ paddingHorizontal: Spacing.xs }}>
+                  <View style={styles.widgetDivider} />
+                  <TouchableOpacity
+                    style={[styles.flatActivationRow, isRTL && { flexDirection: 'row-reverse' }]}
+                    onPress={() => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      router.push('/activate');
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View
+                      style={[styles.activationContent, isRTL && { flexDirection: 'row-reverse' }]}
+                    >
+                      <View style={styles.activationIconWrapper}>
+                        <Ionicons name="card" size={20} color={Colors.primary} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={[styles.activationTitle, { textAlign: isRTL ? 'right' : 'left' }]}
+                        >
+                          {t('activate_new_license')}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.activationSubtitle,
+                            { textAlign: isRTL ? 'right' : 'left' },
+                          ]}
+                        >
+                          {t('activate_license_description')}
+                        </Text>
+                      </View>
+                    </View>
+                    <Ionicons
+                      name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                      size={20}
+                      color={Colors.textMuted}
+                    />
+                  </TouchableOpacity>
+                </View>
+              ) : null}
+            </View>
+          )}
+        </View>
+
+        {/* Section Header for Routes */}
+        <View style={styles.routesHeaderWrapper}>
+          <View style={[styles.routesContainerHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+            <Text style={styles.routesContainerTitle}>{t('available_routes')}</Text>
+            <View style={styles.routesBadge}>
+              <Text style={styles.routesBadgeText}>
+                {filteredRoutes.length} {t('route')}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  }, [
+    routes,
+    activeSubs,
+    favorites,
+    searchQuery,
+    subsLoading,
+    role,
+    isRTL,
+    t,
+    filteredRoutes.length,
+  ]);
   interface NominatimResult {
     place_id: number;
     display_name: string;
@@ -395,8 +618,11 @@ export default function DiscoveryPage() {
         </View>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
+      <FlatList
+        data={isLoading || error ? [] : filteredRoutes}
+        renderItem={renderRoute}
+        keyExtractor={routeKeyExtractor}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: Spacing.xxl }]}
         refreshControl={
           <RefreshControl
             refreshing={isLoading}
@@ -406,250 +632,17 @@ export default function DiscoveryPage() {
           />
         }
         showsVerticalScrollIndicator={false}
-      >
-        {/* mainContent containing the two main cards */}
-        <View style={styles.mainContent}>
-          {/* Container 1: Widgets Dashboard Card */}
-          <View style={styles.widgetsMainContainer}>
-            {/* Quick Stats Strip (Interactive, flat inside widgetsMainContainer) */}
-            <View style={[styles.statsRow, isRTL && { flexDirection: 'row-reverse' }]}>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => {
-                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setSearchQuery('');
-                }}
-                style={styles.statItem}
-              >
-                <View style={[styles.statIcon, { backgroundColor: Colors.primarySurface }]}>
-                  <Ionicons name="bus" size={20} color={Colors.primary} />
-                </View>
-                <Text style={styles.statValue}>{routes.length}</Text>
-                <Text style={styles.statLabel} numberOfLines={1}>
-                  {t('available_routes')}
-                </Text>
-              </TouchableOpacity>
-
-              <View style={styles.statDivider} />
-
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => {
-                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push('/subscriptions');
-                }}
-                style={styles.statItem}
-              >
-                <View style={[styles.statIcon, { backgroundColor: Colors.successSurface }]}>
-                  <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
-                </View>
-                <Text style={styles.statValue}>{activeSubs.length}</Text>
-                <Text style={styles.statLabel} numberOfLines={1}>
-                  {t('my_subscriptions')}
-                </Text>
-              </TouchableOpacity>
-
-              <View style={styles.statDivider} />
-
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => {
-                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setAlertTitle(t('seats_available'));
-                  setAlertMessage(
-                    isRTL
-                      ? 'يتم تخصيص المقاعد تلقائياً للمشتركين الفعالين في الرحلة فور حضورك.'
-                      : 'Seats are dynamically allocated to active subscribers once you board the vehicle.',
-                  );
-                  setAlertType('info');
-                  setAlertButtons([{ text: t('ok'), style: 'default' }]);
-                  setAlertVisible(true);
-                }}
-                style={styles.statItem}
-              >
-                <View style={[styles.statIcon, { backgroundColor: Colors.warningSurface }]}>
-                  <Ionicons name="car" size={20} color={Colors.warning} />
-                </View>
-                <Text style={styles.statValue}>
-                  {routes.reduce((sum, r) => sum + r.available_seats, 0)}
-                </Text>
-                <Text style={styles.statLabel} numberOfLines={1}>
-                  {t('seats_available')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.widgetDivider} />
-
-            {/* Saved Locations Strip (Favorites) */}
-            <View style={[styles.favoritesHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
-              <Ionicons name="star" size={14} color={Colors.warning} />
-              <Text style={styles.favoritesHeaderTitle}>{t('favorites')}</Text>
-            </View>
-            <View style={styles.favoritesContainer}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={[
-                  styles.favoritesScroll,
-                  isRTL && { flexDirection: 'row-reverse' },
-                ]}
-              >
-                {favorites.map((fav) => {
-                  const isActive = searchQuery === fav;
-                  return (
-                    <TouchableOpacity
-                      key={fav}
-                      style={[
-                        styles.favoriteChip,
-                        isActive && styles.favoriteChipActive,
-                        isRTL && { flexDirection: 'row-reverse' },
-                      ]}
-                      onPress={() => {
-                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        setSearchQuery(isActive ? '' : fav);
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <Ionicons
-                        name={isActive ? 'location' : 'location-outline'}
-                        size={13}
-                        color={isActive ? Colors.primary : Colors.textMuted}
-                        style={isRTL ? { marginLeft: 4 } : { marginRight: 4 }}
-                      />
-                      <Text
-                        style={[styles.favoriteChipText, isActive && styles.favoriteChipTextActive]}
-                      >
-                        {fav}
-                      </Text>
-                      {isActive && (
-                        <Ionicons
-                          name="close-circle"
-                          size={13}
-                          color={Colors.primary}
-                          style={isRTL ? { marginRight: 4 } : { marginLeft: 4 }}
-                        />
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-
-            {/* Subscriptions / License Section */}
-            {!subsLoading && (
-              <View style={styles.subscriptionSection}>
-                {activeSubs.length > 0 ? (
-                  <View style={{ gap: Spacing.xs }}>
-                    <Text
-                      style={[styles.nestedSectionHeader, { textAlign: isRTL ? 'right' : 'left' }]}
-                    >
-                      {t('my_subscriptions')}
-                    </Text>
-                    <FlatList
-                      horizontal
-                      data={activeSubs}
-                      keyExtractor={subKeyExtractor}
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={{ paddingHorizontal: Spacing.md, gap: 12 }}
-                      renderItem={renderActiveSubscription}
-                      inverted={isRTL}
-                      initialNumToRender={2}
-                      windowSize={3}
-                    />
-                  </View>
-                ) : role === 'student' ? (
-                  <View style={{ paddingHorizontal: Spacing.xs }}>
-                    <View style={styles.widgetDivider} />
-                    <TouchableOpacity
-                      style={[styles.flatActivationRow, isRTL && { flexDirection: 'row-reverse' }]}
-                      onPress={() => {
-                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        router.push('/activate');
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <View
-                        style={[
-                          styles.activationContent,
-                          isRTL && { flexDirection: 'row-reverse' },
-                        ]}
-                      >
-                        <View style={styles.activationIconWrapper}>
-                          <Ionicons name="card" size={20} color={Colors.primary} />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text
-                            style={[
-                              styles.activationTitle,
-                              { textAlign: isRTL ? 'right' : 'left' },
-                            ]}
-                          >
-                            {t('activate_new_license')}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.activationSubtitle,
-                              { textAlign: isRTL ? 'right' : 'left' },
-                            ]}
-                          >
-                            {t('activate_license_description')}
-                          </Text>
-                        </View>
-                      </View>
-                      <Ionicons
-                        name={isRTL ? 'chevron-back' : 'chevron-forward'}
-                        size={20}
-                        color={Colors.textMuted}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                ) : null}
-              </View>
-            )}
-          </View>
-
-          {/* Container 2: Available Routes Container */}
-          <View style={styles.routesMainContainer}>
-            <View style={[styles.routesContainerHeader, isRTL && { flexDirection: 'row-reverse' }]}>
-              <Text style={styles.routesContainerTitle}>{t('available_routes')}</Text>
-              <View style={styles.routesBadge}>
-                <Text style={styles.routesBadgeText}>
-                  {filteredRoutes.length} {t('route')}
-                </Text>
-              </View>
-            </View>
-
-            {/* List of Routes */}
-            {isLoading ? (
-              <LoadingList count={3} variant="route" />
-            ) : error ? (
-              <ListError />
-            ) : filteredRoutes.length === 0 ? (
-              <ListEmpty />
-            ) : (
-              <View style={styles.routesListWrapper}>
-                {filteredRoutes.map((route) => {
-                  const isSubscribed = subscriptions.some(
-                    (sub) =>
-                      sub.route_id === route.id &&
-                      (sub.status === 'active' || sub.status === 'pending'),
-                  );
-                  return (
-                    <RouteCard
-                      key={route.id}
-                      item={route}
-                      isSubscribed={isSubscribed}
-                      driverRating={driverRatings[route.driver_id] ?? null}
-                      flat={true}
-                    />
-                  );
-                })}
-              </View>
-            )}
-          </View>
-        </View>
-      </ScrollView>
+        ListHeaderComponent={ListHeader}
+        ListEmptyComponent={
+          isLoading ? (
+            <LoadingList count={3} variant="route" />
+          ) : error ? (
+            <ListError />
+          ) : (
+            <ListEmpty />
+          )
+        }
+      />
 
       {/* Search Results Dropdown (floating absolute outside header to prevent clipping) */}
       {searchResults.length > 0 && (
@@ -1117,5 +1110,10 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     color: Colors.white,
     fontSize: 13,
+  },
+  routesHeaderWrapper: {
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.sm,
+    marginTop: Spacing.sm,
   },
 });

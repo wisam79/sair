@@ -74,17 +74,40 @@ export function useRoutes(institutionId?: string | null, page = 0) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, (payload) => {
         queryClient.setQueriesData(
           { queryKey: ['routes'] },
-          (old: { routes: Route[]; hasMore: boolean } | undefined) => {
+          (old: { routes: Route[]; hasMore: boolean } | undefined, query) => {
             if (!old) return old;
+            const queryInstitutionId = query.queryKey[1] as string | null | undefined;
             let updatedRoutes = [...old.routes];
+
             if (payload.eventType === 'UPDATE') {
-              updatedRoutes = updatedRoutes.map((r) =>
-                r.id === payload.new.id ? ({ ...r, ...payload.new } as Route) : r,
-              );
+              const updatedRoute = payload.new as Route;
+              const matchesInstitution =
+                !queryInstitutionId || updatedRoute.institution_id === queryInstitutionId;
+              const isValid = updatedRoute.is_active && (updatedRoute.available_seats ?? 0) > 0;
+
+              if (matchesInstitution && isValid) {
+                const exists = updatedRoutes.some((r) => r.id === updatedRoute.id);
+                if (exists) {
+                  updatedRoutes = updatedRoutes.map((r) =>
+                    r.id === updatedRoute.id ? updatedRoute : r,
+                  );
+                } else {
+                  updatedRoutes = [updatedRoute, ...updatedRoutes];
+                }
+              } else {
+                updatedRoutes = updatedRoutes.filter((r) => r.id !== updatedRoute.id);
+              }
             } else if (payload.eventType === 'INSERT') {
-              const exists = updatedRoutes.some((r) => r.id === payload.new.id);
-              if (!exists) {
-                updatedRoutes = [payload.new as Route, ...updatedRoutes];
+              const newRoute = payload.new as Route;
+              const matchesInstitution =
+                !queryInstitutionId || newRoute.institution_id === queryInstitutionId;
+              const isValid = newRoute.is_active && (newRoute.available_seats ?? 0) > 0;
+
+              if (matchesInstitution && isValid) {
+                const exists = updatedRoutes.some((r) => r.id === newRoute.id);
+                if (!exists) {
+                  updatedRoutes = [newRoute, ...updatedRoutes];
+                }
               }
             } else if (payload.eventType === 'DELETE') {
               updatedRoutes = updatedRoutes.filter((r) => r.id !== payload.old.id);
