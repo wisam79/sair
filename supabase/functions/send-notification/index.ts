@@ -1,3 +1,4 @@
+import { Expo } from 'npm:expo-server-sdk';
 import { corsResponse } from '../_shared/cors.ts';
 import { verifyAuth, supabaseAdmin } from '../_shared/auth.ts';
 import { retryWithBackoff } from '../../../packages/core/index.ts';
@@ -126,13 +127,40 @@ Deno.serve(async (req: Request) => {
     }
 
     // Expo Push API allows sending up to 100 messages at once
-    const messages = pushTokens.map((pt) => ({
-      to: pt.token,
-      sound: 'default',
-      title,
-      body,
-      data: data || {},
-    }));
+    const expo = new Expo();
+    const messages: any[] = [];
+    const invalidTokens: string[] = [];
+
+    for (const pt of pushTokens) {
+      if (!Expo.isExpoPushToken(pt.token)) {
+        console.warn(`[Notification] Invalid Expo push token: ${pt.token}`);
+        invalidTokens.push(pt.token);
+        continue;
+      }
+
+      messages.push({
+        to: pt.token,
+        sound: 'default',
+        title,
+        body,
+        data: data || {},
+      });
+    }
+
+    // Cleanup invalid tokens immediately
+    if (invalidTokens.length > 0) {
+      await supabaseAdmin.from('push_tokens').delete().in('token', invalidTokens);
+    }
+
+    if (messages.length === 0) {
+      return corsResponse(
+        req,
+        {
+          error: 'No valid push tokens found after filtering',
+        },
+        404,
+      );
+    }
 
     const expoResponse = await retryWithBackoff(
       async () => {
@@ -155,7 +183,7 @@ Deno.serve(async (req: Request) => {
 
     const expoResult = await expoResponse.json();
 
-    return corsResponse(req, { success: true, sent_count: pushTokens.length, expoResult });
+    return corsResponse(req, { success: true, sent_count: messages.length, expoResult });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error';
     return corsResponse(req, { error: message }, 400);
