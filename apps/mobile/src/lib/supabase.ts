@@ -16,9 +16,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+import { Platform } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
+
 const secureStorage = {
   getItem: async (key: string): Promise<string | null> => {
     try {
+      if (isWeb) {
+        return typeof window !== 'undefined' ? window.localStorage.getItem(key) : null;
+      }
       return await SecureStore.getItemAsync(key);
     } catch (e) {
       console.warn('[SecureStore] Failed to get item', e);
@@ -27,6 +34,12 @@ const secureStorage = {
   },
   setItem: async (key: string, value: string): Promise<void> => {
     try {
+      if (isWeb) {
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(key, value);
+        }
+        return;
+      }
       await SecureStore.setItemAsync(key, value, {
         keychainAccessible: SecureStore.WHEN_UNLOCKED,
       });
@@ -36,6 +49,12 @@ const secureStorage = {
   },
   removeItem: async (key: string): Promise<void> => {
     try {
+      if (isWeb) {
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem(key);
+        }
+        return;
+      }
       await SecureStore.deleteItemAsync(key);
     } catch (e) {
       console.warn('[SecureStore] Failed to delete item', e);

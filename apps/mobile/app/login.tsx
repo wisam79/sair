@@ -59,7 +59,7 @@ export default function LoginScreen() {
   }, [isSignup, reset]);
 
   useEffect(() => {
-    const isExpoGo = Constants.appOwnership === 'expo';
+    const isExpoGo = Constants.appOwnership === 'expo' || Platform.OS === 'web';
     if (!isExpoGo) {
       GoogleSignin.configure({
         webClientId: '1018318788548-idbv8r142c656grivv7btuqc3r352kt1.apps.googleusercontent.com',
@@ -225,7 +225,7 @@ export default function LoginScreen() {
       return;
     }
 
-    const isExpoGo = Constants.appOwnership === 'expo';
+    const isExpoGo = Constants.appOwnership === 'expo' || Platform.OS === 'web';
 
     if (isExpoGo) {
       // Fallback: Web OAuth for Expo Go environment

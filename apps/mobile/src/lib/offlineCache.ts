@@ -1,7 +1,9 @@
 import * as SecureStore from 'expo-secure-store';
 import { Subscription } from '@sair/core';
+import { Platform } from 'react-native';
 
 const CACHE_KEY = 'sair_active_subscription';
+const isWeb = Platform.OS === 'web';
 
 export const OfflineCache = {
   /**
@@ -9,6 +11,21 @@ export const OfflineCache = {
    */
   async saveActiveSubscription(subscription: Subscription | null): Promise<void> {
     try {
+      if (isWeb) {
+        if (typeof window !== 'undefined') {
+          if (subscription) {
+            const payload = {
+              data: subscription,
+              cachedAt: new Date().toISOString(),
+            };
+            window.localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+          } else {
+            window.localStorage.removeItem(CACHE_KEY);
+          }
+        }
+        return;
+      }
+
       if (subscription) {
         // Save the raw subscription data + a timestamp to prevent stale reads
         const payload = {
@@ -31,7 +48,9 @@ export const OfflineCache = {
    */
   async getActiveSubscription(): Promise<Subscription | null> {
     try {
-      const raw = await SecureStore.getItemAsync(CACHE_KEY);
+      const raw = isWeb
+        ? (typeof window !== 'undefined' ? window.localStorage.getItem(CACHE_KEY) : null)
+        : await SecureStore.getItemAsync(CACHE_KEY);
       if (!raw) return null;
 
       const payload = JSON.parse(raw);
@@ -40,7 +59,13 @@ export const OfflineCache = {
       // Basic verification: Is it expired?
       const endDate = new Date(sub.end_date);
       if (endDate < new Date()) {
-        await SecureStore.deleteItemAsync(CACHE_KEY);
+        if (isWeb) {
+          if (typeof window !== 'undefined') {
+            window.localStorage.removeItem(CACHE_KEY);
+          }
+        } else {
+          await SecureStore.deleteItemAsync(CACHE_KEY);
+        }
         return null;
       }
 
@@ -56,6 +81,12 @@ export const OfflineCache = {
    */
   async clear(): Promise<void> {
     try {
+      if (isWeb) {
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem(CACHE_KEY);
+        }
+        return;
+      }
       await SecureStore.deleteItemAsync(CACHE_KEY);
     } catch (e) {
       console.warn('Failed to clear secure cache', e);
