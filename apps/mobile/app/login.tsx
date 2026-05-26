@@ -25,6 +25,8 @@ import { makeRedirectUri } from 'expo-auth-session';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormInput } from '../src/components/FormInput';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import Constants from 'expo-constants';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -55,6 +57,16 @@ export default function LoginScreen() {
       full_name: '',
     });
   }, [isSignup, reset]);
+
+  useEffect(() => {
+    const isExpoGo = Constants.appOwnership === 'expo';
+    if (!isExpoGo) {
+      GoogleSignin.configure({
+        webClientId: '1018318788548-idbv8r142c656grivv7btuqc3r352kt1.apps.googleusercontent.com',
+        offlineAccess: true,
+      });
+    }
+  }, []);
 
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
@@ -212,42 +224,82 @@ export default function LoginScreen() {
       showAlert(t('error'), t('no_internet'), 'error');
       return;
     }
-    try {
-      setLoading(true);
 
-      const redirectUrl = makeRedirectUri({
-        scheme: 'sair',
-        path: 'login',
-      });
+    const isExpoGo = Constants.appOwnership === 'expo';
 
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          skipBrowserRedirect: true,
-        },
-      });
+    if (isExpoGo) {
+      // Fallback: Web OAuth for Expo Go environment
+      try {
+        setLoading(true);
 
-      if (error) throw error;
-      if (!data?.url) throw new Error('Could not generate authentication URL');
+        const redirectUrl = makeRedirectUri({
+          scheme: 'sair',
+          path: 'login',
+        });
 
-      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectUrl,
+            skipBrowserRedirect: true,
+          },
+        });
 
-      if (result.type === 'success' && result.url) {
-        const success = await extractSessionFromUrl(result.url);
-        if (!success) {
-          throw new Error('Authentication tokens not found in URL response');
+        if (error) throw error;
+        if (!data?.url) throw new Error('Could not generate authentication URL');
+
+        const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+
+        if (result.type === 'success' && result.url) {
+          const success = await extractSessionFromUrl(result.url);
+          if (!success) {
+            throw new Error('Authentication tokens not found in URL response');
+          }
         }
+      } catch (err: unknown) {
+        showAlert(
+          t('error'),
+          err instanceof Error ? err.message : t('something_went_wrong'),
+          'error',
+        );
+      } finally {
+        setLoading(false);
       }
-      // If result.type === 'dismiss', user closed the browser — do nothing
-    } catch (err: unknown) {
-      showAlert(
-        t('error'),
-        err instanceof Error ? err.message : t('something_went_wrong'),
-        'error',
-      );
-    } finally {
-      setLoading(false);
+    } else {
+      // Production: Native Google Sign-In
+      try {
+        setLoading(true);
+        await GoogleSignin.hasPlayServices();
+        const userInfo = await GoogleSignin.signIn();
+        
+        if (userInfo.type === 'success') {
+          const idToken = userInfo.data.idToken;
+
+          if (!idToken) {
+            throw new Error('No ID token returned from Google Sign-In');
+          }
+
+          const { error } = await supabase.auth.signInWithIdToken({
+            provider: 'google',
+            token: idToken,
+          });
+
+          if (error) throw error;
+        } else {
+          console.log('Google Sign-In response type:', userInfo.type);
+        }
+      } catch (err: any) {
+        // Only alert if the user did not cancel the sign-in flow manually
+        if (err.code !== '12501' && err.code !== 'SIGN_IN_CANCELLED') {
+          showAlert(
+            t('error'),
+            err.message || t('something_went_wrong'),
+            'error',
+          );
+        }
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
