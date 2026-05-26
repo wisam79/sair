@@ -1,9 +1,9 @@
 'use client';
 
-import { List, useDataGrid, DateField } from '@refinedev/mui';
+import { List, useDataGrid, DateField, EditButton, ShowButton, DeleteButton } from '@refinedev/mui';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import React from 'react';
-import { Switch, Typography, Box } from '@mui/material';
+import { Switch, Typography, Box, Stack } from '@mui/material';
 import { useUpdate } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 
@@ -114,6 +114,29 @@ export default function DriverList() {
           );
         },
       },
+      {
+        field: 'actions',
+        headerName: t('actions.actions', 'Actions'),
+        sortable: false,
+        renderCell: function render({ row }) {
+          return (
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              justifyContent="center"
+              height="100%"
+            >
+              <EditButton hideText recordItemId={row.id} />
+              <ShowButton hideText recordItemId={row.id} />
+              <DeleteButton hideText recordItemId={row.id} />
+            </Stack>
+          );
+        },
+        align: 'center',
+        headerAlign: 'center',
+        minWidth: 150,
+      },
     ],
     [t],
   );
@@ -124,19 +147,21 @@ export default function DriverList() {
       title={t('drivers.titles.list', 'Drivers Management')}
       wrapperProps={{ sx: { p: 2 } }}
     >
-      <DataGrid
-        {...dataGridProps}
-        columns={columns}
-        autoHeight
-        density="comfortable"
-        slots={{ toolbar: GridToolbar }}
-        slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
-        sx={{
-          border: 'none',
-          '& .MuiDataGrid-cell:focus': { outline: 'none' },
-          '& .MuiDataGrid-cell:focus-within': { outline: 'none' },
-        }}
-      />
+      <Box sx={{ width: '100%', overflowX: 'auto', display: 'grid' }}>
+        <DataGrid
+          {...dataGridProps}
+          columns={columns}
+          autoHeight
+          density="comfortable"
+          slots={{ toolbar: GridToolbar }}
+          slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
+          sx={{
+            border: 'none',
+            '& .MuiDataGrid-cell:focus': { outline: 'none' },
+            '& .MuiDataGrid-cell:focus-within': { outline: 'none' },
+          }}
+        />
+      </Box>
     </List>
   );
 }

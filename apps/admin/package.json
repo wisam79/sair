@@ -23,12 +23,13 @@
     "@refinedev/nextjs-router": "^6.0.4",
     "@refinedev/react-hook-form": "^5.0.4",
     "@refinedev/supabase": "^5.8.4",
+    "@sair/core": "workspace:*",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.105.3",
     "@tanstack/react-query": "^4.36.1",
-    "lucide-react": "^0.468.0",
-    "@sair/core": "workspace:*",
     "i18next": "^26.1.0",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.468.0",
     "next": "16.2.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -39,6 +40,7 @@
     "stylis-plugin-rtl": "^2.1.1"
   },
   "devDependencies": {
+    "@types/leaflet": "^1.9.21",
     "@types/node": "^20.12.12",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",

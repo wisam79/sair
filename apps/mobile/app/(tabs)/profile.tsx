@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../src/lib/supabase';
 import { useAuthStore } from '../../src/hooks/useStore';
 import { useTranslation } from '../../src/hooks/useTranslation';
+import { useNetworkStatus } from '../../src/hooks/useNetworkStatus';
 import Constants from 'expo-constants';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../../src/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -35,6 +36,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, role, profile, setProfile, logout } = useAuthStore();
   const { t, isRTL, language, setLanguage } = useTranslation();
+  const { isOnline } = useNetworkStatus();
   const { top } = useSafeAreaInsets();
   const [saving, setSaving] = useState(false);
   const [stats, setStats] = useState({ tripCount: 0, avgRating: 0 });
@@ -121,6 +123,11 @@ export default function ProfileScreen() {
 
   const handleSave = async (data: ProfileEditRequest) => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (!isOnline) {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      showAlert(t('error'), t('no_internet'), 'error');
+      return;
+    }
     setSaving(true);
     try {
       const { error } = await supabase
@@ -153,7 +160,11 @@ export default function ProfileScreen() {
         style: 'destructive',
         onPress: async () => {
           void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          await supabase.auth.signOut();
+          try {
+            await supabase.auth.signOut();
+          } catch (e) {
+            // Ignore offline network errors during sign out
+          }
           logout();
         },
       },

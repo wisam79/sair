@@ -109,10 +109,13 @@ describe('Edge Functions Unit Tests', () => {
 
   describe('log-error', () => {
     it('should return CORS headers for OPTIONS request', async () => {
-      const req = new Request('http://localhost/log-error', { method: 'OPTIONS' });
+      const req = new Request('http://localhost/log-error', {
+        method: 'OPTIONS',
+        headers: { Origin: 'http://localhost:3000' },
+      });
       const res = await logErrorHandler(req);
       expect(res.status).toBe(200);
-      expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*');
+      expect(res.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:3000');
       expect(res.headers.get('Access-Control-Allow-Methods')).toBe('POST, OPTIONS');
     });
 

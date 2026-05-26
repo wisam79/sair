@@ -1,9 +1,9 @@
 'use client';
 
-import { useDataGrid, List, ShowButton } from '@refinedev/mui';
+import { useDataGrid, List, ShowButton, EditButton, DeleteButton } from '@refinedev/mui';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import React from 'react';
-import { Stack, Chip } from '@mui/material';
+import { Stack, Chip, Box } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 const ROLE_COLORS: Record<
@@ -76,13 +76,15 @@ export default function ProfileList() {
               justifyContent="center"
               height="100%"
             >
+              <EditButton hideText recordItemId={row.id} />
               <ShowButton hideText recordItemId={row.id} />
+              <DeleteButton hideText recordItemId={row.id} />
             </Stack>
           );
         },
         align: 'center',
         headerAlign: 'center',
-        minWidth: 80,
+        minWidth: 150,
       },
     ],
     [t],
@@ -90,7 +92,9 @@ export default function ProfileList() {
 
   return (
     <List breadcrumb={null}>
-      <DataGrid {...dataGridProps} columns={columns} autoHeight />
+      <Box sx={{ width: '100%', overflowX: 'auto', display: 'grid' }}>
+        <DataGrid {...dataGridProps} columns={columns} autoHeight />
+      </Box>
     </List>
   );
 }

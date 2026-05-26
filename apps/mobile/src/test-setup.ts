@@ -51,3 +51,13 @@ if (typeof globalThis.AbortController === 'undefined') {
     }
   } as unknown as typeof AbortController;
 }
+
+vi.mock('@react-native-community/netinfo', () => ({
+  default: {
+    addEventListener: vi.fn(() => vi.fn()),
+    fetch: vi.fn().mockResolvedValue({
+      isConnected: true,
+      isInternetReachable: true,
+    }),
+  },
+}));

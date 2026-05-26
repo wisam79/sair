@@ -48,6 +48,7 @@ const I18nProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
         {
           name: 'profiles',
           list: '/profiles',
+          edit: '/profiles/edit/:id',
           show: '/profiles/show/:id',
           meta: { label: t('profiles.titles.list', 'Users') },
         },
@@ -115,6 +116,7 @@ const I18nProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
       options={{
         syncWithLocation: true,
         warnWhenUnsavedChanges: true,
+        disableTelemetry: true,
       }}
     >
       {children}

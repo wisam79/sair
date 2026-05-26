@@ -17,6 +17,9 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Route } from '@sair/core';
 import { useTranslation } from '../src/hooks/useTranslation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
+import { useTripStore } from '../src/hooks/useStore';
 
 interface RouteCardItemProps {
   item: Route;
@@ -96,6 +99,20 @@ export default function CreateTripScreen() {
         } = await supabase.auth.getUser();
         if (!user) throw new Error('not_authenticated');
 
+        const cacheKey = `driver_routes_${user.id}`;
+        const netState = await NetInfo.fetch();
+        const isOnline = !!netState.isConnected && netState.isInternetReachable !== false;
+
+        if (!isOnline) {
+          const cached = await AsyncStorage.getItem(cacheKey);
+          if (cached) {
+            setRoutes(JSON.parse(cached) as Route[]);
+            setIsLoading(false);
+            return;
+          }
+          throw new Error('no_internet');
+        }
+
         const { data: driverData, error: driverError } = await supabase
           .from('drivers')
           .select('id')
@@ -111,8 +128,27 @@ export default function CreateTripScreen() {
           .eq('is_active', true);
 
         if (error) throw error;
-        setRoutes((data as Route[]) || []);
+        const fetchedRoutes = (data as Route[]) || [];
+        setRoutes(fetchedRoutes);
+        await AsyncStorage.setItem(cacheKey, JSON.stringify(fetchedRoutes));
       } catch (err: unknown) {
+        // Fallback to cache on error
+        try {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (user) {
+            const cached = await AsyncStorage.getItem(`driver_routes_${user.id}`);
+            if (cached) {
+              setRoutes(JSON.parse(cached) as Route[]);
+              setIsLoading(false);
+              return;
+            }
+          }
+        } catch (_) {
+          console.warn('[Cache] Failed to load offline fallback routes');
+        }
+
         const msg = err instanceof Error ? err.message : 'unknown_error';
         // Don't show alert for auth errors, just navigate back
         if (msg !== 'not_authenticated') {
@@ -133,6 +169,32 @@ export default function CreateTripScreen() {
       setIsSubmitting(true);
       // Create trip scheduled for now
       const scheduledAt = new Date().toISOString();
+
+      const netState = await NetInfo.fetch();
+      const isOnline = !!netState.isConnected && netState.isInternetReachable !== false;
+
+      if (!isOnline) {
+        // Offline behavior: Generate a local trip ID and add to queue
+        const localId = `local_trip_${selectedRouteId}_${Date.now()}`;
+        const pendingQueueKey = 'pending_trips_creation_queue';
+        const rawQueue = await AsyncStorage.getItem(pendingQueueKey);
+        const queue = rawQueue ? JSON.parse(rawQueue) : [];
+        queue.push({
+          localId,
+          routeId: selectedRouteId,
+          scheduledAt,
+        });
+        await AsyncStorage.setItem(pendingQueueKey, JSON.stringify(queue));
+
+        // Update local trip store status immediately
+        useTripStore.getState().setActiveTrip(localId, 'driver_waiting', selectedRouteId);
+
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        Alert.alert(t('success'), t('trip_opened_success') + ' (وضع عدم الاتصال)', [
+          { text: t('ok'), onPress: () => router.back() },
+        ]);
+        return;
+      }
 
       const { error } = await supabase.rpc('create_trip', {
         p_route_id: selectedRouteId,

@@ -1,7 +1,8 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import NetInfo from '@react-native-community/netinfo';
 
 export interface Message {
   id: string;
@@ -29,6 +30,7 @@ export interface Conversation {
 export function useConversations() {
   const queryClient = useQueryClient();
   const queryKey = ['conversations'];
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     data: conversations = [],
@@ -46,18 +48,35 @@ export function useConversations() {
 
   useEffect(() => {
     const channelName = `conversations-changes-${Math.random().toString(36).substring(2, 9)}`;
+
+    // Debounced invalidation to prevent rapid-fire refetches
+    const debouncedInvalidate = () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey });
+      }, 500);
+    };
+
+    // Listen on messages table (has RLS) instead of conversations table.
+    // This ensures we only get notified about messages the user can see.
     const channel: RealtimeChannel = supabase
       .channel(channelName)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
-        queryClient.invalidateQueries({ queryKey });
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
+        debouncedInvalidate();
       })
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          queryClient.invalidateQueries({ queryKey });
+          NetInfo.fetch().then((state) => {
+            const isOnline = !!state.isConnected && state.isInternetReachable !== false;
+            if (isOnline) {
+              queryClient.invalidateQueries({ queryKey });
+            }
+          });
         }
       });
 
     return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
@@ -72,7 +91,6 @@ export function useConversations() {
 export function useMessages(conversationId: string | null) {
   const queryClient = useQueryClient();
   const queryKey = ['messages', conversationId];
-  const [localError, setLocalError] = useState<string | null>(null);
 
   const {
     data: messages = [],
@@ -97,32 +115,26 @@ export function useMessages(conversationId: string | null) {
     async (content: string) => {
       if (!conversationId || !content.trim()) return null;
 
-      try {
-        setLocalError(null);
-        const { data: res, error: err } = await supabase
-          .rpc('send_message', {
-            p_conversation_id: conversationId,
-            p_content: content.trim(),
-          })
-          .single();
-        if (err) throw err;
+      const { data: res, error: err } = await supabase
+        .rpc('send_message', {
+          p_conversation_id: conversationId,
+          p_content: content.trim(),
+        })
+        .single();
+      if (err) throw err;
 
-        const sentMessage = res as Message;
+      const sentMessage = res as Message;
 
-        queryClient.setQueryData<Message[]>(queryKey, (old) => {
-          if (!old) return [sentMessage];
-          const exists = old.some((m) => m.id === sentMessage.id);
-          if (exists) return old;
-          return [sentMessage, ...old];
-        });
+      queryClient.setQueryData<Message[]>(queryKey, (old) => {
+        if (!old) return [sentMessage];
+        const exists = old.some((m) => m.id === sentMessage.id);
+        if (exists) return old;
+        return [sentMessage, ...old];
+      });
 
-        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
 
-        return sentMessage;
-      } catch (err) {
-        setLocalError(err instanceof Error ? err.message : 'Failed to send message');
-        return null;
-      }
+      return sentMessage;
     },
     [conversationId, queryClient, queryKey],
   );
@@ -167,7 +179,12 @@ export function useMessages(conversationId: string | null) {
       )
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          refetch();
+          NetInfo.fetch().then((state) => {
+            const isOnline = !!state.isConnected && state.isInternetReachable !== false;
+            if (isOnline) {
+              refetch();
+            }
+          });
         }
       });
 
@@ -182,9 +199,9 @@ export function useMessages(conversationId: string | null) {
     }
   }, [conversationId, messages, markAsRead]);
 
-  const errorMsg =
-    localError ||
-    (error ? (error as any).message || (error as any).error_description || String(error) : null);
+  const errorMsg = error
+    ? (error as any).message || (error as any).error_description || String(error)
+    : null;
 
   return { messages, loading: isLoading, error: errorMsg, sendMessage, refetch };
 }

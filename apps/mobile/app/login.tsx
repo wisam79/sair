@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { supabase } from '../src/lib/supabase';
 import { useTranslation } from '../src/hooks/useTranslation';
+import { useNetworkStatus } from '../src/hooks/useNetworkStatus';
 import { LoginSchema, SignupSchema, SignupRequest } from '@sair/core';
 import { Colors, Spacing, BorderRadius, Shadow, FontFamily } from '../src/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,6 +33,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<'fullName' | 'email' | 'password' | null>(null);
   const { t, isRTL, language, setLanguage } = useTranslation();
+  const { isOnline } = useNetworkStatus();
   const { top, bottom } = useSafeAreaInsets();
   const buttonScale = useRef(new Animated.Value(1)).current;
   const scrollViewRef = useRef<ScrollView>(null);
@@ -101,6 +103,10 @@ export default function LoginScreen() {
 
   const onSubmit = async (data: SignupRequest) => {
     animateButton();
+    if (!isOnline) {
+      showAlert(t('error'), t('no_internet'), 'error');
+      return;
+    }
     setLoading(true);
     if (isSignup) {
       const { data: signUpData, error } = await supabase.auth.signUp({
@@ -134,6 +140,10 @@ export default function LoginScreen() {
   };
 
   const handleForgotPassword = async () => {
+    if (!isOnline) {
+      showAlert(t('error'), t('no_internet'), 'error');
+      return;
+    }
     const email = getValues('email');
     if (!email || !email.trim()) {
       showAlert(t('alert'), t('enter_email_first'), 'warning');
@@ -198,6 +208,10 @@ export default function LoginScreen() {
   }, [extractSessionFromUrl]);
 
   const handleGoogleSignIn = async () => {
+    if (!isOnline) {
+      showAlert(t('error'), t('no_internet'), 'error');
+      return;
+    }
     try {
       setLoading(true);
 
