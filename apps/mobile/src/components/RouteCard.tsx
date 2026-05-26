@@ -31,10 +31,10 @@ export const RouteCard: React.FC<RouteCardProps> = React.memo(
 
     const handlePressIn = () => {
       Animated.spring(scale, {
-        toValue: 0.98,
+        toValue: 0.97,
         useNativeDriver: true,
-        tension: 150,
-        friction: 12,
+        tension: 200,
+        friction: 14,
       }).start();
     };
 
@@ -42,8 +42,8 @@ export const RouteCard: React.FC<RouteCardProps> = React.memo(
       Animated.spring(scale, {
         toValue: 1,
         useNativeDriver: true,
-        tension: 150,
-        friction: 12,
+        tension: 200,
+        friction: 14,
       }).start();
     };
 
@@ -52,14 +52,21 @@ export const RouteCard: React.FC<RouteCardProps> = React.memo(
       router.push({ pathname: '/booking', params: { routeId: item.id } });
     };
 
+    const seatsLow = item.available_seats <= 3;
+
     return (
       <Animated.View
         style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }, { scale }] }}
       >
         <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} onPress={handlePress}>
           <View style={[styles.card, isRTL && styles.cardRTL, flat && styles.flatCard]}>
-            {/* Orange accent bar */}
-            {!flat && <View style={styles.cardAccent} />}
+            {/* Accent bar with gradient effect */}
+            {!flat && (
+              <View style={styles.cardAccentWrapper}>
+                <View style={styles.cardAccentTop} />
+                <View style={styles.cardAccentBottom} />
+              </View>
+            )}
 
             <View style={[styles.cardContent, flat && styles.flatCardContent]}>
               {/* Header: Title + Badges */}
@@ -87,9 +94,11 @@ export const RouteCard: React.FC<RouteCardProps> = React.memo(
               {/* From → To Timeline Path */}
               <View style={[styles.routePathContainer, isRTL && { flexDirection: 'row-reverse' }]}>
                 <View style={styles.timelineTrack}>
-                  <Ionicons name="radio-button-on" size={13} color={Colors.primary} />
+                  <View style={styles.startDot}>
+                    <View style={styles.startDotInner} />
+                  </View>
                   <View style={styles.verticalConnector} />
-                  <Ionicons name="location" size={13} color={Colors.secondary} />
+                  <Ionicons name="location" size={14} color={Colors.error} />
                 </View>
                 <View style={styles.routeDetails}>
                   <Text
@@ -98,7 +107,7 @@ export const RouteCard: React.FC<RouteCardProps> = React.memo(
                   >
                     {item.start_location}
                   </Text>
-                  <View style={{ height: Spacing.xs }} />
+                  <View style={{ height: Spacing.sm }} />
                   <Text
                     style={[styles.routeStopText, { textAlign: isRTL ? 'right' : 'left' }]}
                     numberOfLines={1}
@@ -142,15 +151,27 @@ export const RouteCard: React.FC<RouteCardProps> = React.memo(
 
               {/* Footer */}
               <View style={[styles.cardFooter, isRTL && { flexDirection: 'row-reverse' }]}>
-                <View style={[styles.seatBadge, isRTL && { flexDirection: 'row-reverse' }]}>
-                  <Ionicons name="people-outline" size={13} color={Colors.primary} />
-                  <Text style={styles.seatText}>
+                <View
+                  style={[
+                    styles.seatBadge,
+                    seatsLow && styles.seatBadgeLow,
+                    isRTL && { flexDirection: 'row-reverse' },
+                  ]}
+                >
+                  <Ionicons
+                    name="people-outline"
+                    size={13}
+                    color={seatsLow ? Colors.warning : Colors.primary}
+                  />
+                  <Text style={[styles.seatText, seatsLow && styles.seatTextLow]}>
                     {item.available_seats} {t('seat')}
                   </Text>
                 </View>
-                <Text style={styles.price}>
-                  {item.price.toLocaleString()} {t('currency')}
-                </Text>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.price}>
+                    {item.price.toLocaleString()} {t('currency')}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
@@ -163,29 +184,38 @@ export const RouteCard: React.FC<RouteCardProps> = React.memo(
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl,
     marginBottom: Spacing.md,
     flexDirection: 'row',
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E6E3DE',
+    borderColor: Colors.borderLight,
     ...Shadow.md,
   },
   cardRTL: {
     flexDirection: 'row-reverse',
   },
-  cardAccent: {
-    width: 4,
+  cardAccentWrapper: {
+    width: 5,
+    overflow: 'hidden',
+  },
+  cardAccentTop: {
+    flex: 1,
+    backgroundColor: Colors.primaryDeep,
+  },
+  cardAccentBottom: {
+    flex: 1,
     backgroundColor: Colors.primary,
   },
   cardContent: {
     flex: 1,
-    padding: Spacing.md,
+    padding: Spacing.lg,
   },
   routeName: {
     fontFamily: FontFamily.bold,
     fontSize: 16,
     color: Colors.text,
+    letterSpacing: -0.2,
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -198,9 +228,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.primary,
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: BorderRadius.sm,
-    gap: 2,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.pill,
+    gap: 3,
+    ...Shadow.sm,
   },
   subscribedText: {
     color: Colors.white,
@@ -212,11 +243,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.warningSurface,
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: BorderRadius.sm,
-    gap: 2,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.pill,
+    gap: 3,
     borderWidth: 1,
-    borderColor: Colors.warning + '30',
+    borderColor: Colors.warning + '25',
   },
   ratingText: {
     color: Colors.warning,
@@ -227,19 +258,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'stretch',
     marginVertical: Spacing.sm,
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
   timelineTrack: {
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 2,
-    width: 16,
+    width: 18,
+  },
+  startDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: Colors.primarySurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  startDotInner: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: Colors.primary,
   },
   verticalConnector: {
-    width: 1.5,
+    width: 2,
     flex: 1,
-    backgroundColor: Colors.border,
-    marginVertical: 2,
+    backgroundColor: Colors.borderLight,
+    marginVertical: 3,
+    borderRadius: 1,
   },
   routeDetails: {
     flex: 1,
@@ -248,7 +296,7 @@ const styles = StyleSheet.create({
   },
   routeStopText: {
     fontFamily: FontFamily.medium,
-    fontSize: 13.5,
+    fontSize: 14,
     color: Colors.text,
     flex: 1,
   },
@@ -261,13 +309,13 @@ const styles = StyleSheet.create({
   timeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
     backgroundColor: Colors.surfaceMuted,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: 5,
+    borderRadius: BorderRadius.pill,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.borderLight,
   },
   timeText: {
     fontFamily: FontFamily.medium,
@@ -279,8 +327,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingTop: Spacing.sm,
+    borderTopColor: Colors.borderLight,
+    paddingTop: Spacing.md,
     marginTop: Spacing.xs,
   },
   seatBadge: {
@@ -288,25 +336,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.xs,
     backgroundColor: Colors.primarySurface,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: 4,
     borderRadius: BorderRadius.pill,
+  },
+  seatBadgeLow: {
+    backgroundColor: Colors.warningSurface,
   },
   seatText: {
     fontFamily: FontFamily.medium,
     fontSize: 12,
     color: Colors.primary,
   },
+  seatTextLow: {
+    color: Colors.warning,
+  },
+  priceContainer: {
+    backgroundColor: Colors.primarySurface,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs + 2,
+    borderRadius: BorderRadius.pill,
+  },
   price: {
     fontFamily: FontFamily.bold,
     fontSize: 15,
-    color: Colors.success,
+    color: Colors.primaryDeep,
   },
   flatCard: {
-    backgroundColor: '#F5F2EF', // warm off-white matching screen background for nested contrast
+    backgroundColor: Colors.surfaceMuted,
     borderWidth: 1,
-    borderColor: '#E6E3DE',
-    borderRadius: BorderRadius.md,
+    borderColor: Colors.borderLight,
+    borderRadius: BorderRadius.lg,
     marginBottom: Spacing.md,
     shadowOpacity: 0,
     shadowOffset: { width: 0, height: 0 },

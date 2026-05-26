@@ -1015,9 +1015,14 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   headerTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
     fontFamily: FontFamily.bold,
-    fontSize: 18,
+    fontSize: 16,
     color: Colors.secondary,
+    zIndex: 1,
   },
   headerLiveBadge: {
     flexDirection: 'row',
@@ -1241,7 +1246,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(194, 112, 62, 0.15)',
+    borderColor: 'rgba(22, 163, 74, 0.15)',
   },
   sideCallButton: {
     backgroundColor: Colors.successSurface,
@@ -1375,7 +1380,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(194, 112, 62, 0.15)',
+    borderColor: 'rgba(22, 163, 74, 0.15)',
   },
   callCircleButton: {
     backgroundColor: Colors.successSurface,

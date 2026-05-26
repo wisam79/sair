@@ -19,10 +19,10 @@ import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { Colors } from '../src/theme';
 import {
   useFonts,
-  IBMPlexSansArabic_400Regular,
-  IBMPlexSansArabic_500Medium,
-  IBMPlexSansArabic_700Bold,
-} from '@expo-google-fonts/ibm-plex-sans-arabic';
+  NotoSansArabic_400Regular,
+  NotoSansArabic_500Medium,
+  NotoSansArabic_700Bold,
+} from '@expo-google-fonts/noto-sans-arabic';
 import { Gulzar_400Regular } from '@expo-google-fonts/gulzar';
 import * as SplashScreen from 'expo-splash-screen';
 import Constants from 'expo-constants';
@@ -72,9 +72,9 @@ export default function Layout() {
   useNotifications();
 
   const [fontsLoaded, fontError] = useFonts({
-    IBMPlexSansArabic_400Regular,
-    IBMPlexSansArabic_500Medium,
-    IBMPlexSansArabic_700Bold,
+    NotoSansArabic_400Regular,
+    NotoSansArabic_500Medium,
+    NotoSansArabic_700Bold,
     Gulzar_400Regular,
   });
 
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   offlineText: {
     color: Colors.white,
     fontSize: 12,
-    fontFamily: 'IBMPlexSansArabic_500Medium',
+    fontFamily: 'NotoSansArabic_500Medium',
   },
   updateContainer: {
     justifyContent: 'center',
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   updateTitle: {
-    fontFamily: 'IBMPlexSansArabic_700Bold',
+    fontFamily: 'NotoSansArabic_700Bold',
     fontSize: 22,
     color: Colors.text,
     marginTop: 20,
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   updateSubtitle: {
-    fontFamily: 'IBMPlexSansArabic_400Regular',
+    fontFamily: 'NotoSansArabic_400Regular',
     fontSize: 16,
     color: Colors.textSecondary,
     textAlign: 'center',
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   updateButtonText: {
-    fontFamily: 'IBMPlexSansArabic_700Bold',
+    fontFamily: 'NotoSansArabic_700Bold',
     fontSize: 16,
     color: Colors.white,
   },

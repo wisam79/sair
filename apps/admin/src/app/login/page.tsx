@@ -53,7 +53,7 @@ export default function LoginPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        bgcolor: isDark ? '#1A1A1A' : '#F5F2EF',
+        bgcolor: isDark ? '#161616' : '#F7F5F2',
         position: 'relative',
         p: 2,
         direction: isRTL ? 'rtl' : 'ltr',
@@ -70,7 +70,7 @@ export default function LoginPage() {
           width: 220,
           height: 220,
           borderRadius: '50%',
-          background: `radial-gradient(circle, rgba(194,112,62,${isDark ? 0.2 : 0.12}) 0%, transparent 70%)`,
+          background: `radial-gradient(circle, rgba(22,163,74,${isDark ? 0.2 : 0.12}) 0%, transparent 70%)`,
           filter: 'blur(45px)',
           pointerEvents: 'none',
         }}
@@ -98,7 +98,7 @@ export default function LoginPage() {
           width: 140,
           height: 140,
           borderRadius: '50%',
-          background: `radial-gradient(circle, rgba(212,132,90,${isDark ? 0.15 : 0.08}) 0%, transparent 70%)`,
+          background: `radial-gradient(circle, rgba(74,222,128,${isDark ? 0.15 : 0.08}) 0%, transparent 70%)`,
           filter: 'blur(35px)',
           pointerEvents: 'none',
         }}
@@ -112,7 +112,7 @@ export default function LoginPage() {
           left: isRTL ? 'auto' : 40,
           right: isRTL ? 40 : 'auto',
           opacity: 0.12,
-          color: isDark ? '#D4845A' : '#C2703E',
+          color: isDark ? '#4ADE80' : '#16A34A',
           fontSize: 24,
           fontWeight: 200,
           pointerEvents: 'none',
@@ -144,7 +144,7 @@ export default function LoginPage() {
           right: isRTL ? 'auto' : 90,
           left: isRTL ? 90 : 'auto',
           opacity: 0.06,
-          color: isDark ? '#D4845A' : '#C2703E',
+          color: isDark ? '#4ADE80' : '#16A34A',
           fontSize: 12,
           pointerEvents: 'none',
           userSelect: 'none',
@@ -237,7 +237,7 @@ export default function LoginPage() {
             boxShadow: isDark
               ? '0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)'
               : '0 4px 32px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
-            background: isDark ? 'rgba(45, 45, 45, 0.82)' : 'rgba(255, 255, 255, 0.78)',
+            background: isDark ? 'rgba(36, 36, 36, 0.82)' : 'rgba(255, 255, 255, 0.78)',
             backdropFilter: 'blur(24px) saturate(1.4)',
             transition:
               'background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease',
@@ -260,9 +260,9 @@ export default function LoginPage() {
                 borderRadius: 99,
                 height: 36,
                 boxShadow: 'none',
-                color: isDark ? '#D4845A' : '#C2703E',
-                bgcolor: isDark ? 'rgba(194,112,62,0.1)' : 'rgba(194,112,62,0.06)',
-                border: `1px solid ${isDark ? 'rgba(194,112,62,0.15)' : 'rgba(194,112,62,0.1)'}`,
+                color: isDark ? '#4ADE80' : '#16A34A',
+                bgcolor: isDark ? 'rgba(22,163,74,0.1)' : 'rgba(22,163,74,0.06)',
+                border: `1px solid ${isDark ? 'rgba(22,163,74,0.15)' : 'rgba(22,163,74,0.1)'}`,
                 fontWeight: 700,
                 px: 1,
                 '& .MuiChip-label': { fontSize: '0.8rem' },
@@ -274,19 +274,19 @@ export default function LoginPage() {
                 width: 68,
                 height: 68,
                 borderRadius: 4,
-                background: 'linear-gradient(135deg, #C2703E 0%, #2D2D2D 50%, #A85C2E 100%)',
+                background: 'linear-gradient(135deg, #16A34A 0%, #242424 50%, #0A5C36 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 mb: 2.5,
                 position: 'relative',
-                boxShadow: '0 20px 50px rgba(194,112,62,0.35)',
+                boxShadow: '0 20px 50px rgba(22,163,74,0.2)',
                 '&::before': {
                   content: '""',
                   position: 'absolute',
                   inset: -3,
                   borderRadius: 5,
-                  background: 'linear-gradient(135deg, #C2703E, #2D2D2D, #A85C2E)',
+                  background: 'linear-gradient(135deg, #16A34A, #242424, #0A5C36)',
                   zIndex: -1,
                   opacity: 0.4,
                   filter: 'blur(8px)',
@@ -303,7 +303,7 @@ export default function LoginPage() {
                 mb: 1,
                 ...(isDark
                   ? {
-                      background: 'linear-gradient(135deg, #ffffff 0%, #D4845A 50%, #E59C75 100%)',
+                      background: 'linear-gradient(135deg, #ffffff 0%, #4ADE80 50%, #16A34A 100%)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text',
@@ -351,7 +351,7 @@ export default function LoginPage() {
               dir={isRTL ? 'rtl' : 'ltr'}
               sx={{
                 '& .MuiOutlinedInput-root.Mui-focused': {
-                  boxShadow: `0 0 0 3px rgba(194,112,62,${isDark ? '0.15' : '0.1'})`,
+                  boxShadow: `0 0 0 3px rgba(22,163,74,${isDark ? '0.15' : '0.1'})`,
                 },
               }}
               slotProps={{
@@ -377,7 +377,7 @@ export default function LoginPage() {
               dir={isRTL ? 'rtl' : 'ltr'}
               sx={{
                 '& .MuiOutlinedInput-root.Mui-focused': {
-                  boxShadow: `0 0 0 3px rgba(194,112,62,${isDark ? '0.15' : '0.1'})`,
+                  boxShadow: `0 0 0 3px rgba(22,163,74,${isDark ? '0.15' : '0.1'})`,
                 },
               }}
               slotProps={{
@@ -402,18 +402,18 @@ export default function LoginPage() {
                 fontSize: '15px',
                 fontWeight: 800,
                 borderRadius: 99,
-                background: 'linear-gradient(135deg, #C2703E 0%, #2D2D2D 50%, #A85C2E 100%)',
+                background: 'linear-gradient(135deg, #16A34A 0%, #242424 50%, #0A5C36 100%)',
                 backgroundSize: '200% 200%',
                 boxShadow: isDark
-                  ? '0 8px 24px rgba(194,112,62,0.3)'
-                  : '0 8px 24px rgba(194,112,62,0.2)',
+                  ? '0 8px 24px rgba(22,163,74,0.3)'
+                  : '0 8px 24px rgba(22,163,74,0.2)',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #D4845A 0%, #2D2D2D 50%, #C2703E 100%)',
+                  background: 'linear-gradient(135deg, #4ADE80 0%, #242424 50%, #16A34A 100%)',
                   backgroundSize: '200% 200%',
                   boxShadow: isDark
-                    ? '0 12px 32px rgba(194,112,62,0.45)'
-                    : '0 12px 32px rgba(194,112,62,0.3)',
+                    ? '0 12px 32px rgba(22,163,74,0.45)'
+                    : '0 12px 32px rgba(22,163,74,0.3)',
                   transform: 'translateY(-1px)',
                 },
                 '&:active': {

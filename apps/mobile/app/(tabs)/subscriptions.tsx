@@ -373,11 +373,25 @@ export default function SubscriptionsScreen() {
   if (isLoading && subscriptions.length === 0) {
     return (
       <View style={styles.container}>
-        <StatusBar style="dark" translucent />
+        <StatusBar style="light" translucent />
         <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
-          <Text style={[styles.headerTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+          {/* Glassmorphic Background Effects */}
+          <View style={styles.glassOverlay} />
+          <View style={styles.glassHighlight} />
+
+          <Text style={styles.headerTitle}>
             {t('my_subscriptions')}
           </Text>
+          <TouchableOpacity
+            style={[styles.headerShortcutBtn, { [isRTL ? 'left' : 'right']: Spacing.md }]}
+            onPress={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push('/activate');
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="card-outline" size={22} color={Colors.white} />
+          </TouchableOpacity>
         </View>
         <View style={{ flex: 1, padding: Spacing.md, gap: Spacing.md }}>
           <SubscriptionCardSkeleton />
@@ -390,11 +404,25 @@ export default function SubscriptionsScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" translucent />
+      <StatusBar style="light" translucent />
       <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
-        <Text style={[styles.headerTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+        {/* Glassmorphic Background Effects */}
+        <View style={styles.glassOverlay} />
+        <View style={styles.glassHighlight} />
+
+        <Text style={styles.headerTitle}>
           {t('my_subscriptions')}
         </Text>
+        <TouchableOpacity
+          style={[styles.headerShortcutBtn, { [isRTL ? 'left' : 'right']: Spacing.md }]}
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/activate');
+          }}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="card-outline" size={22} color={Colors.white} />
+        </TouchableOpacity>
       </View>
       <FlatList
         data={subscriptions as SubscriptionWithRoute[]}
@@ -589,18 +617,50 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   headerBanner: {
-    backgroundColor: '#EFECE9',
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E6E2DE',
-    ...Shadow.sm,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: '#054024',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 5,
     zIndex: 10,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  glassOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: '#0A5C36',
+  },
+  glassHighlight: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.22)',
   },
   headerTitle: {
     fontFamily: FontFamily.bold,
-    fontSize: 22,
-    color: Colors.text,
+    fontSize: 16,
+    color: Colors.white,
+    zIndex: 2,
+    textAlign: 'center',
+    width: '100%',
+  },
+  headerShortcutBtn: {
+    position: 'absolute',
+    bottom: 12,
+    zIndex: 3,
+    padding: 6,
   },
   center: {
     flex: 1,

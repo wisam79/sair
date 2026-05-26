@@ -60,6 +60,7 @@ jobs:
         run: |
           supabase functions deploy trip-engine --project-ref "$PROJECT_REF"
           supabase functions deploy send-notification --project-ref "$PROJECT_REF"
+          supabase functions deploy log-error --project-ref "$PROJECT_REF"
           supabase functions deploy zaincash-checkout --project-ref "$PROJECT_REF"
           supabase functions deploy zaincash-webhook --project-ref "$PROJECT_REF"
 

@@ -267,7 +267,7 @@ export default function BookingScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
       {/* Loading */}
       {isLoading && (
@@ -302,6 +302,10 @@ export default function BookingScreen() {
               isRTL && { flexDirection: 'row-reverse' },
             ]}
           >
+            {/* Glassmorphic Background Effects */}
+            <View style={styles.glassOverlay} />
+            <View style={styles.glassHighlight} />
+
             <TouchableOpacity
               style={styles.headerBackBtn}
               onPress={() => {
@@ -312,10 +316,20 @@ export default function BookingScreen() {
               <Ionicons
                 name={isRTL ? 'arrow-forward' : 'arrow-back'}
                 size={24}
-                color={Colors.text}
+                color={Colors.white}
               />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>{t('route_details')}</Text>
+            <TouchableOpacity
+              style={[styles.headerShortcutBtn, { [isRTL ? 'left' : 'right']: Spacing.md }]}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/help');
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="help-circle-outline" size={22} color={Colors.white} />
+            </TouchableOpacity>
           </View>
 
           <ScrollView
@@ -324,6 +338,36 @@ export default function BookingScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
+            {/* Step Progress Indicator */}
+            <View style={[styles.stepIndicatorContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={[styles.stepRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={styles.stepItem}>
+                  <View style={[styles.stepDot, styles.stepDotActive]}>
+                    <Ionicons name="checkmark" size={12} color={Colors.white} />
+                  </View>
+                  <Text style={styles.stepLabelActive}>{isRTL ? 'تحديد الموقع' : 'Location'}</Text>
+                </View>
+
+                <View style={[styles.stepLine, styles.stepLineActive]} />
+
+                <View style={styles.stepItem}>
+                  <View style={[styles.stepDot, styles.stepDotActive]}>
+                    <Ionicons name="checkmark" size={12} color={Colors.white} />
+                  </View>
+                  <Text style={styles.stepLabelActive}>{isRTL ? 'تحديد السعر' : 'Price'}</Text>
+                </View>
+
+                <View style={[styles.stepLine, styles.stepLineActive]} />
+
+                <View style={styles.stepItem}>
+                  <View style={[styles.stepDot, styles.stepDotCurrent]}>
+                    <Text style={styles.stepDotText}>3</Text>
+                  </View>
+                  <Text style={styles.stepLabelCurrent}>{isRTL ? 'تأكيد الطلب' : 'Confirm'}</Text>
+                </View>
+              </View>
+            </View>
+
             <Animated.View
               style={[
                 styles.ticketContainer,
@@ -347,9 +391,9 @@ export default function BookingScreen() {
                   style={[styles.routePathContainer, isRTL && { flexDirection: 'row-reverse' }]}
                 >
                   <View style={styles.timelineTrack}>
-                    <Ionicons name="radio-button-on" size={18} color={Colors.primary} />
+                    <Ionicons name="radio-button-on" size={18} color="#0A5C36" />
                     <View style={styles.verticalConnector} />
-                    <Ionicons name="location" size={20} color={Colors.secondary} />
+                    <Ionicons name="location" size={20} color="#EF4444" />
                   </View>
                   <View style={[styles.routeDetails, isRTL && { alignItems: 'flex-end' }]}>
                     <View style={[styles.stopContainer, isRTL && { flexDirection: 'row-reverse' }]}>
@@ -410,7 +454,7 @@ export default function BookingScreen() {
                 {/* Stats Strip */}
                 <View style={[styles.statsStrip, isRTL && { flexDirection: 'row-reverse' }]}>
                   <View style={styles.statCol}>
-                    <Ionicons name="cash-outline" size={18} color={Colors.primary} />
+                    <Ionicons name="cash-outline" size={18} color="#0A5C36" />
                     <Text style={styles.statLabel}>{t('price')}</Text>
                     <Text style={styles.statValue}>
                       {route.price.toLocaleString()} {t('currency')}
@@ -418,7 +462,7 @@ export default function BookingScreen() {
                   </View>
                   <View style={styles.statDivider} />
                   <View style={styles.statCol}>
-                    <Ionicons name="people-outline" size={18} color={Colors.primary} />
+                    <Ionicons name="people-outline" size={18} color="#0A5C36" />
                     <Text style={styles.statLabel}>{t('seats_unit')}</Text>
                     <Text style={styles.statValue}>
                       {route.available_seats} / {route.capacity}
@@ -428,7 +472,7 @@ export default function BookingScreen() {
                     <>
                       <View style={styles.statDivider} />
                       <View style={styles.statCol}>
-                        <Ionicons name="time-outline" size={18} color={Colors.primary} />
+                        <Ionicons name="time-outline" size={18} color="#0A5C36" />
                         <Text style={styles.statLabel}>{t('departure')}</Text>
                         <Text style={styles.statValue}>{route.departure_time.substring(0, 5)}</Text>
                       </View>
@@ -484,7 +528,7 @@ export default function BookingScreen() {
                     <Ionicons
                       name={isRTL ? 'chevron-back' : 'chevron-forward'}
                       size={14}
-                      color={Colors.primary}
+                      color="#0A5C36"
                     />
                   </TouchableOpacity>
                 </View>
@@ -610,13 +654,34 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    backgroundColor: '#EFECE9',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E6E2DE',
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    ...Shadow.sm,
+    shadowColor: '#054024',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 5,
     zIndex: 10,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  glassOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: '#0A5C36',
+  },
+  glassHighlight: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.22)',
   },
   headerBackBtn: {
     padding: 6,
@@ -628,9 +693,75 @@ const styles = StyleSheet.create({
     right: 0,
     textAlign: 'center',
     fontFamily: FontFamily.bold,
-    fontSize: 18,
-    color: Colors.text,
+    fontSize: 16,
+    color: Colors.white,
     zIndex: 1,
+  },
+  headerShortcutBtn: {
+    position: 'absolute',
+    bottom: 12,
+    zIndex: 3,
+    padding: 6,
+  },
+  // Step Progress Indicator
+  stepIndicatorContainer: {
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderWidth: 1,
+    borderColor: '#E6E3DE',
+    marginBottom: Spacing.md,
+    ...Shadow.sm,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  stepItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  stepDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surfaceMuted,
+  },
+  stepDotActive: {
+    backgroundColor: '#0A5C36',
+  },
+  stepDotCurrent: {
+    backgroundColor: '#0A5C36',
+  },
+  stepDotText: {
+    fontFamily: FontFamily.bold,
+    fontSize: 11,
+    color: Colors.white,
+  },
+  stepLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.border,
+    marginHorizontal: 8,
+  },
+  stepLineActive: {
+    backgroundColor: '#0A5C36',
+  },
+  stepLabelActive: {
+    fontFamily: FontFamily.medium,
+    fontSize: 12,
+    color: '#0A5C36',
+  },
+  stepLabelCurrent: {
+    fontFamily: FontFamily.bold,
+    fontSize: 12,
+    color: '#0A5C36',
   },
   // Ticket Design
   ticketContainer: {
@@ -644,7 +775,7 @@ const styles = StyleSheet.create({
   },
   ticketAccent: {
     height: 6,
-    backgroundColor: Colors.primary,
+    backgroundColor: '#0A5C36',
   },
   ticketContent: {
     padding: Spacing.xl,
@@ -669,7 +800,9 @@ const styles = StyleSheet.create({
   verticalConnector: {
     width: 2,
     flex: 1,
-    backgroundColor: Colors.border,
+    borderWidth: 1,
+    borderColor: '#E6E3DE',
+    borderStyle: 'dashed',
     marginVertical: 4,
   },
   routeDetails: {
@@ -743,11 +876,11 @@ const styles = StyleSheet.create({
   // Stats Strip
   statsStrip: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(194, 112, 62, 0.04)', // Warm tinted translucent card
+    backgroundColor: 'rgba(10, 92, 54, 0.03)', // Premium green tinted translucent card
     borderRadius: BorderRadius.lg,
     paddingVertical: Spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(194, 112, 62, 0.08)',
+    borderColor: 'rgba(10, 92, 54, 0.15)',
     marginBottom: Spacing.xl,
   },
   statCol: {
@@ -767,7 +900,7 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    backgroundColor: 'rgba(194, 112, 62, 0.15)', // Softer divider
+    backgroundColor: 'rgba(10, 92, 54, 0.15)', // Premium green divider
     height: '60%',
     alignSelf: 'center',
   },
@@ -789,7 +922,7 @@ const styles = StyleSheet.create({
   progressBarValue: {
     fontFamily: FontFamily.bold,
     fontSize: 13,
-    color: Colors.primary,
+    color: '#0A5C36',
   },
   progressTrack: {
     height: 8,
@@ -818,7 +951,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.primary,
+    backgroundColor: '#0A5C36',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
@@ -859,22 +992,22 @@ const styles = StyleSheet.create({
     gap: 2,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.primarySurface,
+    backgroundColor: 'rgba(10, 92, 54, 0.05)',
     borderRadius: BorderRadius.pill,
   },
   driverDetailText: {
     fontFamily: FontFamily.bold,
     fontSize: 12,
-    color: Colors.primary,
+    color: '#0A5C36',
   },
   // CTA buttons
   bookButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: '#0A5C36',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: Spacing.xl,
-    borderRadius: BorderRadius.lg,
+    borderRadius: 10,
     marginTop: Spacing.xl,
     ...Shadow.md,
   },
@@ -888,7 +1021,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
   },
   zainCashBtn: {
-    backgroundColor: '#C2703E',
+    backgroundColor: '#0A5C36',
     marginTop: Spacing.md,
   },
 });

@@ -16,9 +16,9 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
       palette: {
         mode,
         primary: {
-          main: isDark ? '#D4845A' : '#C2703E', // Sair Earthy Orange
-          light: isDark ? '#FDF0E8' : '#D4845A',
-          dark: isDark ? '#C2703E' : '#A85C2E',
+          main: isDark ? '#4ADE80' : '#16A34A', // Sair Premium Green
+          light: isDark ? '#F0FDF4' : '#4ADE80',
+          dark: isDark ? '#16A34A' : '#15803D',
           contrastText: '#ffffff',
         },
         secondary: {
@@ -37,20 +37,20 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
           main: isDark ? '#fbbf24' : '#f59e0b',
         },
         info: {
-          main: isDark ? '#D4845A' : '#C2703E',
+          main: isDark ? '#4ADE80' : '#16A34A',
         },
         background: {
-          default: isDark ? '#1A1A1A' : '#F5F2EF', // Sair Warm Off-white / Charcoal
-          paper: isDark ? '#2D2D2D' : '#ffffff', // Sair Surface / Paper
+          default: isDark ? '#161616' : '#F7F5F2', // Sair Warm Off-white / Charcoal
+          paper: isDark ? '#242424' : '#ffffff', // Sair Surface / Paper
         },
         text: {
           primary: isDark ? '#ffffff' : '#1A1A1A',
           secondary: isDark ? '#A8A8A8' : '#555555',
         },
-        divider: isDark ? '#3D3D3D' : '#E0DDD8', // Sair Warm Border
+        divider: isDark ? '#2D2D2D' : '#E8E5E0', // Sair Warm Border
       },
       typography: {
-        fontFamily: "var(--font-ibm-arabic), 'Inter', system-ui, -apple-system, sans-serif",
+        fontFamily: "var(--font-noto-arabic), 'Inter', system-ui, -apple-system, sans-serif",
         fontWeightLight: 300,
         fontWeightRegular: 400,
         fontWeightMedium: 500,
@@ -90,8 +90,8 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
         MuiCssBaseline: {
           styleOverrides: {
             body: {
-              fontFamily: "var(--font-ibm-arabic), 'Inter', system-ui, -apple-system, sans-serif",
-              backgroundColor: isDark ? '#1A1A1A' : '#F5F2EF',
+              fontFamily: "var(--font-noto-arabic), 'Inter', system-ui, -apple-system, sans-serif",
+              backgroundColor: isDark ? '#161616' : '#F7F5F2',
               color: isDark ? '#ffffff' : '#1A1A1A',
               transition: 'background-color 0.2s ease, color 0.2s ease',
               '::-webkit-scrollbar': {
@@ -115,13 +115,13 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
           styleOverrides: {
             root: {
               borderRadius: 8,
-              backgroundColor: isDark ? '#2D2D2D' : '#ffffff',
+              backgroundColor: isDark ? '#242424' : '#ffffff',
               backgroundImage: 'none',
-              boxShadow: isDark ? '0 1px 3px rgba(0,0,0,0.2)' : '0 1px 3px rgba(15,23,42,0.05)',
-              border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
+              boxShadow: isDark ? '0 1px 3px rgba(0,0,0,0.2)' : '0 1px 3px rgba(15,23,42,0.03)',
+              border: `1px solid ${isDark ? '#2D2D2D' : '#E8E5E0'}`,
               transition: 'all 0.2s ease',
               '&:hover': {
-                borderColor: isDark ? '#3D3D3D' : '#E0DDD8',
+                borderColor: isDark ? '#2D2D2D' : '#E8E5E0',
                 boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(15,23,42,0.05)',
               },
             },
@@ -168,10 +168,10 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
           styleOverrides: {
             root: {
               '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: isDark ? '#3D3D3D' : '#E0DDD8',
+                borderColor: isDark ? '#2D2D2D' : '#E8E5E0',
               },
               '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: isDark ? '#D4845A' : '#C2703E',
+                borderColor: isDark ? '#4ADE80' : '#16A34A',
                 borderWidth: '1.5px',
               },
             },
@@ -188,15 +188,15 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
         MuiDataGrid: {
           styleOverrides: {
             root: {
-              border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
+              border: `1px solid ${isDark ? '#2D2D2D' : '#E8E5E0'}`,
               borderRadius: 8,
-              backgroundColor: isDark ? '#2D2D2D' : '#ffffff',
-              fontFamily: "var(--font-ibm-arabic), 'Inter', system-ui, sans-serif",
+              backgroundColor: isDark ? '#242424' : '#ffffff',
+              fontFamily: "var(--font-noto-arabic), 'Inter', system-ui, sans-serif",
               color: isDark ? '#ffffff' : '#1A1A1A',
               '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: isDark ? '#1A1A1A' : '#F5F2EF',
+                backgroundColor: isDark ? '#161616' : '#F7F5F2',
                 borderRadius: '8px 8px 0 0',
-                borderBottom: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
+                borderBottom: `1px solid ${isDark ? '#2D2D2D' : '#E8E5E0'}`,
               },
               '& .MuiDataGrid-columnHeaderTitle': {
                 fontWeight: 600,
@@ -206,20 +206,69 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
                 letterSpacing: '0.05em',
               },
               '& .MuiDataGrid-row': {
-                borderBottom: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
-                transition: 'background-color 0.15s ease',
+                borderBottom: `2px solid ${isDark ? '#2D2D2D' : '#E5E1D8'}`,
+                transition: 'all 0.15s ease',
+                '&:nth-of-type(odd)': {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.015)' : 'rgba(15,23,42,0.015)',
+                },
+                '&:nth-of-type(even)': {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.003)' : 'rgba(15,23,42,0.002)',
+                },
                 '&:hover': {
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)',
+                  backgroundColor: isDark ? 'rgba(74,222,128,0.06) !important' : 'rgba(22,163,74,0.04) !important',
+                  transform: 'translateY(-1px)',
+                  boxShadow: isDark ? '0 4px 12px rgba(0, 0, 0, 0.15)' : '0 4px 12px rgba(15, 23, 42, 0.02)',
                 },
               },
               '& .MuiDataGrid-cell': {
-                borderColor: isDark ? '#3D3D3D' : '#E0DDD8',
+                borderColor: isDark ? '#2D2D2D' : '#E8E5E0',
                 '&:focus': { outline: 'none' },
                 '&:focus-within': { outline: 'none' },
               },
+              '& .MuiDataGrid-toolbarContainer': {
+                padding: '10px 16px',
+                gap: '12px',
+                borderBottom: `1px solid ${isDark ? '#2D2D2D' : '#E8E5E0'}`,
+                backgroundColor: isDark ? '#1d1d1d' : '#fafafa',
+                display: 'flex',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                '& .MuiButton-root': {
+                  color: isDark ? '#4ADE80' : '#16A34A',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  fontFamily: "var(--font-noto-arabic), 'Inter', sans-serif",
+                  borderRadius: 1.5,
+                  padding: '4px 10px',
+                  transition: 'all 0.15s ease',
+                  '&:hover': {
+                    backgroundColor: isDark ? 'rgba(74,222,128,0.08)' : 'rgba(22,163,74,0.06)',
+                  },
+                  '& svg': {
+                    width: 16,
+                    height: 16,
+                  },
+                },
+                '& .MuiTextField-root': {
+                  marginLeft: 'auto',
+                  minWidth: 200,
+                  '& .MuiInputBase-root': {
+                    borderRadius: 2,
+                    fontSize: '0.8rem',
+                    backgroundColor: isDark ? '#161616' : '#ffffff',
+                    border: `1px solid ${isDark ? '#2D2D2D' : '#E8E5E0'}`,
+                    '&.Mui-focused': {
+                      borderColor: isDark ? '#4ADE80' : '#16A34A',
+                    },
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: 'none',
+                    },
+                  },
+                },
+              },
               '& .MuiDataGrid-footerContainer': {
-                borderTop: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
-                backgroundColor: isDark ? '#1A1A1A' : '#F5F2EF',
+                borderTop: `1px solid ${isDark ? '#2D2D2D' : '#E8E5E0'}`,
+                backgroundColor: isDark ? '#161616' : '#F7F5F2',
               },
             },
           },
@@ -228,7 +277,7 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
           styleOverrides: {
             head: {
               fontWeight: 600,
-              backgroundColor: isDark ? '#1A1A1A' : '#F5F2EF',
+              backgroundColor: isDark ? '#161616' : '#F7F5F2',
               color: isDark ? '#A8A8A8' : '#555555',
               fontSize: '0.75rem',
               textTransform: 'uppercase',
@@ -240,7 +289,7 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
           styleOverrides: {
             root: {
               borderRadius: 8,
-              backgroundColor: isDark ? '#2D2D2D' : '#ffffff',
+              backgroundColor: isDark ? '#242424' : '#ffffff',
               backgroundImage: 'none',
             },
           },
@@ -305,7 +354,7 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
           styleOverrides: {
             paper: {
               borderRadius: 8,
-              border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
+              border: `1px solid ${isDark ? '#2D2D2D' : '#E8E5E0'}`,
               boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
             },
           },

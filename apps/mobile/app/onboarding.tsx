@@ -10,7 +10,7 @@ import {
   FlatList,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Colors, FontFamily, Spacing, BorderRadius, Typography } from '../src/theme';
+import { Colors, FontFamily, Spacing, BorderRadius, Typography, Shadow } from '../src/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../src/hooks/useTranslation';
 
@@ -62,7 +62,9 @@ export default function OnboardingScreen() {
 
   const handleNext = () => {
     if (currentIndex < SLIDES.length - 1) {
-      slidesRef.current?.scrollToIndex({ index: currentIndex + 1 });
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+      slidesRef.current?.scrollToIndex({ index: nextIndex });
     } else {
       setHasSeenOnboarding(true);
       router.replace('/login');
@@ -97,7 +99,7 @@ export default function OnboardingScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
-      <View style={[styles.skipContainer, { paddingTop: top }]}>
+      <View style={[styles.skipContainer, { paddingTop: top, alignItems: isRTL ? 'flex-start' : 'flex-end' }]}>
         <TouchableOpacity onPress={handleSkip}>
           <Text style={styles.skipText}>{t('skip')}</Text>
         </TouchableOpacity>
@@ -164,42 +166,44 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   skipContainer: {
-    paddingTop: 60,
     paddingHorizontal: Spacing.xl,
-    alignItems: 'flex-start',
+    alignItems: 'flex-end', // will be overridden in component if RTL, but default right-aligned
   },
   skipText: {
-    fontFamily: FontFamily.medium,
-    fontSize: 16,
+    fontFamily: FontFamily.bold,
+    fontSize: 15,
     color: Colors.textMuted,
+    letterSpacing: 0.5,
   },
   slide: {
     width,
     alignItems: 'center',
     paddingHorizontal: Spacing.xl,
-    paddingTop: 50,
+    paddingTop: 40,
   },
   iconGlowContainer: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
+    width: 190,
+    height: 190,
+    borderRadius: BorderRadius.circle,
     backgroundColor: Colors.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 50,
+    marginBottom: 40,
+    borderWidth: 1,
+    borderColor: Colors.primary + '15',
   },
   iconCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 148,
+    height: 148,
+    borderRadius: BorderRadius.circle,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.28,
+    shadowRadius: 16,
+    elevation: 8,
   },
   title: {
     fontFamily: FontFamily.bold,
@@ -207,13 +211,14 @@ const styles = StyleSheet.create({
     color: Colors.secondary,
     marginBottom: Spacing.md,
     textAlign: 'center',
+    letterSpacing: -0.5,
   },
   description: {
     fontFamily: FontFamily.regular,
     fontSize: 15,
     color: Colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 23,
     paddingHorizontal: Spacing.lg,
   },
   footer: {
@@ -235,20 +240,17 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: Colors.primary,
-    paddingVertical: Spacing.lg,
-    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.md + 4,
+    borderRadius: BorderRadius.pill,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    ...Shadow.glow,
   },
   buttonText: {
     fontFamily: FontFamily.bold,
-    fontSize: 17,
+    fontSize: 16,
     color: Colors.white,
+    letterSpacing: 0.3,
   },
 });

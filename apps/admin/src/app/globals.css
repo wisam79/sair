@@ -2,12 +2,12 @@
 
 /* ─── CSS Custom Properties ─────────────────────────────────────────────── */
 :root {
-  --glow-orange: rgba(194, 112, 62, 0.5);
+  --glow-orange: rgba(249, 115, 22, 0.45);
   --glow-purple: rgba(139, 92, 246, 0.4);
   --glow-emerald: rgba(16, 185, 129, 0.4);
   --glow-amber: rgba(245, 158, 11, 0.4);
-  --gradient-brand: linear-gradient(135deg, #C2703E 0%, #D4845A 50%, #A85C2E 100%);
-  --gradient-hero: linear-gradient(135deg, #2D2D2D 0%, #C2703E 50%, #A85C2E 100%);
+  --gradient-brand: linear-gradient(135deg, #0A5C36 0%, #16A34A 50%, #4ADE80 100%);
+  --gradient-hero: linear-gradient(135deg, #161616 0%, #0A5C36 50%, #16A34A 100%);
   --glass-bg-light: rgba(255, 255, 255, 0.72);
   --glass-bg-dark: rgba(17, 24, 39, 0.68);
   --glass-border-light: rgba(255, 255, 255, 0.5);
@@ -26,9 +26,9 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Alyamama Variable', 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-noto-arabic), 'Inter', system-ui, -apple-system, sans-serif;
   color: #111827;
-  background: #F5F2EF;
+  background: #F7F5F2;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "ss01" on, "cv01" on;
@@ -97,26 +97,38 @@ body {
 }
 
 /* ─── Glow Pulse (Active Nav Items) ──────────────────────────────────────── */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 4px var(--glow-emerald); }
+  50% { box-shadow: 0 0 16px var(--glow-emerald); }
+}
 .glow-active {
-  /* Disabled glow animation */
+  animation: glowPulse 2s infinite ease-in-out;
 }
 
 /* ─── Floating Animation (Login Orbs) ────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(2deg); }
+}
 .float-slow {
-  /* Disabled floating animation */
+  animation: float 8s ease-in-out infinite;
 }
 .float-medium {
-  /* Disabled floating animation */
+  animation: float 6s ease-in-out infinite;
 }
 .float-fast {
-  /* Disabled floating animation */
+  animation: float 4s ease-in-out infinite;
 }
 
 /* ─── Rotate on Hover ────────────────────────────────────────────────────── */
 
 /* ─── Border Glow (Login Card) ───────────────────────────────────────────── */
+@keyframes borderGlow {
+  0%, 100% { border-color: rgba(22, 163, 74, 0.2); }
+  50% { border-color: rgba(22, 163, 74, 0.6); }
+}
 .border-glow {
-  /* Disabled border glow animation */
+  animation: borderGlow 4s infinite ease-in-out;
 }
 
 /* ─── Counter Animation ──────────────────────────────────────────────────── */
@@ -129,8 +141,12 @@ body {
 }
 
 /* ─── Logo Pulse (Login) ─────────────────────────────────────────────────── */
+@keyframes logoPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0px rgba(22, 163, 74, 0)); }
+  50% { transform: scale(1.04); filter: drop-shadow(0 0 8px rgba(22, 163, 74, 0.35)); }
+}
 .logo-pulse {
-  /* Disabled logo pulse animation */
+  animation: logoPulse 3s infinite ease-in-out;
 }
 
 /* ─── Sidebar Gradient Animation ─────────────────────────────────────────── */
@@ -154,14 +170,14 @@ body {
 /* ─── Grid Pattern Background (Login) ────────────────────────────────────── */
 .grid-pattern {
   background-image:
-    linear-gradient(rgba(194, 112, 62, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(194, 112, 62, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(22, 163, 74, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 163, 74, 0.03) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 .grid-pattern-dark {
   background-image:
-    linear-gradient(rgba(194, 112, 62, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(194, 112, 62, 0.06) 1px, transparent 1px);
+    linear-gradient(rgba(22, 163, 74, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 163, 74, 0.06) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
@@ -182,9 +198,9 @@ body {
   height: 2px;
   background: linear-gradient(90deg,
     transparent 0%,
-    rgba(194, 112, 62, 0.5) 20%,
-    rgba(212, 132, 90, 0.5) 50%,
-    rgba(168, 92, 46, 0.5) 80%,
+    rgba(22, 163, 74, 0.5) 20%,
+    rgba(74, 222, 128, 0.5) 50%,
+    rgba(10, 92, 54, 0.5) 80%,
     transparent 100%
   );
   opacity: 0.6;
@@ -241,3 +257,69 @@ body {
 .stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
 .stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
 .stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
+
+/* ─── Custom Leaflet Map Markers ────────────────────────────────────────── */
+.custom-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 32px;
+  height: 32px;
+}
+
+.marker-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: white;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+  border: 2px solid white;
+  z-index: 2;
+  transition: transform 0.15s ease-in-out;
+}
+
+.custom-marker:hover .marker-icon-wrapper {
+  transform: scale(1.15);
+}
+
+.start-marker .marker-icon-wrapper {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%); /* Green gradient */
+}
+
+.end-marker .marker-icon-wrapper {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); /* Red gradient */
+}
+
+.marker-pulse {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  z-index: 1;
+  opacity: 0.4;
+  animation: markerGlow 2s infinite ease-out;
+  pointer-events: none;
+}
+
+.start-marker .marker-pulse {
+  background: rgba(16, 185, 129, 0.4);
+}
+
+.end-marker .marker-pulse {
+  background: rgba(239, 68, 68, 0.4);
+}
+
+@keyframes markerGlow {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}

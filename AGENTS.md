@@ -205,9 +205,9 @@ export const LicenseSchema = z.object({
 | القاعدة                                          | التوضيح                                    |
 | ------------------------------------------------ | ------------------------------------------ |
 | `in_transit` → `absent`                          | **ممنوع!** لا يمكن تسجيل غياب بعد الانطلاق |
-| `in_transit` → `cancelled`                       | **مسموح** (حالات الطوارئ فقط)              |
+| `in_transit` → `cancelled`                       | **مسموح للأدمن فقط** (حالات الطوارئ)              |
 | `absent` → `cancelled`                           | **مسموح**                                  |
-| Admin يمكنه إلغاء `scheduled` و `driver_waiting` | لا يمكنه إلغاء `in_transit`                |
+| Admin يمكنه إلغاء `scheduled`, `driver_waiting`, `in_transit` | `in_transit` ← `cancelled` مسموح للأدمن فقط (حالات الطوارئ) |
 
 ---
 
@@ -459,4 +459,4 @@ const renderItem = useCallback(({ item }) => <Text>{item.name}</Text>, []);
 
 ---
 
-**آخر تحديث**: 2026-05-24
+**آخر تحديث**: 2026-05-26

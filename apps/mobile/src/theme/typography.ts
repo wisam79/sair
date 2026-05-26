@@ -4,9 +4,9 @@
  */
 
 export const FontFamily = {
-  regular: 'IBMPlexSansArabic_400Regular',
-  medium: 'IBMPlexSansArabic_500Medium',
-  bold: 'IBMPlexSansArabic_700Bold',
+  regular: 'NotoSansArabic_400Regular',
+  medium: 'NotoSansArabic_500Medium',
+  bold: 'NotoSansArabic_700Bold',
   logo: 'Gulzar_400Regular',
 } as const;
 
