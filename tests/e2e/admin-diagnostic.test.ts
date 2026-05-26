@@ -59,6 +59,7 @@ test.describe('Admin Dashboard Diagnostics & UX Review', () => {
   });
 
   test('Navigate consolidated pages, check load times, check console logs, and take screenshots', async ({ page }) => {
+    test.setTimeout(240000); // 4 minutes to allow slow dev compilations in CI
     const reportDir = path.resolve(__dirname, '../../test-results/admin-diagnostic');
     fs.mkdirSync(reportDir, { recursive: true });
 
