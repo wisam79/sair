@@ -80,7 +80,7 @@ const I18nProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
         },
         {
           name: 'license_batches',
-          list: '/license_batches',
+          list: '/licenses?tab=batches',
           create: '/license_batches/create',
           meta: { label: t('license_batches.titles.list', 'License Batches') },
         },
@@ -99,17 +99,17 @@ const I18nProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
         },
         {
           name: 'driver_payouts',
-          list: '/payouts',
+          list: '/finance?tab=payouts',
           meta: { label: t('payouts.title', 'Payouts') },
         },
         {
           name: 'ratings',
-          list: '/ratings',
+          list: '/finance?tab=ratings',
           meta: { label: t('ratings.titles.list', 'Ratings') },
         },
         {
           name: 'feature_flags',
-          list: '/feature-flags',
+          list: '/settings?tab=flags',
           meta: { label: t('feature_flags.titles.list', 'Feature Flags') },
         },
       ]}

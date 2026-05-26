@@ -153,9 +153,9 @@ export default function LandingPage() {
       className="grid-pattern-dark"
       sx={{
         minHeight: '100vh',
-        bgcolor: '#1E1C1A',
+        bgcolor: '#0B2418',
         color: '#f8fafc',
-        fontFamily: 'var(--font-ibm-arabic), sans-serif',
+        fontFamily: 'var(--font-noto-arabic), sans-serif',
         overflowX: 'hidden',
         position: 'relative',
         direction: isRtl ? 'rtl' : 'ltr',
@@ -171,7 +171,7 @@ export default function LandingPage() {
           width: '550px',
           height: '550px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(194,112,62,0.2) 0%, rgba(0,0,0,0) 70%)',
+          background: 'radial-gradient(circle, rgba(22,163,74,0.2) 0%, rgba(0,0,0,0) 70%)',
           filter: 'blur(90px)',
           zIndex: 0,
           pointerEvents: 'none',
@@ -186,7 +186,7 @@ export default function LandingPage() {
           width: '650px',
           height: '650px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(212,132,90,0.12) 0%, rgba(0,0,0,0) 70%)',
+          background: 'radial-gradient(circle, rgba(74,222,128,0.12) 0%, rgba(0,0,0,0) 70%)',
           filter: 'blur(110px)',
           zIndex: 0,
           pointerEvents: 'none',
@@ -196,9 +196,9 @@ export default function LandingPage() {
       {/* Navigation Header */}
       <Box
         sx={{
-          borderBottom: '1px solid rgba(194, 112, 62, 0.12)',
+          borderBottom: '1px solid rgba(22, 163, 74, 0.12)',
           backdropFilter: 'blur(20px)',
-          bgcolor: 'rgba(30, 28, 26, 0.85)',
+          bgcolor: 'rgba(11, 36, 24, 0.85)',
           position: 'sticky',
           top: 0,
           zIndex: 100,
@@ -219,11 +219,11 @@ export default function LandingPage() {
                   width: 38,
                   height: 38,
                   borderRadius: 2,
-                  bgcolor: '#C2703E',
+                  bgcolor: '#16A34A',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 0 24px rgba(194, 112, 62, 0.6)',
+                  boxShadow: '0 0 24px rgba(22, 163, 74, 0.6)',
                 }}
               >
                 <DirectionsBusIcon sx={{ color: '#fff', fontSize: 20 }} />
@@ -240,8 +240,8 @@ export default function LandingPage() {
                 onClick={toggleLanguage}
                 startIcon={<TranslateIcon sx={{ fontSize: 16 }} />}
                 sx={{
-                  color: '#D4845A',
-                  borderColor: 'rgba(212, 132, 90, 0.35)',
+                  color: '#4ADE80',
+                  borderColor: 'rgba(74, 222, 128, 0.35)',
                   borderRadius: 2,
                   px: 2.2,
                   py: 0.8,
@@ -249,8 +249,8 @@ export default function LandingPage() {
                   textTransform: 'none',
                   transition: 'all 0.2s ease',
                   '&:hover': {
-                    borderColor: '#D4845A',
-                    bgcolor: 'rgba(212, 132, 90, 0.08)',
+                    borderColor: '#4ADE80',
+                    bgcolor: 'rgba(74, 222, 128, 0.08)',
                     transform: 'translateY(-1px)',
                   },
                 }}
@@ -268,7 +268,7 @@ export default function LandingPage() {
                     display: { xs: 'none', sm: 'inline-flex' },
                     transition: 'all 0.2s ease',
                     '&:hover': {
-                      color: '#D4845A',
+                      color: '#4ADE80',
                       bgcolor: 'transparent',
                       transform: 'translateY(-1px)',
                     },
@@ -283,18 +283,18 @@ export default function LandingPage() {
                   variant="contained"
                   startIcon={<LoginIcon sx={{ fontSize: 16 }} />}
                   sx={{
-                    bgcolor: '#C2703E',
+                    bgcolor: '#16A34A',
                     color: '#fff',
                     borderRadius: 2.5,
                     px: 3,
                     fontSize: '0.85rem',
                     fontWeight: 700,
                     textTransform: 'none',
-                    boxShadow: '0 4px 16px rgba(194, 112, 62, 0.4)',
+                    boxShadow: '0 4px 16px rgba(22, 163, 74, 0.4)',
                     transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                     '&:hover': {
-                      bgcolor: '#A85C2E',
-                      boxShadow: '0 6px 22px rgba(194, 112, 62, 0.55)',
+                      bgcolor: '#15803D',
+                      boxShadow: '0 6px 22px rgba(22, 163, 74, 0.55)',
                       transform: 'translateY(-2px)',
                     },
                   }}
@@ -322,12 +322,12 @@ export default function LandingPage() {
                     px: 2,
                     py: 0.8,
                     borderRadius: 5,
-                    bgcolor: 'rgba(194, 112, 62, 0.08)',
-                    border: '1px solid rgba(194, 112, 62, 0.25)',
+                    bgcolor: 'rgba(22, 163, 74, 0.08)',
+                    border: '1px solid rgba(22, 163, 74, 0.25)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 1,
-                    boxShadow: '0 4px 12px rgba(194, 112, 62, 0.05)',
+                    boxShadow: '0 4px 12px rgba(22, 163, 74, 0.05)',
                   }}
                 >
                   <Box
@@ -335,13 +335,13 @@ export default function LandingPage() {
                       width: 6,
                       height: 6,
                       borderRadius: '50%',
-                      bgcolor: '#D4845A',
+                      bgcolor: '#4ADE80',
                       className: 'live-dot',
                     }}
                   />
                   <Typography
                     variant="caption"
-                    sx={{ color: '#D4845A', fontWeight: 700, letterSpacing: 0.5 }}
+                    sx={{ color: '#4ADE80', fontWeight: 700, letterSpacing: 0.5 }}
                   >
                     {t.hero.badge}
                   </Typography>
@@ -362,12 +362,12 @@ export default function LandingPage() {
                 <Box
                   component="span"
                   sx={{
-                    background: 'linear-gradient(to right, #D4845A, #C2703E)',
+                    background: 'linear-gradient(to right, #4ADE80, #16A34A)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     display: 'inline-block',
                     position: 'relative',
-                    textShadow: '0 0 40px rgba(194, 112, 62, 0.15)',
+                    textShadow: '0 0 40px rgba(22, 163, 74, 0.15)',
                     '&::after': {
                       content: '""',
                       position: 'absolute',
@@ -376,7 +376,7 @@ export default function LandingPage() {
                       width: '100%',
                       height: '4px',
                       background:
-                        'linear-gradient(to right, rgba(212,132,90,0.6), rgba(194,112,62,0.6))',
+                        'linear-gradient(to right, rgba(74,222,128,0.6), rgba(22, 163, 74, 0.6))',
                       borderRadius: 2,
                     },
                   }}
@@ -413,11 +413,11 @@ export default function LandingPage() {
                     fontSize: '0.9rem',
                     fontWeight: 600,
                     textTransform: 'none',
-                    border: '1px solid rgba(194, 112, 62, 0.12)',
+                    border: '1px solid rgba(22, 163, 74, 0.12)',
                     transition: 'all 0.25s ease',
                     '&:hover': {
                       bgcolor: '#1E1E1E',
-                      borderColor: 'rgba(194, 112, 62, 0.35)',
+                      borderColor: 'rgba(22, 163, 74, 0.35)',
                       boxShadow: '0 8px 20px rgba(0, 0, 0, 0.4)',
                       transform: 'translateY(-3px)',
                     },
@@ -445,11 +445,11 @@ export default function LandingPage() {
                     fontSize: '0.9rem',
                     fontWeight: 600,
                     textTransform: 'none',
-                    border: '1px solid rgba(194, 112, 62, 0.12)',
+                    border: '1px solid rgba(22, 163, 74, 0.12)',
                     transition: 'all 0.25s ease',
                     '&:hover': {
                       bgcolor: '#1E1E1E',
-                      borderColor: 'rgba(194, 112, 62, 0.35)',
+                      borderColor: 'rgba(22, 163, 74, 0.35)',
                       boxShadow: '0 8px 20px rgba(0, 0, 0, 0.4)',
                       transform: 'translateY(-3px)',
                     },
@@ -481,7 +481,7 @@ export default function LandingPage() {
                 border: '4px solid #333130',
                 outline: '1px solid rgba(255, 255, 255, 0.08)',
                 boxShadow:
-                  '0 30px 70px -15px rgba(0, 0, 0, 0.9), 0 0 50px rgba(194, 112, 62, 0.18)',
+                  '0 30px 70px -15px rgba(0, 0, 0, 0.9), 0 0 50px rgba(22, 163, 74, 0.18)',
                 position: 'relative',
                 p: 3,
                 pt: 7,
@@ -580,8 +580,8 @@ export default function LandingPage() {
               {/* Glassmorphic live tracking card */}
               <Box
                 sx={{
-                  bgcolor: 'rgba(30, 28, 26, 0.75)',
-                  border: '1px solid rgba(194, 112, 62, 0.22)',
+                  bgcolor: 'rgba(11, 36, 24, 0.75)',
+                  border: '1px solid rgba(22, 163, 74, 0.22)',
                   borderRadius: '18px',
                   p: 2,
                   zIndex: 2,
@@ -601,14 +601,14 @@ export default function LandingPage() {
                         width: 6,
                         height: 6,
                         borderRadius: '50%',
-                        bgcolor: '#D4845A',
+                        bgcolor: '#4ADE80',
                         className: 'live-dot',
                       }}
                     />
                     <Typography
                       variant="caption"
                       fontWeight={700}
-                      color="#D4845A"
+                      color="#4ADE80"
                       sx={{ letterSpacing: 0.5 }}
                     >
                       {lang === 'ar' ? 'تتبع حي نشط' : 'Active Tracking'}
@@ -631,8 +631,8 @@ export default function LandingPage() {
                     width: '100%',
                     height: '100px',
                     borderRadius: '12px',
-                    bgcolor: '#1F1E1D',
-                    border: '1px solid rgba(194, 112, 62, 0.1)',
+                    bgcolor: '#0B2418',
+                    border: '1px solid rgba(22, 163, 74, 0.1)',
                     position: 'relative',
                     overflow: 'hidden',
                     display: 'flex',
@@ -649,14 +649,14 @@ export default function LandingPage() {
                     <path
                       d="M 30,70 Q 120,20 160,50 T 260,35"
                       fill="none"
-                      stroke="rgba(194, 112, 62, 0.2)"
+                      stroke="rgba(22, 163, 74, 0.2)"
                       strokeWidth="4"
                       strokeDasharray="6,6"
                     />
                     <path
                       d="M 30,70 Q 120,20 160,50"
                       fill="none"
-                      stroke="#C2703E"
+                      stroke="#16A34A"
                       strokeWidth="4"
                     />
                   </svg>
@@ -684,8 +684,8 @@ export default function LandingPage() {
                       width: 22,
                       height: 22,
                       borderRadius: '50%',
-                      bgcolor: '#C2703E',
-                      boxShadow: '0 0 16px #C2703E, 0 0 0 4px rgba(194,112,62,0.2)',
+                      bgcolor: '#16A34A',
+                      boxShadow: '0 0 16px #16A34A, 0 0 0 4px rgba(22,163,74,0.2)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -741,13 +741,13 @@ export default function LandingPage() {
                       width: 36,
                       height: 36,
                       borderRadius: 1.5,
-                      bgcolor: 'rgba(212, 132, 90, 0.1)',
+                      bgcolor: 'rgba(74, 222, 128, 0.1)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <SecurityIcon sx={{ color: '#D4845A', fontSize: 18 }} />
+                    <SecurityIcon sx={{ color: '#4ADE80', fontSize: 18 }} />
                   </Box>
                   <Box sx={{ flexGrow: 1 }}>
                     <Typography
@@ -799,9 +799,9 @@ export default function LandingPage() {
       {/* Features Section */}
       <Box
         sx={{
-          bgcolor: '#151413',
+          bgcolor: '#0B2418',
           py: { xs: 8, md: 12 },
-          borderTop: '1px solid rgba(194, 112, 62, 0.1)',
+          borderTop: '1px solid rgba(22, 163, 74, 0.1)',
         }}
       >
         <Container maxWidth="lg">
@@ -827,15 +827,15 @@ export default function LandingPage() {
                     className="card-shine"
                     sx={{
                       height: '100%',
-                      bgcolor: 'rgba(45, 43, 41, 0.45)',
-                      border: '1px solid rgba(194, 112, 62, 0.08)',
+                      bgcolor: 'rgba(11, 36, 24, 0.45)',
+                      border: '1px solid rgba(22, 163, 74, 0.08)',
                       borderRadius: 5,
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                       position: 'relative',
                       overflow: 'hidden',
                       '&:hover': {
                         transform: 'translateY(-8px)',
-                        borderColor: 'rgba(212, 132, 90, 0.3)',
+                        borderColor: 'rgba(74, 222, 128, 0.3)',
                         bgcolor: 'rgba(45, 43, 41, 0.75)',
                         boxShadow: '0 20px 45px -15px rgba(0, 0, 0, 0.7)',
                       },
@@ -868,8 +868,8 @@ export default function LandingPage() {
             p: { xs: 4, md: 8 },
             borderRadius: 6,
             background:
-              'linear-gradient(135deg, rgba(194, 112, 62, 0.16) 0%, rgba(21, 20, 19, 0.95) 100%)',
-            border: '1px solid rgba(194, 112, 62, 0.25)',
+              'linear-gradient(135deg, rgba(22, 163, 74, 0.16) 0%, rgba(11, 36, 24, 0.95) 100%)',
+            border: '1px solid rgba(22, 163, 74, 0.25)',
             boxShadow: '0 24px 60px -15px rgba(0, 0, 0, 0.8)',
             textAlign: 'center',
             position: 'relative',
@@ -886,7 +886,7 @@ export default function LandingPage() {
               width: '400px',
               height: '400px',
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(194,112,62,0.12) 0%, rgba(0,0,0,0) 60%)',
+              background: 'radial-gradient(circle, rgba(22,163,74,0.12) 0%, rgba(0,0,0,0) 60%)',
               filter: 'blur(60px)',
               pointerEvents: 'none',
             }}
@@ -910,7 +910,7 @@ export default function LandingPage() {
               <Button
                 variant="contained"
                 sx={{
-                  bgcolor: '#C2703E',
+                  bgcolor: '#16A34A',
                   color: '#fff',
                   px: 4.5,
                   py: 1.6,
@@ -918,11 +918,11 @@ export default function LandingPage() {
                   fontWeight: 700,
                   fontSize: '0.95rem',
                   textTransform: 'none',
-                  boxShadow: '0 4px 18px rgba(194, 112, 62, 0.45)',
+                  boxShadow: '0 4px 18px rgba(22, 163, 74, 0.45)',
                   transition: 'all 0.2s ease',
                   '&:hover': {
-                    bgcolor: '#A85C2E',
-                    boxShadow: '0 8px 24px rgba(194, 112, 62, 0.55)',
+                    bgcolor: '#15803D',
+                    boxShadow: '0 8px 24px rgba(22, 163, 74, 0.55)',
                     transform: 'translateY(-2px)',
                   },
                 }}
@@ -935,7 +935,7 @@ export default function LandingPage() {
       </Container>
 
       {/* Footer */}
-      <Box sx={{ borderTop: '1px solid rgba(194, 112, 62, 0.08)', bgcolor: '#151413', py: 6 }}>
+      <Box sx={{ borderTop: '1px solid rgba(22, 163, 74, 0.08)', bgcolor: '#0B2418', py: 6 }}>
         <Container maxWidth="lg">
           <Grid container spacing={4} sx={{ mb: 4 }}>
             <Grid item xs={12} md={6}>
@@ -946,7 +946,7 @@ export default function LandingPage() {
                       width: 32,
                       height: 32,
                       borderRadius: 1.5,
-                      bgcolor: '#C2703E',
+                      bgcolor: '#16A34A',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -986,7 +986,7 @@ export default function LandingPage() {
                         p: 0,
                         minWidth: 0,
                         transition: 'color 0.2s ease',
-                        '&:hover': { color: '#D4845A' },
+                        '&:hover': { color: '#4ADE80' },
                       }}
                     >
                       {t.footer.privacy}
@@ -1001,7 +1001,7 @@ export default function LandingPage() {
                         p: 0,
                         minWidth: 0,
                         transition: 'color 0.2s ease',
-                        '&:hover': { color: '#D4845A' },
+                        '&:hover': { color: '#4ADE80' },
                       }}
                     >
                       {t.footer.terms}
@@ -1016,7 +1016,7 @@ export default function LandingPage() {
                         p: 0,
                         minWidth: 0,
                         transition: 'color 0.2s ease',
-                        '&:hover': { color: '#D4845A' },
+                        '&:hover': { color: '#4ADE80' },
                       }}
                     >
                       {t.footer.support}
@@ -1027,7 +1027,7 @@ export default function LandingPage() {
             </Grid>
           </Grid>
 
-          <Divider sx={{ borderColor: 'rgba(194, 112, 62, 0.08)', mb: 3 }} />
+          <Divider sx={{ borderColor: 'rgba(22, 163, 74, 0.08)', mb: 3 }} />
 
           <Typography
             variant="caption"

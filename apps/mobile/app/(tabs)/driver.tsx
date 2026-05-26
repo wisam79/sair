@@ -422,7 +422,7 @@ export default function DriverDashboard() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" translucent />
+      <StatusBar style="light" translucent />
 
       {/* Header */}
       <View
@@ -432,6 +432,10 @@ export default function DriverDashboard() {
           isRTL && { flexDirection: 'row-reverse' },
         ]}
       >
+        {/* Glassmorphic Background Effects */}
+        <View style={styles.glassOverlay} />
+        <View style={styles.glassHighlight} />
+
         <TouchableOpacity
           style={[
             styles.profileAvatarContainer,
@@ -452,11 +456,11 @@ export default function DriverDashboard() {
         </TouchableOpacity>
 
         <View style={styles.headerTitleContainer}>
-          <Text style={[styles.headerTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+          <Text style={styles.headerTitle}>
             {t('driver_dashboard')}
           </Text>
           {profile?.full_name && (
-            <Text style={[styles.headerSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            <Text style={styles.headerSubtitle}>
               {t('hello')}
               {isRTL ? '، ' : ', '}
               {profile.full_name}
@@ -464,8 +468,22 @@ export default function DriverDashboard() {
           )}
         </View>
 
+        <TouchableOpacity
+          style={[
+            styles.headerShortcutBtnFlex,
+            { [isRTL ? 'marginLeft' : 'marginRight']: Spacing.sm },
+          ]}
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/payouts');
+          }}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="wallet-outline" size={22} color={Colors.white} />
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
-          <Ionicons name="log-out-outline" size={22} color={Colors.error} />
+          <Ionicons name="log-out-outline" size={22} color={Colors.white} />
         </TouchableOpacity>
       </View>
 
@@ -517,45 +535,74 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFECE9',
     paddingBottom: Spacing.md,
     paddingHorizontal: Spacing.lg,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E6E2DE',
-    ...Shadow.sm,
+    shadowColor: '#054024',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 5,
     zIndex: 10,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  glassOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: '#0A5C36',
+  },
+  glassHighlight: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.22)',
   },
   headerTitleContainer: {
-    flex: 1,
+    position: 'absolute',
+    left: 60,
+    right: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
   },
   headerTitle: {
     fontFamily: FontFamily.bold,
-    fontSize: 20,
-    color: Colors.text,
+    fontSize: 16,
+    color: Colors.white,
+    textAlign: 'center',
   },
   headerSubtitle: {
     fontFamily: FontFamily.regular,
-    fontSize: 13,
-    color: Colors.textSecondary,
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.7)',
     marginTop: 2,
+    textAlign: 'center',
   },
   profileAvatarContainer: {
     width: 44,
     height: 44,
     borderRadius: 22,
     position: 'relative',
+    zIndex: 2,
   },
   profileAvatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.primarySurface,
+    backgroundColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
   profileAvatarText: {
     fontFamily: FontFamily.bold,
@@ -571,15 +618,29 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: Colors.success,
     borderWidth: 2,
-    borderColor: '#EFECE9',
+    borderColor: 'rgba(10, 92, 54, 0.95)',
   },
   logoutButton: {
     width: 40,
     height: 40,
     borderRadius: BorderRadius.md,
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  headerShortcutBtnFlex: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   // List
   listContent: {

@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(26, 26, 26, 0.65)',
+    backgroundColor: 'rgba(22, 22, 22, 0.7)',
   },
   backdropClickable: {
     flex: 1,
@@ -224,30 +224,36 @@ const styles = StyleSheet.create({
   dialogCard: {
     width: Math.min(width * 0.85, 340),
     backgroundColor: Colors.white,
-    borderRadius: BorderRadius.xl,
+    borderRadius: BorderRadius.xxl,
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.xxl,
     paddingBottom: Spacing.xl,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E6E3DE',
-    ...Shadow.lg,
+    borderColor: Colors.borderLight,
+    ...Shadow.xl,
   },
   iconContainer: {
-    width: 68,
-    height: 68,
+    width: 64,
+    height: 64,
     borderRadius: BorderRadius.circle,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   title: {
     fontFamily: FontFamily.bold,
-    fontSize: 18,
+    fontSize: 19,
     color: Colors.text,
     textAlign: 'center',
     marginBottom: Spacing.sm,
-    lineHeight: 24,
+    lineHeight: 25,
+    letterSpacing: -0.1,
   },
   message: {
     fontFamily: FontFamily.regular,
@@ -255,7 +261,8 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: Spacing.xl,
-    lineHeight: 20,
+    lineHeight: 21,
+    paddingHorizontal: Spacing.xs,
   },
   buttonRow: {
     width: '100%',
@@ -268,10 +275,11 @@ const styles = StyleSheet.create({
   },
   btnBase: {
     flex: 1,
-    height: 46,
-    borderRadius: BorderRadius.md,
+    height: 48,
+    borderRadius: BorderRadius.pill,
     justifyContent: 'center',
     alignItems: 'center',
+    ...Shadow.sm,
   },
   btnColumnBase: {
     flex: 0,
@@ -280,9 +288,11 @@ const styles = StyleSheet.create({
   btnTextBase: {
     fontFamily: FontFamily.bold,
     fontSize: 14,
+    letterSpacing: 0.1,
   },
   btnDefault: {
     backgroundColor: Colors.primary,
+    ...Shadow.glow,
   },
   btnTextDefault: {
     color: Colors.white,
@@ -290,7 +300,9 @@ const styles = StyleSheet.create({
   btnCancel: {
     backgroundColor: Colors.surfaceMuted,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.borderLight,
+    elevation: 0,
+    shadowOpacity: 0,
   },
   btnTextCancel: {
     color: Colors.textSecondary,
@@ -298,7 +310,7 @@ const styles = StyleSheet.create({
   btnDestructive: {
     backgroundColor: Colors.errorSurface,
     borderWidth: 1,
-    borderColor: Colors.error + '30',
+    borderColor: Colors.error + '20',
   },
   btnTextDestructive: {
     color: Colors.error,

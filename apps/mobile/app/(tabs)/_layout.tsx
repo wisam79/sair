@@ -24,8 +24,8 @@ function AnimatedTabIcon({ name, color, focused }: AnimatedTabIconProps) {
   useEffect(() => {
     if (focused) {
       Animated.sequence([
-        Animated.spring(scale, { toValue: 1.15, useNativeDriver: true, speed: 45, bounciness: 8 }),
-        Animated.spring(scale, { toValue: 1.0, useNativeDriver: true, speed: 25, bounciness: 4 }),
+        Animated.spring(scale, { toValue: 1.18, useNativeDriver: true, speed: 50, bounciness: 10 }),
+        Animated.spring(scale, { toValue: 1.0, useNativeDriver: true, speed: 28, bounciness: 5 }),
       ]).start();
 
       if (!isFirst.current) {
@@ -45,8 +45,9 @@ function AnimatedTabIcon({ name, color, focused }: AnimatedTabIconProps) {
   return (
     <View style={[tabStyles.iconWrapper, focused && tabStyles.activeWrapper]}>
       <Animated.View style={{ transform: [{ scale }] }}>
-        <Ionicons name={activeName} size={20} color={focused ? Colors.primary : Colors.textMuted} />
+        <Ionicons name={activeName} size={21} color={focused ? Colors.primary : Colors.textMuted} />
       </Animated.View>
+      {focused && <View style={tabStyles.activeDot} />}
     </View>
   );
 }
@@ -55,13 +56,23 @@ const tabStyles = StyleSheet.create({
   iconWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 48,
-    height: 30,
-    borderRadius: 15,
+    width: 52,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: 'transparent',
   },
   activeWrapper: {
     backgroundColor: Colors.primarySurface,
+    borderWidth: 1,
+    borderColor: Colors.primary + '15',
+  },
+  activeDot: {
+    position: 'absolute',
+    bottom: -8,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.primary,
   },
 });
 
@@ -144,17 +155,16 @@ export default function TabLayout() {
         tabBarInactiveTintColor: Colors.textMuted,
         tabBarStyle: {
           backgroundColor: Colors.white,
-          borderTopWidth: 1.5,
-          borderTopColor: Colors.surfaceMuted,
-          height: 60 + bottom,
+          borderTopWidth: 0,
+          height: 62 + bottom,
           paddingBottom: bottom + 8,
-          paddingTop: 8,
-          ...Shadow.sm,
+          paddingTop: 10,
+          ...Shadow.lg,
         },
         tabBarLabelStyle: {
           fontFamily: FontFamily.medium,
-          fontSize: 11,
-          marginTop: 2,
+          fontSize: 10.5,
+          marginTop: 4,
         },
         headerStyle: {
           backgroundColor: Colors.white,
@@ -169,6 +179,15 @@ export default function TabLayout() {
           fontSize: 18,
         },
         headerShadowVisible: false,
+        tabBarBadgeStyle: {
+          backgroundColor: Colors.error,
+          fontFamily: FontFamily.bold,
+          fontSize: 9,
+          minWidth: 16,
+          height: 16,
+          lineHeight: 14,
+          borderRadius: 8,
+        },
         headerRight: () => (
           <TouchableOpacity
             style={isRTL ? { marginLeft: Spacing.lg } : { marginRight: Spacing.lg }}

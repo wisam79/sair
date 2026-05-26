@@ -16,6 +16,7 @@ import { useConversations } from '../../src/hooks/useMessages';
 import { useTranslation } from '../../src/hooks/useTranslation';
 import { useAuthStore } from '../../src/hooks/useStore';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../../src/theme';
+import * as Haptics from 'expo-haptics';
 
 interface ConversationItem {
   id: string;
@@ -32,12 +33,12 @@ interface ConversationItem {
 const getAvatarBg = (name: string) => {
   const hash = name.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
   const colors = [
-    '#D88D60', // pastel earthy orange
-    '#C2703E', // Sair primary
-    '#9C532B', // Sair dark primary
-    '#A08C75', // muted taupe
-    '#7D6D5E', // warm charcoal
-    '#BFA48F', // Sair warm sand
+    '#86EFAC', // pastel green
+    '#16A34A', // Sair primary green
+    '#15803D', // Sair dark green
+    '#A7F3D0', // light emerald
+    '#059669', // emerald green
+    '#34D399', // mint green
   ];
   return colors[hash % colors.length];
 };
@@ -222,13 +223,27 @@ export default function ConversationsScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" translucent />
+      <StatusBar style="light" translucent />
 
       {/* Branded Header Banner (Fixed at the top) */}
       <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
-        <Text style={[styles.headerTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+        {/* Glassmorphic Background Effects */}
+        <View style={styles.glassOverlay} />
+        <View style={styles.glassHighlight} />
+
+        <Text style={styles.headerTitle}>
           {t('messages')}
         </Text>
+        <TouchableOpacity
+          style={[styles.headerShortcutBtn, { [isRTL ? 'left' : 'right']: Spacing.md }]}
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/help');
+          }}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="help-circle-outline" size={22} color={Colors.white} />
+        </TouchableOpacity>
       </View>
 
       {/* Search & Filter Segmented Tabs */}
@@ -315,26 +330,54 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   headerBanner: {
-    backgroundColor: '#EFECE9',
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E6E2DE',
-    ...Shadow.sm,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    ...Shadow.header,
     zIndex: 10,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  glassOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: Colors.primaryDeep,
+  },
+  glassHighlight: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: Colors.glassOverlay,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.glassBorder,
   },
   headerTitle: {
     fontFamily: FontFamily.bold,
-    fontSize: 22,
-    color: Colors.text,
+    fontSize: 16,
+    color: Colors.white,
+    zIndex: 2,
+    textAlign: 'center',
+    width: '100%',
+  },
+  headerShortcutBtn: {
+    position: 'absolute',
+    bottom: 12,
+    zIndex: 3,
+    padding: 6,
   },
   searchFilterContainer: {
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xs,
-    backgroundColor: '#EFECE9',
+    backgroundColor: Colors.surfaceMuted,
     borderBottomWidth: 1,
-    borderBottomColor: '#E6E2DE',
+    borderBottomColor: Colors.borderLight,
     gap: Spacing.xs,
   },
   searchBar: {
@@ -345,7 +388,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     height: 38,
     borderWidth: 1,
-    borderColor: '#E6E2DE',
+    borderColor: Colors.borderLight,
   },
   searchInput: {
     flex: 1,
@@ -358,9 +401,9 @@ const styles = StyleSheet.create({
   },
   tabBarContainer: {
     flexDirection: 'row',
-    backgroundColor: '#E6E2DE',
-    borderRadius: BorderRadius.md,
-    padding: 2,
+    backgroundColor: Colors.borderLight,
+    borderRadius: BorderRadius.lg,
+    padding: 3,
   },
   tabButton: {
     flex: 1,
@@ -391,19 +434,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Spacing.md,
     backgroundColor: Colors.white,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl,
     borderWidth: 1,
-    borderColor: '#EFECE9',
+    borderColor: Colors.borderLight,
     ...Shadow.sm,
     gap: Spacing.md,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     justifyContent: 'center',
     alignItems: 'center',
-    ...Shadow.sm,
   },
   avatarText: {
     fontFamily: FontFamily.bold,
@@ -473,14 +515,15 @@ const styles = StyleSheet.create({
     padding: Spacing.xl,
   },
   emptyIconContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: Colors.primarySurface,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.lg,
-    ...Shadow.sm,
+    borderWidth: 1,
+    borderColor: Colors.primary + '15',
   },
   emptyText: {
     fontSize: 16,

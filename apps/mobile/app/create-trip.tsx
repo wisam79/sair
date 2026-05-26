@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     right: 0,
     textAlign: 'center',
     fontFamily: FontFamily.bold,
-    fontSize: 18,
+    fontSize: 16,
     color: Colors.text,
     zIndex: 1,
   },

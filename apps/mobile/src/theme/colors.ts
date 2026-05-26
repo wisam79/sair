@@ -1,15 +1,23 @@
 /**
  * Sair Design System — Colors
- * Primary: Earthy Orange #C2703E
+ * Primary: Premium Green #16A34A / #0A5C36
  * Secondary: Dark Charcoal #2D2D2D
+ *
+ * Enhanced palette with gradient stops, rich surfaces, and accent tones.
  */
 
 export const Colors = {
-  // Primary — Earthy Orange
-  primary: '#C2703E',
-  primaryLight: '#D4845A',
-  primaryDark: '#A85C2E',
-  primarySurface: '#FDF0E8', // very light orange background
+  // Primary — Premium Green
+  primary: '#16A34A',
+  primaryLight: '#4ADE80',
+  primaryDark: '#15803D',
+  primarySurface: '#F0FDF4', // very light green background
+  primaryDeep: '#0A5C36', // deep forest green for headers
+
+  // Gradient stops (headers, buttons, accents)
+  primaryGradientStart: '#0A5C36',
+  primaryGradientMid: '#0E7A48',
+  primaryGradientEnd: '#16A34A',
 
   // Secondary — Dark Charcoal
   secondary: '#2D2D2D',
@@ -17,36 +25,45 @@ export const Colors = {
   secondaryDark: '#1A1A1A', // used as dark screen background
 
   // Surfaces
-  background: '#F5F2EF', // warm off-white for light screens
-  backgroundDark: '#1A1A1A', // login / dark screens
+  background: '#F7F5F2', // warm off-white for light screens (slightly warmer)
+  backgroundDark: '#161616', // login / dark screens (deeper)
   surface: '#FFFFFF', // cards
-  surfaceMuted: '#F5F2EF', // subtle card variant
+  surfaceMuted: '#F3F0EC', // subtle card variant
+  surfaceElevated: '#FFFFFF', // elevated cards (with stronger shadow)
 
   // Text
   text: '#1A1A1A',
-  textSecondary: '#555555',
+  textSecondary: '#4A4A4A', // slightly darker for better readability
   textMuted: '#8A8A8A',
-  textOnPrimary: '#FFFFFF', // text on orange buttons
+  textOnPrimary: '#FFFFFF', // text on green buttons
   textOnDark: '#FFFFFF', // text on dark backgrounds
 
   // Status
-  success: '#4CAF50',
-  successSurface: '#E8F5E9',
-  error: '#E53935',
-  errorSurface: '#FFEBEE',
-  warning: '#FF9500',
-  warningSurface: '#FFF3E0',
-  info: '#1976D2',
+  success: '#22C55E',
+  successSurface: '#DCFCE7',
+  error: '#EF4444',
+  errorSurface: '#FEF2F2',
+  warning: '#F59E0B',
+  warningSurface: '#FFFBEB',
+  info: '#3B82F6',
+  infoSurface: '#EFF6FF',
 
   // Borders
-  border: '#E0DDD8',
-  borderFocus: '#C2703E',
+  border: '#E8E5E0',
+  borderLight: '#F0EDE8',
+  borderFocus: '#16A34A',
 
   // Misc
   white: '#FFFFFF',
   black: '#000000',
-  overlay: 'rgba(0,0,0,0.5)',
+  overlay: 'rgba(0,0,0,0.55)',
+  overlayLight: 'rgba(0,0,0,0.25)',
   transparent: 'transparent',
+
+  // Glassmorphism
+  glassWhite: 'rgba(255, 255, 255, 0.12)',
+  glassBorder: 'rgba(255, 255, 255, 0.28)',
+  glassOverlay: 'rgba(255, 255, 255, 0.05)',
 } as const;
 
 export type ColorKey = keyof typeof Colors;

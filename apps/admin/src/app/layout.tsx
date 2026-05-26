@@ -1,14 +1,14 @@
 import type { Metadata } from 'next';
-import { IBM_Plex_Sans_Arabic } from 'next/font/google';
+import { Noto_Sans_Arabic } from 'next/font/google';
 import { AppProvider } from '../providers/AppProvider';
 import AdminLayout from '../components/layout';
 import './globals.css';
 
-const ibmArabic = IBM_Plex_Sans_Arabic({
-  subsets: ['arabic', 'latin'],
-  weight: ['300', '400', '500', '600', '700'],
+const notoArabic = Noto_Sans_Arabic({
+  subsets: ['arabic'],
+  weight: ['300', '400', '500', '600', '700', '800'],
   display: 'swap',
-  variable: '--font-ibm-arabic',
+  variable: '--font-noto-arabic',
 });
 
 export const metadata: Metadata = {
@@ -31,7 +31,7 @@ export default function RootLayout({
           crossOrigin=""
         />
       </head>
-      <body className={ibmArabic.variable} style={{ margin: 0 }} suppressHydrationWarning>
+      <body className={notoArabic.variable} style={{ margin: 0 }} suppressHydrationWarning>
         <AppProvider>
           <AdminLayout>{children}</AdminLayout>
         </AppProvider>

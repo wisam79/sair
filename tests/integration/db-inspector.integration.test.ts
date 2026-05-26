@@ -14,12 +14,16 @@ describe('Database Schema Inspector & RPC Tester', () => {
     return;
   }
 
-  it('should call get_or_create_conversation and log results/errors', async () => {
+  it('should call get_or_create_conversation and verify logic (success, failure, and idempotency)', async () => {
     const serviceClient = createServiceClient();
 
     // Create student and driver clients
     const student = await createAuthenticatedClient('student');
     const driver = await createAuthenticatedClient('driver');
+
+    let route: any = null;
+    let trip: any = null;
+    let sub: any = null;
 
     try {
       // 1. Get the driver record ID
@@ -31,7 +35,7 @@ describe('Database Schema Inspector & RPC Tester', () => {
       const driverId = driverData.id;
 
       // 2. Create a route
-      const { data: route } = await serviceClient
+      const { data: routeData, error: routeErr } = await serviceClient
         .from('routes')
         .insert({
           driver_id: driverId,
@@ -46,8 +50,11 @@ describe('Database Schema Inspector & RPC Tester', () => {
         .select()
         .single();
 
+      if (routeErr) throw routeErr;
+      route = routeData;
+
       // 3. Create a trip
-      const { data: trip } = await serviceClient
+      const { data: tripData, error: tripErr } = await serviceClient
         .from('trips')
         .insert({
           route_id: route.id,
@@ -58,36 +65,68 @@ describe('Database Schema Inspector & RPC Tester', () => {
         .select()
         .single();
 
-      console.log('--- RPC TEST START ---');
-      console.log('TRIP ID:', trip.id);
-      console.log('STUDENT USER ID:', student.user.id);
-      console.log('DRIVER USER ID:', driver.user.id);
-      console.log('DRIVER RECORD ID:', driverId);
+      if (tripErr) throw tripErr;
+      trip = tripData;
 
-      // 4. Try to call get_or_create_conversation as student
-      const { data: convData, error: convErr } = await student.client.rpc(
+      // 4. Try to call get_or_create_conversation as student before subscribing -> should fail
+      const { data: failData, error: failErr } = await student.client.rpc(
         'get_or_create_conversation',
         {
           p_trip_id: trip.id,
         },
       );
 
-      if (convErr) {
-        console.error('get_or_create_conversation ERROR:', convErr);
-      } else {
-        console.log('get_or_create_conversation SUCCESS:', convData);
-      }
-      console.log('--- RPC TEST END ---');
+      expect(failErr).not.toBeNull();
+      expect(failErr.message).toMatch(/Student is not subscribed to this trip route/i);
+      expect(failData).toBeNull();
 
-      // Cleanup
-      await serviceClient.from('trips').delete().eq('id', trip.id);
-      await serviceClient.from('routes').delete().eq('id', route.id);
-    } catch (err) {
-      console.error('Test execution error:', err);
+      // 5. Create a subscription for the student on this route
+      const { data: subData, error: subErr } = await serviceClient
+        .from('subscriptions')
+        .insert({
+          student_id: student.user.id,
+          route_id: route.id,
+          status: 'active',
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          purchase_price: 10000,
+        })
+        .select()
+        .single();
+
+      if (subErr) throw subErr;
+      sub = subData;
+
+      // 6. Call get_or_create_conversation as student after subscribing -> should succeed
+      const { data: conv, error: convErr } = await student.client.rpc(
+        'get_or_create_conversation',
+        {
+          p_trip_id: trip.id,
+        },
+      ).single();
+
+      expect(convErr).toBeNull();
+      expect(conv).toBeDefined();
+      expect(conv.id).toBeDefined();
+      expect(typeof conv.id).toBe('string');
+
+      // 7. Call get_or_create_conversation again -> should return same conversation (Idempotency)
+      const { data: convSecond, error: convErrSecond } = await student.client.rpc(
+        'get_or_create_conversation',
+        {
+          p_trip_id: trip.id,
+        },
+      ).single();
+
+      expect(convErrSecond).toBeNull();
+      expect(convSecond.id).toBe(conv.id);
+
     } finally {
+      // Cleanup
+      if (trip) await serviceClient.from('trips').delete().eq('id', trip.id);
+      if (sub) await serviceClient.from('subscriptions').delete().eq('id', sub.id);
+      if (route) await serviceClient.from('routes').delete().eq('id', route.id);
       await cleanupTestData();
     }
-
-    expect(true).toBe(true);
-  });
+  }, 30000);
 });

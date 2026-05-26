@@ -83,15 +83,9 @@ const NAV_GROUPS: NavGroup[] = [
       },
       {
         labelKey: 'nav.liveTrips',
-        defaultLabel: 'Live Trips',
+        defaultLabel: 'Trips',
         icon: <Bus size={20} />,
         path: '/trips',
-      },
-      {
-        labelKey: 'nav.tripArchive',
-        defaultLabel: 'Trip Archive',
-        icon: <Archive size={20} />,
-        path: '/trip-archive',
       },
       {
         labelKey: 'nav.analytics',
@@ -142,12 +136,6 @@ const NAV_GROUPS: NavGroup[] = [
         path: '/subscriptions',
       },
       {
-        labelKey: 'nav.licenseBatches',
-        defaultLabel: 'License Batches',
-        icon: <Layers size={20} />,
-        path: '/license_batches',
-      },
-      {
         labelKey: 'nav.licenses',
         defaultLabel: 'Licenses',
         icon: <Ticket size={20} />,
@@ -161,21 +149,9 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       {
         labelKey: 'nav.revenue',
-        defaultLabel: 'Revenue',
-        icon: <DollarSign size={20} />,
-        path: '/revenue',
-      },
-      {
-        labelKey: 'nav.payouts',
-        defaultLabel: 'Payouts',
+        defaultLabel: 'Finance',
         icon: <Wallet size={20} />,
-        path: '/payouts',
-      },
-      {
-        labelKey: 'nav.ratings',
-        defaultLabel: 'Ratings',
-        icon: <Star size={20} />,
-        path: '/ratings',
+        path: '/finance',
       },
     ],
   },
@@ -190,28 +166,10 @@ const NAV_GROUPS: NavGroup[] = [
         path: '/notifications',
       },
       {
-        labelKey: 'nav.featureFlags',
-        defaultLabel: 'Feature Flags',
-        icon: <Flag size={20} />,
-        path: '/feature-flags',
-      },
-      {
-        labelKey: 'nav.bulkImport',
-        defaultLabel: 'Bulk Import',
-        icon: <Upload size={20} />,
-        path: '/bulk-import',
-      },
-      {
         labelKey: 'nav.systemHealth',
-        defaultLabel: 'System Health',
+        defaultLabel: 'System Diagnostics',
         icon: <ShieldAlert size={20} />,
-        path: '/system-health',
-      },
-      {
-        labelKey: 'nav.activityLog',
-        defaultLabel: 'Activity Log',
-        icon: <History size={20} />,
-        path: '/activity-log',
+        path: '/system',
       },
       {
         labelKey: 'nav.settings',
@@ -259,7 +217,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: isDark ? '#1A1A1A' : '#F5F2EF',
+          bgcolor: isDark ? '#161616' : '#F7F5F2',
           transition: 'background-color 0.2s ease',
         }}
       >
@@ -291,15 +249,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             position: 'relative',
             color: isActive
               ? isDark
-                ? '#D4845A'
-                : '#C2703E'
+                ? '#4ADE80'
+                : '#16A34A'
               : isDark
                 ? 'rgba(255,255,255,0.65)'
                 : 'rgba(15,23,42,0.7)',
             background: isActive
               ? isDark
-                ? 'rgba(212,132,90,0.08)'
-                : 'rgba(194,112,62,0.06)'
+                ? 'rgba(74,222,128,0.08)'
+                : 'rgba(22,163,74,0.06)'
               : 'transparent',
             // Active line
             '&::before': isActive
@@ -311,18 +269,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   bottom: '20%',
                   width: 3,
                   borderRadius: 99,
-                  background: isDark ? '#D4845A' : '#C2703E',
+                  background: isDark ? '#4ADE80' : '#16A34A',
                 }
               : {},
             '&:hover': {
               background: isActive
                 ? isDark
-                  ? 'rgba(212,132,90,0.12)'
-                  : 'rgba(194,112,62,0.1)'
+                  ? 'rgba(74,222,128,0.12)'
+                  : 'rgba(22,163,74,0.1)'
                 : isDark
                   ? 'rgba(255,255,255,0.04)'
                   : 'rgba(15,23,42,0.03)',
-              color: isActive ? (isDark ? '#D4845A' : '#C2703E') : isDark ? '#ffffff' : '#0f172a',
+              color: isActive ? (isDark ? '#4ADE80' : '#16A34A') : isDark ? '#ffffff' : '#0f172a',
             },
             transition: 'all 0.15s ease',
           }}
@@ -359,9 +317,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        background: isDark ? '#2D2D2D' : '#ffffff',
+        background: isDark ? '#242424' : '#ffffff',
         color: isDark ? '#ffffff' : '#1A1A1A',
-        borderRight: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
+        borderRight: `1px solid ${isDark ? '#2D2D2D' : '#E8E5E0'}`,
         overflowX: 'hidden',
         transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1)',
         position: 'relative',
@@ -374,7 +332,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             p: collapsed ? 0.75 : 1.5,
             borderRadius: 2,
             background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-            border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
+            border: `1px solid ${isDark ? '#2D2D2D' : '#E8E5E0'}`,
             display: 'flex',
             alignItems: 'center',
             gap: collapsed ? 0 : 1.5,
@@ -389,7 +347,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               height: 32,
               minWidth: 32,
               borderRadius: 1.5,
-              background: '#C2703E',
+              background: '#16A34A',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -429,7 +387,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {!collapsed && !!identity && (
           <Chip
             avatar={
-              <Avatar sx={{ bgcolor: '#C2703E', color: '#fff', fontSize: 11 }}>
+              <Avatar sx={{ bgcolor: '#16A34A', color: '#fff', fontSize: 11 }}>
                 {(identity as { name?: string })?.name?.[0]?.toUpperCase() || 'A'}
               </Avatar>
             }
@@ -440,7 +398,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               justifyContent: 'flex-start',
               color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(26,26,26,0.85)',
               bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
-              border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
+              border: `1px solid ${isDark ? '#2D2D2D' : '#E8E5E0'}`,
               height: 30,
               '& .MuiChip-label': { fontWeight: 500, fontSize: 12 },
               transition: 'all 0.2s ease',
@@ -481,7 +439,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         {NAV_GROUPS.map((group, gi) => (
           <React.Fragment key={group.groupKey}>
-            {gi > 0 && <Divider sx={{ my: 1, borderColor: isDark ? '#3D3D3D' : '#E0DDD8' }} />}
+            {gi > 0 && <Divider sx={{ my: 1, borderColor: isDark ? '#2D2D2D' : '#E8E5E0' }} />}
             {!collapsed && (
               <Typography
                 variant="overline"
@@ -509,7 +467,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Bottom actions */}
       <Box sx={{ p: collapsed ? 0.5 : 1, position: 'relative', zIndex: 1 }}>
-        <Divider sx={{ mb: 1, borderColor: isDark ? '#3D3D3D' : '#E0DDD8' }} />
+        <Divider sx={{ mb: 1, borderColor: isDark ? '#2D2D2D' : '#E8E5E0' }} />
 
         {/* Language toggle */}
         <Tooltip
@@ -672,7 +630,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 size="small"
                 sx={{
                   bgcolor: 'transparent',
-                  border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
+                  border: `1px solid ${isDark ? '#2D2D2D' : '#E8E5E0'}`,
                   borderRadius: 1.5,
                   px: 1.2,
                   py: 0.6,
@@ -680,8 +638,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   color: 'text.secondary',
                   transition: 'all 0.15s ease',
                   '&:hover': {
-                    bgcolor: isDark ? '#3D3D3D' : '#F5F2EF',
-                    borderColor: isDark ? '#3D3D3D' : '#E0DDD8',
+                    bgcolor: isDark ? '#2D2D2D' : '#F7F5F2',
+                    borderColor: isDark ? '#2D2D2D' : '#E8E5E0',
                   },
                 }}
               >
@@ -699,14 +657,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 size="small"
                 sx={{
                   bgcolor: 'transparent',
-                  border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
+                  border: `1px solid ${isDark ? '#2D2D2D' : '#E8E5E0'}`,
                   borderRadius: 1.5,
                   p: 0.6,
                   color: 'text.secondary',
                   transition: 'all 0.15s ease',
                   '&:hover': {
-                    bgcolor: isDark ? '#3D3D3D' : '#F5F2EF',
-                    borderColor: isDark ? '#3D3D3D' : '#E0DDD8',
+                    bgcolor: isDark ? '#2D2D2D' : '#F7F5F2',
+                    borderColor: isDark ? '#2D2D2D' : '#E8E5E0',
                   },
                 }}
               >
@@ -725,10 +683,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   py: 0.6,
                   borderRadius: 8,
                   bgcolor: isDark ? '#2D2D2D' : '#ffffff',
-                  border: `1px solid ${isDark ? '#3D3D3D' : '#E0DDD8'}`,
+                  border: `1px solid ${isDark ? '#2D2D2D' : '#E8E5E0'}`,
                   transition: 'all 0.15s ease',
                   '&:hover': {
-                    bgcolor: isDark ? '#3D3D3D' : '#F5F2EF',
+                    bgcolor: isDark ? '#2D2D2D' : '#F7F5F2',
                   },
                 }}
               >
@@ -736,7 +694,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   sx={{
                     width: 24,
                     height: 24,
-                    bgcolor: '#C2703E',
+                    bgcolor: '#16A34A',
                     fontSize: 11,
                     fontWeight: 700,
                   }}

@@ -21,30 +21,62 @@ export const BorderRadius = {
   md: 12,
   lg: 16,
   xl: 20,
+  xxl: 24,
   pill: 999, // fully rounded (buttons, badges)
   circle: 9999,
 } as const;
 
 export const Shadow = {
   sm: {
-    shadowColor: '#000',
+    shadowColor: '#1A1A1A',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
     elevation: 2,
   },
   md: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
+    shadowColor: '#1A1A1A',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 4,
   },
   lg: {
-    shadowColor: '#000',
+    shadowColor: '#1A1A1A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  xl: {
+    shadowColor: '#1A1A1A',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  // Colored shadow — tinted with primary green
+  colored: {
+    shadowColor: '#0A5C36',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.18,
     shadowRadius: 12,
+    elevation: 6,
+  },
+  // Glow effect — for CTAs and active elements
+  glow: {
+    shadowColor: '#16A34A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  // Header shadow
+  header: {
+    shadowColor: '#054024',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
     elevation: 8,
   },
 } as const;

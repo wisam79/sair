@@ -23,6 +23,19 @@ config.resolver.nodeModulesPaths = [
 // 3. Align with Expo's recommendation
 config.resolver.disableHierarchicalLookup = false;
 
+// 3.5. Force CJS resolution for Zustand on web to avoid import.meta syntax errors in browser
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (platform === 'web' && (moduleName === 'zustand' || moduleName.startsWith('zustand/'))) {
+    return context.resolveRequest(
+      { ...context, unstable_conditionNames: ['default', 'require'] },
+      moduleName,
+      platform
+    );
+  }
+  // Let default resolver handle everything else
+  return context.resolveRequest(context, moduleName, platform);
+};
+
 // 4. Blocklist apps/admin, Next.js, Firebase, and other build folders
 const exclusionList = require('metro-config/private/defaults/exclusionList').default;
 config.resolver.blockList = exclusionList([
@@ -38,6 +51,9 @@ config.resolver.blockList = exclusionList([
   // Block common cache folders
   /[/\\]\.cache[/\\]/,
   /[/\\]\.expo[/\\]/,
+  // Block Playwright test artifacts and tests to avoid file watcher crashes
+  /[/\\]test-results[/\\]/,
+  /[/\\]tests[/\\]/,
 ]);
 
 function escapeRegex(str) {

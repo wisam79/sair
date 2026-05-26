@@ -27,10 +27,10 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = Rea
 
     const handlePressIn = () => {
       Animated.spring(scale, {
-        toValue: 0.98,
+        toValue: 0.97,
         useNativeDriver: true,
-        tension: 150,
-        friction: 12,
+        tension: 200,
+        friction: 14,
       }).start();
     };
 
@@ -38,8 +38,8 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = Rea
       Animated.spring(scale, {
         toValue: 1,
         useNativeDriver: true,
-        tension: 150,
-        friction: 12,
+        tension: 200,
+        friction: 14,
       }).start();
     };
 
@@ -57,8 +57,11 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = Rea
       <Animated.View style={{ transform: [{ scale }] }}>
         <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} onPress={handlePress}>
           <View style={[styles.activeSubCard, isRTL && { flexDirection: 'row-reverse' }]}>
+            {/* Status Glow Indicator */}
+            <View style={styles.glowAccent} />
+
             <View style={styles.activeSubIcon}>
-              <Ionicons name="checkmark-circle" size={28} color={Colors.success} />
+              <Ionicons name="checkmark-circle" size={26} color={Colors.success} />
             </View>
             <View style={[styles.activeSubInfo, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
               <Text style={styles.activeSubTitle}>{t('active_subscription')}</Text>
@@ -66,16 +69,19 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = Rea
                 {activeSub.routes?.title || t('route')}
               </Text>
               <View style={[styles.activeSubFooter, isRTL && { flexDirection: 'row-reverse' }]}>
-                <Text style={styles.activeSubDate}>
-                  {t('expires')}:{' '}
-                  {new Date(activeSub.end_date).toLocaleDateString(
-                    language === 'ar' ? 'ar-IQ' : 'en-US',
-                  )}
-                </Text>
+                <View style={[styles.dateBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <Ionicons name="calendar-outline" size={11} color={Colors.textMuted} />
+                  <Text style={styles.activeSubDate}>
+                    {t('expires')}:{' '}
+                    {new Date(activeSub.end_date).toLocaleDateString(
+                      language === 'ar' ? 'ar-IQ' : 'en-US',
+                    )}
+                  </Text>
+                </View>
               </View>
             </View>
             <Pressable style={styles.trackMiniButton} onPress={handleTrackPress}>
-              <Ionicons name="navigate" size={20} color={Colors.white} />
+              <Ionicons name="navigate" size={18} color={Colors.white} />
             </Pressable>
           </View>
         </Pressable>
@@ -90,19 +96,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.white,
     padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl,
     borderWidth: 1.5,
-    borderColor: Colors.success,
+    borderColor: Colors.success + '50',
+    overflow: 'hidden',
     ...Shadow.md,
   },
+  glowAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    backgroundColor: Colors.success,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderBottomLeftRadius: BorderRadius.xl,
+  },
   activeSubIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: Colors.successSurface,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.success + '20',
   },
   activeSubInfo: {
     flex: 1,
@@ -110,20 +129,25 @@ const styles = StyleSheet.create({
   },
   activeSubTitle: {
     fontFamily: FontFamily.bold,
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.success,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   activeSubRoute: {
     fontFamily: FontFamily.bold,
-    fontSize: 16,
+    fontSize: 15,
     color: Colors.text,
-    marginVertical: 2,
+    marginVertical: 3,
   },
   activeSubFooter: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  dateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   activeSubDate: {
     fontFamily: FontFamily.medium,
@@ -132,11 +156,11 @@ const styles = StyleSheet.create({
   },
   trackMiniButton: {
     backgroundColor: Colors.primary,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
-    ...Shadow.sm,
+    ...Shadow.colored,
   },
 });

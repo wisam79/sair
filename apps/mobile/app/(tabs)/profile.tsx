@@ -173,17 +173,21 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" translucent />
+      <StatusBar style="light" translucent />
 
       {/* Fixed Header */}
       <View style={[styles.header, { paddingTop: top + Spacing.md }]}>
+        {/* Glassmorphic Background Effects */}
+        <View style={styles.glassOverlay} />
+        <View style={styles.glassHighlight} />
+
         <View style={[styles.headerRow, isRTL && { flexDirection: 'row-reverse' }]}>
           {/* Left Group: Avatar + Details */}
           <View style={[styles.headerLeftGroup, isRTL && { flexDirection: 'row-reverse' }]}>
             {/* Avatar Ring */}
             <View style={styles.avatarContainer}>
               <View style={styles.avatarCircle}>
-                <Ionicons name="person" size={24} color={Colors.white} />
+                <Ionicons name="person" size={24} color={Colors.primary} />
               </View>
             </View>
 
@@ -196,7 +200,7 @@ export default function ProfileScreen() {
 
           {/* Right Group: Role Badge */}
           <View style={[styles.roleBadge, isRTL && { flexDirection: 'row-reverse' }]}>
-            <Ionicons name={roleIcon} size={11} color={Colors.primary} />
+            <Ionicons name={roleIcon} size={11} color={Colors.white} />
             <Text style={styles.roleBadgeText}>{roleLabel}</Text>
           </View>
         </View>
@@ -473,20 +477,40 @@ const styles = StyleSheet.create({
   },
   // Header
   header: {
-    backgroundColor: '#EFECE9',
     paddingBottom: Spacing.md,
     paddingHorizontal: Spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E6E2DE',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    ...Shadow.sm,
+    shadowColor: '#054024',
+    shadowOffset: { width: 0, height: 6 },
+    ...Shadow.header,
     zIndex: 10,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  glassOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: Colors.primaryDeep,
+  },
+  glassHighlight: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: Colors.glassOverlay,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.glassBorder,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    zIndex: 2,
   },
   headerLeftGroup: {
     flexDirection: 'row',
@@ -495,26 +519,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   avatarContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    borderWidth: 2,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 2.5,
+    borderColor: Colors.glassBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.primary,
+    width: 47,
+    height: 47,
+    borderRadius: 24,
+    backgroundColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
   },
   avatarText: {
     fontFamily: FontFamily.bold,
@@ -528,28 +547,28 @@ const styles = StyleSheet.create({
   headerName: {
     fontFamily: FontFamily.bold,
     fontSize: 17,
-    color: Colors.text,
+    color: Colors.white,
   },
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: Colors.primarySurface,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    backgroundColor: Colors.glassWhite,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
     borderRadius: BorderRadius.pill,
     borderWidth: 1,
-    borderColor: '#E6E2DE',
+    borderColor: Colors.glassBorder,
   },
   roleBadgeText: {
     fontFamily: FontFamily.medium,
     fontSize: 11,
-    color: Colors.primary,
+    color: Colors.white,
   },
   headerEmail: {
     fontFamily: FontFamily.regular,
     fontSize: 12.5,
-    color: Colors.textSecondary,
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   scrollContainer: {
     flex: 1,
@@ -559,11 +578,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     marginHorizontal: Spacing.lg,
     marginTop: Spacing.md,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: '#E6E3DE',
-    ...Shadow.sm,
+    borderColor: Colors.borderLight,
+    ...Shadow.md,
   },
   sectionTitle: {
     fontFamily: FontFamily.bold,
@@ -653,14 +672,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.sm,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    marginTop: Spacing.sm,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    paddingVertical: Spacing.md + 2,
+    borderRadius: BorderRadius.lg,
+    marginTop: Spacing.md,
+    ...Shadow.glow,
   },
   saveButtonText: {
     fontFamily: FontFamily.bold,
@@ -717,9 +732,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     backgroundColor: Colors.primarySurface,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     gap: Spacing.xs,
+    borderWidth: 1,
+    borderColor: Colors.primary + '12',
   },
   statNumber: {
     fontFamily: FontFamily.bold,

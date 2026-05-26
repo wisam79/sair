@@ -17,10 +17,7 @@ import {
   InputAdornment,
 } from '@mui/material';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import SearchIcon from '@mui/icons-material/Search';
-import MapIcon from '@mui/icons-material/Map';
-import NavigationIcon from '@mui/icons-material/Navigation';
+import { MapPin, Search, Map, Navigation } from 'lucide-react';
 
 export interface RouteLocationFormValues {
   start_location: string;
@@ -140,7 +137,7 @@ export default function MapPicker({
           )}`,
         );
         const data = await response.json();
-        setStartOptions(data || []); // Fix autocomplete target to endOptions
+        setEndOptions(data || []); // Fix autocomplete target to endOptions
       } catch (err) {
         console.error('Nominatim end search error:', err);
       } finally {
@@ -154,6 +151,14 @@ export default function MapPicker({
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
+    // Fix Leaflet marker icons in Next.js
+    delete (L.Icon.Default.prototype as any)._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    });
+
     // Center map around Baghdad or coordinates if available
     const centerLat = startLat || 33.3128;
     const centerLng = startLng || 44.3615;
@@ -166,24 +171,32 @@ export default function MapPicker({
     }).addTo(map);
 
     // Custom marker icons to prevent bundling path issues
-    const startIcon = L.icon({
-      iconUrl:
-        'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41],
+    const startIcon = L.divIcon({
+      className: 'custom-marker-container-start',
+      html: `
+        <div class="custom-marker start-marker">
+          <div class="marker-pulse"></div>
+          <div class="marker-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+        </div>
+      `,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
     });
 
-    const endIcon = L.icon({
-      iconUrl:
-        'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41],
+    const endIcon = L.divIcon({
+      className: 'custom-marker-container-end',
+      html: `
+        <div class="custom-marker end-marker">
+          <div class="marker-pulse"></div>
+          <div class="marker-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          </div>
+        </div>
+      `,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
     });
 
     // Start marker setup
@@ -316,7 +329,7 @@ export default function MapPicker({
         }}
       >
         <Stack direction="row" spacing={1.5} alignItems="center">
-          <MapIcon color="primary" />
+          <Map size={20} color="primary" />
           <Typography variant="subtitle1" fontWeight={600} color="text.primary">
             الموقع والمسار الجغرافي للرحلة
           </Typography>
@@ -354,7 +367,7 @@ export default function MapPicker({
               {/* Start Point Configuration */}
               <Box>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
-                  <LocationOnIcon sx={{ color: 'success.main', fontSize: 20 }} />
+                  <MapPin size={20} style={{ color: '#10B981' }} />
                   <Typography variant="subtitle2" fontWeight={600} color="success.main">
                     نقطة الانطلاق (البداية)
                   </Typography>
@@ -389,7 +402,7 @@ export default function MapPicker({
                           ...params.InputProps,
                           startAdornment: (
                             <InputAdornment position="start">
-                              <SearchIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
+                              <Search size={18} style={{ color: 'text.secondary' }} />
                             </InputAdornment>
                           ),
                           endAdornment: (
@@ -441,9 +454,7 @@ export default function MapPicker({
               {/* End Point Configuration */}
               <Box>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
-                  <NavigationIcon
-                    sx={{ color: 'error.main', fontSize: 18, transform: 'rotate(90deg)' }}
-                  />
+                  <Navigation size={18} style={{ color: '#EF4444', transform: 'rotate(90deg)' }} />
                   <Typography variant="subtitle2" fontWeight={600} color="error.main">
                     نقطة الوصول (النهاية)
                   </Typography>
@@ -478,7 +489,7 @@ export default function MapPicker({
                           ...params.InputProps,
                           startAdornment: (
                             <InputAdornment position="start">
-                              <SearchIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
+                              <Search size={18} style={{ color: 'text.secondary' }} />
                             </InputAdornment>
                           ),
                           endAdornment: (

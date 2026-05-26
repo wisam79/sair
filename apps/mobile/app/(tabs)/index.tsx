@@ -134,6 +134,26 @@ export default function DiscoveryPage() {
     saveFavorites(updated);
   };
 
+  const handleFavoriteLongPress = (loc: string) => {
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    setAlertTitle(t('favorites'));
+    setAlertMessage(
+      isRTL
+        ? `هل تريد إزالة "${loc}" من المواقع المفضلة؟`
+        : `Do you want to remove "${loc}" from favorites?`,
+    );
+    setAlertType('question');
+    setAlertButtons([
+      { text: t('cancel'), style: 'cancel' },
+      {
+        text: t('delete'),
+        style: 'destructive',
+        onPress: () => handleRemoveFavorite(loc),
+      },
+    ]);
+    setAlertVisible(true);
+  };
+
   useFocusEffect(
     useCallback(() => {
       refetchSubs();
@@ -257,8 +277,8 @@ export default function DiscoveryPage() {
               }}
               style={styles.statItem}
             >
-              <View style={[styles.statIcon, { backgroundColor: Colors.primarySurface }]}>
-                <Ionicons name="bus" size={20} color={Colors.primary} />
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(10, 92, 54, 0.05)' }]}>
+                <Ionicons name="bus" size={20} color="#0A5C36" />
               </View>
               <Text style={styles.statValue}>{routes.length}</Text>
               <Text style={styles.statLabel} numberOfLines={1}>
@@ -276,8 +296,8 @@ export default function DiscoveryPage() {
               }}
               style={styles.statItem}
             >
-              <View style={[styles.statIcon, { backgroundColor: Colors.successSurface }]}>
-                <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(10, 92, 54, 0.05)' }]}>
+                <Ionicons name="checkmark-circle" size={20} color="#0A5C36" />
               </View>
               <Text style={styles.statValue}>{activeSubs.length}</Text>
               <Text style={styles.statLabel} numberOfLines={1}>
@@ -303,8 +323,8 @@ export default function DiscoveryPage() {
               }}
               style={styles.statItem}
             >
-              <View style={[styles.statIcon, { backgroundColor: Colors.warningSurface }]}>
-                <Ionicons name="car" size={20} color={Colors.warning} />
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(10, 92, 54, 0.05)' }]}>
+                <Ionicons name="car" size={20} color="#0A5C36" />
               </View>
               <Text style={styles.statValue}>
                 {routes.reduce((sum, r) => sum + r.available_seats, 0)}
@@ -322,54 +342,47 @@ export default function DiscoveryPage() {
             <Ionicons name="star" size={14} color={Colors.warning} />
             <Text style={styles.favoritesHeaderTitle}>{t('favorites')}</Text>
           </View>
-          <View style={styles.favoritesContainer}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={[
-                styles.favoritesScroll,
-                isRTL && { flexDirection: 'row-reverse' },
-              ]}
-            >
-              {favorites.map((fav) => {
-                const isActive = searchQuery === fav;
-                return (
-                  <TouchableOpacity
-                    key={fav}
+          <View style={[styles.favoritesGrid, isRTL && { flexDirection: 'row-reverse' }]}>
+            {favorites.map((fav) => {
+              const isActive = searchQuery === fav;
+              return (
+                <TouchableOpacity
+                  key={fav}
+                  style={[
+                    styles.favoriteCard,
+                    isActive && styles.favoriteCardActive,
+                  ]}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setSearchQuery(isActive ? '' : fav);
+                  }}
+                  onLongPress={() => handleFavoriteLongPress(fav)}
+                  activeOpacity={0.8}
+                >
+                  <View
                     style={[
-                      styles.favoriteChip,
-                      isActive && styles.favoriteChipActive,
-                      isRTL && { flexDirection: 'row-reverse' },
+                      styles.favoriteIconContainer,
+                      isActive && styles.favoriteIconContainerActive,
                     ]}
-                    onPress={() => {
-                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setSearchQuery(isActive ? '' : fav);
-                    }}
-                    activeOpacity={0.8}
                   >
                     <Ionicons
                       name={isActive ? 'location' : 'location-outline'}
-                      size={13}
-                      color={isActive ? Colors.primary : Colors.textMuted}
-                      style={isRTL ? { marginLeft: 4 } : { marginRight: 4 }}
+                      size={20}
+                      color={isActive ? '#0A5C36' : Colors.textMuted}
                     />
-                    <Text
-                      style={[styles.favoriteChipText, isActive && styles.favoriteChipTextActive]}
-                    >
-                      {fav}
-                    </Text>
-                    {isActive && (
-                      <Ionicons
-                        name="close-circle"
-                        size={13}
-                        color={Colors.primary}
-                        style={isRTL ? { marginRight: 4 } : { marginLeft: 4 }}
-                      />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+                  </View>
+                  <Text
+                    style={[
+                      styles.favoriteLabel,
+                      isActive && styles.favoriteLabelActive,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {fav}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
           {/* Subscriptions / License Section */}
@@ -409,7 +422,7 @@ export default function DiscoveryPage() {
                       style={[styles.activationContent, isRTL && { flexDirection: 'row-reverse' }]}
                     >
                       <View style={styles.activationIconWrapper}>
-                        <Ionicons name="card" size={20} color={Colors.primary} />
+                        <Ionicons name="card" size={20} color="#0A5C36" />
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text
@@ -507,10 +520,14 @@ export default function DiscoveryPage() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" translucent />
+      <StatusBar style="light" translucent />
 
       {/* Branded Header Banner (Fixed at the top) */}
       <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
+        {/* Glassmorphic Background Effects */}
+        <View style={styles.glassOverlay} />
+        <View style={styles.glassHighlight} />
+
         <View style={[styles.headerTopRow, isRTL && { flexDirection: 'row-reverse' }]}>
           <View style={[styles.brandLogoContainer, isRTL && { flexDirection: 'row-reverse' }]}>
             <Text style={styles.brandLogoText}>{isRTL ? 'سير' : 'Sair'}</Text>
@@ -518,6 +535,18 @@ export default function DiscoveryPage() {
           </View>
 
           <View style={[styles.headerActions, isRTL && { flexDirection: 'row-reverse' }]}>
+            {/* Help Button */}
+            <TouchableOpacity
+              style={styles.notificationHeaderButton}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/help');
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="help-circle-outline" size={22} color={Colors.white} />
+            </TouchableOpacity>
+
             {/* Notification Button */}
             <TouchableOpacity
               style={styles.notificationHeaderButton}
@@ -527,7 +556,7 @@ export default function DiscoveryPage() {
               }}
               activeOpacity={0.7}
             >
-              <Ionicons name="notifications-outline" size={22} color={Colors.text} />
+              <Ionicons name="notifications-outline" size={22} color={Colors.white} />
               {unreadCount > 0 && (
                 <View style={styles.unreadBadge}>
                   <Text style={styles.unreadBadgeText}>{unreadCount}</Text>
@@ -562,7 +591,7 @@ export default function DiscoveryPage() {
           <Ionicons
             name="search-outline"
             size={18}
-            color={searchFocused ? Colors.primary : Colors.textMuted}
+            color={searchFocused ? '#0A5C36' : Colors.textMuted}
           />
           <TextInput
             style={[styles.searchInput, { textAlign: isRTL ? 'right' : 'left' }]}
@@ -600,7 +629,7 @@ export default function DiscoveryPage() {
                   }}
                   style={styles.favoriteActionButton}
                 >
-                  <Ionicons name="star-outline" size={18} color={Colors.primary} />
+                  <Ionicons name="star-outline" size={18} color="#0A5C36" />
                 </TouchableOpacity>
               )}
               <TouchableOpacity
@@ -718,20 +747,36 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    paddingTop: Spacing.sm,
+    paddingTop: Spacing.md,
   },
   // Branded Header
   headerBanner: {
-    backgroundColor: '#EFECE9',
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E6E2DE',
-    ...Shadow.sm,
+    paddingBottom: Spacing.lg,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    ...Shadow.header,
     zIndex: 10,
     overflow: 'hidden',
+    position: 'relative',
+  },
+  glassOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: Colors.primaryDeep,
+  },
+  glassHighlight: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: Colors.glassOverlay,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.glassBorder,
   },
 
   headerTopRow: {
@@ -739,6 +784,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.md,
+    zIndex: 2,
   },
   brandLogoContainer: {
     flexDirection: 'row',
@@ -747,13 +793,13 @@ const styles = StyleSheet.create({
   },
   brandLogoText: {
     fontFamily: FontFamily.logo,
-    fontSize: 26,
-    color: Colors.text,
+    fontSize: 28,
+    color: Colors.white,
   },
   brandLogoTextDot: {
     fontFamily: FontFamily.bold,
-    fontSize: 26,
-    color: Colors.primary,
+    fontSize: 28,
+    color: Colors.primaryLight,
   },
   greetingEmoji: {
     fontSize: 18,
@@ -761,43 +807,43 @@ const styles = StyleSheet.create({
   greetingText: {
     fontFamily: FontFamily.bold,
     fontSize: 18,
-    color: Colors.text,
+    color: Colors.white,
   },
   brandSubtitle: {
     fontFamily: FontFamily.regular,
     fontSize: 13,
-    color: Colors.textSecondary,
+    color: 'rgba(255, 255, 255, 0.65)',
     marginTop: 2,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: Spacing.sm + 2,
+    zIndex: 2,
   },
   notificationHeaderButton: {
     position: 'relative',
-    padding: 8,
-    backgroundColor: Colors.white,
-    borderRadius: 22,
+    padding: 9,
+    backgroundColor: Colors.glassWhite,
+    borderRadius: BorderRadius.xxl,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#E6E2DE',
-    ...Shadow.sm,
+    borderColor: Colors.glassBorder,
   },
   unreadBadge: {
     position: 'absolute',
-    top: -2,
-    right: -2,
+    top: -3,
+    right: -3,
     backgroundColor: Colors.error,
-    borderRadius: 9,
+    borderRadius: 10,
     minWidth: 18,
     height: 18,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
     borderWidth: 2,
-    borderColor: Colors.white,
+    borderColor: Colors.primaryDeep,
   },
   unreadBadgeText: {
     color: Colors.white,
@@ -809,12 +855,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.glassWhite,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: Colors.white,
-    ...Shadow.sm,
+    borderWidth: 1.5,
+    borderColor: Colors.glassBorder,
   },
   avatarInner: {
     width: '100%',
@@ -832,16 +877,18 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.97)',
     paddingHorizontal: Spacing.md,
-    height: 44,
-    borderRadius: BorderRadius.pill,
+    height: 46,
+    borderRadius: BorderRadius.lg,
     ...Shadow.sm,
-    borderWidth: 1.5,
-    borderColor: '#E6E2DE',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+    zIndex: 2,
   },
   searchBarFocused: {
     borderColor: Colors.primary,
+    backgroundColor: Colors.white,
     ...Shadow.md,
   },
   searchResults: {
@@ -849,29 +896,31 @@ const styles = StyleSheet.create({
     left: Spacing.lg,
     right: Spacing.lg,
     backgroundColor: Colors.white,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.borderLight,
     paddingVertical: Spacing.sm,
-    ...Shadow.md,
+    ...Shadow.lg,
     zIndex: 101,
   },
   searchResultItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm + 3,
     borderBottomWidth: 1,
-    borderBottomColor: '#F5F2EF',
+    borderBottomColor: Colors.borderLight,
   },
   searchResultIconWrapper: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: Colors.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.primary + '15',
   },
   searchResultText: {
     fontFamily: FontFamily.medium,
@@ -894,13 +943,13 @@ const styles = StyleSheet.create({
   // Widgets Container
   widgetsMainContainer: {
     backgroundColor: Colors.white,
-    borderRadius: 20,
-    padding: Spacing.md,
-    marginTop: Spacing.lg, // Safe gap below the header curtain instead of negative overlap
+    borderRadius: BorderRadius.xxl,
+    padding: Spacing.lg,
+    marginTop: Spacing.lg,
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
     borderWidth: 1,
-    borderColor: '#EFECE9',
+    borderColor: Colors.borderLight,
     ...Shadow.md,
   },
   statsRow: {
@@ -913,20 +962,24 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 5,
+    gap: 6,
     paddingVertical: Spacing.xs,
   },
   statIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.primarySurface,
+    borderWidth: 1,
+    borderColor: Colors.primary + '12',
   },
   statValue: {
     fontFamily: FontFamily.bold,
-    fontSize: 18,
+    fontSize: 20,
     color: Colors.text,
+    letterSpacing: -0.5,
   },
   statLabel: {
     fontFamily: FontFamily.medium,
@@ -936,20 +989,20 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    height: 32,
-    backgroundColor: Colors.border,
+    height: 36,
+    backgroundColor: Colors.borderLight,
     marginHorizontal: Spacing.xs,
   },
   widgetDivider: {
     height: 1,
-    backgroundColor: '#EFECE9',
-    marginVertical: Spacing.sm,
+    backgroundColor: Colors.borderLight,
+    marginVertical: Spacing.md,
   },
   favoritesHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.sm,
     paddingHorizontal: Spacing.xs,
   },
   favoritesHeaderTitle: {
@@ -957,40 +1010,51 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textSecondary,
   },
-  favoritesContainer: {
-    backgroundColor: 'transparent',
-    marginHorizontal: -Spacing.md,
-    paddingBottom: Spacing.xs,
-    marginTop: Spacing.xs,
-  },
-  favoritesScroll: {
-    paddingHorizontal: Spacing.md,
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  favoriteChip: {
+  favoritesGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.pill,
-    backgroundColor: Colors.white,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-    ...Shadow.sm,
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: Spacing.xs,
+    paddingHorizontal: Spacing.xs,
   },
-  favoriteChipActive: {
+  favoriteCard: {
+    width: '31%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.surfaceMuted,
+    borderWidth: 1.5,
+    borderColor: Colors.borderLight,
+    minHeight: 88,
+  },
+  favoriteCardActive: {
     backgroundColor: Colors.primarySurface,
     borderColor: Colors.primary,
   },
-  favoriteChipText: {
-    fontFamily: FontFamily.medium,
-    fontSize: 13,
-    color: Colors.textSecondary,
+  favoriteIconContainer: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.xs,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
   },
-  favoriteChipTextActive: {
-    color: Colors.primary,
+  favoriteIconContainerActive: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.primary + '40',
+  },
+  favoriteLabel: {
     fontFamily: FontFamily.bold,
+    fontSize: 12,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  favoriteLabelActive: {
+    color: Colors.primaryDeep,
   },
   favoriteActionContainer: {
     flexDirection: 'row',
@@ -1014,7 +1078,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.sm + 2,
   },
   activationContent: {
     flexDirection: 'row',
@@ -1023,12 +1087,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   activationIconWrapper: {
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.primary + '15',
   },
   activationTitle: {
     fontFamily: FontFamily.bold,
@@ -1037,19 +1103,19 @@ const styles = StyleSheet.create({
   },
   activationSubtitle: {
     fontFamily: FontFamily.regular,
-    fontSize: 11.5,
+    fontSize: 12,
     color: Colors.textSecondary,
-    marginTop: 1,
+    marginTop: 2,
   },
   // Routes Container
   routesMainContainer: {
     backgroundColor: Colors.white,
-    borderRadius: 20,
+    borderRadius: BorderRadius.xxl,
     padding: Spacing.md,
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.xxl,
     borderWidth: 1,
-    borderColor: '#EFECE9',
+    borderColor: Colors.borderLight,
     ...Shadow.md,
   },
   routesContainerHeader: {
@@ -1061,26 +1127,29 @@ const styles = StyleSheet.create({
   },
   routesContainerTitle: {
     fontFamily: FontFamily.bold,
-    fontSize: 15,
+    fontSize: 16,
     color: Colors.text,
+    letterSpacing: -0.2,
   },
   routesBadge: {
     backgroundColor: Colors.primarySurface,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: 4,
     borderRadius: BorderRadius.pill,
+    borderWidth: 1,
+    borderColor: Colors.primary + '15',
   },
   routesBadgeText: {
     fontFamily: FontFamily.bold,
     fontSize: 11,
-    color: Colors.primary,
+    color: Colors.primaryDeep,
   },
   routesListWrapper: {
     marginTop: Spacing.xs,
   },
   routeItemDivider: {
     height: 1,
-    backgroundColor: '#EFECE9',
+    backgroundColor: Colors.borderLight,
     marginVertical: Spacing.sm,
   },
   // Empty State override inside container
@@ -1117,3 +1186,4 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
 });
+

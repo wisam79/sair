@@ -106,7 +106,7 @@ export default function PrivacyPolicy() {
     <Box
       sx={{
         minHeight: '100vh',
-        bgcolor: '#1A1A1A',
+        bgcolor: '#161616',
         color: '#f8fafc',
         py: 6,
         px: 2,
@@ -122,7 +122,7 @@ export default function PrivacyPolicy() {
                 width: 40,
                 height: 40,
                 borderRadius: 2,
-                bgcolor: '#C2703E',
+                bgcolor: '#16A34A',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -140,12 +140,12 @@ export default function PrivacyPolicy() {
             onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
             startIcon={<TranslateIcon />}
             sx={{
-              color: '#D4845A',
-              borderColor: '#D4845A',
+              color: '#4ADE80',
+              borderColor: 'rgba(74, 222, 128, 0.3)',
               textTransform: 'none',
               '&:hover': {
-                borderColor: '#A85C2E',
-                bgcolor: 'rgba(212, 132, 90, 0.08)',
+                borderColor: '#4ADE80',
+                bgcolor: 'rgba(74, 222, 128, 0.08)',
               },
             }}
           >
@@ -159,8 +159,8 @@ export default function PrivacyPolicy() {
           sx={{
             p: { xs: 3, md: 5 },
             borderRadius: 4,
-            bgcolor: '#2D2D2D',
-            border: '1px solid #3D3D3D',
+            bgcolor: '#242424',
+            border: '1px solid #2D2D2D',
             color: '#f1f5f9',
           }}
         >
@@ -171,7 +171,7 @@ export default function PrivacyPolicy() {
             sx={{
               color: '#ffffff',
               fontSize: { xs: '1.75rem', md: '2.25rem' },
-              borderBottom: '2px solid #C2703E',
+              borderBottom: '2px solid #16A34A',
               pb: 1,
               display: 'inline-block',
             }}
@@ -193,7 +193,7 @@ export default function PrivacyPolicy() {
           <Stack spacing={4}>
             {t.sections.map((section, idx) => (
               <Box key={idx}>
-                <Typography variant="h6" fontWeight={700} sx={{ color: '#D4845A', mb: 2 }}>
+                <Typography variant="h6" fontWeight={700} sx={{ color: '#4ADE80', mb: 2 }}>
                   {section.title}
                 </Typography>
                 <Stack spacing={1.5}>
@@ -209,7 +209,7 @@ export default function PrivacyPolicy() {
                           width: 6,
                           height: 6,
                           borderRadius: '50%',
-                          bgcolor: '#C2703E',
+                          bgcolor: '#16A34A',
                           mt: 1.2,
                           mr: isRtl ? 1.5 : 0,
                           ml: isRtl ? 0 : 1.5,
@@ -229,7 +229,7 @@ export default function PrivacyPolicy() {
             ))}
           </Stack>
 
-          <Divider sx={{ my: 4, borderColor: '#3D3D3D' }} />
+          <Divider sx={{ my: 4, borderColor: '#2D2D2D' }} />
 
           <Typography
             variant="body2"

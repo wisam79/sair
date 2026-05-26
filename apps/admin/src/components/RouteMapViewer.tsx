@@ -34,6 +34,7 @@ export default function RouteMapViewer({
 }: RouteMapViewerProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const layerGroupRef = useRef<L.LayerGroup | null>(null);
   const router = useRouter();
 
   // Expose router globally so Leaflet popup inline onclick events can utilize Next.js client-side navigation
@@ -43,8 +44,17 @@ export default function RouteMapViewer({
     }
   }, [router]);
 
+  // 1. Initialize Map Instance (Once on Mount)
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
+
+    // Fix Leaflet marker icons in Next.js
+    delete (L.Icon.Default.prototype as any)._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    });
 
     // Center on Baghdad by default
     const map = L.map(mapContainerRef.current).setView([33.3128, 44.3615], 12);
@@ -54,24 +64,55 @@ export default function RouteMapViewer({
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(map);
 
-    const startIcon = L.icon({
-      iconUrl:
-        'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41],
+    // Create a Layer Group for dynamic markers and route lines
+    const layerGroup = L.layerGroup().addTo(map);
+    layerGroupRef.current = layerGroup;
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+      layerGroupRef.current = null;
+    };
+  }, []);
+
+  // 2. Render Markers and Route Polylines dynamically (No map destruction)
+  useEffect(() => {
+    const map = mapRef.current;
+    const layerGroup = layerGroupRef.current;
+    if (!map || !layerGroup) return;
+
+    // Clear previous markers/lines from the map
+    layerGroup.clearLayers();
+
+    // Custom premium marker icons using DivIcon
+    const startIcon = L.divIcon({
+      className: 'custom-marker-container-start',
+      html: `
+        <div class="custom-marker start-marker">
+          <div class="marker-pulse"></div>
+          <div class="marker-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+        </div>
+      `,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
     });
 
-    const endIcon = L.icon({
-      iconUrl:
-        'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41],
+    const endIcon = L.divIcon({
+      className: 'custom-marker-container-end',
+      html: `
+        <div class="custom-marker end-marker">
+          <div class="marker-pulse"></div>
+          <div class="marker-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          </div>
+        </div>
+      `,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
     });
 
     const bounds = L.latLngBounds([]);
@@ -91,12 +132,12 @@ export default function RouteMapViewer({
 
       // Start Marker
       L.marker(startPos, { icon: startIcon })
-        .addTo(map)
+        .addTo(layerGroup)
         .bindPopup(`<strong>نقطة الانطلاق لـ: ${route.title}</strong><br/>${route.start_location}`);
 
       // End Marker
       L.marker(endPos, { icon: endIcon })
-        .addTo(map)
+        .addTo(layerGroup)
         .bindPopup(`<strong>نقطة النهاية لـ: ${route.title}</strong><br/>${route.end_location}`);
 
       const driverName = driverNames[route.driver_id] || 'سائق غير معين';
@@ -105,7 +146,7 @@ export default function RouteMapViewer({
 
       // Bind detailed popup on the line
       const popupHtml = `
-        <div style="font-family: var(--font-ibm-arabic), sans-serif; direction: rtl; text-align: right; min-width: 220px;">
+        <div style="font-family: var(--font-noto-arabic), sans-serif; direction: rtl; text-align: right; min-width: 220px;">
           <h4 style="margin: 0 0 8px 0; font-size: 14px; color: #1E293B; border-bottom: 1px solid #E2E8F0; padding-bottom: 6px;">${route.title}</h4>
           <p style="margin: 4px 0; font-size: 12px; color: #64748B; line-height: 1.6;">
             <strong>البداية:</strong> ${route.start_location}<br/>
@@ -149,22 +190,17 @@ export default function RouteMapViewer({
           color,
           weight: 5,
           opacity: 0.85,
-        }).addTo(map);
+        }).addTo(layerGroup);
 
         polyline.bindPopup(popupHtml);
       };
 
-      drawRoutePolyline();
+      void drawRoutePolyline();
     });
 
     if (bounds.isValid()) {
       map.fitBounds(bounds, { padding: [50, 50] });
     }
-
-    return () => {
-      map.remove();
-      mapRef.current = null;
-    };
   }, [routes, driverNames]);
 
   return (

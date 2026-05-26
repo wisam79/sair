@@ -27,28 +27,28 @@ const getShadowsAndHighlights = (isNotification) => {
   return `
     <!-- Cutout Highlight (Top-left crescent) & Raised Button Outer Shadow -->
     <g transform="translate(-2, -3)">
-      <g fill="#FFD2B8" opacity="0.6">
+      <g fill="#D1FAE5" opacity="0.6">
         <path d="M 512 280 L 742 360 L 512 440 L 282 360 Z" />
         <path d="M 380 415 Q 512 495 644 415 L 644 485 Q 512 565 380 485 Z" />
-        <path d="M 512 800 C 412 720, 612 640, 512 560" fill="none" stroke="#FFD2B8" stroke-width="22" stroke-dasharray="0, 55" stroke-linecap="round" />
-        <path d="M 512 360 Q 670 370 680 430" fill="none" stroke="#FFD2B8" stroke-width="12" stroke-linecap="round" />
+        <path d="M 512 800 C 412 720, 612 640, 512 560" fill="none" stroke="#D1FAE5" stroke-width="22" stroke-dasharray="0, 55" stroke-linecap="round" />
+        <path d="M 512 360 Q 670 370 680 430" fill="none" stroke="#D1FAE5" stroke-width="12" stroke-linecap="round" />
         <rect x="668" y="430" width="24" height="40" rx="12" />
         <circle cx="512" cy="360" r="6" />
       </g>
-      <circle cx="512" cy="360" r="16" fill="#3D1B0B" />
+      <circle cx="512" cy="360" r="16" fill="#022C22" />
     </g>
 
     <!-- Cutout Shadow (Bottom-right crescent) & Raised Button Outer Highlight -->
     <g transform="translate(2, 3)">
-      <g fill="#3D1B0B">
+      <g fill="#022C22">
         <path d="M 512 280 L 742 360 L 512 440 L 282 360 Z" />
         <path d="M 380 415 Q 512 495 644 415 L 644 485 Q 512 565 380 485 Z" />
-        <path d="M 512 800 C 412 720, 612 640, 512 560" fill="none" stroke="#3D1B0B" stroke-width="22" stroke-dasharray="0, 55" stroke-linecap="round" />
-        <path d="M 512 360 Q 670 370 680 430" fill="none" stroke="#3D1B0B" stroke-width="12" stroke-linecap="round" />
+        <path d="M 512 800 C 412 720, 612 640, 512 560" fill="none" stroke="#022C22" stroke-width="22" stroke-dasharray="0, 55" stroke-linecap="round" />
+        <path d="M 512 360 Q 670 370 680 430" fill="none" stroke="#022C22" stroke-width="12" stroke-linecap="round" />
         <rect x="668" y="430" width="24" height="40" rx="12" />
         <circle cx="512" cy="360" r="6" />
       </g>
-      <circle cx="512" cy="360" r="16" fill="#FFD2B8" opacity="0.6" />
+      <circle cx="512" cy="360" r="16" fill="#D1FAE5" opacity="0.6" />
     </g>
   `;
 };
@@ -64,10 +64,10 @@ const createLogoSvg = (includeBackground = false, isNotification = false) => {
     ? ''
     : `
     <linearGradient id="metalCopper" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#F2B591" />
-      <stop offset="30%" stop-color="#DF8C5A" />
-      <stop offset="70%" stop-color="#C26D3C" />
-      <stop offset="100%" stop-color="#8F431B" />
+      <stop offset="0%" stop-color="#86EFAC" />
+      <stop offset="30%" stop-color="#4ADE80" />
+      <stop offset="70%" stop-color="#16A34A" />
+      <stop offset="100%" stop-color="#0A5C36" />
     </linearGradient>
   `;
 
@@ -125,10 +125,10 @@ const getSplashSvg = () => {
   
   <defs>
     <linearGradient id="splashMetalCopper" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#F2B591" />
-      <stop offset="30%" stop-color="#DF8C5A" />
-      <stop offset="70%" stop-color="#C26D3C" />
-      <stop offset="100%" stop-color="#8F431B" />
+      <stop offset="0%" stop-color="#86EFAC" />
+      <stop offset="30%" stop-color="#4ADE80" />
+      <stop offset="70%" stop-color="#16A34A" />
+      <stop offset="100%" stop-color="#0A5C36" />
     </linearGradient>
 
     <mask id="splashCapMask">
@@ -164,9 +164,9 @@ const getSplashSvg = () => {
   
   <!-- اسم التطبيق والترجمة متمركزة في الأسفل -->
   <g transform="translate(642, 1950)">
-    <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="120" font-weight="bold" fill="#CF7C4B" text-anchor="middle" letter-spacing="8">SAIR</text>
+    <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="120" font-weight="bold" fill="#16A34A" text-anchor="middle" letter-spacing="8">SAIR</text>
     <text x="0" y="80" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="40" font-weight="500" fill="#FFFFFF" text-anchor="middle" opacity="0.6" letter-spacing="2">Smart University Transit</text>
-    <text x="0" y="150" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="normal" fill="#CF7C4B" text-anchor="middle" opacity="0.8">سير — نقل جامعي ذكي</text>
+    <text x="0" y="150" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="normal" fill="#16A34A" text-anchor="middle" opacity="0.8">سير — نقل جامعي ذكي</text>
   </g>
 </svg>
 

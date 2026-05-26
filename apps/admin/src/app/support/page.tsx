@@ -161,9 +161,9 @@ export default function SupportPage() {
     <Box
       sx={{
         minHeight: '100vh',
-        bgcolor: '#1A1A1A',
+        bgcolor: '#161616',
         color: '#f8fafc',
-        fontFamily: 'var(--font-ibm-arabic), sans-serif',
+        fontFamily: 'var(--font-noto-arabic), sans-serif',
         overflowX: 'hidden',
         position: 'relative',
         direction: isRtl ? 'rtl' : 'ltr',
@@ -180,7 +180,7 @@ export default function SupportPage() {
           width: '400px',
           height: '400px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(194,112,62,0.1) 0%, rgba(0,0,0,0) 70%)',
+          background: 'radial-gradient(circle, rgba(22,163,74,0.1) 0%, rgba(0,0,0,0) 70%)',
           filter: 'blur(80px)',
           zIndex: 0,
           pointerEvents: 'none',
@@ -192,7 +192,7 @@ export default function SupportPage() {
         sx={{
           borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
           backdropFilter: 'blur(16px)',
-          bgcolor: 'rgba(26, 26, 26, 0.7)',
+          bgcolor: 'rgba(11, 36, 24, 0.7)',
           position: 'sticky',
           top: 0,
           zIndex: 100,
@@ -214,7 +214,7 @@ export default function SupportPage() {
                     width: 32,
                     height: 32,
                     borderRadius: 1.5,
-                    bgcolor: '#C2703E',
+                    bgcolor: '#16A34A',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -237,7 +237,7 @@ export default function SupportPage() {
                     color: 'rgba(255, 255, 255, 0.7)',
                     fontSize: '0.85rem',
                     textTransform: 'none',
-                    '&:hover': { color: '#D4845A', bgcolor: 'transparent' },
+                    '&:hover': { color: '#4ADE80', bgcolor: 'transparent' },
                   }}
                 >
                   {t.nav.home}
@@ -249,15 +249,15 @@ export default function SupportPage() {
                 onClick={toggleLanguage}
                 startIcon={<TranslateIcon sx={{ fontSize: 16 }} />}
                 sx={{
-                  color: '#D4845A',
-                  borderColor: 'rgba(212, 132, 90, 0.3)',
+                  color: '#4ADE80',
+                  borderColor: 'rgba(74, 222, 128, 0.3)',
                   borderRadius: 2,
                   px: 2,
                   fontSize: '0.85rem',
                   textTransform: 'none',
                   '&:hover': {
-                    borderColor: '#D4845A',
-                    bgcolor: 'rgba(212, 132, 90, 0.05)',
+                    borderColor: '#4ADE80',
+                    bgcolor: 'rgba(74, 222, 128, 0.05)',
                   },
                 }}
               >
@@ -298,8 +298,8 @@ export default function SupportPage() {
           <Card
             elevation={0}
             sx={{
-              bgcolor: '#2D2D2D',
-              border: '1px solid #3D3D3D',
+              bgcolor: '#242424',
+              border: '1px solid #2D2D2D',
               borderRadius: 5,
               boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.4)',
               overflow: 'hidden',
@@ -338,13 +338,13 @@ export default function SupportPage() {
                     onClick={() => setSuccess(false)}
                     sx={{
                       mt: 2,
-                      color: '#D4845A',
-                      borderColor: '#D4845A',
+                      color: '#4ADE80',
+                      borderColor: '#4ADE80',
                       borderRadius: 2,
                       px: 3,
                       '&:hover': {
-                        borderColor: '#A85C2E',
-                        bgcolor: 'rgba(212, 132, 90, 0.05)',
+                        borderColor: '#15803D',
+                        bgcolor: 'rgba(74, 222, 128, 0.05)',
                       },
                     }}
                   >
@@ -384,7 +384,7 @@ export default function SupportPage() {
                           bgcolor: 'rgba(255,255,255,0.02)',
                           '& fieldset': { borderColor: '#3D3D3D' },
                           '&:hover fieldset': { borderColor: '#475569' },
-                          '&.Mui-focused fieldset': { borderColor: '#C2703E' },
+                          '&.Mui-focused fieldset': { borderColor: '#16A34A' },
                         },
                       }}
                     />
@@ -404,7 +404,7 @@ export default function SupportPage() {
                           bgcolor: 'rgba(255,255,255,0.02)',
                           '& fieldset': { borderColor: '#3D3D3D' },
                           '&:hover fieldset': { borderColor: '#475569' },
-                          '&.Mui-focused fieldset': { borderColor: '#C2703E' },
+                          '&.Mui-focused fieldset': { borderColor: '#16A34A' },
                         },
                       }}
                     />
@@ -426,19 +426,19 @@ export default function SupportPage() {
                           bgcolor: 'rgba(255,255,255,0.02)',
                           '& fieldset': { borderColor: '#3D3D3D' },
                           '&:hover fieldset': { borderColor: '#475569' },
-                          '&.Mui-focused fieldset': { borderColor: '#C2703E' },
+                          '&.Mui-focused fieldset': { borderColor: '#16A34A' },
                         },
                       }}
                     >
                       <MenuItem
                         value="support"
-                        sx={{ fontFamily: 'var(--font-ibm-arabic), sans-serif' }}
+                        sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}
                       >
                         {t.form.typeSupport}
                       </MenuItem>
                       <MenuItem
                         value="account_deletion"
-                        sx={{ fontFamily: 'var(--font-ibm-arabic), sans-serif' }}
+                        sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}
                       >
                         {t.form.typeDeletion}
                       </MenuItem>
@@ -490,7 +490,7 @@ export default function SupportPage() {
                           bgcolor: 'rgba(255,255,255,0.02)',
                           '& fieldset': { borderColor: '#3D3D3D' },
                           '&:hover fieldset': { borderColor: '#475569' },
-                          '&.Mui-focused fieldset': { borderColor: '#C2703E' },
+                          '&.Mui-focused fieldset': { borderColor: '#16A34A' },
                         },
                       }}
                     />
@@ -506,17 +506,17 @@ export default function SupportPage() {
                       disabled={loading}
                       endIcon={!loading && <SendIcon />}
                       sx={{
-                        bgcolor: requestType === 'account_deletion' ? '#dc2626' : '#C2703E',
-                        color: '#fff',
-                        borderRadius: 2.5,
-                        py: 1.8,
-                        fontWeight: 700,
-                        fontSize: '1rem',
-                        textTransform: 'none',
-                        boxShadow: '0 4px 14px rgba(194, 112, 62, 0.2)',
-                        '&:hover': {
-                          bgcolor: requestType === 'account_deletion' ? '#b91c1c' : '#A85C2E',
-                        },
+                         bgcolor: requestType === 'account_deletion' ? '#dc2626' : '#16A34A',
+                         color: '#fff',
+                         borderRadius: 2.5,
+                         py: 1.8,
+                         fontWeight: 700,
+                         fontSize: '1rem',
+                         textTransform: 'none',
+                         boxShadow: '0 4px 14px rgba(22, 163, 74, 0.2)',
+                         '&:hover': {
+                           bgcolor: requestType === 'account_deletion' ? '#b91c1c' : '#15803D',
+                         },
                       }}
                     >
                       {loading ? (
@@ -545,7 +545,7 @@ export default function SupportPage() {
           borderTop: '1px solid rgba(255, 255, 255, 0.05)',
           py: 3,
           textAlign: 'center',
-          bgcolor: '#1A1A1A',
+          bgcolor: '#161616',
         }}
       >
         <Typography variant="caption" sx={{ color: '#475569' }}>
