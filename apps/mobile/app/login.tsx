@@ -25,7 +25,7 @@ import { makeRedirectUri } from 'expo-auth-session';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormInput } from '../src/components/FormInput';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Constants from 'expo-constants';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -288,12 +288,19 @@ export default function LoginScreen() {
         } else {
           console.log('Google Sign-In response type:', userInfo.type);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         // Only alert if the user did not cancel the sign-in flow manually
-        if (err.code !== '12501' && err.code !== 'SIGN_IN_CANCELLED') {
+        const code = (err as { code?: string | number })?.code;
+        const isCancel =
+          code === statusCodes.SIGN_IN_CANCELLED ||
+          code === statusCodes.IN_PROGRESS ||
+          code === '12501' ||
+          code === 12501;
+
+        if (!isCancel) {
           showAlert(
             t('error'),
-            err.message || t('something_went_wrong'),
+            err instanceof Error ? err.message : t('something_went_wrong'),
             'error',
           );
         }
