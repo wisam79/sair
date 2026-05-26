@@ -57,16 +57,20 @@ test.describe('Edge Function API Security', () => {
   });
 
   test('atomic-booking rate limits rapid requests', async ({ request }) => {
-    const requests = Array.from({ length: 12 }, () =>
-      request.post(`${SUPABASE_URL}/functions/v1/atomic-booking`, {
+    const responses = [];
+    for (let i = 0; i < 12; i++) {
+      const res = await request.post(`${SUPABASE_URL}/functions/v1/atomic-booking`, {
         headers: { Authorization: `Bearer ${ANON_KEY}`, 'Content-Type': 'application/json' },
         data: {
           routeId: '550e8400-e29b-41d4-a716-446655440000',
           studentId: '550e8400-e29b-41d4-a716-446655440001',
         },
-      }),
-    );
-    const responses = await Promise.all(requests);
+      });
+      responses.push(res);
+      if (res.status() === 429) {
+        break;
+      }
+    }
     const allRejected = responses.every((r) => r.status() >= 400);
     const someRateLimited = responses.some((r) => r.status() === 429);
     expect(allRejected || someRateLimited).toBeTruthy();
