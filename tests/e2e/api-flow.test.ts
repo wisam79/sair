@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_URL || !ANON_KEY) {
   throw new Error(
@@ -9,6 +11,115 @@ if (!SUPABASE_URL || !ANON_KEY) {
       'Copy .env.example to .env and fill in values.',
   );
 }
+
+let createdRouteId: string | null = null;
+let createdDriverId: string | null = null;
+let createdProfileId: string | null = null;
+
+test.beforeAll(async () => {
+  if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+    console.warn('[E2E api-flow] SUPABASE_SERVICE_ROLE_KEY not set. Skipping DB seeding.');
+    return;
+  }
+
+  const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  try {
+    const email = `diag_api_flow_${Math.random().toString(36).substring(7)}@sair.test`;
+    const password = `Pass123!_${Math.random().toString(36).substring(7)}`;
+
+    // Create user
+    const { data: userData, error: createError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      app_metadata: { role: 'driver' },
+    });
+
+    if (createError || !userData || !userData.user) {
+      console.error(`Failed to create test driver user: ${createError?.message}`);
+      return;
+    }
+    createdProfileId = userData.user.id;
+
+    // Profiles is usually auto-created via trigger, let's upsert to be safe and set values
+    const { error: profileError } = await supabase.from('profiles').upsert({
+      id: userData.user.id,
+      full_name: 'E2E API Test Driver',
+      role: 'driver',
+      is_verified: true,
+    });
+
+    if (profileError) {
+      console.error(`Failed to upsert profile: ${profileError.message}`);
+      return;
+    }
+
+    // Create driver entry
+    const { data: driverData, error: driverError } = await supabase.from('drivers').insert({
+      user_id: userData.user.id,
+      license_number: 'E2E-LIC-123',
+      vehicle_model: 'E2E Toyota',
+      vehicle_plate: 'E2E-PLATE',
+      capacity: 10,
+      is_verified: true,
+    }).select();
+
+    if (driverError || !driverData || driverData.length === 0) {
+      console.error(`Failed to create driver: ${driverError?.message}`);
+      return;
+    }
+    createdDriverId = driverData[0].id;
+
+    // Create active route
+    const { data: routeData, error: routeError } = await supabase.from('routes').insert({
+      driver_id: createdDriverId,
+      title: 'E2E API Flow Active Route',
+      start_location: 'Start Point',
+      end_location: 'End Point',
+      price: 1500,
+      capacity: 10,
+      available_seats: 10,
+      is_active: true,
+    }).select();
+
+    if (routeError || !routeData || routeData.length === 0) {
+      console.error(`Failed to create active route: ${routeError?.message}`);
+      return;
+    }
+    createdRouteId = routeData[0].id;
+    console.log(`[E2E api-flow] Successfully seeded route: ${createdRouteId}`);
+  } catch (err) {
+    console.error('[E2E api-flow] Error seeding DB:', err);
+  }
+});
+
+test.afterAll(async () => {
+  if (!SUPABASE_URL || !SERVICE_ROLE_KEY) return;
+  const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  try {
+    if (createdRouteId) {
+      const { error } = await supabase.from('routes').delete().eq('id', createdRouteId);
+      if (error) console.error('Error deleting route:', error.message);
+    }
+    if (createdDriverId) {
+      const { error } = await supabase.from('drivers').delete().eq('id', createdDriverId);
+      if (error) console.error('Error deleting driver:', error.message);
+    }
+    if (createdProfileId) {
+      const { error } = await supabase.auth.admin.deleteUser(createdProfileId);
+      if (error) console.error('Error deleting auth user:', error.message);
+    }
+    console.log('[E2E api-flow] Cleaned up seeded DB objects.');
+  } catch (err) {
+    console.error('[E2E api-flow] Error during cleanup:', err);
+  }
+});
 
 test.describe('Edge Function API Security', () => {
   test('atomic-booking rejects unauthenticated requests', async ({ request }) => {
