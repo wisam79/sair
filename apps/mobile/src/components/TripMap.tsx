@@ -1,6 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { Map, Camera, Marker, GeoJSONSource, Layer, UserLocation, CameraRef } from '@maplibre/maplibre-react-native';
+import {
+  Map,
+  Camera,
+  Marker,
+  GeoJSONSource,
+  Layer,
+  UserLocation,
+  CameraRef,
+} from '@maplibre/maplibre-react-native';
 import { Colors } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../hooks/useTranslation';
@@ -37,7 +45,7 @@ export const TripMap: React.FC<TripMapProps> = ({
   const [routeCoords, setRouteCoords] = useState<LatLng[]>([]);
   const [isLocating, setIsLocating] = useState(false);
   const routeFetched = useRef(false);
-  
+
   // Track user location
   const userLocationRef = useRef<LatLng | null>(null);
 
@@ -88,7 +96,8 @@ export const TripMap: React.FC<TripMapProps> = ({
       if (status !== 'granted') {
         Alert.alert(
           t('alert') || 'تنبيه',
-          t('location_permission_denied') || 'تم رفض صلاحية الوصول للموقع. يرجى تفعيلها من الإعدادات.'
+          t('location_permission_denied') ||
+            'تم رفض صلاحية الوصول للموقع. يرجى تفعيلها من الإعدادات.',
         );
         return;
       }
@@ -96,7 +105,7 @@ export const TripMap: React.FC<TripMapProps> = ({
       // 1. Attempt to get the last known location instantly (takes < 50ms)
       const lastKnown = await Location.getLastKnownPositionAsync({});
       let lastKnownCoords: [number, number] | null = null;
-      
+
       if (lastKnown) {
         lastKnownCoords = [lastKnown.coords.longitude, lastKnown.coords.latitude];
         userLocationRef.current = {
@@ -137,7 +146,7 @@ export const TripMap: React.FC<TripMapProps> = ({
       } else {
         Alert.alert(
           t('error') || 'خطأ',
-          t('location_fetch_error') || 'تعذر تحديد موقعك الحالي. يرجى التأكد من تفعيل الـ GPS.'
+          t('location_fetch_error') || 'تعذر تحديد موقعك الحالي. يرجى التأكد من تفعيل الـ GPS.',
         );
       }
     } finally {
@@ -185,13 +194,10 @@ export const TripMap: React.FC<TripMapProps> = ({
     const maxLng = Math.max(...lngs);
     const minLng = Math.min(...lngs);
 
-    cameraRef.current.fitBounds(
-      [minLng, minLat, maxLng, maxLat],
-      {
-        padding: { top: 60, right: 60, bottom: 120, left: 60 },
-        duration: 1000,
-      }
-    );
+    cameraRef.current.fitBounds([minLng, minLat, maxLng, maxLat], {
+      padding: { top: 60, right: 60, bottom: 120, left: 60 },
+      duration: 1000,
+    });
   };
 
   useEffect(() => {

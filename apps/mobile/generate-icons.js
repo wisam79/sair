@@ -59,8 +59,10 @@ const getShadowsAndHighlights = (isNotification) => {
 const createLogoSvg = (includeBackground = false, isNotification = false) => {
   const bg = includeBackground ? '<rect width="1200" height="1200" fill="#1D1F21" />' : '';
   const pinFill = isNotification ? '#FFFFFF' : 'url(#metalCopper)';
-  
-  const gradient = isNotification ? '' : `
+
+  const gradient = isNotification
+    ? ''
+    : `
     <linearGradient id="metalCopper" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#F2B591" />
       <stop offset="30%" stop-color="#DF8C5A" />
@@ -173,17 +175,14 @@ const getSplashSvg = () => {
 
 async function generate() {
   console.log('🚀 Generating Perfect Flat Minimalist Assets...');
-  
+
   const iconBuffer = Buffer.from(createLogoSvg(true, false));
   const adaptiveBuffer = Buffer.from(createLogoSvg(false, false));
   const notificationBuffer = Buffer.from(createLogoSvg(false, true));
   const splashBuffer = Buffer.from(getSplashSvg());
 
   // 1. الأيقونة الرسمية للمتجر (1024x1024)
-  await sharp(iconBuffer)
-    .resize(1024, 1024)
-    .png()
-    .toFile(path.join(ASSETS_DIR, 'icon.png'));
+  await sharp(iconBuffer).resize(1024, 1024).png().toFile(path.join(ASSETS_DIR, 'icon.png'));
   console.log('Created icon.png');
 
   // 2. الأيقونة التكيفية لأندرويد (1080x1080)
@@ -201,16 +200,11 @@ async function generate() {
   console.log('Created notification-icon.png');
 
   // 4. الشاشة الترحيبية (Splash Screen) للنظام (1284x2778)
-  await sharp(splashBuffer)
-    .png()
-    .toFile(path.join(ASSETS_DIR, 'splash.png'));
+  await sharp(splashBuffer).png().toFile(path.join(ASSETS_DIR, 'splash.png'));
   console.log('Created splash.png');
 
   // 5. favicon للويب (48x48)
-  await sharp(adaptiveBuffer)
-    .resize(48, 48)
-    .png()
-    .toFile(path.join(ASSETS_DIR, 'favicon.png'));
+  await sharp(adaptiveBuffer).resize(48, 48).png().toFile(path.join(ASSETS_DIR, 'favicon.png'));
   console.log('Created favicon.png');
 
   // Save the SVGs to the file system so the user can see them easily

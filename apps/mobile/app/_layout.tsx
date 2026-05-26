@@ -65,7 +65,7 @@ export default function Layout() {
   const { top } = useSafeAreaInsets();
 
   const [forceUpdateRequired, setForceUpdateRequired] = useState(false);
-  const [animationFinished, setAnimationFinished] = useState(false);  // Prevent infinite refresh loop: only attempt session refresh once per mount
+  const [animationFinished, setAnimationFinished] = useState(false); // Prevent infinite refresh loop: only attempt session refresh once per mount
   const refreshAttemptedRef = useRef(false);
 
   // Initialize push notifications globally
