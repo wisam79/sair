@@ -52,4 +52,10 @@ export default defineConfig({
   ],
   globalSetup: process.env.CI ? undefined : './tests/e2e/setup/global-setup.ts',
   globalTeardown: process.env.CI ? undefined : './tests/e2e/setup/global-teardown.ts',
+  webServer: {
+    command: 'pnpm --filter admin-dashboard dev',
+    url: 'http://localhost:3000/login',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+  },
 });
