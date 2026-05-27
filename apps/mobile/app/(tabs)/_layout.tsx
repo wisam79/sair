@@ -47,7 +47,6 @@ function AnimatedTabIcon({ name, color, focused }: AnimatedTabIconProps) {
       <Animated.View style={{ transform: [{ scale }] }}>
         <Ionicons name={activeName} size={21} color={focused ? Colors.primary : Colors.textMuted} />
       </Animated.View>
-      {focused && <View style={tabStyles.activeDot} />}
     </View>
   );
 }
@@ -65,14 +64,6 @@ const tabStyles = StyleSheet.create({
     backgroundColor: Colors.primarySurface,
     borderWidth: 1,
     borderColor: Colors.primary + '15',
-  },
-  activeDot: {
-    position: 'absolute',
-    bottom: -8,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.primary,
   },
 });
 

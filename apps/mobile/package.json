@@ -13,6 +13,7 @@
   "dependencies": {
     "@expo-google-fonts/gulzar": "^0.4.2",
     "@expo-google-fonts/ibm-plex-sans-arabic": "^0.4.2",
+    "@expo-google-fonts/lemonada": "^0.4.2",
     "@expo-google-fonts/noto-sans-arabic": "^0.4.3",
     "@expo/vector-icons": "^15.1.1",
     "@fontsource/ibm-plex-sans-arabic": "^5.2.9",

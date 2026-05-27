@@ -24,6 +24,7 @@ import {
   NotoSansArabic_700Bold,
 } from '@expo-google-fonts/noto-sans-arabic';
 import { Gulzar_400Regular } from '@expo-google-fonts/gulzar';
+import { Lemonada_400Regular, Lemonada_700Bold } from '@expo-google-fonts/lemonada';
 import * as SplashScreen from 'expo-splash-screen';
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
@@ -76,6 +77,8 @@ export default function Layout() {
     NotoSansArabic_500Medium,
     NotoSansArabic_700Bold,
     Gulzar_400Regular,
+    Lemonada_400Regular,
+    Lemonada_700Bold,
   });
 
   // RTL setup
