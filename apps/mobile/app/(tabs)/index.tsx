@@ -11,6 +11,7 @@ import {
   ScrollView,
   Dimensions,
   Animated,
+  Platform,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -52,13 +53,13 @@ const FavoriteChip = React.memo(({ fav, isActive, isRTL, onPress, onLongPress }:
         toValue: isActive ? 1.05 : 1,
         friction: 5,
         tension: 40,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
       Animated.spring(starScale, {
         toValue: isActive ? 1.25 : 1,
         friction: 4,
         tension: 50,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
     ]).start();
   }, [isActive]);
@@ -68,13 +69,13 @@ const FavoriteChip = React.memo(({ fav, isActive, isRTL, onPress, onLongPress }:
       Animated.timing(scale, {
         toValue: 0.92,
         duration: 80,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
       Animated.spring(scale, {
         toValue: isActive ? 1 : 1.05,
         friction: 4,
         tension: 40,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
     ]).start();
     onPress();
