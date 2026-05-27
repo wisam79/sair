@@ -7,7 +7,7 @@ export const FontFamily = {
   regular: 'NotoSansArabic_400Regular',
   medium: 'NotoSansArabic_500Medium',
   bold: 'NotoSansArabic_700Bold',
-  logo: 'Gulzar_400Regular',
+  logo: 'Lemonada_700Bold',
 } as const;
 
 export const FontSize = {

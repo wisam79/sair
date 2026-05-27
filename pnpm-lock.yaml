@@ -205,6 +205,9 @@ importers:
       '@expo-google-fonts/ibm-plex-sans-arabic':
         specifier: ^0.4.2
         version: 0.4.2
+      '@expo-google-fonts/lemonada':
+        specifier: ^0.4.2
+        version: 0.4.2
       '@expo-google-fonts/noto-sans-arabic':
         specifier: ^0.4.3
         version: 0.4.3
@@ -1248,6 +1251,9 @@ packages:
 
   '@expo-google-fonts/ibm-plex-sans-arabic@0.4.2':
     resolution: {integrity: sha512-Cx24iSo/4pWBKHVf69tbVLDUiHWCSTHrhKPw/+SYWLDnyiX10WXh+amNWRSo9N3ruwd+qk9AQgDaIY1KO0u1Ig==}
+
+  '@expo-google-fonts/lemonada@0.4.2':
+    resolution: {integrity: sha512-B4D94Sw4Lsm971+1l87UGgYHZ4eN/90mN5sqGyJHTjgyhvUAoRsyOinffnoMqN0JZhBnPErX76R0um/ISXRatA==}
 
   '@expo-google-fonts/noto-sans-arabic@0.4.3':
     resolution: {integrity: sha512-YvtxyuegxPegu2g5urXJ+gQxRp8i798nQswTmEjwXOWR/fqy0Gvey6h5IoNRBrc43SxRxPezqCiR9ivpfPAXSg==}
@@ -8393,6 +8399,8 @@ snapshots:
   '@expo-google-fonts/gulzar@0.4.2': {}
 
   '@expo-google-fonts/ibm-plex-sans-arabic@0.4.2': {}
+
+  '@expo-google-fonts/lemonada@0.4.2': {}
 
   '@expo-google-fonts/noto-sans-arabic@0.4.3': {}
 
