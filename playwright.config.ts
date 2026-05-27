@@ -4,24 +4,38 @@ import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-// Safety: Block production URLs
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
-const isProduction =
-  SUPABASE_URL.includes('zpcvvyxtmxzplmojobbv') || SUPABASE_URL.includes('supabase.co');
 
-if (isProduction && process.env.CI !== 'true') {
+// Safety: Block production URL (zpcvvyxtmxzplmojobbv) under all conditions
+const isProductionProject = SUPABASE_URL.includes('zpcvvyxtmxzplmojobbv');
+const isHostedSupabase = SUPABASE_URL.includes('supabase.co');
+
+if (isProductionProject) {
+  console.error(`
+╔══════════════════════════════════════════════════════════════════╗
+║  🚫 E2E TESTS BLOCKED (PRODUCTION PROTECTED)                    ║
+╠══════════════════════════════════════════════════════════════════╣
+║  Production URL detected: ${SUPABASE_URL}
+║                                                                  ║
+║  E2E tests are STRICTLY PROHIBITED from running against the       ║
+║  PRODUCTION project (zpcvvyxtmxzplmojobbv) under any condition!  ║
+║                                                                  ║
+║  To fix:                                                        ║
+║  Set EXPO_PUBLIC_SUPABASE_URL to a local or dev/test project ref.║
+╚══════════════════════════════════════════════════════════════════╝
+  `);
+  process.exit(1);
+}
+
+if (isHostedSupabase && process.env.CI !== 'true') {
   console.error(`
 ╔══════════════════════════════════════════════════════════════════╗
 ║  🚫 E2E TESTS BLOCKED                                           ║
 ╠══════════════════════════════════════════════════════════════════╣
-║  Production URL detected: ${SUPABASE_URL.slice(0, 40).padEnd(40)}
+║  Hosted URL detected: ${SUPABASE_URL}
 ║                                                                  ║
-║  E2E tests MUST run against LOCAL Supabase, NOT production!     ║
-║                                                                  ║
-║  To fix:                                                        ║
-║  1. supabase start (if not running)                             ║
-║  2. supabase link --project-ref pfjsqgqrxnrlrfnchnqf            ║
-║  3. Set EXPO_PUBLIC_SUPABASE_URL=http://localhost:54321          ║
+║  E2E tests must run against a local Supabase emulator.          ║
+║  To run tests locally, start your local Supabase emulator.      ║
 ║                                                                  ║
 ║  Or run with CI=true to bypass this check (in CI pipeline).     ║
 ╚══════════════════════════════════════════════════════════════════╝

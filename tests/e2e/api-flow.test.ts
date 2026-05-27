@@ -103,6 +103,7 @@ test.afterAll(async () => {
   });
 
   try {
+    // Delete in dependency order
     if (createdRouteId) {
       const { error } = await supabase.from('routes').delete().eq('id', createdRouteId);
       if (error) console.error('Error deleting route:', error.message);
@@ -112,14 +113,31 @@ test.afterAll(async () => {
       if (error) console.error('Error deleting driver:', error.message);
     }
     if (createdProfileId) {
-      const { error } = await supabase.auth.admin.deleteUser(createdProfileId);
+      // Delete profile first, then auth user
+      await supabase.from('profiles').delete().eq('id', createdProfileId);
+      const { error } = await supabase.auth.admin.deleteUser(createdProfileId, true);
       if (error) console.error('Error deleting auth user:', error.message);
     }
+
+    // Safety net: clean up any leftover E2E API Test profiles by name
+    const { data: leftoverProfiles } = await supabase
+      .from('profiles')
+      .select('id')
+      .ilike('full_name', 'E2E API Test%');
+    if (leftoverProfiles && leftoverProfiles.length > 0) {
+      const leftoverIds = leftoverProfiles.map((p: { id: string }) => p.id);
+      await supabase.from('profiles').delete().in('id', leftoverIds);
+      for (const id of leftoverIds) {
+        await supabase.auth.admin.deleteUser(id, true);
+      }
+    }
+
     console.log('[E2E api-flow] Cleaned up seeded DB objects.');
   } catch (err) {
     console.error('[E2E api-flow] Error during cleanup:', err);
   }
 });
+
 
 test.describe('Edge Function API Security', () => {
   test('atomic-booking rejects unauthenticated requests', async ({ request }) => {

@@ -49,14 +49,36 @@ test.describe('Admin Dashboard Diagnostics & UX Review', () => {
   });
 
   test.afterAll(async () => {
-    if (adminUserId && serviceRoleKey) {
-      console.log(`[DIAG] Cleaning up temporary admin user: ${adminEmail}`);
-      const supabase = createClient(supabaseUrl, serviceRoleKey, {
-        auth: { persistSession: false, autoRefreshToken: false },
-      });
-      await supabase.auth.admin.deleteUser(adminUserId);
+    if (!serviceRoleKey) return;
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    try {
+      // Clean up any leftover System Diagnostic Admin profiles (by name pattern)
+      const { data: diagProfiles } = await supabase
+        .from('profiles')
+        .select('id')
+        .ilike('full_name', 'System Diagnostic Admin%');
+
+      if (diagProfiles && diagProfiles.length > 0) {
+        const diagIds = diagProfiles.map((p: { id: string }) => p.id);
+        await supabase.from('profiles').delete().in('id', diagIds);
+        for (const id of diagIds) {
+          await supabase.auth.admin.deleteUser(id, true);
+        }
+      }
+
+      // Also delete by tracked ID
+      if (adminUserId) {
+        console.log(`[DIAG] Cleaning up temporary admin user: ${adminEmail}`);
+        await supabase.from('profiles').delete().eq('id', adminUserId);
+        await supabase.auth.admin.deleteUser(adminUserId, true);
+      }
+    } catch (e: unknown) {
+      console.warn('[DIAG] Cleanup error (non-fatal):', e instanceof Error ? e.message : String(e));
     }
   });
+
 
   test('Navigate consolidated pages, check load times, check console logs, and take screenshots', async ({ page }) => {
     test.setTimeout(240000); // 4 minutes to allow slow dev compilations in CI
