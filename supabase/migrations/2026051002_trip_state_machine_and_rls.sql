@@ -68,6 +68,8 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 3. Prevent double-booking: check if student already has active subscription for route
+-- Drop existing void version first (return type changed from void to UUID)
+DROP FUNCTION IF EXISTS reserve_seat(UUID, UUID);
 CREATE OR REPLACE FUNCTION reserve_seat(p_route_id UUID, p_student_id UUID)
 RETURNS UUID AS $$
 DECLARE
