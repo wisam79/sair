@@ -1,6 +1,6 @@
 import { Expo, type ExpoPushMessage } from 'npm:expo-server-sdk';
 import { corsResponse } from '../_shared/cors.ts';
-import { verifyAuth, supabaseAdmin } from '../_shared/auth.ts';
+import { verifyAuthLocal, supabaseAdmin } from '../_shared/auth.ts';
 import { retryWithBackoff } from '../../../packages/core/index.ts';
 
 Deno.serve(async (req: Request) => {
@@ -25,7 +25,7 @@ Deno.serve(async (req: Request) => {
       return corsResponse(req, { status: 'healthy' });
     }
 
-    const { user, error: authError } = await verifyAuth(req);
+    const { user, error: authError } = await verifyAuthLocal(req);
     if (authError || !user) {
       return corsResponse(req, { error: authError || 'Invalid token' }, 401);
     }

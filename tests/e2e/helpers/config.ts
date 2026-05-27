@@ -11,10 +11,12 @@ export const TestConfig = {
    */
   isProduction(): boolean {
     const url = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
-    return (
-      url.includes('zpcvvyxtmxzplmojobbv') || // Production
-      url.includes('supabase.co')
-    ); // Any production domain
+    return url.includes('zpcvvyxtmxzplmojobbv'); // Strictly zpcvvyxtmxzplmojobbv (Production)
+  },
+
+  isHosted(): boolean {
+    const url = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+    return url.includes('supabase.co');
   },
 
   /**
@@ -30,9 +32,13 @@ export const TestConfig = {
   validate(): void {
     if (this.isProduction()) {
       throw new Error(
-        `🚫 BLOCKED: E2E tests cannot run against production URL: ${process.env.EXPO_PUBLIC_SUPABASE_URL}\n` +
-          'Use: supabase link --project-ref pfjsqgqrxnrlrfnchnqf (local dev)\n' +
-          'OR: Create a test branch with supabase create-branch',
+        `🚫 BLOCKED: E2E tests are STRICTLY PROHIBITED from running against the Production Supabase project: ${process.env.EXPO_PUBLIC_SUPABASE_URL}`
+      );
+    }
+
+    if (this.isHosted() && process.env.CI !== 'true') {
+      throw new Error(
+        `🚫 BLOCKED: E2E tests must run against a local emulator locally. To test against a hosted dev server, run with CI=true environment variable.`
       );
     }
 

@@ -292,6 +292,17 @@ export function useTripTracking(tripId: string | null) {
           });
         },
       )
+      .on('broadcast', { event: 'gps-update' }, (payload) => {
+        const { lat, lng } = payload.payload;
+        queryClient.setQueryData<TripWithRoute | null>(['tripTracking', tripId], (prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            last_lat: lat,
+            last_lng: lng,
+          };
+        });
+      })
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           logger.warn('[Realtime] trip tracking reconnecting...', { status });
@@ -731,7 +742,14 @@ export async function syncOfflineData() {
 NetInfo.addEventListener((state) => {
   const isOnline = !!state.isConnected && state.isInternetReachable !== false;
   if (isOnline) {
-    syncOfflineData().catch(() => {});
+    const jitter = process.env.NODE_ENV === 'test' ? 0 : Math.floor(Math.random() * 14500) + 500;
+    if (jitter > 0) {
+      setTimeout(() => {
+        syncOfflineData().catch(() => {});
+      }, jitter);
+    } else {
+      syncOfflineData().catch(() => {});
+    }
   }
 });
 
@@ -762,6 +780,8 @@ async function queueLocationUpdate(tripId: string, lat: number, lng: number) {
 export function useLocationTracker() {
   const watchRef = useRef<Location.LocationSubscription | null>(null);
   const isOnlineRef = useRef(true);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const lastDbWriteTimeRef = useRef<number>(0);
 
   const startTracking = useCallback(async (tripId: string) => {
     try {
@@ -769,6 +789,14 @@ export function useLocationTracker() {
       if (status !== 'granted') {
         return { error: 'Location permission denied' };
       }
+
+      // Initialize realtime channel for broadcasting coordinates directly
+      const channel = supabase.channel(`trip-${tripId}`, {
+        config: { broadcast: { self: false } },
+      });
+      channel.subscribe();
+      channelRef.current = channel;
+      lastDbWriteTimeRef.current = 0; // reset on tracking start
 
       watchRef.current = await Location.watchPositionAsync(
         {
@@ -779,25 +807,41 @@ export function useLocationTracker() {
         async (location) => {
           const { coords } = location;
 
-          if (!isOnlineRef.current) {
-            await queueLocationUpdate(tripId, coords.latitude, coords.longitude);
-            return;
+          // 1. Broadcast live location update in-memory (high performance, no DB write)
+          if (channelRef.current) {
+            channelRef.current.send({
+              type: 'broadcast',
+              event: 'gps-update',
+              payload: { lat: coords.latitude, lng: coords.longitude },
+            });
           }
 
-          const { error } = await supabase.rpc('update_trip_location', {
-            p_trip_id: tripId,
-            p_lat: coords.latitude,
-            p_lng: coords.longitude,
-          });
+          // 2. Throttle persistent database location writes to once every 60 seconds (disabled in tests)
+          const now = Date.now();
+          const throttleLimit = process.env.NODE_ENV === 'test' ? 0 : 60000;
+          if (now - lastDbWriteTimeRef.current >= throttleLimit) {
+            lastDbWriteTimeRef.current = now;
 
-          if (error) {
-            if (error.code === 'NETWORK_ERROR' || !error.code) {
-              isOnlineRef.current = false;
+            if (!isOnlineRef.current) {
               await queueLocationUpdate(tripId, coords.latitude, coords.longitude);
-              setTimeout(() => {
-                isOnlineRef.current = true;
-                flushGpsQueue();
-              }, 5000);
+              return;
+            }
+
+            const { error } = await supabase.rpc('update_trip_location', {
+              p_trip_id: tripId,
+              p_lat: coords.latitude,
+              p_lng: coords.longitude,
+            });
+
+            if (error) {
+              if (error.code === 'NETWORK_ERROR' || !error.code) {
+                isOnlineRef.current = false;
+                await queueLocationUpdate(tripId, coords.latitude, coords.longitude);
+                setTimeout(() => {
+                  isOnlineRef.current = true;
+                  flushGpsQueue();
+                }, 5000);
+              }
             }
           }
         },
@@ -813,6 +857,10 @@ export function useLocationTracker() {
     if (watchRef.current) {
       watchRef.current.remove();
       watchRef.current = null;
+    }
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
     }
     persistQueueImmediately();
   }, []);

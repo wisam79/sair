@@ -81,6 +81,7 @@ const mockChannelObj = {
     subscribeCallback = cb;
     return mockChannelObj;
   }),
+  send: vi.fn().mockResolvedValue(undefined),
 };
 
 vi.mock('../lib/supabase', () => ({

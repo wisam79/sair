@@ -1,6 +1,6 @@
 import { Expo } from 'npm:expo-server-sdk';
 import { corsResponse } from '../_shared/cors.ts';
-import { verifyAuth, supabaseAdmin } from '../_shared/auth.ts';
+import { verifyAuthLocal, supabaseAdmin } from '../_shared/auth.ts';
 
 const STATUS_MESSAGES: Record<
   string,
@@ -183,7 +183,7 @@ Deno.serve(async (req: Request) => {
       return corsResponse(req, { status: 'healthy' });
     }
 
-    const { user, error: authError } = await verifyAuth(req);
+    const { user, error: authError } = await verifyAuthLocal(req);
     if (authError || !user) {
       return corsResponse(req, { error: authError || 'Invalid token' }, 401);
     }

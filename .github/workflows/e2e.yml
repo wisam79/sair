@@ -2,14 +2,16 @@ name: E2E Tests
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
+  pull_request:
+    branches: ['**']
   workflow_dispatch:
     inputs:
       supabase_url:
-        description: "Supabase Project URL (overrides secret)"
+        description: 'Supabase Project URL (overrides secret)'
         required: false
       supabase_anon_key:
-        description: "Supabase Anon Key (overrides secret)"
+        description: 'Supabase Anon Key (overrides secret)'
         required: false
 
 concurrency:
@@ -17,12 +19,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ──────────────────────────────────────────────────────────────────────────────
+  # Job 1: API Security & RLS Tests
+  # These tests call Supabase directly over HTTP — no Docker, no local server needed.
+  # They run against the dev/staging Supabase project using GitHub Secrets.
+  # ──────────────────────────────────────────────────────────────────────────────
   api-e2e:
     name: API Security & RLS Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+
+    # Skip if Supabase secrets are not configured (e.g. forks without secrets)
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: ${{ inputs.supabase_url || secrets.DEV_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ inputs.supabase_anon_key || secrets.DEV_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.DEV_SUPABASE_SERVICE_ROLE_KEY }}
+      CI: 'true'
+      # Tells playwright.config.ts to skip the webServer (Next.js dev server)
+      SKIP_WEB_SERVER: 'true'
 
     steps:
+      - name: Check required secrets
+        run: |
+          if [ -z "$EXPO_PUBLIC_SUPABASE_URL" ]; then
+            echo "⚠️  DEV_SUPABASE_URL secret not set — skipping API E2E tests."
+            echo "   Add DEV_SUPABASE_URL, DEV_SUPABASE_ANON_KEY, DEV_SUPABASE_SERVICE_ROLE_KEY"
+            echo "   to GitHub repository secrets to enable E2E tests."
+            exit 0
+          fi
+          echo "✅ Supabase URL configured: $EXPO_PUBLIC_SUPABASE_URL"
+
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
@@ -32,25 +58,27 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers (Chromium only)
+        run: pnpm exec playwright install chromium --with-deps
 
-      - name: Run E2E Tests
-        run: pnpm test:e2e
-        env:
-          EXPO_PUBLIC_SUPABASE_URL: ${{ inputs.supabase_url || secrets.SUPABASE_URL }}
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ inputs.supabase_anon_key || secrets.SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ inputs.supabase_url || secrets.SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ inputs.supabase_anon_key || secrets.SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      - name: Run API & RLS E2E Tests
+        # Only run API-level tests (no UI/browser navigation needed)
+        # Excludes admin-diagnostic (needs localhost:3000) and mobile-web-ui (needs Expo server)
+        run: |
+          pnpm exec playwright test \
+            tests/e2e/api-flow.test.ts \
+            tests/e2e/trip-flow.test.ts \
+            tests/e2e/license-flow.test.ts \
+            tests/e2e/payment-flow.test.ts
 
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-results
+          name: api-e2e-results
           path: |
             test-results/
             playwright-report/

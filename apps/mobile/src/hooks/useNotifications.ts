@@ -31,6 +31,12 @@ export function useNotifications() {
       return;
     }
 
+    // Skip if user is not logged in yet (prevents null user_id in push_tokens)
+    if (!userId) {
+      console.warn('[Notifications] Skipping — user not authenticated yet');
+      return;
+    }
+
     let isMounted = true;
 
     async function initPushNotifications() {
