@@ -11,9 +11,12 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const TESTING_PROJECT_REF = 'cxyggxsyiymgxvwzeatv';
-const TESTING_SERVICE_ROLE_KEY = process.env.SUPABASE_TESTING_SERVICE_KEY || 
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4eWdneHN5aXltZ3h2d3plYXR2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzI4OTIxMSwiZXhwIjoyMDkyODY1MjExfQ.1Vn04APqEJkKs7HU0c2yrMgSSBl29xOQtpr8yqEqaeM';
+const TESTING_PROJECT_REF = process.env.SUPABASE_PROJECT_REF || 'cxyggxsyiymgxvwzeatv';
+const TESTING_SERVICE_ROLE_KEY = process.env.SUPABASE_TESTING_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.DEV_SUPABASE_SERVICE_ROLE_KEY;
+if (!TESTING_SERVICE_ROLE_KEY) {
+  console.error('❌ Error: SUPABASE_TESTING_SERVICE_KEY or SUPABASE_SERVICE_ROLE_KEY environment variable is not set.');
+  process.exit(1);
+}
 
 const SUPABASE_ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
 
