@@ -110,6 +110,13 @@ auth.jwt().user_metadata?.role;
   - يمنع استخدام سياسات إدخال أو تعديل مفتوحة دائماً مثل `WITH CHECK (true)` للجداول الحساسة.
   - يجب تقييد الإدخال للأدوار المحددة (مثل `TO service_role` لجدول `notification_log` أو إدراج شروط تحقق حقيقية مثل `WITH CHECK (email IS NOT NULL)`).
 
+### 2.5 منع كتابة المفاتيح والرموز السرية (Hardcoded Secrets Ban)
+
+- يمنع تماماً كتابة أي مفاتيح سرية (مثل Supabase Service Role Key أو Database Password أو Google API Keys) بشكل صلب في الكود أو في ملفات الإعدادات المتتبعة في Git.
+- يجب جلب هذه المفاتيح دائماً من متغيرات البيئة (`process.env`).
+- بالنسبة للملفات الثابتة التي تتطلب صياغة مفتاح معين لبناء التطبيق (مثل `google-services.json`)، يجب استخدام مفتاح وهمي (Mock/Placeholder) يبدأ بالبادئة المطلوبة (مثل `AIzaSy_placeholder_key_to_prevent_public_leaks`) وتجنب رفع المفاتيح الحقيقية.
+- يجب إدراج المجلدات المؤقتة والملفات الناتجة عن البناء والتجميع (مثل مجلد `.firebase/`) في ملف `.gitignore` لمنع تسريب المفاتيح المخزنة بداخلها أثناء الإنشاء.
+
 ---
 
 ## 3. قاعدة البيانات — مصدر الحقيقة
@@ -350,10 +357,11 @@ const renderItem = useCallback(({ item }) => <Text>{item.name}</Text>, []);
 
 ## 11. Supabase Projects
 
-| البيئة     | ref                    | الملف                  |
-| ---------- | ---------------------- | ---------------------- |
-| Production | `zpcvvyxtmxzplmojobbv` | `.temp/linked-project` |
-| Local dev  | `pfjsqgqrxnrlrfnchnqf` | `.env`                 |
+| البيئة     | ref                    | الملف                  | الوصف |
+| ---------- | ---------------------- | ---------------------- | ----- |
+| Production | `zpcvvyxtmxzplmojobbv` | `.temp/linked-project` | قاعدة البيانات السحابية للإنتاج والخدمة الحية. |
+| Testing/CI | `cxyggxsyiymgxvwzeatv` | `.github/workflows`    | بيئة سحابية مخصصة للاختبارات التلقائية (E2E/RLS) في CI. |
+| Local dev  | `pfjsqgqrxnrlrfnchnqf` | `.env`                 | قاعدة بيانات محلية تعمل عبر Supabase CLI Emulator. |
 
 ---
 
@@ -421,13 +429,25 @@ const renderItem = useCallback(({ item }) => <Text>{item.name}</Text>, []);
 
 - Auto-merge لـ main
 - Auto-PR بدون مراجعة
-- secrets في الكود
+- secrets في الكود أو ملفات الإعدادات المرفوعة
 
 ### 16.2 مطلوب
 
 - Migration لكل تغيير
 - مراجعة الأكواد
 - E2E tests شاملة
+
+### 16.3 مزامنة البيئة في CI (Environment Sync)
+
+عند دفع التغييرات وقواعد البيانات في بيئة الـ CI (سير عمل `deploy.yml`)، يجب دائماً استخدام الأمر مع خيار `--include-all` لتجنب مشاكل المزامنة للـ migrations السابقة الخارجة عن الترتيب:
+```bash
+supabase db push --include-all
+```
+
+### 16.4 حماية الفرع الرئيسي وسير العمل (Branch Protection)
+
+- الفرع الرئيسي `main` محمي بشكل كامل ولا يمكن الدفع (Push) إليه مباشرة.
+- يجب إرسال جميع التغييرات عبر طلب سحب (Pull Request - PR) واجتياز كافة فحوصات التحقق (CI Passed) بنجاح قبل التمكن من دمج الكود.
 
 ---
 
@@ -459,4 +479,4 @@ const renderItem = useCallback(({ item }) => <Text>{item.name}</Text>, []);
 
 ---
 
-**آخر تحديث**: 2026-05-26
+**آخر تحديث**: 2026-05-27
