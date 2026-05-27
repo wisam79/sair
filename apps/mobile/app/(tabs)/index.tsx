@@ -342,48 +342,48 @@ export default function DiscoveryPage() {
             <Ionicons name="star" size={14} color={Colors.warning} />
             <Text style={styles.favoritesHeaderTitle}>{t('favorites')}</Text>
           </View>
-          <View style={[styles.favoritesGrid, isRTL && { flexDirection: 'row-reverse' }]}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.favoritesScrollContent,
+              isRTL && { flexDirection: 'row-reverse' },
+            ]}
+          >
             {favorites.map((fav) => {
               const isActive = searchQuery === fav;
               return (
                 <TouchableOpacity
                   key={fav}
                   style={[
-                    styles.favoriteCard,
-                    isActive && styles.favoriteCardActive,
+                    styles.favoriteChip,
+                    isActive && styles.favoriteChipActive,
+                    isRTL && { flexDirection: 'row-reverse' },
                   ]}
                   onPress={() => {
                     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     setSearchQuery(isActive ? '' : fav);
                   }}
                   onLongPress={() => handleFavoriteLongPress(fav)}
-                  activeOpacity={0.8}
+                  activeOpacity={0.85}
                 >
-                  <View
-                    style={[
-                      styles.favoriteIconContainer,
-                      isActive && styles.favoriteIconContainerActive,
-                    ]}
-                  >
-                    <Ionicons
-                      name={isActive ? 'location' : 'location-outline'}
-                      size={20}
-                      color={isActive ? '#0A5C36' : Colors.textMuted}
-                    />
-                  </View>
+                  <Ionicons
+                    name={isActive ? 'star' : 'star-outline'}
+                    size={14}
+                    color={isActive ? Colors.warning : Colors.textMuted}
+                  />
                   <Text
                     style={[
-                      styles.favoriteLabel,
-                      isActive && styles.favoriteLabelActive,
+                      styles.favoriteChipLabel,
+                      isActive && styles.favoriteChipLabelActive,
                     ]}
-                    numberOfLines={1}
                   >
                     {fav}
                   </Text>
                 </TouchableOpacity>
               );
             })}
-          </View>
+          </ScrollView>
 
           {/* Subscriptions / License Section */}
           {!subsLoading && (
@@ -1010,50 +1010,32 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textSecondary,
   },
-  favoritesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: Spacing.xs,
+  favoritesScrollContent: {
     paddingHorizontal: Spacing.xs,
+    gap: Spacing.sm,
+    paddingVertical: 4,
   },
-  favoriteCard: {
-    width: '31%',
+  favoriteChip: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.lg,
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: BorderRadius.pill,
     backgroundColor: Colors.surfaceMuted,
     borderWidth: 1.5,
     borderColor: Colors.borderLight,
-    minHeight: 88,
   },
-  favoriteCardActive: {
+  favoriteChipActive: {
     backgroundColor: Colors.primarySurface,
     borderColor: Colors.primary,
   },
-  favoriteIconContainer: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: Colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.xs,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-  },
-  favoriteIconContainerActive: {
-    backgroundColor: Colors.white,
-    borderColor: Colors.primary + '40',
-  },
-  favoriteLabel: {
+  favoriteChipLabel: {
     fontFamily: FontFamily.bold,
-    fontSize: 12,
+    fontSize: 13,
     color: Colors.textSecondary,
-    textAlign: 'center',
   },
-  favoriteLabelActive: {
+  favoriteChipLabelActive: {
     color: Colors.primaryDeep,
   },
   favoriteActionContainer: {
