@@ -48,38 +48,38 @@ const STATUS_DISPLAY: Record<
 > = {
   scheduled: {
     labelKey: 'scheduled',
-    color: Colors.warning,
-    bg: Colors.warningSurface,
+    color: '#F59E0B',
+    bg: 'rgba(245, 158, 11, 0.12)',
     icon: 'calendar-outline',
   },
   driver_waiting: {
     labelKey: 'driver_waiting',
-    color: Colors.primary,
-    bg: Colors.primarySurface,
+    color: '#4ADE80',
+    bg: 'rgba(74, 222, 128, 0.12)',
     icon: 'time-outline',
   },
   in_transit: {
     labelKey: 'in_transit',
-    color: Colors.success,
-    bg: Colors.successSurface,
+    color: '#3B82F6',
+    bg: 'rgba(59, 130, 246, 0.12)',
     icon: 'navigate-outline',
   },
   completed: {
     labelKey: 'completed',
-    color: Colors.textMuted,
-    bg: Colors.surfaceMuted,
+    color: '#9CA3AF',
+    bg: 'rgba(156, 163, 175, 0.12)',
     icon: 'checkmark-circle-outline',
   },
   absent: {
     labelKey: 'absent',
-    color: Colors.textMuted,
-    bg: Colors.surfaceMuted,
+    color: '#E5E7EB',
+    bg: 'rgba(229, 231, 235, 0.12)',
     icon: 'person-remove-outline',
   },
   cancelled: {
     labelKey: 'cancelled',
-    color: Colors.error,
-    bg: Colors.errorSurface,
+    color: '#EF4444',
+    bg: 'rgba(239, 68, 68, 0.12)',
     icon: 'ban-outline',
   },
 };
@@ -661,13 +661,17 @@ const styles = StyleSheet.create({
   },
   // Card
   tripCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: '#1E2522', // Deep premium dark green-charcoal hybrid
     borderRadius: BorderRadius.xl,
     padding: Spacing.xl,
     marginBottom: Spacing.md,
-    borderWidth: 1,
-    borderColor: '#ECE9E4',
-    ...Shadow.md,
+    borderWidth: 1.5,
+    borderColor: 'rgba(22, 163, 74, 0.25)', // Elegant subtle green border
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 6,
   },
   tripHeader: {
     flexDirection: 'row',
@@ -682,24 +686,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.pill,
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   statusText: {
     fontFamily: FontFamily.bold,
     fontSize: 12,
   },
   tripTime: {
-    fontFamily: FontFamily.medium,
+    fontFamily: FontFamily.bold,
     fontSize: 13,
-    color: Colors.textMuted,
+    color: '#D8D4CF', // Soft readable off-white
   },
   routeDetailCard: {
-    backgroundColor: Colors.surfaceMuted,
+    backgroundColor: '#262D29', // Lighter green-charcoal container for contrast
     padding: Spacing.md,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     marginBottom: Spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.03)',
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   routeHeader: {
     flexDirection: 'row',
@@ -707,14 +711,14 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     marginBottom: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
-    paddingBottom: Spacing.xs,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+    paddingBottom: Spacing.sm,
   },
   routeTitleText: {
     flex: 1,
     fontFamily: FontFamily.bold,
     fontSize: 15,
-    color: Colors.text,
+    color: Colors.white, // White text
   },
   pathDiagram: {
     gap: Spacing.sm,
@@ -739,13 +743,15 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: Colors.secondary,
+    backgroundColor: Colors.primaryLight,
     marginTop: 4,
   },
   verticalLine: {
-    width: 2,
-    height: 24,
-    backgroundColor: Colors.border,
+    width: 1.5,
+    height: 28,
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)', // Dotted/dashed connection line
     marginTop: 4,
     marginBottom: -4,
   },
@@ -755,12 +761,12 @@ const styles = StyleSheet.create({
   pathLabel: {
     fontFamily: FontFamily.regular,
     fontSize: 11,
-    color: Colors.textMuted,
+    color: '#9CA3AF', // Muted grey
   },
   pathValue: {
     fontFamily: FontFamily.medium,
     fontSize: 13,
-    color: Colors.text,
+    color: Colors.white, // White text
     marginTop: 2,
   },
   // Actions
@@ -785,11 +791,11 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.error,
+    borderWidth: 1.5,
+    borderColor: 'rgba(239, 68, 68, 0.4)',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.errorSurface,
+    backgroundColor: 'rgba(239, 68, 68, 0.08)',
   },
   fab: {
     position: 'absolute',
