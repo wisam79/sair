@@ -436,13 +436,9 @@ export default function DriverDashboard() {
         <View style={styles.glassOverlay} />
         <View style={styles.glassHighlight} />
 
+        {/* Left: Profile Avatar */}
         <TouchableOpacity
-          style={[
-            styles.profileAvatarContainer,
-            {
-              [isRTL ? 'marginLeft' : 'marginRight']: Spacing.md,
-            } as import('react-native').ViewStyle,
-          ]}
+          style={styles.profileAvatarContainer}
           onPress={() => {
             void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             router.push('/profile');
@@ -455,12 +451,13 @@ export default function DriverDashboard() {
           <View style={styles.onlineIndicator} />
         </TouchableOpacity>
 
+        {/* Center: Title & Subtitle */}
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>
+          <Text style={styles.headerTitle} numberOfLines={1}>
             {t('driver_dashboard')}
           </Text>
           {profile?.full_name && (
-            <Text style={styles.headerSubtitle}>
+            <Text style={styles.headerSubtitle} numberOfLines={1}>
               {t('hello')}
               {isRTL ? '، ' : ', '}
               {profile.full_name}
@@ -468,23 +465,23 @@ export default function DriverDashboard() {
           )}
         </View>
 
-        <TouchableOpacity
-          style={[
-            styles.headerShortcutBtnFlex,
-            { [isRTL ? 'marginLeft' : 'marginRight']: Spacing.sm },
-          ]}
-          onPress={() => {
-            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.push('/payouts');
-          }}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="wallet-outline" size={22} color={Colors.white} />
-        </TouchableOpacity>
+        {/* Right: Actions */}
+        <View style={[styles.headerActions, isRTL && { flexDirection: 'row-reverse' }]}>
+          <TouchableOpacity
+            style={styles.headerShortcutBtnFlex}
+            onPress={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push('/payouts');
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="wallet-outline" size={22} color={Colors.white} />
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
-          <Ionicons name="log-out-outline" size={22} color={Colors.white} />
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
+            <Ionicons name="log-out-outline" size={22} color={Colors.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -535,6 +532,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between', // Spread left, center, and right blocks
     paddingBottom: Spacing.md,
     paddingHorizontal: Spacing.lg,
     borderBottomLeftRadius: 24,
@@ -567,18 +565,25 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255, 255, 255, 0.22)',
   },
   headerTitleContainer: {
-    position: 'absolute',
-    left: 60,
-    right: 60,
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    marginHorizontal: Spacing.md,
     zIndex: 1,
+    minWidth: 0,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    zIndex: 2,
   },
   headerTitle: {
     fontFamily: FontFamily.bold,
     fontSize: 16,
     color: Colors.white,
     textAlign: 'center',
+    width: '100%',
   },
   headerSubtitle: {
     fontFamily: FontFamily.regular,
@@ -586,6 +591,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.7)',
     marginTop: 2,
     textAlign: 'center',
+    width: '100%',
   },
   profileAvatarContainer: {
     width: 44,
