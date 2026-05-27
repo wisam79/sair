@@ -6,9 +6,12 @@
 
 const https = require('https');
 
-const SERVICE_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4eWdneHN5aXltZ3h2d3plYXR2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzI4OTIxMSwiZXhwIjoyMDkyODY1MjExfQ.1Vn04APqEJkKs7HU0c2yrMgSSBl29xOQtpr8yqEqaeM';
-const PROJECT = 'cxyggxsyiymgxvwzeatv';
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.DEV_SUPABASE_SERVICE_ROLE_KEY;
+if (!SERVICE_KEY) {
+  console.error('❌ Error: SUPABASE_SERVICE_ROLE_KEY or DEV_SUPABASE_SERVICE_ROLE_KEY environment variable is not set.');
+  process.exit(1);
+}
+const PROJECT = process.env.SUPABASE_PROJECT_REF || 'cxyggxsyiymgxvwzeatv';
 
 // كل الـ migrations التي لم تُسجَّل بعد في migration history
 const PENDING = [
