@@ -34,17 +34,26 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase Local Emulator
+        run: supabase start
+
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
 
       - name: Run E2E Tests
         run: pnpm test:e2e
         env:
-          EXPO_PUBLIC_SUPABASE_URL: ${{ inputs.supabase_url || secrets.SUPABASE_URL }}
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ inputs.supabase_anon_key || secrets.SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ inputs.supabase_url || secrets.SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ inputs.supabase_anon_key || secrets.SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          EXPO_PUBLIC_SUPABASE_URL: http://localhost:54321
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhY2thZ2UiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTU5ODg4OTYwMCwiZXhwIjoxOTE0NDY1NjAwfQ.m-aA2_Q5U5A-d3aA4s3-d3aA4s3-d3aA4s3_d3aA4s3
+          NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhY2thZ2UiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTU5ODg4OTYwMCwiZXhwIjoxOTE0NDY1NjAwfQ.m-aA2_Q5U5A-d3aA4s3-d3aA4s3-d3aA4s3_d3aA4s3
+          SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhY2thZ2UiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNTk4ODg5NjAwLCJleHAiOjE5MTQ0NjU2MDB9.m-aA2_Q5U5A-d3aA4s3-d3aA4s3-d3aA4s3_d3aA4s3
+          CI: "true"
 
       - name: Upload Test Results
         if: always()
