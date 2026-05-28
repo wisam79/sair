@@ -12,19 +12,14 @@
       "resizeMode": "contain",
       "backgroundColor": "#1D1F21"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "runtimeVersion": {
       "policy": "sdkVersion"
     },
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": [
-          "location",
-          "remote-notification"
-        ],
+        "UIBackgroundModes": ["location", "remote-notification"],
         "NSLocationAlwaysAndWhenInUseUsageDescription": "نحتاج للوصول لموقعك في الخلفية لمطابقة مسار الرحلة وتتبع الحافلة.",
         "NSLocationWhenInUseUsageDescription": "نحتاج للوصول لموقعك لتتبع الرحلة وعرضها على الخريطة."
       }

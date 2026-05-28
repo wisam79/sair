@@ -1,4 +1,4 @@
-import { createClient } from '../providers/supabase';
+import { createClient } from '../providers/supabaseClient';
 import DashboardClient from '../components/DashboardClient';
 import { Box, Typography } from '@mui/material';
 

@@ -1,4 +1,5 @@
 import { corsResponse } from '../_shared/cors.ts';
+import { supabaseAdmin } from '../_shared/auth.ts';
 
 // Simple IP-based rate limiter for unauthenticated endpoint
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -57,10 +58,28 @@ Deno.serve(async (req: Request) => {
     // Sanitize: truncate message and context to prevent log injection with huge payloads
     const level = String(entry.level).toUpperCase().slice(0, 10);
     const message = String(entry.message).slice(0, 1000);
-    const contextStr = entry.context ? JSON.stringify(entry.context).slice(0, 2000) : '';
+    const context = entry.context || {};
+    const userAgent = req.headers.get('user-agent') || 'unknown';
 
     // Print to Deno console, which Supabase aggregates into its logs dashboard automatically
-    console.warn(`[Client Log - ${level}] ${message}`, contextStr);
+    console.warn(`[Client Log - ${level}] ${message}`, JSON.stringify(context));
+
+    // Save to database using service_role privileges
+    try {
+      const { error: dbErr } = await supabaseAdmin
+        .from('client_error_logs')
+        .insert({
+          level,
+          message,
+          context,
+          user_agent: userAgent,
+        });
+      if (dbErr) {
+        console.error('[log-error] Failed to insert error to database:', dbErr.message);
+      }
+    } catch (dbEx) {
+      console.error('[log-error] DB exception:', dbEx);
+    }
 
     return corsResponse(req, { success: true }, 200, false);
   } catch (err: unknown) {

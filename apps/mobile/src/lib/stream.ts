@@ -65,7 +65,7 @@ export async function connectStreamUser(userId: string, userName: string): Promi
       name: userName,
       image: `https://getstream.io/random_png/?name=${encodeURIComponent(userName)}`,
     },
-    token
+    token,
   );
 
   return client;

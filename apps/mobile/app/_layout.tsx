@@ -1,6 +1,7 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { supabase } from '../src/lib/supabase';
+import * as Sentry from '@sentry/react-native';
 import { useAuthStore, useTripStore, useBookingStore, useI18nStore } from '../src/hooks/useStore';
 import '../src/lib/i18n';
 import { useTranslation } from '../src/hooks/useTranslation';
@@ -8,6 +9,7 @@ import { useNetworkStatus } from '../src/hooks/useNetworkStatus';
 import { useNotifications } from '../src/hooks/useNotifications';
 import {
   I18nManager,
+  DevSettings,
   View,
   Text,
   StyleSheet,
@@ -15,6 +17,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { OverlayProvider } from 'stream-chat-expo';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
@@ -42,10 +45,18 @@ const queryClient = new QueryClient({
   },
 });
 
+const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
+if (sentryDsn && Constants.appOwnership !== 'expo') {
+  Sentry.init({
+    dsn: sentryDsn,
+    debug: __DEV__,
+  });
+}
+
 // Keep the splash screen visible while fonts load
 SplashScreen.preventAutoHideAsync();
 
-export default function Layout() {
+function Layout() {
   const {
     user,
     role,
@@ -85,20 +96,43 @@ export default function Layout() {
 
   // RTL setup
   useEffect(() => {
-    if (isRTL) {
-      I18nManager.allowRTL(true);
-      I18nManager.forceRTL(true);
+    const shouldBeRTL = isRTL;
+    if (I18nManager.isRTL !== shouldBeRTL) {
+      I18nManager.allowRTL(shouldBeRTL);
+      I18nManager.forceRTL(shouldBeRTL);
+
+      // Force reload to apply RTL layout direction
+      setTimeout(() => {
+        try {
+          DevSettings.reload();
+        } catch (err) {
+          console.error('[I18n] Failed to auto-reload for RTL alignment:', err);
+        }
+      }, 150);
     }
   }, [isRTL]);
 
   // Phase 5: Force Update Check
   useEffect(() => {
+    /** Compare semver versions correctly (e.g. '1.2.3' < '1.10.0') */
+    function isVersionLessThan(current: string, minimum: string): boolean {
+      const a = current.split('.').map(Number);
+      const b = minimum.split('.').map(Number);
+      for (let i = 0; i < Math.max(a.length, b.length); i++) {
+        const av = a[i] ?? 0;
+        const bv = b[i] ?? 0;
+        if (av < bv) return true;
+        if (av > bv) return false;
+      }
+      return false;
+    }
+
     async function checkVersion() {
       try {
         const { data, error } = await supabase.rpc('get_app_config');
         if (data && !error) {
           const currentVersion = Constants.expoConfig?.version || '1.0.0';
-          if (data.min_version && currentVersion < data.min_version) {
+          if (data.min_version && isVersionLessThan(currentVersion, data.min_version)) {
             setForceUpdateRequired(true);
           }
         }
@@ -122,7 +156,6 @@ export default function Layout() {
               {
                 id: session.user.id,
                 email: session.user.email,
-                user_metadata: session.user.user_metadata,
               },
               jwtRole,
             );
@@ -144,7 +177,7 @@ export default function Layout() {
                   // Refresh the session so the new JWT reflects the updated app_metadata role.
                   if (dbRole && dbRole !== jwtRole && !refreshAttemptedRef.current) {
                     refreshAttemptedRef.current = true;
-                    console.log(
+                    console.warn(
                       `[Auth] Role mismatch detected: JWT=${jwtRole}, DB=${dbRole}. Refreshing session...`,
                     );
                     supabase.auth.refreshSession();
@@ -188,7 +221,6 @@ export default function Layout() {
             {
               id: session.user.id,
               email: session.user.email,
-              user_metadata: session.user.user_metadata,
             },
             jwtRole,
           );
@@ -295,52 +327,54 @@ export default function Layout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider>
-        <ErrorBoundary>
-          <OverlayProvider>
-            <View style={styles.root} onLayout={onLayoutRootView}>
-              {!isOnline && (
-                <View style={[styles.offlineBanner, { paddingTop: top }]}>
-                  <Text style={styles.offlineText}>{t('no_internet')}</Text>
-                </View>
-              )}
-            <Stack screenOptions={{ headerShown: true, headerBackTitle: t('go_back_short') }}>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="booking" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="login"
-                options={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: Colors.backgroundDark },
-                }}
-              />
-              <Stack.Screen
-                name="onboarding"
-                options={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: Colors.background },
-                }}
-              />
-              <Stack.Screen name="tracking/[tripId]" options={{ headerShown: false }} />
-              <Stack.Screen name="activate" options={{ headerShown: false }} />
-              <Stack.Screen name="create-trip" options={{ headerShown: false }} />
-              <Stack.Screen name="payment" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="rating/[tripId]"
-                options={{ title: t('rating'), headerShown: false }}
-              />
-              <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
-              <Stack.Screen name="trip-history" options={{ headerShown: false }} />
-              <Stack.Screen name="payouts" options={{ headerShown: false }} />
-              <Stack.Screen name="notifications" options={{ headerShown: false }} />
-              <Stack.Screen name="help" options={{ headerShown: false }} />
-            </Stack>
-          </View>
-          </OverlayProvider>
-        </ErrorBoundary>
-      </SafeAreaProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <SafeAreaProvider>
+          <ErrorBoundary>
+            <OverlayProvider>
+              <View style={styles.root} onLayout={onLayoutRootView}>
+                {!isOnline && (
+                  <View style={[styles.offlineBanner, { paddingTop: top }]}>
+                    <Text style={styles.offlineText}>{t('no_internet')}</Text>
+                  </View>
+                )}
+                <Stack screenOptions={{ headerShown: true, headerBackTitle: t('go_back_short') }}>
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen name="booking" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="login"
+                    options={{
+                      headerShown: false,
+                      contentStyle: { backgroundColor: Colors.backgroundDark },
+                    }}
+                  />
+                  <Stack.Screen
+                    name="onboarding"
+                    options={{
+                      headerShown: false,
+                      contentStyle: { backgroundColor: Colors.background },
+                    }}
+                  />
+                  <Stack.Screen name="tracking/[tripId]" options={{ headerShown: false }} />
+                  <Stack.Screen name="activate" options={{ headerShown: false }} />
+                  <Stack.Screen name="create-trip" options={{ headerShown: false }} />
+                  <Stack.Screen name="payment" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="rating/[tripId]"
+                    options={{ title: t('rating'), headerShown: false }}
+                  />
+                  <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
+                  <Stack.Screen name="trip-history" options={{ headerShown: false }} />
+                  <Stack.Screen name="payouts" options={{ headerShown: false }} />
+                  <Stack.Screen name="notifications" options={{ headerShown: false }} />
+                  <Stack.Screen name="help" options={{ headerShown: false }} />
+                </Stack>
+              </View>
+            </OverlayProvider>
+          </ErrorBoundary>
+        </SafeAreaProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
 
@@ -400,3 +434,5 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
 });
+
+export default Sentry.wrap(Layout);

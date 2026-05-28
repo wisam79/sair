@@ -7,8 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../hooks/useTranslation';
 import * as Location from 'expo-location';
 
-// Dynamically require MapLibre to avoid crashes on Expo Go where its native module is missing
-let MapLibre: any = null;
+let MapLibre: typeof import('@maplibre/maplibre-react-native') | null = null;
 try {
   MapLibre = require('@maplibre/maplibre-react-native');
 } catch (e) {
@@ -41,7 +40,8 @@ export const TripMap: React.FC<TripMapProps> = ({
   driverLng,
   mapStyle = 'streets',
 }) => {
-  const cameraRef = useRef<any>(null);
+  const mapLibreCameraRef = useRef<import('@maplibre/maplibre-react-native').CameraRef | null>(null);
+  const mapViewRef = useRef<MapView | null>(null);
   const { t, isRTL } = useTranslation();
 
   // Cache OSRM route — fetch once, never re-fetch on driver location updates
@@ -116,13 +116,13 @@ export const TripMap: React.FC<TripMapProps> = ({
         };
         userLocationRef.current = lastKnownCoords;
         if (isMapLibreAvailable) {
-          cameraRef.current?.easeTo({
+          mapLibreCameraRef.current?.easeTo({
             center: [lastKnownCoords.longitude, lastKnownCoords.latitude],
             zoom: 15,
             duration: 800,
           });
         } else {
-          cameraRef.current?.animateCamera(
+          mapViewRef.current?.animateCamera(
             {
               center: lastKnownCoords,
               zoom: 15,
@@ -145,13 +145,13 @@ export const TripMap: React.FC<TripMapProps> = ({
 
       // Animate smoothly to the refined position, with a faster transition if we already centered
       if (isMapLibreAvailable) {
-        cameraRef.current?.easeTo({
+        mapLibreCameraRef.current?.easeTo({
           center: [freshCoords.longitude, freshCoords.latitude],
           zoom: 15,
           duration: lastKnownCoords ? 500 : 1000,
         });
       } else {
-        cameraRef.current?.animateCamera(
+        mapViewRef.current?.animateCamera(
           {
             center: freshCoords,
             zoom: 15,
@@ -160,15 +160,15 @@ export const TripMap: React.FC<TripMapProps> = ({
         );
       }
     } catch (error) {
-      if (userLocationRef.current && cameraRef.current) {
+      if (userLocationRef.current) {
         if (isMapLibreAvailable) {
-          cameraRef.current.easeTo({
+          mapLibreCameraRef.current?.easeTo({
             center: [userLocationRef.current.longitude, userLocationRef.current.latitude],
             zoom: 15,
             duration: 1000,
           });
         } else {
-          cameraRef.current.animateCamera(
+          mapViewRef.current?.animateCamera(
             {
               center: userLocationRef.current,
               zoom: 15,
@@ -215,7 +215,6 @@ export const TripMap: React.FC<TripMapProps> = ({
   const driverJoined = useRef(false);
 
   const handleCenterOnTrip = () => {
-    if (!cameraRef.current) return;
     const lats = [startLat, endLat];
     const lngs = [startLng, endLng];
     if (driverLat && driverLng) {
@@ -226,13 +225,15 @@ export const TripMap: React.FC<TripMapProps> = ({
     const minLat = Math.min(...lats);
     const maxLng = Math.max(...lngs);
     const minLng = Math.min(...lngs);
-
+ 
     if (isMapLibreAvailable) {
-      cameraRef.current.fitBounds([minLng, minLat, maxLng, maxLat], {
+      if (!mapLibreCameraRef.current) return;
+      mapLibreCameraRef.current.fitBounds([minLng, minLat, maxLng, maxLat], {
         padding: { top: 60, right: 60, bottom: 120, left: 60 },
         duration: 1000,
       });
     } else {
+      if (!mapViewRef.current) return;
       const coords = [
         { latitude: startLat, longitude: startLng },
         { latitude: endLat, longitude: endLng },
@@ -240,7 +241,7 @@ export const TripMap: React.FC<TripMapProps> = ({
       if (driverLat && driverLng) {
         coords.push({ latitude: driverLat, longitude: driverLng });
       }
-      cameraRef.current.fitToCoordinates(coords, {
+      mapViewRef.current.fitToCoordinates(coords, {
         edgePadding: { top: 60, right: 60, bottom: 120, left: 60 },
         animated: true,
       });
@@ -286,7 +287,7 @@ export const TripMap: React.FC<TripMapProps> = ({
           compassPosition={isRTL ? { bottom: 112, right: 20 } : { bottom: 112, left: 20 }}
         >
           <MapLibre.Camera
-            ref={cameraRef}
+            ref={mapLibreCameraRef}
             initialViewState={{
               center: [(startLng + endLng) / 2, (startLat + endLat) / 2],
               zoom: 10,
@@ -352,7 +353,7 @@ export const TripMap: React.FC<TripMapProps> = ({
         </MapLibre.Map>
       ) : (
         <MapView
-          ref={cameraRef}
+          ref={mapViewRef}
           style={styles.map}
           initialRegion={{
             latitude: (startLat + endLat) / 2,

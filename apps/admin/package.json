@@ -24,6 +24,7 @@
     "@refinedev/react-hook-form": "^5.0.4",
     "@refinedev/supabase": "^5.8.4",
     "@sair/core": "workspace:*",
+    "@sentry/nextjs": "^10.55.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.105.3",
     "@tanstack/react-query": "^4.36.1",

@@ -26,8 +26,8 @@ Deno.serve(async (req: Request) => {
       {
         p_user_id: user.id,
         p_action: 'zaincash_checkout',
-        p_limit: 10,
-        p_window_seconds: 60,
+        p_limit: parseInt(Deno.env.get('CHECKOUT_RATE_LIMIT') || '10'),
+        p_window_seconds: parseInt(Deno.env.get('CHECKOUT_RATE_WINDOW') || '60'),
       },
     );
 
@@ -58,22 +58,21 @@ Deno.serve(async (req: Request) => {
     const orderId = crypto.randomUUID();
 
     // 5. Create Pending Payment in Database
-    const { data: payment, error: paymentError } = await supabaseAdmin.rpc(
-      'create_payment',
-      {
-        p_user_id: user.id,
-        p_route_id: route_id,
-        p_amount: amount,
-        p_zaincash_order_id: orderId,
-      }
-    );
+    const { data: payment, error: paymentError } = await supabaseAdmin.rpc('create_payment', {
+      p_user_id: user.id,
+      p_route_id: route_id,
+      p_amount: amount,
+      p_zaincash_order_id: orderId,
+    });
 
     if (paymentError || !payment) {
       return corsResponse(req, { error: paymentError?.message || 'Failed to create payment' }, 500);
     }
 
     // 6. Setup ZainCash Credentials (fallback to standard public sandbox keys if unset)
-    const zaincashSecret = Deno.env.get('ZAINCASH_SECRET') || '$2y$10$hHbSq4yKU6C54vE9Gg.xKeKiSS/vn9YcRY0917Q.d3SMGUThG1qC';
+    const zaincashSecret =
+      Deno.env.get('ZAINCASH_SECRET') ||
+      '$2y$10$hHbSq4yKU6C54vE9Gg.xKeKiSS/vn9YcRY0917Q.d3SMGUThG1qC';
     const zaincashMsisdn = Deno.env.get('ZAINCASH_MSISDN') || '9647835074893';
     const zaincashMerchantId = Deno.env.get('ZAINCASH_MERCHANT_ID') || '5c643aa4334a17ec1e1d102e';
 

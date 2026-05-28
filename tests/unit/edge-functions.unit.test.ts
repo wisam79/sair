@@ -28,6 +28,7 @@ globalThis.Deno = {
         ADMIN_URL: 'http://localhost:3000',
         SUPABASE_URL: 'https://zpcvvyxtmxzplmojobbv.supabase.co',
         SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
+        ZAINCASH_SECRET: '$2y$10$hHbSq4yKU6C54vE9Gg.xKeKiSS/vn9YcRY0917Q.d3SMGUThG1qC',
       };
       return vars[key];
     },
@@ -109,6 +110,15 @@ await import('../../supabase/functions/stream-chat-token');
 describe('Edge Functions Unit Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSupabaseClient.from.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.select.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.eq.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.in.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.limit.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.single.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.maybeSingle.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.insert.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.delete.mockReturnValue(mockSupabaseClient);
   });
 
   describe('log-error', () => {
@@ -496,13 +506,13 @@ describe('Edge Functions Unit Tests', () => {
 
       // Verify that fetch was called for OneSignal notification
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://onesignal.com/api/v1/notifications',
+        'https://api.onesignal.com/notifications',
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
-            Authorization: 'Basic test-api-key',
+            Authorization: 'Key test-api-key',
           }),
-        })
+        }),
       );
 
       mockSupabaseClient.from = originalFrom;
@@ -642,16 +652,17 @@ describe('Edge Functions Unit Tests', () => {
           return {
             select: () => ({
               eq: () => ({
-                single: () => Promise.resolve({ data: { price: 25000, title: 'Route 1' }, error: null })
-              })
-            })
+                single: () =>
+                  Promise.resolve({ data: { price: 25000, title: 'Route 1' }, error: null }),
+              }),
+            }),
           };
         }
         if (table === 'payments') {
           return {
             update: () => ({
-              eq: () => Promise.resolve({ error: null })
-            })
+              eq: () => Promise.resolve({ error: null }),
+            }),
           };
         }
         return mockSupabaseClient;
@@ -709,7 +720,9 @@ describe('Edge Functions Unit Tests', () => {
         return Promise.resolve({ data: null, error: null });
       });
 
-      const req = new Request(`http://localhost/zaincash-webhook?token=${testToken}`, { method: 'GET' });
+      const req = new Request(`http://localhost/zaincash-webhook?token=${testToken}`, {
+        method: 'GET',
+      });
       const res = await zaincashWebhookHandler(req);
       expect(res.status).toBe(200);
       const text = await res.text();
@@ -742,15 +755,17 @@ describe('Edge Functions Unit Tests', () => {
                   expect(col).toBe('zaincash_order_id');
                   expect(val).toBe('payment-123');
                   return Promise.resolve({ error: null });
-                }
+                },
               };
-            }
+            },
           };
         }
         return mockSupabaseClient;
       });
 
-      const req = new Request(`http://localhost/zaincash-webhook?token=${testToken}`, { method: 'GET' });
+      const req = new Request(`http://localhost/zaincash-webhook?token=${testToken}`, {
+        method: 'GET',
+      });
       const res = await zaincashWebhookHandler(req);
       expect(res.status).toBe(200);
       const text = await res.text();

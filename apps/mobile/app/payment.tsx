@@ -106,7 +106,8 @@ export default function PaymentScreen() {
       <View style={styles.center}>
         <ActivityIndicator size="large" color={Colors.primary} />
         <Text style={styles.loadingText}>
-          {t('initializing_zaincash') || (isRTL ? 'جاري تهيئة الدفع عبر زين كاش...' : 'Initializing ZainCash checkout...')}
+          {t('initializing_zaincash') ||
+            (isRTL ? 'جاري تهيئة الدفع عبر زين كاش...' : 'Initializing ZainCash checkout...')}
         </Text>
       </View>
     );
@@ -121,7 +122,9 @@ export default function PaymentScreen() {
           <View style={styles.successIconWrapper}>
             <Ionicons name="checkmark-circle" size={100} color={Colors.success} />
           </View>
-          <Text style={styles.title}>{isRTL ? 'تم الاشتراك بنجاح!' : 'Subscription Successful!'}</Text>
+          <Text style={styles.title}>
+            {isRTL ? 'تم الاشتراك بنجاح!' : 'Subscription Successful!'}
+          </Text>
           <Text style={styles.subtitle}>
             {isRTL
               ? 'تهانينا! تم تفعيل اشتراكك وحجز مقعدك بنجاح في الحافلة لمدة 30 يوماً.'
@@ -152,8 +155,8 @@ export default function PaymentScreen() {
                 ? 'فشل التحقق من صحة توقيع المعاملة المالية.'
                 : 'Transaction signature verification failed.'
               : isRTL
-              ? 'عذراً، لم تكتمل المعاملة المالية. يرجى التحقق من رصيد محفظتك والمحاولة مرة أخرى.'
-              : 'Sorry, we could not complete the transaction. Please check your wallet balance and try again.'}
+                ? 'عذراً، لم تكتمل المعاملة المالية. يرجى التحقق من رصيد محفظتك والمحاولة مرة أخرى.'
+                : 'Sorry, we could not complete the transaction. Please check your wallet balance and try again.'}
           </Text>
 
           <View style={styles.buttonGroup}>
@@ -218,10 +221,14 @@ export default function PaymentScreen() {
 
             <View style={styles.buttonGroup}>
               <TouchableOpacity style={styles.primaryButton} onPress={handleOpenBrowser}>
-                <Text style={styles.primaryButtonText}>{isRTL ? 'فتح صفحة الدفع' : 'Open Payment Page'}</Text>
+                <Text style={styles.primaryButtonText}>
+                  {isRTL ? 'فتح صفحة الدفع' : 'Open Payment Page'}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.secondaryButton} onPress={handleGoHome}>
-                <Text style={styles.secondaryButtonText}>{isRTL ? 'الرجوع للرئيسية' : 'Go to Home'}</Text>
+                <Text style={styles.secondaryButtonText}>
+                  {isRTL ? 'الرجوع للرئيسية' : 'Go to Home'}
+                </Text>
               </TouchableOpacity>
             </View>
           </>

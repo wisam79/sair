@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
-import { Trip, TripStatus, Subscription, Route } from '@sair/core';
+import { Trip, TripStatus, Subscription, Route, getErrorMessage } from '@sair/core';
 import { useAuthStore, useTripStore } from './useStore';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { OfflineCache } from '../lib/offlineCache';
@@ -16,12 +16,6 @@ function isExpoGo(): boolean {
 
 const GPS_QUEUE_KEY = 'gps_offline_queue';
 const PAGE_SIZE = 20;
-
-function getErrorMessage(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  if (typeof err === 'string') return err;
-  return 'An unknown error occurred';
-}
 
 export interface SubscriptionWithRoute extends Subscription {
   routes: {
@@ -341,7 +335,7 @@ export function useDriverTrips(page = 0) {
   } = useQuery({
     queryKey: ['driverTrips', page],
     queryFn: async () => {
-      let currentUser: any = null;
+      let currentUser: import('@supabase/supabase-js').User | null = null;
       try {
         const {
           data: { user },
@@ -636,6 +630,31 @@ async function flushGpsQueue() {
 
 // Cascading Offline Sync Manager
 let isSyncing = false;
+
+/** Safely parse JSON from AsyncStorage, returning fallback on corrupt data */
+function safeJsonParse<T>(raw: string | null, fallback: T): T {
+  if (!raw) return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    logger.warn('[Offline Sync] Corrupted JSON in AsyncStorage, using fallback', { raw: raw.slice(0, 100) });
+    return fallback;
+  }
+}
+
+interface PendingOfflineTrip {
+  localId: string;
+  routeId: string;
+  scheduledAt: string;
+}
+
+interface PendingStatusUpdate {
+  tripId: string;
+  newStatus: TripStatus;
+  lat: number;
+  lng: number;
+}
+
 export async function syncOfflineData() {
   if (isSyncing) return;
   isSyncing = true;
@@ -648,7 +667,7 @@ export async function syncOfflineData() {
       // 1. Sync Offline Trips Creation
       const pendingTripsKey = 'pending_trips_creation_queue';
       const pendingTripsRaw = await AsyncStorage.getItem(pendingTripsKey);
-      let pendingTrips = pendingTripsRaw ? JSON.parse(pendingTripsRaw) : [];
+      let pendingTrips = safeJsonParse<PendingOfflineTrip[]>(pendingTripsRaw, []);
       if (pendingTrips.length > 0) {
         const activeTripStore = useTripStore.getState();
         const remainingTrips = [];
@@ -674,16 +693,16 @@ export async function syncOfflineData() {
             // Swap ID in pending status updates
             const statusKey = 'pending_status_updates';
             const statusRaw = await AsyncStorage.getItem(statusKey);
-            let statusUpdates = statusRaw ? JSON.parse(statusRaw) : [];
-            statusUpdates = statusUpdates.map((u: any) =>
+            let statusUpdates = safeJsonParse<PendingStatusUpdate[]>(statusRaw, []);
+            statusUpdates = statusUpdates.map((u: PendingStatusUpdate) =>
               u.tripId === item.localId ? { ...u, tripId: realTripId } : u,
             );
             await AsyncStorage.setItem(statusKey, JSON.stringify(statusUpdates));
 
             // Swap ID in GPS offline queue
             const gpsRaw = await AsyncStorage.getItem(GPS_QUEUE_KEY);
-            let gpsQueue = gpsRaw ? JSON.parse(gpsRaw) : [];
-            gpsQueue = gpsQueue.map((g: any) =>
+            let gpsQueue = safeJsonParse<QueuedLocation[]>(gpsRaw, []);
+            gpsQueue = gpsQueue.map((g: QueuedLocation) =>
               g.tripId === item.localId ? { ...g, tripId: realTripId } : g,
             );
             await AsyncStorage.setItem(GPS_QUEUE_KEY, JSON.stringify(gpsQueue));
@@ -703,7 +722,7 @@ export async function syncOfflineData() {
       // 2. Sync Offline Status Transitions
       const statusKey = 'pending_status_updates';
       const statusRaw = await AsyncStorage.getItem(statusKey);
-      let statusUpdates = statusRaw ? JSON.parse(statusRaw) : [];
+      let statusUpdates = safeJsonParse<PendingStatusUpdate[]>(statusRaw, []);
       if (statusUpdates.length > 0) {
         const remainingStatusUpdates = [];
 
@@ -783,7 +802,7 @@ async function queueLocationUpdate(tripId: string, lat: number, lng: number) {
 }
 
 export function useLocationTracker() {
-  const watchRef = useRef<any>(null);
+  const watchRef = useRef<{ remove: () => void } | null>(null);
   const isOnlineRef = useRef(true);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const lastDbWriteTimeRef = useRef<number>(0);
@@ -828,97 +847,102 @@ export function useLocationTracker() {
     }
   }, []);
 
-  const startTracking = useCallback(async (tripId: string) => {
-    try {
-      const isGo = isExpoGo();
-      
-      if (isGo) {
-        console.warn('[LocationTracker] Expo Go detected. Using fallback Location.watchPositionAsync');
-        let { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          return { error: 'Location permission denied' };
+  const startTracking = useCallback(
+    async (tripId: string) => {
+      try {
+        const isGo = isExpoGo();
+
+        if (isGo) {
+          console.warn(
+            '[LocationTracker] Expo Go detected. Using fallback Location.watchPositionAsync',
+          );
+          let { status } = await Location.requestForegroundPermissionsAsync();
+          if (status !== 'granted') {
+            return { error: 'Location permission denied' };
+          }
+
+          // Initialize realtime channel for broadcasting coordinates directly
+          const channel = supabase.channel(`trip-${tripId}`, {
+            config: { broadcast: { self: false } },
+          });
+          channel.subscribe();
+          channelRef.current = channel;
+          lastDbWriteTimeRef.current = 0; // reset on tracking start
+
+          watchRef.current = await Location.watchPositionAsync(
+            {
+              accuracy: Location.Accuracy.Balanced,
+              timeInterval: 10000,
+              distanceInterval: 15,
+            },
+            async (location) => {
+              const { coords } = location;
+              await handleLocationUpdate(tripId, coords.latitude, coords.longitude);
+            },
+          );
+
+          return { error: null };
         }
 
-        // Initialize realtime channel for broadcasting coordinates directly
+        // Standalone or Dev Build: Use Radar SDK
+        let Radar: typeof import('react-native-radar').default;
+        try {
+          Radar = require('react-native-radar').default;
+        } catch (e) {
+          console.warn('[LocationTracker] Failed to load Radar module, using Location fallback', e);
+          return { error: 'Radar module not found' };
+        }
+
+        const publishableKey = process.env.EXPO_PUBLIC_RADAR_PUBLISHABLE_KEY;
+        if (!publishableKey) {
+          console.warn('[LocationTracker] Radar key missing.');
+          return { error: 'Radar API key missing' };
+        }
+
+        // Initialize Radar
+        Radar.initialize(publishableKey);
+
+        // Get user from auth store to tag Radar user
+        const user = useAuthStore.getState().user;
+        if (user) {
+          Radar.setUserId(user.id);
+          Radar.setMetadata({ tripId });
+        }
+
+        // Initialize realtime channel
         const channel = supabase.channel(`trip-${tripId}`, {
           config: { broadcast: { self: false } },
         });
         channel.subscribe();
         channelRef.current = channel;
-        lastDbWriteTimeRef.current = 0; // reset on tracking start
+        lastDbWriteTimeRef.current = 0;
 
-        watchRef.current = await Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.Balanced,
-            timeInterval: 10000,
-            distanceInterval: 15,
-          },
-          async (location) => {
-            const { coords } = location;
-            await handleLocationUpdate(tripId, coords.latitude, coords.longitude);
+        // Start continuous background tracking
+        Radar.startTrackingContinuous();
+
+        // Listen for location updates
+        const listener = (result: import('react-native-radar').RadarResult) => {
+          if (result.location) {
+            const { latitude, longitude } = result.location;
+            handleLocationUpdate(tripId, latitude, longitude);
           }
-        );
+        };
+
+        Radar.onLocationUpdated(listener);
+        watchRef.current = {
+          remove: () => {
+            Radar.stopTracking();
+            Radar.onLocationUpdated(null);
+          },
+        };
 
         return { error: null };
+      } catch (err: unknown) {
+        return { error: getErrorMessage(err) };
       }
-
-      // Standalone or Dev Build: Use Radar SDK
-      let Radar: any;
-      try {
-        Radar = require('react-native-radar').default;
-      } catch (e) {
-        console.warn('[LocationTracker] Failed to load Radar module, using Location fallback', e);
-        return { error: 'Radar module not found' };
-      }
-
-      const publishableKey = process.env.EXPO_PUBLIC_RADAR_PUBLISHABLE_KEY;
-      if (!publishableKey) {
-        console.warn('[LocationTracker] Radar key missing.');
-        return { error: 'Radar API key missing' };
-      }
-
-      // Initialize Radar
-      Radar.initialize(publishableKey);
-
-      // Get user from auth store to tag Radar user
-      const user = useAuthStore.getState().user;
-      if (user) {
-        Radar.setUserId(user.id);
-        Radar.setMetadata({ tripId });
-      }
-
-      // Initialize realtime channel
-      const channel = supabase.channel(`trip-${tripId}`, {
-        config: { broadcast: { self: false } },
-      });
-      channel.subscribe();
-      channelRef.current = channel;
-      lastDbWriteTimeRef.current = 0;
-
-      // Start continuous background tracking
-      Radar.startTrackingContinuous();
-
-      // Listen for location updates
-      const listener = (result: any) => {
-        if (result.location) {
-          const { latitude, longitude } = result.location;
-          handleLocationUpdate(tripId, latitude, longitude);
-        }
-      };
-
-      Radar.onLocationUpdated(listener);
-      watchRef.current = {
-        remove: () => {
-          Radar.stopTracking();
-          Radar.onLocationUpdated(null);
-        }
-      };
-
-      return { error: null };
-    } catch (err: unknown) {
-      return { error: getErrorMessage(err) };
-    }
-  }, [handleLocationUpdate]);
+    },
+    [handleLocationUpdate],
+  );
 
   const stopTracking = useCallback(() => {
     if (watchRef.current) {

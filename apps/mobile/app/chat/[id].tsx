@@ -12,8 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// @ts-ignore
-import { Chat, Channel, MessageList, MessageInput } from 'stream-chat-expo';
+import { Chat, Channel, MessageList, MessageComposer } from 'stream-chat-expo';
 import { useTranslation } from '../../src/hooks/useTranslation';
 import { useAuthStore } from '../../src/hooks/useStore';
 import { getStreamClient, connectStreamUser } from '../../src/lib/stream';
@@ -53,7 +52,8 @@ export default function ChatScreen() {
         // 2. Fetch conversation metadata from Supabase
         const { data: conv, error } = await supabase
           .from('conversations')
-          .select(`
+          .select(
+            `
             id,
             student_id,
             driver_id,
@@ -67,7 +67,8 @@ export default function ChatScreen() {
             student:profiles!student_id (
               full_name
             )
-          `)
+          `,
+          )
           .eq('id', id)
           .single();
 
@@ -100,7 +101,8 @@ export default function ChatScreen() {
           throw new Error('Participant metadata missing');
         }
 
-        const channelName = user.id === driverUserId ? studentMeta?.full_name : driverProfile?.full_name;
+        const channelName =
+          user.id === driverUserId ? studentMeta?.full_name : driverProfile?.full_name;
 
         const chatChannel = client.channel('messaging', id, {
           members: [studentUserId, driverUserId],
@@ -230,7 +232,11 @@ export default function ChatScreen() {
             ]}
           >
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
+              <Ionicons
+                name={isRTL ? 'arrow-forward' : 'arrow-back'}
+                size={24}
+                color={Colors.text}
+              />
             </TouchableOpacity>
             <View style={styles.headerTitleContainer}>
               <View style={[styles.headerNameContainer, isRTL && { flexDirection: 'row-reverse' }]}>
@@ -277,8 +283,10 @@ export default function ChatScreen() {
           </View>
 
           {/* Message Input */}
-          <View style={{ paddingBottom: Platform.OS === 'ios' && bottom > 0 ? bottom : Spacing.xs }}>
-            <MessageInput />
+          <View
+            style={{ paddingBottom: Platform.OS === 'ios' && bottom > 0 ? bottom : Spacing.xs }}
+          >
+            <MessageComposer />
           </View>
         </View>
       </Channel>

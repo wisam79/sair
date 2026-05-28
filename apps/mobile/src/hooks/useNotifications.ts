@@ -5,7 +5,7 @@ import { useAuthStore } from './useStore';
 
 /**
  * useNotifications — Integration with OneSignal (Safe for both Expo Go and Dev Builds).
- * 
+ *
  * If running in Expo Go, it safely warns and skips to prevent crashes.
  * Automatically handles mapping the user UUID to OneSignal's External ID on login/logout.
  */
@@ -36,7 +36,9 @@ export function useNotifications() {
 
     const appId = process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID;
     if (!appId) {
-      console.warn('[Notifications] EXPO_PUBLIC_ONESIGNAL_APP_ID is not defined in environment variables.');
+      console.warn(
+        '[Notifications] EXPO_PUBLIC_ONESIGNAL_APP_ID is not defined in environment variables.',
+      );
       return;
     }
 
@@ -51,17 +53,16 @@ export function useNotifications() {
 
     // Map database User UUID to OneSignal's external ID
     if (userId) {
-      console.log('[Notifications] OneSignal logging in user:', userId);
+      console.warn('[Notifications] OneSignal logging in user:', userId);
       OneSignal.login(userId);
     } else {
-      console.log('[Notifications] OneSignal logging out user');
+      console.warn('[Notifications] OneSignal logging out user');
       OneSignal.logout();
     }
 
-    // Set notification click listener
-    const handleNotificationClick = (event: any) => {
-      console.log('[Notifications] Notification Clicked:', event);
-      const data = event.notification?.additionalData;
+    const handleNotificationClick = (event: import('react-native-onesignal').NotificationClickEvent) => {
+      console.warn('[Notifications] Notification Clicked:', event);
+      const data = event.notification?.additionalData as Record<string, unknown> | undefined;
       if (data?.type === 'trip_update' && data.trip_id) {
         router.push({
           pathname: '/tracking/[tripId]',

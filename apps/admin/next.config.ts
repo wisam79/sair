@@ -60,4 +60,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+import { withSentryConfig } from '@sentry/nextjs';
+
+export default withSentryConfig(nextConfig, {
+  silent: true,
+  org: 'sair',
+  project: 'admin-dashboard',
+  disableLogger: true,
+});

@@ -265,6 +265,11 @@ export type TranslationKey = keyof typeof enTranslations;
 export function getErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   if (typeof err === 'string') return err;
+  if (err && typeof err === 'object') {
+    const errorObj = err as Record<string, unknown>;
+    if (typeof errorObj.message === 'string') return errorObj.message;
+    if (typeof errorObj.error_description === 'string') return errorObj.error_description;
+  }
   return 'An unknown error occurred';
 }
 

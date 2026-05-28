@@ -1,5 +1,6 @@
 import { corsResponse } from '../_shared/cors.ts';
 import { verifyAuthLocal, supabaseAdmin } from '../_shared/auth.ts';
+import { handleHealthCheck } from '../_shared/health.ts';
 
 const STATUS_MESSAGES: Record<
   string,
@@ -99,11 +100,11 @@ async function notifyStudentsForTripStatus(supabaseClient: any, tripId: string, 
       return;
     }
 
-    const response = await fetch('https://onesignal.com/api/v1/notifications', {
+    const response = await fetch('https://api.onesignal.com/notifications', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Basic ${ONESIGNAL_REST_API_KEY}`,
+        Authorization: `Key ${ONESIGNAL_REST_API_KEY}`,
       },
       body: JSON.stringify({
         app_id: ONESIGNAL_APP_ID,
@@ -118,7 +119,9 @@ async function notifyStudentsForTripStatus(supabaseClient: any, tripId: string, 
       const errText = await response.text();
       console.error(`[Notification] OneSignal API failed: ${response.status} - ${errText}`);
     } else {
-      console.log(`[Notification] Successfully dispatched OneSignal notification to ${studentIds.length} users`);
+      console.log(
+        `[Notification] Successfully dispatched OneSignal notification to ${studentIds.length} users`,
+      );
     }
   } catch (err) {
     console.error('[Notification] Error in notifyStudentsForTripStatus:', err);
@@ -130,22 +133,10 @@ Deno.serve(async (req: Request) => {
     return corsResponse(req, 'ok');
   }
 
-  try {
-    // Health check endpoint (bypasses auth and validation)
-    let isHealthCheck = false;
-    try {
-      const clonedReq = req.clone();
-      const body = await clonedReq.json();
-      if (body && body.action === 'health') {
-        isHealthCheck = true;
-      }
-    } catch {
-      // Ignore
-    }
+  const healthRes = await handleHealthCheck(req);
+  if (healthRes) return healthRes;
 
-    if (isHealthCheck) {
-      return corsResponse(req, { status: 'healthy' });
-    }
+  try {
 
     const { user, error: authError } = await verifyAuthLocal(req);
     if (authError || !user) {
@@ -159,8 +150,8 @@ Deno.serve(async (req: Request) => {
       {
         p_user_id: user.id,
         p_action: 'trip_engine',
-        p_limit: 30,
-        p_window_seconds: 60,
+        p_limit: parseInt(Deno.env.get('TRIP_ENGINE_RATE_LIMIT') || '30'),
+        p_window_seconds: parseInt(Deno.env.get('TRIP_ENGINE_RATE_WINDOW') || '60'),
       },
     );
 

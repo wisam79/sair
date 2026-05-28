@@ -1,7 +1,21 @@
 import { supabaseAdmin } from '../_shared/auth.ts';
 import * as jose from 'npm:jose';
 
-function renderSuccessHtml(orderId: string) {
+/**
+ * Escape HTML special characters to prevent XSS injection.
+ * Applied to any user-controlled or JWT-derived values rendered into HTML.
+ */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderSuccessHtml(rawOrderId: string) {
+  const orderId = escapeHtml(rawOrderId);
   return `
     <!DOCTYPE html>
     <html>
@@ -35,8 +49,10 @@ function renderSuccessHtml(orderId: string) {
   `;
 }
 
-function renderErrorHtml(reason: string, orderId?: string) {
-  const deepLink = `sair://payment?status=failed&reason=${reason}${orderId ? `&order_id=${orderId}` : ''}`;
+function renderErrorHtml(rawReason: string, rawOrderId?: string) {
+  const reason = escapeHtml(rawReason);
+  const orderId = rawOrderId ? escapeHtml(rawOrderId) : undefined;
+  const deepLink = `sair://payment?status=failed&reason=${encodeURIComponent(rawReason)}${rawOrderId ? `&order_id=${encodeURIComponent(rawOrderId)}` : ''}`;
   return `
     <!DOCTYPE html>
     <html>
@@ -82,8 +98,15 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Setup ZainCash secret
-    const zaincashSecret = Deno.env.get('ZAINCASH_SECRET') || '$2y$10$hHbSq4yKU6C54vE9Gg.xKeKiSS/vn9YcRY0917Q.d3SMGUThG1qC';
+    // Setup ZainCash secret — MUST be set via environment variable
+    const zaincashSecret = Deno.env.get('ZAINCASH_SECRET');
+    if (!zaincashSecret) {
+      console.error('[ZainCash Webhook] ZAINCASH_SECRET environment variable is not set');
+      return new Response(renderErrorHtml('config_error'), {
+        status: 500,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
     const secretKey = new TextEncoder().encode(zaincashSecret);
 
     let payload: any;
@@ -109,13 +132,27 @@ Deno.serve(async (req: Request) => {
 
     if (status === 'success') {
       try {
+        // Check for idempotency: if payment is already completed, return success html immediately
+        const { data: existingPayment } = await supabaseAdmin
+          .from('payments')
+          .select('status')
+          .eq('zaincash_order_id', orderId)
+          .maybeSingle();
+
+        if (existingPayment?.status === 'completed') {
+          console.warn('[ZainCash Webhook] Idempotency triggered: Payment already completed for orderId:', orderId);
+          return new Response(renderSuccessHtml(orderId), {
+            headers: { 'Content-Type': 'text/html; charset=utf-8' },
+          });
+        }
+
         // Complete the payment and activate subscription atomically
         const { data: paymentRes, error: rpcError } = await supabaseAdmin.rpc(
           'complete_payment_and_activate_subscription',
           {
             p_zaincash_order_id: orderId,
-            p_valid_days: 30
-          }
+            p_valid_days: 30,
+          },
         );
 
         if (rpcError) {

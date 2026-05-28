@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import NetInfo from '@react-native-community/netinfo';
+import { getErrorMessage } from '@sair/core';
 
 export interface Message {
   id: string;
@@ -81,9 +82,7 @@ export function useConversations() {
     };
   }, [queryClient]);
 
-  const errorMsg = error
-    ? (error as any).message || (error as any).error_description || String(error)
-    : null;
+  const errorMsg = error ? getErrorMessage(error) : null;
 
   return { conversations, loading: isLoading, error: errorMsg, refetch };
 }
@@ -199,9 +198,7 @@ export function useMessages(conversationId: string | null) {
     }
   }, [conversationId, messages, markAsRead]);
 
-  const errorMsg = error
-    ? (error as any).message || (error as any).error_description || String(error)
-    : null;
+  const errorMsg = error ? getErrorMessage(error) : null;
 
   return { messages, loading: isLoading, error: errorMsg, sendMessage, refetch };
 }
@@ -242,9 +239,7 @@ export function useConversationForTrip(tripId: string | null) {
     return conv;
   }, [tripId, queryClient, queryKey]);
 
-  const errorMsg = error
-    ? (error as any).message || (error as any).error_description || String(error)
-    : null;
+  const errorMsg = error ? getErrorMessage(error) : null;
 
   return { conversation, loading: isLoading, error: errorMsg, getOrCreate };
 }

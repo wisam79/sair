@@ -286,7 +286,7 @@ export default function LoginScreen() {
 
           if (error) throw error;
         } else {
-          console.log('Google Sign-In response type:', userInfo.type);
+          console.warn('[Auth] Google Sign-In response type:', userInfo.type);
         }
       } catch (err: unknown) {
         // Only alert if the user did not cancel the sign-in flow manually
@@ -324,7 +324,7 @@ export default function LoginScreen() {
       {/* Language Switcher */}
       <View style={[styles.langContainer, { top: top + Spacing.xs }]} pointerEvents="box-none">
         <TouchableOpacity
-          style={[styles.langButton, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+          style={styles.langButton}
           onPress={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
           activeOpacity={0.8}
         >
@@ -428,9 +428,7 @@ export default function LoginScreen() {
           )}
 
           {/* Separator */}
-          <View
-            style={[styles.separatorContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-          >
+          <View style={styles.separatorContainer}>
             <View style={styles.separatorLine} />
             <Text style={styles.separatorText}>{t('or')}</Text>
             <View style={styles.separatorLine} />
@@ -694,6 +692,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   langButton: {
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     paddingHorizontal: Spacing.md,

@@ -6,9 +6,7 @@
   "executionArgs": {
     "projectName": "sair",
     "projectPath": "c:\\Users\\Laptop Shop\\Downloads\\sair",
-    "testIds": [
-      "TC001"
-    ],
+    "testIds": ["TC001"],
     "additionalInstruction": "Verify the login backend API response",
     "serverMode": "development",
     "envs": {

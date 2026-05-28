@@ -3,6 +3,7 @@
 ---
 
 ## 1️⃣ Document Metadata
+
 - **Project Name:** sair
 - **Date:** 2026-05-28
 - **Prepared by:** TestSprite AI Team
@@ -12,9 +13,11 @@
 ## 2️⃣ Requirement Validation Summary
 
 ### Requirement: Admin Authentication & Login (Frontend UI)
+
 - **Description:** Verifies that admin users can successfully authenticate using valid credentials and access the protected dashboard, while unauthenticated requests are blocked.
 
 #### Test TC002 Sign in and reach the admin dashboard
+
 - **Test Code:** [TC002_Sign_in_and_reach_the_admin_dashboard.py](./TC002_Sign_in_and_reach_the_admin_dashboard.py)
 - **Test Error:** TEST BLOCKED - Backend fetch errors prevented completing the login flow.
 - **Test Visualization and Result:** [View Result](https://www.testsprite.com/dashboard/mcp/tests/28906868-1352-4211-8096-a4cf34355911/56ce7691-88a0-441e-b764-2401d9c5d6b5)
@@ -25,6 +28,7 @@
 ---
 
 #### Test TC006 Block access to the admin dashboard without signing in
+
 - **Test Code:** [TC006_Block_access_to_the_admin_dashboard_without_signing_in.py](./TC006_Block_access_to_the_admin_dashboard_without_signing_in.py)
 - **Test Visualization and Result:** [View Result](https://www.testsprite.com/dashboard/mcp/tests/28906868-1352-4211-8096-a4cf34355911/e8cfde61-de20-4bec-8553-52613ec98c93)
 - **Status:** ✅ Passed
@@ -34,9 +38,11 @@
 ---
 
 ### Requirement: Driver Management Security (Frontend UI)
+
 - **Description:** Verifies that driver management pages are protected and redirect unauthenticated users to sign in.
 
 #### Test TC010 Prevent access to driver management without signing in
+
 - **Test Code:** [TC010_Prevent_access_to_driver_management_without_signing_in.py](./TC010_Prevent_access_to_driver_management_without_signing_in.py)
 - **Test Visualization and Result:** [View Result](https://www.testsprite.com/dashboard/mcp/tests/28906868-1352-4211-8096-a4cf34355911/008482fe-d690-4bf1-8848-6d5f67adf170)
 - **Status:** ✅ Passed
@@ -46,9 +52,11 @@
 ---
 
 ### Requirement: Backend Authentication API (Backend Services)
+
 - **Description:** Verifies that backend authentication endpoint responses conform to standard JSON protocols.
 
 #### Test TC001 post api auth login with valid credentials
+
 - **Test Code:** [TC001_post_api_auth_login_with_valid_credentials.py](./TC001_post_api_auth_login_with_valid_credentials.py)
 - **Test Error:** `AssertionError: Response is not valid JSON` (404 HTML returned instead of JSON)
 - **Test Visualization and Result:** [View Result](https://www.testsprite.com/dashboard/mcp/tests/538e4bbd-96ac-4376-94a1-9ea89c84f4b2/38a7290a-81a8-463e-a2c3-5f0745919da7)
@@ -62,11 +70,11 @@
 
 - **50.00%** of tests passed
 
-| Requirement | Total Tests | ✅ Passed | ❌ Failed / Blocked |
-| :--- | :---: | :---: | :---: |
-| Admin Authentication & Login | 2 | 1 | 1 |
-| Driver Management Security | 1 | 1 | 0 |
-| Backend Authentication API | 1 | 0 | 1 |
+| Requirement                  | Total Tests | ✅ Passed | ❌ Failed / Blocked |
+| :--------------------------- | :---------: | :-------: | :-----------------: |
+| Admin Authentication & Login |      2      |     1     |          1          |
+| Driver Management Security   |      1      |     1     |          0          |
+| Backend Authentication API   |      1      |     0     |          1          |
 
 ---
 

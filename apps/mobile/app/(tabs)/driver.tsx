@@ -20,16 +20,10 @@ import { useTranslation } from '../../src/hooks/useTranslation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { ClientRateLimiter } from '../../src/lib/rateLimiter';
-import { TripStatus, canTransition } from '@sair/core';
+import { TripStatus, canTransition, getErrorMessage } from '@sair/core';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../../src/theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-
-function getErrorMessage(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  if (typeof err === 'string') return err;
-  return 'error_generic'; // Should use t('error_generic') inside the component
-}
 
 function getInitials(fullName: string): string {
   if (!fullName) return '';
