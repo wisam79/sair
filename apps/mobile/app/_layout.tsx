@@ -96,6 +96,8 @@ function Layout() {
 
   // RTL setup
   useEffect(() => {
+    if (!i18nHydrated) return; // Wait until language store is fully hydrated from AsyncStorage!
+
     const shouldBeRTL = isRTL;
     if (I18nManager.isRTL !== shouldBeRTL) {
       I18nManager.allowRTL(shouldBeRTL);
@@ -110,7 +112,7 @@ function Layout() {
         }
       }, 150);
     }
-  }, [isRTL]);
+  }, [isRTL, i18nHydrated]);
 
   // Phase 5: Force Update Check
   useEffect(() => {
