@@ -11,11 +11,12 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Chat, ChannelList } from 'stream-chat-expo';
+import { Chat, ChannelList, WithComponents } from 'stream-chat-expo';
 import { useTranslation } from '../../src/hooks/useTranslation';
 import { useAuthStore } from '../../src/hooks/useStore';
 import { getStreamClient, connectStreamUser } from '../../src/lib/stream';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../../src/theme';
+import { EmptyState } from '../../src/components/EmptyState';
 import * as Haptics from 'expo-haptics';
 
 export default function ConversationsScreen() {
@@ -158,15 +159,28 @@ export default function ConversationsScreen() {
 
         {/* Stream Chat Channel List */}
         <View style={{ flex: 1 }}>
-          <ChannelList
-            filters={filters}
-            sort={sort}
-            options={options}
-            onSelect={(channel) => {
-              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push(`/chat/${channel.id}`);
+          <WithComponents
+            overrides={{
+              EmptyStateIndicator: () => (
+                <EmptyState
+                  icon="chatbubbles-outline"
+                  title={t('no_conversations')}
+                  subtitle={isRTL ? 'لم تبدأ أي محادثة بعد.' : 'No conversations started yet.'}
+                  iconColor={Colors.primary}
+                />
+              ),
             }}
-          />
+          >
+            <ChannelList
+              filters={filters}
+              sort={sort}
+              options={options}
+              onSelect={(channel) => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push(`/chat/${channel.id}`);
+              }}
+            />
+          </WithComponents>
         </View>
       </View>
     </Chat>
