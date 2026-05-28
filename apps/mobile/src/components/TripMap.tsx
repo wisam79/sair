@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Alert, ActivityIndicator, Animated, Easing, Platform } from 'react-native';
 import type { CameraRef } from '@maplibre/maplibre-react-native';
 import MapView, { Marker as RNMarker, Polyline as RNPolyline } from 'react-native-maps';
 import { Colors } from '../theme';
@@ -43,6 +43,37 @@ export const TripMap: React.FC<TripMapProps> = ({
   const mapLibreCameraRef = useRef<import('@maplibre/maplibre-react-native').CameraRef | null>(null);
   const mapViewRef = useRef<MapView | null>(null);
   const { t, isRTL } = useTranslation();
+
+  // Pulsating beacon for driver marker
+  const beaconScale = useRef(new Animated.Value(1)).current;
+  const beaconOpacity = useRef(new Animated.Value(0.7)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.parallel([
+        Animated.timing(beaconScale, {
+          toValue: 2.4,
+          duration: 1600,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.timing(beaconOpacity, {
+          toValue: 0,
+          duration: 1600,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+      ]),
+    );
+    if (driverLat && driverLng) {
+      beaconScale.setValue(1);
+      beaconOpacity.setValue(0.7);
+      anim.start();
+    } else {
+      anim.stop();
+    }
+    return () => anim.stop();
+  }, [driverLat, driverLng]);
 
   // Cache OSRM route — fetch once, never re-fetch on driver location updates
   const [routeCoords, setRouteCoords] = useState<LatLng[]>([]);
@@ -337,16 +368,25 @@ export const TripMap: React.FC<TripMapProps> = ({
             </View>
           </MapLibre.Marker>
 
-          {/* Driver Location Marker */}
+          {/* Driver Location Marker — Animated Beacon */}
           {driverLat && driverLng && (
             <MapLibre.Marker id="driverPoint" lngLat={[driverLng, driverLat]}>
-              <View
-                style={[
-                  styles.markerCircle,
-                  { backgroundColor: Colors.success, width: 36, height: 36, borderRadius: 18 },
-                ]}
-              >
-                <Ionicons name="car" size={20} color={Colors.white} />
+              <View style={styles.driverMarkerWrapper}>
+                {/* Pulsating beacon ring */}
+                <Animated.View
+                  style={[
+                    styles.beaconRing,
+                    {
+                      transform: [{ scale: beaconScale }],
+                      opacity: beaconOpacity,
+                    },
+                  ]}
+                />
+                {/* Core bus icon */}
+                <View style={styles.driverMarkerCore}>
+                  <View style={styles.driverInnerRing} />
+                  <Ionicons name="bus" size={16} color={Colors.white} />
+                </View>
               </View>
             </MapLibre.Marker>
           )}
@@ -395,19 +435,28 @@ export const TripMap: React.FC<TripMapProps> = ({
             </View>
           </RNMarker>
 
-          {/* Driver Location Marker */}
+          {/* Driver Location Marker — Animated Beacon */}
           {driverLat && driverLng && (
             <RNMarker
               coordinate={{ latitude: driverLat, longitude: driverLng }}
               title={t('driver')}
             >
-              <View
-                style={[
-                  styles.markerCircle,
-                  { backgroundColor: Colors.success, width: 36, height: 36, borderRadius: 18 },
-                ]}
-              >
-                <Ionicons name="car" size={20} color={Colors.white} />
+              <View style={styles.driverMarkerWrapper}>
+                {/* Pulsating beacon ring */}
+                <Animated.View
+                  style={[
+                    styles.beaconRing,
+                    {
+                      transform: [{ scale: beaconScale }],
+                      opacity: beaconOpacity,
+                    },
+                  ]}
+                />
+                {/* Core bus icon */}
+                <View style={styles.driverMarkerCore}>
+                  <View style={styles.driverInnerRing} />
+                  <Ionicons name="bus" size={16} color={Colors.white} />
+                </View>
               </View>
             </RNMarker>
           )}
@@ -462,6 +511,44 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  // ─── Animated Driver Beacon ─────────────────────────────────────────────────
+  driverMarkerWrapper: {
+    width: 52,
+    height: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  beaconRing: {
+    position: 'absolute',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.success,
+  },
+  driverMarkerCore: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.success,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2.5,
+    borderColor: Colors.white,
+    shadowColor: Colors.success,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.55,
+    shadowRadius: 6,
+    elevation: 8,
+    zIndex: 10,
+  },
+  driverInnerRing: {
+    position: 'absolute',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   locateButton: {
     position: 'absolute',

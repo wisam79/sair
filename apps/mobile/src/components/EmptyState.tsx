@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../theme';
 
@@ -23,33 +23,95 @@ export function EmptyState({
   iconColor = Colors.border,
 }: EmptyStateProps) {
   const bounceAnim = useRef(new Animated.Value(0)).current;
+  const fadeIn = useRef(new Animated.Value(0)).current;
+  const glowScale = useRef(new Animated.Value(1)).current;
+  const glowOpacity = useRef(new Animated.Value(0.35)).current;
 
   useEffect(() => {
-    const anim = Animated.loop(
+    // Entrance fade
+    Animated.timing(fadeIn, {
+      toValue: 1,
+      duration: 400,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: Platform.OS !== 'web',
+    }).start();
+
+    // Gentle float
+    const bounceLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(bounceAnim, {
           toValue: -10,
-          duration: 700,
+          duration: 800,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(bounceAnim, {
           toValue: 0,
-          duration: 700,
+          duration: 800,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ]),
     );
-    anim.start();
-    return () => anim.stop();
-  }, [bounceAnim]);
+
+    // Subtle glow pulse behind icon
+    const glowLoop = Animated.loop(
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(glowScale, {
+            toValue: 1.25,
+            duration: 1800,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: Platform.OS !== 'web',
+          }),
+          Animated.timing(glowOpacity, {
+            toValue: 0.0,
+            duration: 1800,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: Platform.OS !== 'web',
+          }),
+        ]),
+        Animated.parallel([
+          Animated.timing(glowScale, {
+            toValue: 1,
+            duration: 0,
+            useNativeDriver: Platform.OS !== 'web',
+          }),
+          Animated.timing(glowOpacity, {
+            toValue: 0.35,
+            duration: 0,
+            useNativeDriver: Platform.OS !== 'web',
+          }),
+        ]),
+      ]),
+    );
+
+    bounceLoop.start();
+    glowLoop.start();
+    return () => {
+      bounceLoop.stop();
+      glowLoop.stop();
+    };
+  }, [bounceAnim, glowScale, glowOpacity, fadeIn]);
 
   return (
-    <View style={styles.container}>
-      <Animated.View style={{ transform: [{ translateY: bounceAnim }] }}>
-        <View style={[styles.iconCircle, { borderColor: iconColor + '40' }]}>
-          <Ionicons name={icon} size={56} color={iconColor} />
+    <Animated.View style={[styles.container, { opacity: fadeIn }]}>
+      <Animated.View style={{ transform: [{ translateY: bounceAnim }], alignItems: 'center' }}>
+        {/* Glow ring */}
+        <Animated.View
+          style={[
+            styles.glowRing,
+            {
+              borderColor: iconColor + '30',
+              backgroundColor: iconColor + '12',
+              transform: [{ scale: glowScale }],
+              opacity: glowOpacity,
+            },
+          ]}
+        />
+        {/* Icon circle */}
+        <View style={[styles.iconCircle, { borderColor: iconColor + '50', shadowColor: iconColor }]}>
+          <Ionicons name={icon} size={52} color={iconColor} />
         </View>
       </Animated.View>
 
@@ -61,7 +123,7 @@ export function EmptyState({
           <Text style={styles.ctaText}>{ctaLabel}</Text>
         </TouchableOpacity>
       ) : null}
-    </View>
+    </Animated.View>
   );
 }
 
@@ -73,20 +135,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     gap: Spacing.md,
   },
+  glowRing: {
+    position: 'absolute',
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    borderWidth: 1.5,
+  },
   iconCircle: {
-    width: 100,
-    height: 100,
+    width: 96,
+    height: 96,
     borderRadius: BorderRadius.circle,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.primarySurface,
     marginBottom: Spacing.sm,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 14,
+    elevation: 4,
   },
   title: {
     fontFamily: FontFamily.bold,

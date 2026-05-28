@@ -4,7 +4,6 @@ import {
   Text,
   View,
   TouchableOpacity,
-  ActivityIndicator,
   TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -17,6 +16,7 @@ import { useAuthStore } from '../../src/hooks/useStore';
 import { getStreamClient, connectStreamUser } from '../../src/lib/stream';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../../src/theme';
 import { EmptyState } from '../../src/components/EmptyState';
+import { LoadingList } from '../../src/components/LoadingSkeleton';
 import * as Haptics from 'expo-haptics';
 
 export default function ConversationsScreen() {
@@ -78,8 +78,17 @@ export default function ConversationsScreen() {
 
   if (connecting || !chatClient) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+      <View style={[styles.container, { backgroundColor: Colors.background }]}>
+        <StatusBar style="light" translucent />
+        {/* Render stub header so the layout doesn't jump */}
+        <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
+          <View style={styles.glassOverlay} />
+          <View style={styles.glassHighlight} />
+          <Text style={styles.headerTitle}>{t('messages')}</Text>
+        </View>
+        <View style={{ marginTop: Spacing.sm }}>
+          <LoadingList count={5} variant="chat" />
+        </View>
       </View>
     );
   }

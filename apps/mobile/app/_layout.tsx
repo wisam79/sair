@@ -15,6 +15,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { OverlayProvider } from 'stream-chat-expo';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -54,7 +55,10 @@ if (sentryDsn && Constants.appOwnership !== 'expo') {
 }
 
 // Keep the splash screen visible while fonts load
-SplashScreen.preventAutoHideAsync();
+// NOTE: On web, preventAutoHideAsync injects a white overlay — skip it to avoid blank page
+if (Platform.OS !== 'web') {
+  SplashScreen.preventAutoHideAsync().catch(() => {});
+}
 
 function Layout() {
   const {
@@ -97,6 +101,7 @@ function Layout() {
   // RTL setup
   useEffect(() => {
     if (!i18nHydrated) return; // Wait until language store is fully hydrated from AsyncStorage!
+    if (Platform.OS === 'web') return; // RTL via DevSettings.reload() is not supported on web
 
     const shouldBeRTL = isRTL;
     if (I18nManager.isRTL !== shouldBeRTL) {
@@ -147,6 +152,17 @@ function Layout() {
 
   // Auth listener
   useEffect(() => {
+    // Safety net for web: if Supabase getSession takes too long (e.g. CORS/network issue),
+    // force initialized=true after 5s so the loading spinner doesn't show forever.
+    let safetyTimer: ReturnType<typeof setTimeout> | null = null;
+    if (Platform.OS === 'web') {
+      safetyTimer = setTimeout(() => {
+        if (!useAuthStore.getState().initialized) {
+          setInitialized(true);
+        }
+      }, 5000);
+    }
+
     supabase.auth
       .getSession()
       .then(({ data: { session } }) => {
@@ -262,7 +278,10 @@ function Layout() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      if (safetyTimer) clearTimeout(safetyTimer);
+    };
   }, []);
 
   // Navigation guard
@@ -287,13 +306,28 @@ function Layout() {
   }, [initialized, allStoresHydrated, segments, user, hasSeenOnboarding, role]);
 
   // Hide splash screen once fonts are ready
-  const appIsReady = (fontsLoaded || fontError) && initialized && allStoresHydrated;
+  // On web: don't block on allStoresHydrated — localStorage is synchronous and hydration
+  // should complete near-instantly. If it somehow doesn't, the spinner would show forever.
+  const appIsReady =
+    (fontsLoaded || fontError) &&
+    initialized &&
+    (Platform.OS === 'web' ? true : allStoresHydrated);
 
   useEffect(() => {
     if (appIsReady) {
       SplashScreen.hideAsync().catch(() => {});
     }
   }, [appIsReady]);
+
+  // Safety net: on web, force-hide splash after 3s to avoid permanent white screen
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const timeout = setTimeout(() => {
+        SplashScreen.hideAsync().catch(() => {});
+      }, 3000);
+      return () => clearTimeout(timeout);
+    }
+  }, []);
 
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
@@ -302,7 +336,12 @@ function Layout() {
   }, [appIsReady]);
 
   if (!appIsReady) {
-    return null;
+    // On web, return a centered spinner instead of null to avoid blank white page
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
   }
 
   if (forceUpdateRequired) {
@@ -324,7 +363,9 @@ function Layout() {
     );
   }
 
-  if (!animationFinished) {
+  // Skip the AnimatedSplashScreen on web — it uses native-only features
+  // (StatusBar with backgroundColor, non-loaded fonts, etc.) that break in browser
+  if (!animationFinished && Platform.OS !== 'web') {
     return <AnimatedSplashScreen onAnimationFinished={() => setAnimationFinished(true)} />;
   }
 
