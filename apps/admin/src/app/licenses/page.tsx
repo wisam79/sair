@@ -197,7 +197,10 @@ export default function LicensesPage() {
 
   return (
     <>
-      <Paper elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', mb: 3, bgcolor: 'transparent' }}>
+      <Paper
+        elevation={0}
+        sx={{ borderBottom: 1, borderColor: 'divider', mb: 3, bgcolor: 'transparent' }}
+      >
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
@@ -224,7 +227,9 @@ export default function LicensesPage() {
             autoHeight
             density="comfortable"
             slots={{ toolbar: GridToolbar }}
-            slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
+            slotProps={{
+              toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } },
+            }}
             sx={{
               border: 'none',
               '& .MuiDataGrid-cell:focus': { outline: 'none' },
@@ -257,7 +262,9 @@ export default function LicensesPage() {
             autoHeight
             density="comfortable"
             slots={{ toolbar: GridToolbar }}
-            slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
+            slotProps={{
+              toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } },
+            }}
             sx={{
               border: 'none',
               '& .MuiDataGrid-cell:focus': { outline: 'none' },

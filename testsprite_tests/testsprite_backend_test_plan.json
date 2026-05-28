@@ -1,0 +1,7 @@
+[
+  {
+    "id": "TC001",
+    "title": "post api auth login with valid credentials",
+    "description": "Test the POST /api/auth/login endpoint with valid email and password to verify successful user authentication and access to the admin console or mobile app."
+  }
+]

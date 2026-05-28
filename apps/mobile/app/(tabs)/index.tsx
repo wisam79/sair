@@ -43,75 +43,72 @@ interface FavoriteChipProps {
   onLongPress: () => void;
 }
 
-const FavoriteChip = React.memo(({ fav, isActive, isRTL, onPress, onLongPress }: FavoriteChipProps) => {
-  const scale = React.useRef(new Animated.Value(1)).current;
-  const starScale = React.useRef(new Animated.Value(isActive ? 1.25 : 1)).current;
+const FavoriteChip = React.memo(
+  ({ fav, isActive, isRTL, onPress, onLongPress }: FavoriteChipProps) => {
+    const scale = React.useRef(new Animated.Value(1)).current;
+    const starScale = React.useRef(new Animated.Value(isActive ? 1.25 : 1)).current;
 
-  React.useEffect(() => {
-    Animated.parallel([
-      Animated.spring(scale, {
-        toValue: isActive ? 1.05 : 1,
-        friction: 5,
-        tension: 40,
-        useNativeDriver: Platform.OS !== 'web',
-      }),
-      Animated.spring(starScale, {
-        toValue: isActive ? 1.25 : 1,
-        friction: 4,
-        tension: 50,
-        useNativeDriver: Platform.OS !== 'web',
-      }),
-    ]).start();
-  }, [isActive]);
+    React.useEffect(() => {
+      Animated.parallel([
+        Animated.spring(scale, {
+          toValue: isActive ? 1.05 : 1,
+          friction: 5,
+          tension: 40,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.spring(starScale, {
+          toValue: isActive ? 1.25 : 1,
+          friction: 4,
+          tension: 50,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+      ]).start();
+    }, [isActive]);
 
-  const handlePress = () => {
-    Animated.sequence([
-      Animated.timing(scale, {
-        toValue: 0.92,
-        duration: 80,
-        useNativeDriver: Platform.OS !== 'web',
-      }),
-      Animated.spring(scale, {
-        toValue: isActive ? 1 : 1.05,
-        friction: 4,
-        tension: 40,
-        useNativeDriver: Platform.OS !== 'web',
-      }),
-    ]).start();
-    onPress();
-  };
+    const handlePress = () => {
+      Animated.sequence([
+        Animated.timing(scale, {
+          toValue: 0.92,
+          duration: 80,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.spring(scale, {
+          toValue: isActive ? 1 : 1.05,
+          friction: 4,
+          tension: 40,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+      ]).start();
+      onPress();
+    };
 
-  return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      <TouchableOpacity
-        style={[
-          styles.favoriteChip,
-          isActive && styles.favoriteChipActive,
-          isRTL && { flexDirection: 'row-reverse' },
-        ]}
-        onPress={handlePress}
-        onLongPress={onLongPress}
-        activeOpacity={0.9}
-      >
-        <Animated.View style={{ transform: [{ scale: starScale }] }}>
-          <Ionicons
-            name={isActive ? 'star' : 'star-outline'}
-            size={14}
-            color={isActive ? Colors.warning : Colors.textMuted}
-          />
-        </Animated.View>
-        <Text
+    return (
+      <Animated.View style={{ transform: [{ scale }] }}>
+        <TouchableOpacity
           style={[
-            styles.favoriteChipLabel,
-            isActive && styles.favoriteChipLabelActive,
+            styles.favoriteChip,
+            isActive && styles.favoriteChipActive,
+            isRTL && { flexDirection: 'row-reverse' },
           ]}
+          onPress={handlePress}
+          onLongPress={onLongPress}
+          activeOpacity={0.9}
         >
-          {fav}
-        </Text>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-});
+          <Animated.View style={{ transform: [{ scale: starScale }] }}>
+            <Ionicons
+              name={isActive ? 'star' : 'star-outline'}
+              size={14}
+              color={isActive ? Colors.warning : Colors.textMuted}
+            />
+          </Animated.View>
+          <Text style={[styles.favoriteChipLabel, isActive && styles.favoriteChipLabelActive]}>
+            {fav}
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  },
+);
 
 export default function DiscoveryPage() {
   const { profile, role } = useAuthStore();
@@ -1231,4 +1228,3 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
 });
-

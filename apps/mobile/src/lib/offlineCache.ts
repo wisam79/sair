@@ -49,7 +49,9 @@ export const OfflineCache = {
   async getActiveSubscription(): Promise<Subscription | null> {
     try {
       const raw = isWeb
-        ? (typeof window !== 'undefined' ? window.localStorage.getItem(CACHE_KEY) : null)
+        ? typeof window !== 'undefined'
+          ? window.localStorage.getItem(CACHE_KEY)
+          : null
         : await SecureStore.getItemAsync(CACHE_KEY);
       if (!raw) return null;
 

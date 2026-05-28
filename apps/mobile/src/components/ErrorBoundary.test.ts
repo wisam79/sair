@@ -24,6 +24,7 @@ vi.mock('react-native', () => ({
 
 vi.mock('expo-modules-core', () => ({
   requireNativeModule: vi.fn(),
+  requireOptionalNativeModule: vi.fn(),
   EventEmitter: class {},
   Platform: { OS: 'ios' },
 }));

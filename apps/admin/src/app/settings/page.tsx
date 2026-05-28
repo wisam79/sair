@@ -133,7 +133,10 @@ export default function SettingsPage() {
 
   return (
     <>
-      <Paper elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', mb: 3, bgcolor: 'transparent' }}>
+      <Paper
+        elevation={0}
+        sx={{ borderBottom: 1, borderColor: 'divider', mb: 3, bgcolor: 'transparent' }}
+      >
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
@@ -167,7 +170,9 @@ export default function SettingsPage() {
           <Card elevation={2} sx={{ maxWidth: 700 }}>
             <CardContent>
               <Box display="flex" flexDirection="column" gap={3}>
-                <Typography variant="h6" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>{t('settings.sectionGeneral', 'General')}</Typography>
+                <Typography variant="h6" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+                  {t('settings.sectionGeneral', 'General')}
+                </Typography>
                 <TextField
                   label={t('settings.fieldAppName', 'App Name')}
                   value={settings.appName}
@@ -178,15 +183,21 @@ export default function SettingsPage() {
                 />
 
                 <FormControl fullWidth>
-                  <InputLabel sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>{t('settings.fieldDefaultLang', 'Default Language')}</InputLabel>
+                  <InputLabel sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+                    {t('settings.fieldDefaultLang', 'Default Language')}
+                  </InputLabel>
                   <Select
                     value={settings.defaultLanguage}
                     label={t('settings.fieldDefaultLang', 'Default Language')}
                     onChange={(e) => setSettings({ ...settings, defaultLanguage: e.target.value })}
                     sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}
                   >
-                    <MenuItem value="ar" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>{t('settings.langArabic', 'Arabic')}</MenuItem>
-                    <MenuItem value="en" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>{t('settings.langEnglish', 'English')}</MenuItem>
+                    <MenuItem value="ar" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+                      {t('settings.langArabic', 'Arabic')}
+                    </MenuItem>
+                    <MenuItem value="en" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+                      {t('settings.langEnglish', 'English')}
+                    </MenuItem>
                   </Select>
                 </FormControl>
 
@@ -203,7 +214,9 @@ export default function SettingsPage() {
                 />
 
                 <Divider />
-                <Typography variant="h6" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>{t('settings.sectionFeatures', 'Features')}</Typography>
+                <Typography variant="h6" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+                  {t('settings.sectionFeatures', 'Features')}
+                </Typography>
 
                 <FormControlLabel
                   control={
@@ -214,7 +227,11 @@ export default function SettingsPage() {
                       }
                     />
                   }
-                  label={<Typography sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>{t('settings.fieldPushNotif', 'Push Notifications')}</Typography>}
+                  label={
+                    <Typography sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+                      {t('settings.fieldPushNotif', 'Push Notifications')}
+                    </Typography>
+                  }
                 />
 
                 <FormControlLabel
@@ -224,31 +241,49 @@ export default function SettingsPage() {
                       onChange={(e) => setSettings({ ...settings, enableChat: e.target.checked })}
                     />
                   }
-                  label={<Typography sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>{t('settings.fieldChat', 'In-App Chat')}</Typography>}
+                  label={
+                    <Typography sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+                      {t('settings.fieldChat', 'In-App Chat')}
+                    </Typography>
+                  }
                 />
 
                 <FormControlLabel
                   control={
                     <Switch
                       checked={settings.enableRatings}
-                      onChange={(e) => setSettings({ ...settings, enableRatings: e.target.checked })}
+                      onChange={(e) =>
+                        setSettings({ ...settings, enableRatings: e.target.checked })
+                      }
                     />
                   }
-                  label={<Typography sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>{t('settings.fieldRatings', 'Trip Ratings')}</Typography>}
+                  label={
+                    <Typography sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+                      {t('settings.fieldRatings', 'Trip Ratings')}
+                    </Typography>
+                  }
                 />
 
                 <Divider />
-                <Typography variant="h6" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>{t('settings.sectionSecurity', 'Security')}</Typography>
+                <Typography variant="h6" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+                  {t('settings.sectionSecurity', 'Security')}
+                </Typography>
 
                 <FormControlLabel
                   control={
                     <Switch
                       checked={settings.maintenanceMode}
-                      onChange={(e) => setSettings({ ...settings, maintenanceMode: e.target.checked })}
+                      onChange={(e) =>
+                        setSettings({ ...settings, maintenanceMode: e.target.checked })
+                      }
                       color="warning"
                     />
                   }
-                  label={<Typography sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>{t('settings.fieldMaintenance', 'Maintenance Mode')}</Typography>}
+                  label={
+                    <Typography sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+                      {t('settings.fieldMaintenance', 'Maintenance Mode')}
+                    </Typography>
+                  }
                 />
 
                 <FormControlLabel
@@ -260,11 +295,17 @@ export default function SettingsPage() {
                       }
                     />
                   }
-                  label={<Typography sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>{t('settings.fieldRegistrations', 'Allow New Registrations')}</Typography>}
+                  label={
+                    <Typography sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+                      {t('settings.fieldRegistrations', 'Allow New Registrations')}
+                    </Typography>
+                  }
                 />
 
                 <Divider />
-                <Typography variant="h6" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>{t('settings.sectionLimits', 'Limits')}</Typography>
+                <Typography variant="h6" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+                  {t('settings.sectionLimits', 'Limits')}
+                </Typography>
 
                 <TextField
                   type="number"
@@ -309,10 +350,17 @@ export default function SettingsPage() {
       {activeTab === 1 && (
         <Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            {t('featureFlags.description', 'Toggle features on/off for the mobile app in real-time.')}
+            {t(
+              'featureFlags.description',
+              'Toggle features on/off for the mobile app in real-time.',
+            )}
           </Typography>
 
-          {flagsError && <Alert severity="error" sx={{ mb: 3 }}>{flagsError}</Alert>}
+          {flagsError && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {flagsError}
+            </Alert>
+          )}
 
           {flagsLoading ? (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -323,22 +371,49 @@ export default function SettingsPage() {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600 }}>{t('featureFlags.flagName', 'Flag Name')}</TableCell>
-                    <TableCell sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600 }}>{t('featureFlags.description_field', 'Description')}</TableCell>
-                    <TableCell sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600 }}>{t('common.status', 'Status')}</TableCell>
-                    <TableCell align="right" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600 }}>{t('featureFlags.toggle', 'Toggle')}</TableCell>
-                    <TableCell sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600 }}>{t('featureFlags.lastUpdated', 'Last Updated')}</TableCell>
+                    <TableCell
+                      sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600 }}
+                    >
+                      {t('featureFlags.flagName', 'Flag Name')}
+                    </TableCell>
+                    <TableCell
+                      sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600 }}
+                    >
+                      {t('featureFlags.description_field', 'Description')}
+                    </TableCell>
+                    <TableCell
+                      sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600 }}
+                    >
+                      {t('common.status', 'Status')}
+                    </TableCell>
+                    <TableCell
+                      align="right"
+                      sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600 }}
+                    >
+                      {t('featureFlags.toggle', 'Toggle')}
+                    </TableCell>
+                    <TableCell
+                      sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600 }}
+                    >
+                      {t('featureFlags.lastUpdated', 'Last Updated')}
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {flags.map((flag) => (
                     <TableRow key={flag.id}>
                       <TableCell>
-                        <Typography variant="body2" fontWeight="medium" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+                        <Typography
+                          variant="body2"
+                          fontWeight="medium"
+                          sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}
+                        >
                           {flag.name}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>{flag.description}</TableCell>
+                      <TableCell sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+                        {flag.description}
+                      </TableCell>
                       <TableCell>
                         <Chip
                           label={

@@ -34,9 +34,7 @@ import {
   Stack,
   useTheme,
 } from '@mui/material';
-import {
-  CheckCircle,
-} from '@mui/icons-material';
+import { CheckCircle } from '@mui/icons-material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import {
@@ -208,7 +206,7 @@ export default function FinancePage() {
   const invalidate = useInvalidate();
 
   const tabParam = searchParams.get('tab');
-  
+
   // Decide active tab based on query param
   let initialTab = 0;
   if (tabParam === 'payouts') initialTab = 1;
@@ -232,16 +230,14 @@ export default function FinancePage() {
   useEffect(() => {
     if (activeTab === 0) {
       setRevenueLoading(true);
-      supabaseClient
-        .rpc('get_analytics_summary')
-        .then(({ data: result, error: err }) => {
-          if (err) {
-            setRevenueError(err.message);
-          } else {
-            setRevenueData(result as AnalyticsData);
-          }
-          setRevenueLoading(false);
-        });
+      supabaseClient.rpc('get_analytics_summary').then(({ data: result, error: err }) => {
+        if (err) {
+          setRevenueError(err.message);
+        } else {
+          setRevenueData(result as AnalyticsData);
+        }
+        setRevenueLoading(false);
+      });
     }
   }, [activeTab]);
 
@@ -568,7 +564,10 @@ export default function FinancePage() {
 
   return (
     <>
-      <Paper elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', mb: 3, bgcolor: 'transparent' }}>
+      <Paper
+        elevation={0}
+        sx={{ borderBottom: 1, borderColor: 'divider', mb: 3, bgcolor: 'transparent' }}
+      >
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
@@ -637,7 +636,16 @@ export default function FinancePage() {
                 </Grid>
               </Grid>
 
-              <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', color: 'text.primary', mb: 2 }}>
+              <Typography
+                variant="h6"
+                fontWeight="bold"
+                gutterBottom
+                sx={{
+                  fontFamily: 'var(--font-noto-arabic), sans-serif',
+                  color: 'text.primary',
+                  mb: 2,
+                }}
+              >
                 {t('revenue.topRoutes', 'Top Routes by Revenue')}
               </Typography>
               <TableContainer
@@ -645,22 +653,63 @@ export default function FinancePage() {
                 sx={{
                   borderRadius: 4.5,
                   border: '1px solid',
-                  borderColor: isThemeDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(148, 163, 184, 0.1)',
+                  borderColor: isThemeDark
+                    ? 'rgba(255, 255, 255, 0.05)'
+                    : 'rgba(148, 163, 184, 0.1)',
                   background: isThemeDark
                     ? 'linear-gradient(135deg, rgba(45, 45, 45, 0.45) 0%, rgba(35, 35, 35, 0.45) 100%)'
                     : 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 242, 239, 0.8) 100%)',
                   backdropFilter: 'blur(12px)',
-                  boxShadow: isThemeDark ? '0 8px 32px rgba(0, 0, 0, 0.25)' : '0 8px 32px rgba(15, 23, 42, 0.04)',
+                  boxShadow: isThemeDark
+                    ? '0 8px 32px rgba(0, 0, 0, 0.25)'
+                    : '0 8px 32px rgba(15, 23, 42, 0.04)',
                   overflow: 'hidden',
                 }}
               >
                 <Table>
                   <TableHead>
-                    <TableRow sx={{ bgcolor: isThemeDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)' }}>
-                      <TableCell sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600, color: 'text.primary' }}>{t('common.route', 'Route')}</TableCell>
-                      <TableCell align="right" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600, color: 'text.primary' }}>{t('routes.fields.priceIqd', 'Price (IQD)')}</TableCell>
-                      <TableCell align="right" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600, color: 'text.primary' }}>{t('nav.subscriptions', 'Subscriptions')}</TableCell>
-                      <TableCell align="right" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600, color: 'text.primary' }}>{t('revenue.revenueIqd', 'Revenue (IQD)')}</TableCell>
+                    <TableRow
+                      sx={{ bgcolor: isThemeDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)' }}
+                    >
+                      <TableCell
+                        sx={{
+                          fontFamily: 'var(--font-noto-arabic), sans-serif',
+                          fontWeight: 600,
+                          color: 'text.primary',
+                        }}
+                      >
+                        {t('common.route', 'Route')}
+                      </TableCell>
+                      <TableCell
+                        align="right"
+                        sx={{
+                          fontFamily: 'var(--font-noto-arabic), sans-serif',
+                          fontWeight: 600,
+                          color: 'text.primary',
+                        }}
+                      >
+                        {t('routes.fields.priceIqd', 'Price (IQD)')}
+                      </TableCell>
+                      <TableCell
+                        align="right"
+                        sx={{
+                          fontFamily: 'var(--font-noto-arabic), sans-serif',
+                          fontWeight: 600,
+                          color: 'text.primary',
+                        }}
+                      >
+                        {t('nav.subscriptions', 'Subscriptions')}
+                      </TableCell>
+                      <TableCell
+                        align="right"
+                        sx={{
+                          fontFamily: 'var(--font-noto-arabic), sans-serif',
+                          fontWeight: 600,
+                          color: 'text.primary',
+                        }}
+                      >
+                        {t('revenue.revenueIqd', 'Revenue (IQD)')}
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -668,9 +717,14 @@ export default function FinancePage() {
                       <TableRow
                         key={idx}
                         sx={{
-                          bgcolor: idx % 2 === 0
-                            ? (isThemeDark ? 'rgba(255,255,255,0.015)' : 'rgba(15,23,42,0.015)')
-                            : (isThemeDark ? 'rgba(255,255,255,0.003)' : 'rgba(15,23,42,0.002)'),
+                          bgcolor:
+                            idx % 2 === 0
+                              ? isThemeDark
+                                ? 'rgba(255,255,255,0.015)'
+                                : 'rgba(15,23,42,0.015)'
+                              : isThemeDark
+                                ? 'rgba(255,255,255,0.003)'
+                                : 'rgba(15,23,42,0.002)',
                           borderBottom: '2px solid',
                           borderColor: isThemeDark ? '#2D2D2D' : '#E5E1D8',
                           '&:hover': {
@@ -679,11 +733,45 @@ export default function FinancePage() {
                           transition: 'background-color 0.15s ease',
                         }}
                       >
-                        <TableCell sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', color: 'text.primary', borderBottom: 'none' }}>{route.title}</TableCell>
-                        <TableCell align="right" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', color: 'text.primary', borderBottom: 'none' }}>{route.price.toLocaleString()}</TableCell>
-                        <TableCell align="right" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', color: 'text.primary', borderBottom: 'none' }}>{route.subscriptions}</TableCell>
+                        <TableCell
+                          sx={{
+                            fontFamily: 'var(--font-noto-arabic), sans-serif',
+                            color: 'text.primary',
+                            borderBottom: 'none',
+                          }}
+                        >
+                          {route.title}
+                        </TableCell>
+                        <TableCell
+                          align="right"
+                          sx={{
+                            fontFamily: 'var(--font-noto-arabic), sans-serif',
+                            color: 'text.primary',
+                            borderBottom: 'none',
+                          }}
+                        >
+                          {route.price.toLocaleString()}
+                        </TableCell>
+                        <TableCell
+                          align="right"
+                          sx={{
+                            fontFamily: 'var(--font-noto-arabic), sans-serif',
+                            color: 'text.primary',
+                            borderBottom: 'none',
+                          }}
+                        >
+                          {route.subscriptions}
+                        </TableCell>
                         <TableCell align="right" sx={{ borderBottom: 'none' }}>
-                          <Typography fontWeight="bold" sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', color: 'primary.main' }}>{route.revenue.toLocaleString()}</Typography>
+                          <Typography
+                            fontWeight="bold"
+                            sx={{
+                              fontFamily: 'var(--font-noto-arabic), sans-serif',
+                              color: 'primary.main',
+                            }}
+                          >
+                            {route.revenue.toLocaleString()}
+                          </Typography>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -736,8 +824,14 @@ export default function FinancePage() {
           <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
             {selectedPayout && (
               <Box sx={{ p: 1.5, bgcolor: 'action.hover', borderRadius: 1 }}>
-                <div style={{ fontSize: '0.85rem', color: 'text.secondary', fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
-                  {t('payouts.fields.amountIqd', 'Amount (IQD)')}: 
+                <div
+                  style={{
+                    fontSize: '0.85rem',
+                    color: 'text.secondary',
+                    fontFamily: 'var(--font-noto-arabic), sans-serif',
+                  }}
+                >
+                  {t('payouts.fields.amountIqd', 'Amount (IQD)')}:
                   <strong style={{ marginLeft: 4, color: 'text.primary' }}>
                     {Number(selectedPayout.amount).toLocaleString()} د.ع
                   </strong>
@@ -746,9 +840,11 @@ export default function FinancePage() {
             )}
 
             <TextField
-              label={payoutActionType === 'completed'
-                ? t('payouts.fields.reference', 'Reference Note / Transaction ID')
-                : t('payouts.fields.rejectReason', 'Reason for Rejection')}
+              label={
+                payoutActionType === 'completed'
+                  ? t('payouts.fields.reference', 'Reference Note / Transaction ID')
+                  : t('payouts.fields.rejectReason', 'Reason for Rejection')
+              }
               value={referenceNote}
               onChange={(e) => setReferenceNote(e.target.value)}
               error={!!payoutError && payoutError === t('validation.required')}
@@ -759,10 +855,10 @@ export default function FinancePage() {
               size="small"
               autoFocus
               InputProps={{
-                style: { fontFamily: 'var(--font-noto-arabic), sans-serif' }
+                style: { fontFamily: 'var(--font-noto-arabic), sans-serif' },
               }}
               InputLabelProps={{
-                style: { fontFamily: 'var(--font-noto-arabic), sans-serif' }
+                style: { fontFamily: 'var(--font-noto-arabic), sans-serif' },
               }}
             />
           </Box>
@@ -784,7 +880,9 @@ export default function FinancePage() {
           >
             {payoutSubmitting
               ? t('common.loading', 'Loading...')
-              : (payoutActionType === 'completed' ? t('actions.save', 'Approve') : t('actions.reject', 'Reject'))}
+              : payoutActionType === 'completed'
+                ? t('actions.save', 'Approve')
+                : t('actions.reject', 'Reject')}
           </Button>
         </DialogActions>
       </Dialog>

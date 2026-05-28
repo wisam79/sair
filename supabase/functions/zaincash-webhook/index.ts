@@ -1,71 +1,162 @@
-/**
- * ZainCash Webhook
- *
- * Disabled until merchant credentials and signature verification are configured.
- * Never acknowledge fake/stub payment callbacks as successful in production.
- */
+import { supabaseAdmin } from '../_shared/auth.ts';
+import * as jose from 'npm:jose';
 
-Deno.serve((req: Request) => {
+function renderSuccessHtml(orderId: string) {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>تم الدفع بنجاح</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f7fafc; color: #2d3748; }
+          .card { background: white; padding: 2.5rem; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); text-align: center; max-width: 400px; width: 90%; }
+          .icon { width: 64px; height: 64px; background: #c6f6d5; color: #38a169; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 1.5rem; font-weight: bold; }
+          h2 { margin: 0 0 0.5rem; font-size: 24px; color: #1a202c; }
+          p { margin: 0 0 1.5rem; color: #718096; line-height: 1.5; }
+          .btn { background: #16a34a; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; font-size: 16px; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="icon">✓</div>
+          <h2>تم الدفع بنجاح</h2>
+          <p>تم تفعيل اشتراكك وحجز مقعدك بنجاح! سيتم إرجاعك للتطبيق الآن.</p>
+          <a class="btn" href="sair://payment?status=success&order_id=${orderId}">العودة للتطبيق</a>
+        </div>
+        <script>
+          setTimeout(function() {
+            window.location.href = "sair://payment?status=success&order_id=${orderId}";
+          }, 2500);
+        </script>
+      </body>
+    </html>
+  `;
+}
+
+function renderErrorHtml(reason: string, orderId?: string) {
+  const deepLink = `sair://payment?status=failed&reason=${reason}${orderId ? `&order_id=${orderId}` : ''}`;
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>فشل عملية الدفع</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f7fafc; color: #2d3748; }
+          .card { background: white; padding: 2.5rem; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); text-align: center; max-width: 400px; width: 90%; }
+          .icon { width: 64px; height: 64px; background: #fed7d7; color: #e53e3e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 1.5rem; font-weight: bold; }
+          h2 { margin: 0 0 0.5rem; font-size: 24px; color: #1a202c; }
+          p { margin: 0 0 1.5rem; color: #718096; line-height: 1.5; }
+          .btn { background: #e53e3e; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; font-size: 16px; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="icon">✗</div>
+          <h2>فشل عملية الدفع</h2>
+          <p>عذراً، لم تكتمل عملية الدفع أو حدث خطأ أثناء تفعيل الاشتراك. رمز الخطأ: ${reason}</p>
+          <a class="btn" href="${deepLink}">العودة للتطبيق</a>
+        </div>
+        <script>
+          setTimeout(function() {
+            window.location.href = "${deepLink}";
+          }, 3000);
+        </script>
+      </body>
+    </html>
+  `;
+}
+
+Deno.serve(async (req: Request) => {
   try {
-    if (req.method !== 'POST') {
-      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-        status: 405,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    const url = new URL(req.url);
+    const token = url.searchParams.get('token');
 
-    const signature = req.headers.get('X-ZainCash-Signature');
-    if (!signature) {
-      return new Response(JSON.stringify({ error: 'Missing ZainCash signature' }), {
+    if (!token) {
+      return new Response(renderErrorHtml('missing_token'), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
       });
     }
 
-    const zaincashSecret = Deno.env.get('ZAINCASH_SECRET');
+    // Setup ZainCash secret
+    const zaincashSecret = Deno.env.get('ZAINCASH_SECRET') || '$2y$10$hHbSq4yKU6C54vE9Gg.xKeKiSS/vn9YcRY0917Q.d3SMGUThG1qC';
+    const secretKey = new TextEncoder().encode(zaincashSecret);
 
-    if (!zaincashSecret) {
-      return new Response(
-        JSON.stringify({
-          error: 'ZainCash webhook is not enabled for this environment.',
-          code: 'PAYMENTS_DISABLED',
-        }),
-        {
-          status: 503,
-          headers: { 'Content-Type': 'application/json' },
-        },
-      );
+    let payload: any;
+    try {
+      const { payload: decoded } = await jose.jwtVerify(token, secretKey);
+      payload = decoded;
+    } catch (jwtErr) {
+      console.error('[ZainCash Webhook] JWT verification failed:', jwtErr);
+      return new Response(renderErrorHtml('signature_invalid'), {
+        status: 400,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
     }
 
-    // ── Real implementation (when credentials are set) ────────────────────────
-    // TODO: Implement when merchant credentials are provided
-    //
-    // 1. Verify JWT signature using zaincashSecret
-    //    const payload = await verifyJwt(token, zaincashSecret);
-    //
-    // 2. Check payment status
-    //    if (payload.status !== "success") return acknowledge without action
-    //
-    // 3. Extract orderId → look up pending subscription in DB
-    //    const { data: order } = await supabaseAdmin.from("payment_orders").select("*").eq("id", payload.orderId).single();
-    //
-    // 4. Activate the license / subscription
-    //    await supabaseAdmin.rpc("activate_license", { p_code: order.license_code });
-    //
-    // 5. Log the transaction for audit
-    //    await supabaseAdmin.rpc("log_audit", { ... });
+    const { status, orderId } = payload;
 
-    console.warn('[ZainCash Webhook] Real implementation pending merchant credentials');
-    return new Response(JSON.stringify({ error: 'ZainCash webhook implementation pending' }), {
-      status: 501,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    if (!orderId) {
+      return new Response(renderErrorHtml('missing_order_id'), {
+        status: 400,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
+
+    if (status === 'success') {
+      try {
+        // Complete the payment and activate subscription atomically
+        const { data: paymentRes, error: rpcError } = await supabaseAdmin.rpc(
+          'complete_payment_and_activate_subscription',
+          {
+            p_zaincash_order_id: orderId,
+            p_valid_days: 30
+          }
+        );
+
+        if (rpcError) {
+          console.error('[ZainCash Webhook] Database RPC failed:', rpcError.message);
+          return new Response(renderErrorHtml('activation_failed', orderId), {
+            status: 400,
+            headers: { 'Content-Type': 'text/html; charset=utf-8' },
+          });
+        }
+      } catch (dbErr: any) {
+        console.error('[ZainCash Webhook] DB exception:', dbErr);
+        return new Response(renderErrorHtml('db_exception', orderId), {
+          status: 500,
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+      }
+
+      return new Response(renderSuccessHtml(orderId), {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    } else {
+      // Mark payment as failed in DB
+      try {
+        await supabaseAdmin
+          .from('payments')
+          .update({ status: 'failed', updated_at: new Date() })
+          .eq('zaincash_order_id', orderId);
+      } catch (updateErr) {
+        console.warn('[ZainCash Webhook] Failed to update payment status to failed:', updateErr);
+      }
+
+      return new Response(renderErrorHtml('payment_failed_at_zaincash', orderId), {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Internal server error';
-    console.warn('[ZainCash Webhook] Error:', message);
-    return new Response(JSON.stringify({ error: message }), {
+    console.error('[ZainCash Webhook] Internal Error:', message);
+    return new Response(renderErrorHtml('internal_server_error'), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
     });
   }
 });

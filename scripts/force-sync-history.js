@@ -8,9 +8,12 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.DEV_SUPABASE_SERVICE_ROLE_KEY;
+const SERVICE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.DEV_SUPABASE_SERVICE_ROLE_KEY;
 if (!SERVICE_KEY) {
-  console.error('❌ Error: SUPABASE_SERVICE_ROLE_KEY or DEV_SUPABASE_SERVICE_ROLE_KEY environment variable is not set.');
+  console.error(
+    '❌ Error: SUPABASE_SERVICE_ROLE_KEY or DEV_SUPABASE_SERVICE_ROLE_KEY environment variable is not set.',
+  );
   process.exit(1);
 }
 const PROJECT = process.env.SUPABASE_PROJECT_REF || 'cxyggxsyiymgxvwzeatv';

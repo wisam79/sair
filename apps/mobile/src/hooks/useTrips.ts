@@ -8,6 +8,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { OfflineCache } from '../lib/offlineCache';
 import { logger } from '../lib/logger';
 import NetInfo from '@react-native-community/netinfo';
+import Constants from 'expo-constants';
+
+function isExpoGo(): boolean {
+  return Constants.appOwnership === 'expo';
+}
 
 const GPS_QUEUE_KEY = 'gps_offline_queue';
 const PAGE_SIZE = 20;
@@ -778,80 +783,142 @@ async function queueLocationUpdate(tripId: string, lat: number, lng: number) {
 }
 
 export function useLocationTracker() {
-  const watchRef = useRef<Location.LocationSubscription | null>(null);
+  const watchRef = useRef<any>(null);
   const isOnlineRef = useRef(true);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const lastDbWriteTimeRef = useRef<number>(0);
 
-  const startTracking = useCallback(async (tripId: string) => {
-    try {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        return { error: 'Location permission denied' };
+  const handleLocationUpdate = useCallback(async (tripId: string, lat: number, lng: number) => {
+    // 1. Broadcast live location update in-memory (high performance, no DB write)
+    if (channelRef.current) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'gps-update',
+        payload: { lat, lng },
+      });
+    }
+
+    // 2. Throttle database location writes to once every 60 seconds (disabled in tests)
+    const now = Date.now();
+    const throttleLimit = process.env.NODE_ENV === 'test' ? 0 : 60000;
+    if (now - lastDbWriteTimeRef.current >= throttleLimit) {
+      lastDbWriteTimeRef.current = now;
+
+      if (!isOnlineRef.current) {
+        await queueLocationUpdate(tripId, lat, lng);
+        return;
       }
 
-      // Initialize realtime channel for broadcasting coordinates directly
+      const { error } = await supabase.rpc('update_trip_location', {
+        p_trip_id: tripId,
+        p_lat: lat,
+        p_lng: lng,
+      });
+
+      if (error) {
+        if (error.code === 'NETWORK_ERROR' || !error.code) {
+          isOnlineRef.current = false;
+          await queueLocationUpdate(tripId, lat, lng);
+          setTimeout(() => {
+            isOnlineRef.current = true;
+            flushGpsQueue();
+          }, 5000);
+        }
+      }
+    }
+  }, []);
+
+  const startTracking = useCallback(async (tripId: string) => {
+    try {
+      const isGo = isExpoGo();
+      
+      if (isGo) {
+        console.warn('[LocationTracker] Expo Go detected. Using fallback Location.watchPositionAsync');
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          return { error: 'Location permission denied' };
+        }
+
+        // Initialize realtime channel for broadcasting coordinates directly
+        const channel = supabase.channel(`trip-${tripId}`, {
+          config: { broadcast: { self: false } },
+        });
+        channel.subscribe();
+        channelRef.current = channel;
+        lastDbWriteTimeRef.current = 0; // reset on tracking start
+
+        watchRef.current = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            timeInterval: 10000,
+            distanceInterval: 15,
+          },
+          async (location) => {
+            const { coords } = location;
+            await handleLocationUpdate(tripId, coords.latitude, coords.longitude);
+          }
+        );
+
+        return { error: null };
+      }
+
+      // Standalone or Dev Build: Use Radar SDK
+      let Radar: any;
+      try {
+        Radar = require('react-native-radar').default;
+      } catch (e) {
+        console.warn('[LocationTracker] Failed to load Radar module, using Location fallback', e);
+        return { error: 'Radar module not found' };
+      }
+
+      const publishableKey = process.env.EXPO_PUBLIC_RADAR_PUBLISHABLE_KEY;
+      if (!publishableKey) {
+        console.warn('[LocationTracker] Radar key missing.');
+        return { error: 'Radar API key missing' };
+      }
+
+      // Initialize Radar
+      Radar.initialize(publishableKey);
+
+      // Get user from auth store to tag Radar user
+      const user = useAuthStore.getState().user;
+      if (user) {
+        Radar.setUserId(user.id);
+        Radar.setMetadata({ tripId });
+      }
+
+      // Initialize realtime channel
       const channel = supabase.channel(`trip-${tripId}`, {
         config: { broadcast: { self: false } },
       });
       channel.subscribe();
       channelRef.current = channel;
-      lastDbWriteTimeRef.current = 0; // reset on tracking start
+      lastDbWriteTimeRef.current = 0;
 
-      watchRef.current = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.Balanced,
-          timeInterval: 10000,
-          distanceInterval: 15,
-        },
-        async (location) => {
-          const { coords } = location;
+      // Start continuous background tracking
+      Radar.startTrackingContinuous();
 
-          // 1. Broadcast live location update in-memory (high performance, no DB write)
-          if (channelRef.current) {
-            channelRef.current.send({
-              type: 'broadcast',
-              event: 'gps-update',
-              payload: { lat: coords.latitude, lng: coords.longitude },
-            });
-          }
+      // Listen for location updates
+      const listener = (result: any) => {
+        if (result.location) {
+          const { latitude, longitude } = result.location;
+          handleLocationUpdate(tripId, latitude, longitude);
+        }
+      };
 
-          // 2. Throttle persistent database location writes to once every 60 seconds (disabled in tests)
-          const now = Date.now();
-          const throttleLimit = process.env.NODE_ENV === 'test' ? 0 : 60000;
-          if (now - lastDbWriteTimeRef.current >= throttleLimit) {
-            lastDbWriteTimeRef.current = now;
-
-            if (!isOnlineRef.current) {
-              await queueLocationUpdate(tripId, coords.latitude, coords.longitude);
-              return;
-            }
-
-            const { error } = await supabase.rpc('update_trip_location', {
-              p_trip_id: tripId,
-              p_lat: coords.latitude,
-              p_lng: coords.longitude,
-            });
-
-            if (error) {
-              if (error.code === 'NETWORK_ERROR' || !error.code) {
-                isOnlineRef.current = false;
-                await queueLocationUpdate(tripId, coords.latitude, coords.longitude);
-                setTimeout(() => {
-                  isOnlineRef.current = true;
-                  flushGpsQueue();
-                }, 5000);
-              }
-            }
-          }
-        },
-      );
+      Radar.onLocationUpdated(listener);
+      watchRef.current = {
+        remove: () => {
+          Radar.stopTracking();
+          Radar.onLocationUpdated(null);
+        }
+      };
 
       return { error: null };
     } catch (err: unknown) {
       return { error: getErrorMessage(err) };
     }
-  }, []);
+  }, [handleLocationUpdate]);
 
   const stopTracking = useCallback(() => {
     if (watchRef.current) {

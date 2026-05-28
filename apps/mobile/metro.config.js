@@ -29,7 +29,7 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
     return context.resolveRequest(
       { ...context, unstable_conditionNames: ['default', 'require'] },
       moduleName,
-      platform
+      platform,
     );
   }
   // Let default resolver handle everything else

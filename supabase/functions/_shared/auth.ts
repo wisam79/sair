@@ -67,7 +67,10 @@ export async function verifyAuthLocal(req: Request): Promise<AuthResult> {
   } catch (err: unknown) {
     // If local verification fails, fallback to getUser as a safety net
     // (This also makes local unit testing or key rotation seamless)
-    console.warn('[verifyAuthLocal] Local JWT verification failed, falling back to getUser:', err instanceof Error ? err.message : String(err));
+    console.warn(
+      '[verifyAuthLocal] Local JWT verification failed, falling back to getUser:',
+      err instanceof Error ? err.message : String(err),
+    );
     return verifyAuth(req);
   }
 }

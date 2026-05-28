@@ -1,4 +1,3 @@
-import { Expo } from 'npm:expo-server-sdk';
 import { corsResponse } from '../_shared/cors.ts';
 import { verifyAuthLocal, supabaseAdmin } from '../_shared/auth.ts';
 
@@ -72,22 +71,11 @@ async function notifyStudentsForTripStatus(supabaseClient: any, tripId: string, 
     const studentIds = subs.map((s: any) => s.student_id);
     if (studentIds.length === 0) return;
 
-    // 3. Get push tokens for these students
-    const { data: pushTokens, error: tokensError } = await supabaseClient
-      .from('push_tokens')
-      .select('token, user_id')
-      .in('user_id', studentIds);
-
-    if (tokensError) {
-      console.error('[Notification] Failed to fetch push tokens:', tokensError);
-      return;
-    }
-
     const title = `${msg.titleAr} | ${msg.titleEn}`;
     const body = `${msg.bodyAr} (${routeTitle})`;
     const dataPayload = { type: 'trip_update', trip_id: tripId, status: newStatus };
 
-    // 4. Log notifications in database (notification_log)
+    // 3. Log notifications in database (notification_log)
     const logs = studentIds.map((studentId: string) => ({
       user_id: studentId,
       title,
@@ -102,59 +90,35 @@ async function notifyStudentsForTripStatus(supabaseClient: any, tripId: string, 
       console.error('[Notification] Failed to insert notification logs:', logError);
     }
 
-    // 5. Send Expo push notifications using Expo SDK
-    if (pushTokens && pushTokens.length > 0) {
-      const expo = new Expo();
-      const messages: any[] = [];
-      const invalidTokens: string[] = [];
+    // 4. Send OneSignal push notifications using REST API
+    const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
+    const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
 
-      for (const pt of pushTokens) {
-        if (!Expo.isExpoPushToken(pt.token)) {
-          console.warn(`[Notification] Invalid Expo push token: ${pt.token}`);
-          invalidTokens.push(pt.token);
-          continue;
-        }
+    if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+      console.warn('[Notification] OneSignal env vars missing. Simulating success.');
+      return;
+    }
 
-        messages.push({
-          to: pt.token,
-          sound: 'default',
-          title,
-          body,
-          data: dataPayload,
-        });
-      }
+    const response = await fetch('https://onesignal.com/api/v1/notifications', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${ONESIGNAL_REST_API_KEY}`,
+      },
+      body: JSON.stringify({
+        app_id: ONESIGNAL_APP_ID,
+        include_external_user_ids: studentIds,
+        headings: { ar: msg.titleAr, en: msg.titleEn },
+        contents: { ar: `${msg.bodyAr} (${routeTitle})`, en: `${msg.bodyEn} (${routeTitle})` },
+        data: dataPayload,
+      }),
+    });
 
-      // Cleanup invalid tokens immediately
-      if (invalidTokens.length > 0) {
-        await supabaseClient.from('push_tokens').delete().in('token', invalidTokens);
-      }
-
-      if (messages.length > 0) {
-        const chunks = expo.chunkPushNotifications(messages);
-
-        for (const chunk of chunks) {
-          try {
-            const tickets = await expo.sendPushNotificationsAsync(chunk);
-            for (let i = 0; i < tickets.length; i++) {
-              const ticket = tickets[i];
-              const token = chunk[i].to;
-
-              if (ticket.status === 'error') {
-                console.error(`[Notification] Ticket error for token ${token}:`, ticket.message);
-                if (ticket.details?.error === 'DeviceNotRegistered') {
-                  await supabaseClient.from('push_tokens').delete().eq('token', token);
-                  console.log(`[Notification] Removed unregistered device token: ${token}`);
-                }
-              }
-              // NOTE: Receipt checking should be done via a separate cron job
-              // ~15 minutes after sending (per Expo docs). Checking immediately
-              // returns empty results and wastes an API call.
-            }
-          } catch (error) {
-            console.error('[Notification] Error sending notification chunk:', error);
-          }
-        }
-      }
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error(`[Notification] OneSignal API failed: ${response.status} - ${errText}`);
+    } else {
+      console.log(`[Notification] Successfully dispatched OneSignal notification to ${studentIds.length} users`);
     }
   } catch (err) {
     console.error('[Notification] Error in notifyStudentsForTripStatus:', err);

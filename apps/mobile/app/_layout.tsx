@@ -14,6 +14,8 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
+import { OverlayProvider } from 'stream-chat-expo';
+
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { Colors } from '../src/theme';
@@ -215,6 +217,10 @@ export default function Layout() {
         } else {
           useAuthStore.getState().logout();
           setInitialized(true);
+          // Disconnect Stream Chat user on logout
+          import('../src/lib/stream').then(({ disconnectStreamUser }) => {
+            disconnectStreamUser().catch((err) => console.warn('[Stream] Disconnect failed:', err));
+          });
         }
       } catch (error) {
         console.warn('[Auth] onAuthStateChange inner error:', error);
@@ -292,12 +298,13 @@ export default function Layout() {
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
         <ErrorBoundary>
-          <View style={styles.root} onLayout={onLayoutRootView}>
-            {!isOnline && (
-              <View style={[styles.offlineBanner, { paddingTop: top }]}>
-                <Text style={styles.offlineText}>{t('no_internet')}</Text>
-              </View>
-            )}
+          <OverlayProvider>
+            <View style={styles.root} onLayout={onLayoutRootView}>
+              {!isOnline && (
+                <View style={[styles.offlineBanner, { paddingTop: top }]}>
+                  <Text style={styles.offlineText}>{t('no_internet')}</Text>
+                </View>
+              )}
             <Stack screenOptions={{ headerShown: true, headerBackTitle: t('go_back_short') }}>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="booking" options={{ headerShown: false }} />
@@ -330,6 +337,7 @@ export default function Layout() {
               <Stack.Screen name="help" options={{ headerShown: false }} />
             </Stack>
           </View>
+          </OverlayProvider>
         </ErrorBoundary>
       </SafeAreaProvider>
     </QueryClientProvider>

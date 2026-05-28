@@ -21,6 +21,7 @@ export default defineConfig({
       'npm:jose': 'jose',
       'https://esm.sh/expo-server-sdk': 'expo-server-sdk',
       'npm:expo-server-sdk': 'expo-server-sdk',
+      'npm:stream-chat': 'stream-chat',
     },
   },
   test: {

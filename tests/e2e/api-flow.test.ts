@@ -58,14 +58,17 @@ test.beforeAll(async () => {
     }
 
     // Create driver entry
-    const { data: driverData, error: driverError } = await supabase.from('drivers').insert({
-      user_id: userData.user.id,
-      license_number: 'E2E-LIC-123',
-      vehicle_model: 'E2E Toyota',
-      vehicle_plate: 'E2E-PLATE',
-      capacity: 10,
-      is_verified: true,
-    }).select();
+    const { data: driverData, error: driverError } = await supabase
+      .from('drivers')
+      .insert({
+        user_id: userData.user.id,
+        license_number: 'E2E-LIC-123',
+        vehicle_model: 'E2E Toyota',
+        vehicle_plate: 'E2E-PLATE',
+        capacity: 10,
+        is_verified: true,
+      })
+      .select();
 
     if (driverError || !driverData || driverData.length === 0) {
       console.error(`Failed to create driver: ${driverError?.message}`);
@@ -74,16 +77,19 @@ test.beforeAll(async () => {
     createdDriverId = driverData[0].id;
 
     // Create active route
-    const { data: routeData, error: routeError } = await supabase.from('routes').insert({
-      driver_id: createdDriverId,
-      title: 'E2E API Flow Active Route',
-      start_location: 'Start Point',
-      end_location: 'End Point',
-      price: 1500,
-      capacity: 10,
-      available_seats: 10,
-      is_active: true,
-    }).select();
+    const { data: routeData, error: routeError } = await supabase
+      .from('routes')
+      .insert({
+        driver_id: createdDriverId,
+        title: 'E2E API Flow Active Route',
+        start_location: 'Start Point',
+        end_location: 'End Point',
+        price: 1500,
+        capacity: 10,
+        available_seats: 10,
+        is_active: true,
+      })
+      .select();
 
     if (routeError || !routeData || routeData.length === 0) {
       console.error(`Failed to create active route: ${routeError?.message}`);
@@ -137,7 +143,6 @@ test.afterAll(async () => {
     console.error('[E2E api-flow] Error during cleanup:', err);
   }
 });
-
 
 test.describe('Edge Function API Security', () => {
   // Edge Functions may return 401/403 (deployed + auth enforced) or 404 (not deployed on this project)

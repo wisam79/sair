@@ -215,9 +215,13 @@ export const getAdminTheme = (mode: 'light' | 'dark', lang: 'ar' | 'en') => {
                   backgroundColor: isDark ? 'rgba(255,255,255,0.003)' : 'rgba(15,23,42,0.002)',
                 },
                 '&:hover': {
-                  backgroundColor: isDark ? 'rgba(74,222,128,0.06) !important' : 'rgba(22,163,74,0.04) !important',
+                  backgroundColor: isDark
+                    ? 'rgba(74,222,128,0.06) !important'
+                    : 'rgba(22,163,74,0.04) !important',
                   transform: 'translateY(-1px)',
-                  boxShadow: isDark ? '0 4px 12px rgba(0, 0, 0, 0.15)' : '0 4px 12px rgba(15, 23, 42, 0.02)',
+                  boxShadow: isDark
+                    ? '0 4px 12px rgba(0, 0, 0, 0.15)'
+                    : '0 4px 12px rgba(15, 23, 42, 0.02)',
                 },
               },
               '& .MuiDataGrid-cell': {

@@ -480,8 +480,7 @@ export default function LandingPage() {
                   'linear-gradient(135deg, rgba(45, 43, 41, 0.85) 0%, rgba(26, 24, 23, 0.98) 100%)',
                 border: '4px solid #333130',
                 outline: '1px solid rgba(255, 255, 255, 0.08)',
-                boxShadow:
-                  '0 30px 70px -15px rgba(0, 0, 0, 0.9), 0 0 50px rgba(22, 163, 74, 0.18)',
+                boxShadow: '0 30px 70px -15px rgba(0, 0, 0, 0.9), 0 0 50px rgba(22, 163, 74, 0.18)',
                 position: 'relative',
                 p: 3,
                 pt: 7,

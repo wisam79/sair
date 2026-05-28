@@ -379,9 +379,7 @@ export default function SubscriptionsScreen() {
           <View style={styles.glassOverlay} />
           <View style={styles.glassHighlight} />
 
-          <Text style={styles.headerTitle}>
-            {t('my_subscriptions')}
-          </Text>
+          <Text style={styles.headerTitle}>{t('my_subscriptions')}</Text>
           <TouchableOpacity
             style={[styles.headerShortcutBtn, { [isRTL ? 'left' : 'right']: Spacing.md }]}
             onPress={() => {
@@ -410,9 +408,7 @@ export default function SubscriptionsScreen() {
         <View style={styles.glassOverlay} />
         <View style={styles.glassHighlight} />
 
-        <Text style={styles.headerTitle}>
-          {t('my_subscriptions')}
-        </Text>
+        <Text style={styles.headerTitle}>{t('my_subscriptions')}</Text>
         <TouchableOpacity
           style={[styles.headerShortcutBtn, { [isRTL ? 'left' : 'right']: Spacing.md }]}
           onPress={() => {

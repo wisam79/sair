@@ -1,27 +1,23 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   FlatList,
-  TextInput,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
-  ViewStyle,
-  Animated,
-  Keyboard,
+  Platform,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useMessages, useConversations, type Message } from '../../src/hooks/useMessages';
+// @ts-ignore
+import { Chat, Channel, MessageList, MessageInput } from 'stream-chat-react-native';
 import { useTranslation } from '../../src/hooks/useTranslation';
 import { useAuthStore } from '../../src/hooks/useStore';
-import { useNetworkStatus } from '../../src/hooks/useNetworkStatus';
-import CustomAlert from '../../src/components/CustomAlert';
+import { getStreamClient, connectStreamUser } from '../../src/lib/stream';
+import { supabase } from '../../src/lib/supabase';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../../src/theme';
 import * as Haptics from 'expo-haptics';
 
@@ -30,76 +26,133 @@ export default function ChatScreen() {
   const router = useRouter();
   const { t, isRTL } = useTranslation();
   const { top, bottom } = useSafeAreaInsets();
-  const { user, role } = useAuthStore();
-  const { messages, loading, error, sendMessage } = useMessages(id || null);
-  const { conversations } = useConversations();
-  const { isOnline } = useNetworkStatus();
-  const [inputText, setInputText] = useState('');
-  const [sending, setSending] = useState(false);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const flatListRef = useRef<FlatList>(null);
-  const sendBtnScale = useRef(new Animated.Value(0.9)).current;
+  const { user, role, profile } = useAuthStore();
 
-  const [alertConfig, setAlertConfig] = useState<{
-    visible: boolean;
-    title: string;
-    message: string;
-    type: 'success' | 'error' | 'warning' | 'info' | 'question';
-  }>({
-    visible: false,
-    title: '',
-    message: '',
-    type: 'info',
-  });
+  const [connecting, setConnecting] = useState(true);
+  const [channel, setChannel] = useState<any>(null);
+  const [conversationMeta, setConversationMeta] = useState<any>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Initialize Stream Chat connection and watch channel
   useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    let active = true;
 
-    const showSubscription = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
-    const hideSubscription = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
+    async function initChat() {
+      if (!id || !user) return;
+
+      try {
+        setConnecting(true);
+        setErrorMsg(null);
+
+        // 1. Connect the user to Stream Chat
+        const userName = profile?.full_name || user.email || 'User';
+        await connectStreamUser(user.id, userName);
+
+        if (!active) return;
+
+        // 2. Fetch conversation metadata from Supabase
+        const { data: conv, error } = await supabase
+          .from('conversations')
+          .select(`
+            id,
+            student_id,
+            driver_id,
+            trip_id,
+            drivers!driver_id (
+              user_id,
+              profiles!user_id (
+                full_name
+              )
+            ),
+            student:profiles!student_id (
+              full_name
+            )
+          `)
+          .eq('id', id)
+          .single();
+
+        if (error || !conv) {
+          throw new Error(error?.message || 'Conversation metadata not found');
+        }
+
+        if (!active) return;
+        setConversationMeta(conv);
+
+        // 3. Watch Stream Channel
+        const client = getStreamClient();
+        if (!client) {
+          throw new Error('Stream client not initialized');
+        }
+
+        // Handle array conversion for Supabase join results
+        const driversArr = conv.drivers as any;
+        const driverMeta = Array.isArray(driversArr) ? driversArr[0] : driversArr;
+        const profilesArr = driverMeta?.profiles as any;
+        const driverProfile = Array.isArray(profilesArr) ? profilesArr[0] : profilesArr;
+
+        const studentArr = conv.student as any;
+        const studentMeta = Array.isArray(studentArr) ? studentArr[0] : studentArr;
+
+        const driverUserId = driverMeta?.user_id;
+        const studentUserId = conv.student_id;
+
+        if (!driverUserId || !studentUserId) {
+          throw new Error('Participant metadata missing');
+        }
+
+        const channelName = user.id === driverUserId ? studentMeta?.full_name : driverProfile?.full_name;
+
+        const chatChannel = client.channel('messaging', id, {
+          members: [studentUserId, driverUserId],
+          name: channelName || 'Chat',
+        } as any);
+
+        await chatChannel.watch();
+
+        if (!active) return;
+        setChannel(chatChannel);
+      } catch (err: any) {
+        console.error('[ChatScreen] Initialization error:', err);
+        if (active) {
+          setErrorMsg(err.message || t('error_generic'));
+        }
+      } finally {
+        if (active) {
+          setConnecting(false);
+        }
+      }
+    }
+
+    initChat();
 
     return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
+      active = false;
     };
-  }, []);
-
-  useEffect(() => {
-    Animated.spring(sendBtnScale, {
-      toValue: inputText.trim() ? 1.0 : 0.9,
-      useNativeDriver: true,
-      friction: 4,
-    }).start();
-  }, [inputText]);
-
-  const reversedMessages = messages;
-
-  const conversation = useMemo(() => conversations.find((c) => c.id === id), [conversations, id]);
+  }, [id, user, profile, t]);
 
   const displayName = useMemo(() => {
-    if (!conversation) return t('chat');
-    const rawStudentName = conversation.student_name;
-    const rawDriverName = conversation.driver_name;
+    if (!conversationMeta) return t('chat');
+    const driversArr = conversationMeta.drivers as any;
+    const driverMeta = Array.isArray(driversArr) ? driversArr[0] : driversArr;
+    const profilesArr = driverMeta?.profiles as any;
+    const driverProfile = Array.isArray(profilesArr) ? profilesArr[0] : profilesArr;
 
-    const studentNameStr =
-      typeof rawStudentName === 'object' && rawStudentName !== null
-        ? (rawStudentName as any).full_name ||
-          (rawStudentName as any).name ||
-          JSON.stringify(rawStudentName)
-        : rawStudentName;
+    const studentArr = conversationMeta.student as any;
+    const studentMeta = Array.isArray(studentArr) ? studentArr[0] : studentArr;
 
-    const driverNameStr =
-      typeof rawDriverName === 'object' && rawDriverName !== null
-        ? (rawDriverName as any).full_name ||
-          (rawDriverName as any).name ||
-          JSON.stringify(rawDriverName)
-        : rawDriverName;
+    const driverUserId = driverMeta?.user_id;
+    return user?.id === driverUserId
+      ? studentMeta?.full_name || t('student')
+      : driverProfile?.full_name || t('driver');
+  }, [conversationMeta, user?.id, t]);
 
-    return user?.id === conversation.driver_id
-      ? studentNameStr || t('student')
-      : driverNameStr || t('driver');
-  }, [conversation, user?.id, t]);
+  const roleText = useMemo(() => {
+    if (!conversationMeta) return '';
+    const driversArr = conversationMeta.drivers as any;
+    const driverMeta = Array.isArray(driversArr) ? driversArr[0] : driversArr;
+    const driverUserId = driverMeta?.user_id;
+    return user?.id === driverUserId ? t('student') : t('driver');
+  }, [conversationMeta, user?.id, t]);
 
   const quickReplies = useMemo(() => {
     if (role === 'driver') {
@@ -113,58 +166,19 @@ export default function ChatScreen() {
     }
   }, [role, isRTL]);
 
-  const handleContentSizeChange = useCallback(() => {
-    flatListRef.current?.scrollToOffset({ offset: 0 });
-  }, []);
-
-  const keyExtractor = useCallback((item: Message) => item.id, []);
-
-  const handleSend = async () => {
-    if (!inputText.trim() || sending) return;
-
-    if (!isOnline) {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setAlertConfig({
-        visible: true,
-        title: t('error'),
-        message: t('no_internet'),
-        type: 'error',
-      });
-      return;
-    }
-
-    setSending(true);
-    try {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      const res = await sendMessage(inputText);
-      if (res) {
-        setInputText('');
-      } else {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        setAlertConfig({
-          visible: true,
-          title: t('error'),
-          message: t('error_generic'),
-          type: 'error',
-        });
+  const handleQuickReply = useCallback(
+    async (text: string) => {
+      if (channel) {
+        try {
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          await channel.sendMessage({ text });
+        } catch (err) {
+          console.error('[ChatScreen] Failed to send quick reply:', err);
+        }
       }
-    } catch (err: any) {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setAlertConfig({
-        visible: true,
-        title: t('error'),
-        message: err?.message || t('error_generic'),
-        type: 'error',
-      });
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const handleQuickReply = useCallback(async (text: string) => {
-    setInputText(text);
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }, []);
+    },
+    [channel],
+  );
 
   const renderQuickReply = useCallback(
     ({ item }: { item: string }) => (
@@ -179,116 +193,9 @@ export default function ChatScreen() {
     [handleQuickReply],
   );
 
-  const renderMessage = useCallback(
-    ({ item, index }: { item: Message; index: number }) => {
-      const isOwnMessage = item.sender_id === user?.id;
+  const chatClient = getStreamClient();
 
-      // Grouping consecutive messages logic
-      const prevMessage = index < reversedMessages.length - 1 ? reversedMessages[index + 1] : null;
-      const nextMessage = index > 0 ? reversedMessages[index - 1] : null;
-
-      const isConsecutivePrev =
-        prevMessage &&
-        prevMessage.sender_id === item.sender_id &&
-        new Date(item.created_at).getTime() - new Date(prevMessage.created_at).getTime() <
-          3 * 60 * 1000;
-
-      const isConsecutiveNext =
-        nextMessage &&
-        nextMessage.sender_id === item.sender_id &&
-        new Date(nextMessage.created_at).getTime() - new Date(item.created_at).getTime() <
-          3 * 60 * 1000;
-
-      const showTimestamp = !isConsecutiveNext;
-      const isGroupEnd = !isConsecutiveNext;
-
-      const bubbleBorderRadius = isOwnMessage
-        ? {
-            borderTopLeftRadius: BorderRadius.lg,
-            borderTopRightRadius: BorderRadius.lg,
-            borderBottomLeftRadius: BorderRadius.lg,
-            borderBottomRightRadius: isGroupEnd ? 4 : BorderRadius.lg,
-          }
-        : {
-            borderTopLeftRadius: BorderRadius.lg,
-            borderTopRightRadius: BorderRadius.lg,
-            borderBottomRightRadius: BorderRadius.lg,
-            borderBottomLeftRadius: isGroupEnd ? 4 : BorderRadius.lg,
-          };
-
-      let messageText = '';
-      if (item.content !== undefined && item.content !== null) {
-        if (typeof item.content === 'object') {
-          messageText = (item.content as any).content || JSON.stringify(item.content);
-        } else {
-          const strVal = String(item.content);
-          if (strVal !== '[object Object]') {
-            messageText = strVal;
-          }
-        }
-      }
-
-      return (
-        <View
-          style={[
-            styles.messageContainer,
-            isOwnMessage ? styles.ownMessage : styles.otherMessage,
-            isConsecutivePrev && { marginTop: 2 },
-          ]}
-        >
-          <View
-            style={[
-              styles.messageBubble,
-              isOwnMessage ? styles.ownBubble : styles.otherBubble,
-              bubbleBorderRadius,
-            ]}
-          >
-            <Text
-              style={[
-                styles.messageText,
-                isOwnMessage ? styles.ownText : styles.otherText,
-                { textAlign: isRTL ? 'right' : 'left' },
-              ]}
-            >
-              {messageText}
-            </Text>
-            {showTimestamp && (
-              <View
-                style={[
-                  styles.timeContainer,
-                  { justifyContent: isOwnMessage ? 'flex-end' : 'flex-start' },
-                  isRTL && { flexDirection: 'row-reverse' },
-                ]}
-              >
-                <Text
-                  style={[styles.messageTime, isOwnMessage ? styles.ownTime : styles.otherTime]}
-                >
-                  {new Date(item.created_at).toLocaleTimeString(isRTL ? 'ar-IQ' : 'en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </Text>
-                {isOwnMessage && (
-                  <Ionicons
-                    name={item.is_read ? 'checkmark-done' : 'checkmark'}
-                    size={14}
-                    color={item.is_read ? '#85E3FF' : 'rgba(255,255,255,0.5)'}
-                    style={{ [isRTL ? 'marginRight' : 'marginLeft']: 4 } as any}
-                  />
-                )}
-              </View>
-            )}
-          </View>
-        </View>
-      );
-    },
-    [user?.id, isRTL, reversedMessages],
-  );
-
-  const showLoading = loading && reversedMessages.length === 0;
-  const showError = error && reversedMessages.length === 0;
-
-  if (showLoading) {
+  if (connecting || !chatClient || !channel) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={Colors.primary} />
@@ -296,144 +203,86 @@ export default function ChatScreen() {
     );
   }
 
-  if (showError) {
+  if (errorMsg) {
     return (
       <View style={styles.centered}>
         <Ionicons name="alert-circle" size={48} color={Colors.error} />
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText}>{errorMsg}</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.errorBackButton}>
+          <Text style={styles.errorBackButtonText}>{t('go_back_short')}</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : keyboardVisible ? 'height' : undefined}
-      keyboardVerticalOffset={Platform.select({
-        ios: 90 + bottom,
-        android: keyboardVisible ? 24 : 0,
-      })}
-    >
-      <StatusBar style="dark" translucent />
-      <View
-        style={[
-          styles.header,
-          { paddingTop: top + Spacing.sm },
-          isRTL && { flexDirection: 'row-reverse' },
-        ]}
-      >
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <View style={[styles.headerNameContainer, isRTL && { flexDirection: 'row-reverse' }]}>
-            <View style={styles.onlineDot} />
-            <Text style={styles.headerTitle}>{displayName}</Text>
-          </View>
-          {conversation && (
-            <Text style={styles.headerSubtitle}>
-              {user?.id === conversation.driver_id ? t('student') : t('driver')}
-            </Text>
-          )}
-        </View>
-        {conversation?.trip_id ? (
-          <TouchableOpacity
-            style={styles.headerInfoBtn}
-            onPress={() =>
-              router.push({
-                pathname: '/tracking/[tripId]',
-                params: { tripId: conversation.trip_id },
-              })
-            }
-          >
-            <Ionicons name="information-circle-outline" size={24} color={Colors.primary} />
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.headerSpacer} />
-        )}
-      </View>
+    <Chat client={chatClient}>
+      <Channel channel={channel} keyboardBehavior="padding">
+        <View style={styles.container}>
+          <StatusBar style="dark" translucent />
 
-      {!isOnline && (
-        <View style={[styles.offlineBanner, isRTL && { flexDirection: 'row-reverse' }]}>
-          <Ionicons name="cloud-offline" size={16} color="#B07B00" />
-          <Text style={styles.offlineText}>{t('no_internet')}</Text>
-        </View>
-      )}
-
-      <FlatList
-        ref={flatListRef}
-        data={reversedMessages}
-        keyExtractor={keyExtractor}
-        renderItem={renderMessage}
-        style={styles.flatList}
-        contentContainerStyle={styles.messagesList}
-        inverted
-        onContentSizeChange={handleContentSizeChange}
-        initialNumToRender={15}
-        maxToRenderPerBatch={20}
-        windowSize={5}
-        removeClippedSubviews={true}
-      />
-
-      {/* Smart Quick Replies Chips */}
-      <View style={{ backgroundColor: Colors.background }}>
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={quickReplies}
-          keyExtractor={(item) => item}
-          contentContainerStyle={[
-            styles.quickRepliesContainer,
-            isRTL && { flexDirection: 'row-reverse' },
-          ]}
-          renderItem={renderQuickReply}
-        />
-      </View>
-
-      <View
-        style={[
-          styles.inputContainer,
-          isRTL && { flexDirection: 'row-reverse' },
-          { paddingBottom: Platform.OS === 'ios' && bottom > 0 ? bottom : Spacing.md },
-        ]}
-      >
-        <TextInput
-          style={[styles.input, isRTL && styles.inputRTL]}
-          value={inputText}
-          onChangeText={setInputText}
-          placeholder={t('type_message')}
-          placeholderTextColor={Colors.textMuted}
-          multiline
-          maxLength={1000}
-        />
-        <Animated.View style={{ transform: [{ scale: sendBtnScale }] }}>
-          <TouchableOpacity
+          {/* Header */}
+          <View
             style={[
-              styles.sendButton,
-              (!inputText.trim() || sending) && styles.sendButtonDisabled,
-              { [isRTL ? 'marginEnd' : 'marginStart']: Spacing.sm } as ViewStyle,
+              styles.header,
+              { paddingTop: top + Spacing.sm },
+              isRTL && { flexDirection: 'row-reverse' },
             ]}
-            onPress={handleSend}
-            disabled={!inputText.trim() || sending}
-            activeOpacity={0.8}
           >
-            {sending ? (
-              <ActivityIndicator size="small" color={Colors.white} />
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={Colors.text} />
+            </TouchableOpacity>
+            <View style={styles.headerTitleContainer}>
+              <View style={[styles.headerNameContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={styles.onlineDot} />
+                <Text style={styles.headerTitle}>{displayName}</Text>
+              </View>
+              {roleText ? <Text style={styles.headerSubtitle}>{roleText}</Text> : null}
+            </View>
+            {conversationMeta?.trip_id ? (
+              <TouchableOpacity
+                style={styles.headerInfoBtn}
+                onPress={() =>
+                  router.push({
+                    pathname: '/tracking/[tripId]',
+                    params: { tripId: conversationMeta.trip_id },
+                  })
+                }
+              >
+                <Ionicons name="information-circle-outline" size={24} color={Colors.primary} />
+              </TouchableOpacity>
             ) : (
-              <Ionicons name="send" size={18} color={Colors.white} />
+              <View style={styles.headerSpacer} />
             )}
-          </TouchableOpacity>
-        </Animated.View>
-      </View>
+          </View>
 
-      <CustomAlert
-        visible={alertConfig.visible}
-        title={alertConfig.title}
-        message={alertConfig.message}
-        type={alertConfig.type}
-        onClose={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
-      />
-    </KeyboardAvoidingView>
+          {/* Message List */}
+          <View style={{ flex: 1 }}>
+            <MessageList />
+          </View>
+
+          {/* Smart Quick Replies Chips */}
+          <View style={{ backgroundColor: Colors.background }}>
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={quickReplies}
+              keyExtractor={(item) => item}
+              contentContainerStyle={[
+                styles.quickRepliesContainer,
+                isRTL && { flexDirection: 'row-reverse' },
+              ]}
+              renderItem={renderQuickReply}
+            />
+          </View>
+
+          {/* Message Input */}
+          <View style={{ paddingBottom: Platform.OS === 'ios' && bottom > 0 ? bottom : Spacing.xs }}>
+            <MessageInput />
+          </View>
+        </View>
+      </Channel>
+    </Chat>
   );
 }
 
@@ -480,104 +329,24 @@ const styles = StyleSheet.create({
   headerSpacer: {
     width: 40,
   },
-  flatList: {
-    flex: 1,
-  },
-  messagesList: {
-    padding: Spacing.md,
-  },
-  messageContainer: {
-    marginVertical: Spacing.xs,
-    maxWidth: '80%',
-  },
-  ownMessage: {
-    alignSelf: 'flex-end',
-  },
-  otherMessage: {
-    alignSelf: 'flex-start',
-  },
-  messageBubble: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-  },
-  ownBubble: {
-    backgroundColor: Colors.primary,
-    borderBottomRightRadius: 4,
-    ...Shadow.sm,
-  },
-  otherBubble: {
-    backgroundColor: Colors.white,
-    borderBottomLeftRadius: 4,
-    borderWidth: 1,
-    borderColor: '#EFECE9',
-    ...Shadow.sm,
-  },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 21,
-  },
-  ownText: {
-    color: Colors.white,
-  },
-  otherText: {
-    color: Colors.text,
-  },
-  timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: Spacing.xs,
-    gap: 4,
-  },
-  messageTime: {
-    fontSize: 11,
-  },
-  ownTime: {
-    color: 'rgba(255,255,255,0.7)',
-    textAlign: 'right',
-  },
-  otherTime: {
-    color: Colors.textMuted,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    padding: Spacing.md,
-    backgroundColor: Colors.white,
-    borderTopWidth: 1,
-    borderTopColor: '#EFECE9',
-    ...Shadow.sm,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#F5F2EF',
-    borderRadius: BorderRadius.lg,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    fontSize: 15,
-    maxHeight: 100,
-    color: Colors.text,
-    borderWidth: 1,
-    borderColor: '#E6E3DE',
-  },
-  inputRTL: {
-    textAlign: 'right',
-  },
-  sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendButtonDisabled: {
-    backgroundColor: Colors.textMuted,
-  },
   errorText: {
     fontSize: 14,
     color: Colors.error,
     marginTop: Spacing.md,
     textAlign: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  errorBackButton: {
+    marginTop: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xl,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+  },
+  errorBackButtonText: {
+    color: Colors.white,
+    fontFamily: FontFamily.bold,
+    fontSize: 14,
   },
   quickRepliesContainer: {
     paddingHorizontal: Spacing.md,
@@ -615,22 +384,5 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: Colors.success,
-  },
-  offlineBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF8E1',
-    paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: '#FFE082',
-    gap: 6,
-    zIndex: 5,
-  },
-  offlineText: {
-    fontFamily: FontFamily.medium,
-    fontSize: 13,
-    color: '#B07B00',
   },
 });

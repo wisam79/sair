@@ -271,7 +271,7 @@ export default function LoginScreen() {
         setLoading(true);
         await GoogleSignin.hasPlayServices();
         const userInfo = await GoogleSignin.signIn();
-        
+
         if (userInfo.type === 'success') {
           const idToken = userInfo.data.idToken;
 

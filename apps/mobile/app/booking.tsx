@@ -339,7 +339,9 @@ export default function BookingScreen() {
             keyboardShouldPersistTaps="handled"
           >
             {/* Step Progress Indicator */}
-            <View style={[styles.stepIndicatorContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+            <View
+              style={[styles.stepIndicatorContainer, isRTL && { flexDirection: 'row-reverse' }]}
+            >
               <View style={[styles.stepRow, isRTL && { flexDirection: 'row-reverse' }]}>
                 <View style={styles.stepItem}>
                   <View style={[styles.stepDot, styles.stepDotActive]}>
