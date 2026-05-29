@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>سير | منصة النقل الجامعي الذكي في العراق</title>
+    <meta name="description" content="سير هي منصة ذكية لربط طلاب الجامعات العراقية بحافلات النقل عبر تتبع حي للرحلات واشتراكات سهلة وآمنة." />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;700;900&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Background Gradients -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <!-- Header / Navbar -->
+    <header class="header">
+      <div class="container navbar">
+        <a href="#" class="logo">
+          <span class="logo-icon">🚌</span>
+          <span class="logo-text">سير <span class="accent">Sair</span></span>
+        </a>
+        <nav class="nav-links">
+          <a href="#features" data-i18n="nav.features">الميزات</a>
+          <a href="#demo" data-i18n="nav.demo">التتبع الحي</a>
+          <a href="#how-it-works" data-i18n="nav.howItWorks">كيف يعمل؟</a>
+        </nav>
+        <div class="nav-actions">
+          <button id="lang-toggle" class="btn btn-secondary lang-btn">
+            <span class="lang-text">English</span>
+            <span class="lang-icon">🌐</span>
+          </button>
+          <a href="#download" class="btn btn-primary nav-download" data-i18n="nav.download">تحميل التطبيق</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <div class="badge-new animate-fade-in">
+            <span class="badge-dot"></span>
+            <span data-i18n="hero.badge">الإصدار الثاني Sair v2 متاح الآن</span>
+          </div>
+          <h1 class="hero-title animate-slide-up">
+            <span data-i18n="hero.title1">تنقّل ذكي لجامعتك،</span>
+            <span class="accent-gradient" data-i18n="hero.title2">بأمان وراحة تامة</span>
+          </h1>
+          <p class="hero-subtitle animate-slide-up" data-i18n="hero.subtitle">
+            منصة النقل الجامعي الأولى في العراق لربط الطلاب بسائقي الخطوط. تتبع حافلتك مباشرة، واشترك بسهولة، واستمتع برحلة يومية مريحة وآمنة.
+          </p>
+          <div class="hero-actions animate-slide-up">
+            <a href="#download" class="btn btn-primary btn-lg" data-i18n="hero.btnStudent">تحميل كطالب</a>
+            <a href="#driver" class="btn btn-outline btn-lg" data-i18n="hero.btnDriver">انضم كسائق</a>
+          </div>
+          <div class="hero-stats animate-fade-in">
+            <div class="stat-item">
+              <span class="stat-num">+10K</span>
+              <span class="stat-label" data-i18n="hero.statStudents">طالب مشترك</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-num">+500</span>
+              <span class="stat-label" data-i18n="hero.statDrivers">سائق موثق</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-num">99.8%</span>
+              <span class="stat-label" data-i18n="hero.statSuccess">رحلات ناجحة</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="phone-mockup">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <!-- Mockup App Header -->
+              <div class="mock-header">
+                <div class="mock-user">
+                  <div class="mock-avatar">🎓</div>
+                  <div>
+                    <div class="mock-name">أحمد علي</div>
+                    <div class="mock-sub">جامعة بغداد</div>
+                  </div>
+                </div>
+                <div class="mock-bell">🔔</div>
+              </div>
+              
+              <!-- Mockup Map -->
+              <div class="mock-map">
+                <div class="mock-bus-marker">🚌</div>
+                <div class="mock-pulse"></div>
+                <div class="mock-route-path"></div>
+                <div class="mock-student-marker">📍</div>
+              </div>
+
+              <!-- Mockup Card -->
+              <div class="mock-card">
+                <div class="mock-card-header">
+                  <span class="mock-status-pill">نشط الآن</span>
+                  <span class="mock-price">25,000 د.ع / شهر</span>
+                </div>
+                <div class="mock-route-title">خط جامعة بغداد - الجادرية</div>
+                <div class="mock-driver-info">
+                  <div class="mock-avatar">🧔</div>
+                  <div>
+                    <div class="mock-driver-name">أبو علي (سائق موثق)</div>
+                    <div class="mock-stars">⭐ 4.9 (120 تقييم)</div>
+                  </div>
+                  <div class="mock-chat-icon">💬</div>
+                </div>
+                <div class="mock-eta">الحافلة تبعد 4 دقائق عن موقعك</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title" data-i18n="features.title">لماذا تختار تطبيق سير؟</h2>
+          <p class="section-subtitle" data-i18n="features.subtitle">صممنا التطبيق ليوفر تجربة نقل حديثة ومريحة تلبي احتياجات الطالب العراقي اليومية.</p>
+        </div>
+
+        <div class="features-grid">
+          <!-- Card 1 -->
+          <div class="feature-card glass">
+            <div class="feature-icon bg-blue">📍</div>
+            <h3 class="feature-name" data-i18n="features.liveTracking">تتبع حي مباشر</h3>
+            <p class="feature-desc" data-i18n="features.liveTrackingDesc">شاهد موقع الحافلة الجغرافي مباشرة على الخريطة وتفادى عناء الانتظار الطويل في حر الصيف أو برد الشتاء.</p>
+          </div>
+          <!-- Card 2 -->
+          <div class="feature-card glass">
+            <div class="feature-icon bg-green">💳</div>
+            <h3 class="feature-name" data-i18n="features.smartPayments">اشتراكات سهلة وآمنة</h3>
+            <p class="feature-desc" data-i18n="features.smartPaymentsDesc">اشترك وادفع مباشرة عبر زين كاش (Zain Cash) أو من خلال تفعيل أكواد التراخيص التي يوزعها وكلاؤنا في الكليات.</p>
+          </div>
+          <!-- Card 3 -->
+          <div class="feature-card glass">
+            <div class="feature-icon bg-purple">💬</div>
+            <h3 class="feature-name" data-i18n="features.directChat">اتصال فوري مباشر</h3>
+            <p class="feature-desc" data-i18n="features.directChatDesc">تواصل بشكل فوري وآمن مع سائق حافلتك للتنبيه أو التنسيق اليومي بخصوص الرحلات دون الكشف عن رقم هاتفك.</p>
+          </div>
+          <!-- Card 4 -->
+          <div class="feature-card glass">
+            <div class="feature-icon bg-red">🛡️</div>
+            <h3 class="feature-name" data-i18n="features.sosSafety">زر طوارئ SOS</h3>
+            <p class="feature-desc" data-i18n="features.sosSafetyDesc">أمانك أولويتنا؛ نوفر زر طوارئ ذكي داخل التطبيق لمشاركة موقعك الفوري وتنبيه المشرفين في الحالات الطارئة.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Demo Section -->
+    <section id="demo" class="demo-section">
+      <div class="container">
+        <div class="demo-grid">
+          <div class="demo-info">
+            <h2 class="section-title" data-i18n="demo.title">شاهد التتبع الحي في الميدان</h2>
+            <p class="section-subtitle" data-i18n="demo.desc">جرب المحاكاة التفاعلية هنا لرؤية كيف يقوم التطبيق ببث موقع الحافلة والسرعة ووقت الوصول المتوقع بدقة متناهية.</p>
+            <div class="demo-controls">
+              <div class="demo-indicator">
+                <span class="pulse-indicator"></span>
+                <span class="indicator-text" data-i18n="demo.liveStatus">حافلة الجادرية - محاكاة حية</span>
+              </div>
+              <div class="demo-metrics">
+                <div class="metric">
+                  <span class="metric-val" id="demo-speed">45 كم/س</span>
+                  <span class="metric-label" data-i18n="demo.speed">السرعة الحالية</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-val" id="demo-eta">3 دقائق</span>
+                  <span class="metric-label" data-i18n="demo.eta">وقت الوصول</span>
+                </div>
+              </div>
+              <button id="demo-trigger" class="btn btn-primary" data-i18n="demo.btnRestart">إعادة تشغيل المحاكاة</button>
+            </div>
+          </div>
+          
+          <div class="demo-map-container glass">
+            <div class="map-bg">
+              <!-- Route Path -->
+              <svg class="map-svg" viewBox="0 0 500 350">
+                <!-- Outer road path -->
+                <path d="M 50,280 Q 150,100 250,220 T 450,80" fill="none" stroke="rgba(255, 255, 255, 0.15)" stroke-width="8" stroke-linecap="round"/>
+                <!-- Inner progress path -->
+                <path id="route-progress" d="M 50,280 Q 150,100 250,220 T 450,80" fill="none" stroke="url(#accent-grad)" stroke-width="8" stroke-linecap="round" stroke-dasharray="600" stroke-dashoffset="600"/>
+                
+                <!-- Gradients -->
+                <defs>
+                  <linearGradient id="accent-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#3b82f6" />
+                    <stop offset="100%" stop-color="#10b981" />
+                  </linearGradient>
+                </defs>
+              </svg>
+
+              <!-- Map Points -->
+              <div class="map-point point-start" style="left: 10%; top: 80%;">
+                <span class="point-dot"></span>
+                <span class="point-label" data-i18n="demo.start">نقطة الانطلاق</span>
+              </div>
+              <div class="map-point point-end" style="left: 90%; top: 23%;">
+                <span class="point-dot"></span>
+                <span class="point-label" data-i18n="demo.end">الجامعة</span>
+              </div>
+
+              <!-- Animated Bus -->
+              <div id="sim-bus" class="sim-bus">
+                <span class="bus-marker">🚌</span>
+                <span class="bus-pulse"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title" data-i18n="how.title">كيف تبدأ مع سير؟</h2>
+          <p class="section-subtitle" data-i18n="how.subtitle">خطوات بسيطة لتنعم برحلة هادئة وخالية من التوتر.</p>
+        </div>
+
+        <div class="steps-grid">
+          <!-- Step 1 -->
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <h3 class="step-title" data-i18n="how.step1">تنزيل التطبيق وإنشاء حساب</h3>
+            <p class="step-desc" data-i18n="how.step1Desc">قم بتحميل التطبيق لهاتفك الذكي وسجل بياناتك كطالب في كليتك.</p>
+          </div>
+          <!-- Step 2 -->
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <h3 class="step-title" data-i18n="how.step2">اختيار وتفعيل الخط</h3>
+            <p class="step-desc" data-i18n="how.step2Desc">ابحث عن مسار منطقتك المخصص لجامعتك وفعل اشتراكك عبر زين كاش أو كود الترخيص.</p>
+          </div>
+          <!-- Step 3 -->
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <h3 class="step-title" data-i18n="how.step3">تتبع حافلتك وانطلق</h3>
+            <p class="step-desc" data-i18n="how.step3Desc">احصل على إشعارات فورية عند انطلاق الرحلة وتابع موقع الحافلة لتلتحق بها في الوقت المحدد.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- App Showcase / Call To Action -->
+    <section id="download" class="download-section">
+      <div class="container download-container glass">
+        <div class="download-content">
+          <h2 class="download-title" data-i18n="cta.title">جاهز لتجربة رحلة جامعية أذكى؟</h2>
+          <p class="download-desc" data-i18n="cta.desc">حمل تطبيق سير الآن المتوفر مجاناً لأجهزة الـ Android والـ iOS وابدأ بتتبع رحلاتك اليومية.</p>
+          
+          <div class="download-badges">
+            <a href="#" class="badge-link">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" />
+            </a>
+            <a href="#" class="badge-link">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" alt="App Store" />
+            </a>
+          </div>
+        </div>
+        <div class="download-mockups">
+          <div class="mockup-layered mockup-1">📱</div>
+          <div class="mockup-layered mockup-2">📱</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Driver Section -->
+    <section id="driver" class="driver-section">
+      <div class="container">
+        <div class="driver-card glass">
+          <div class="driver-content">
+            <h2 class="section-title text-left" data-i18n="driver.title">هل تمتلك حافلة نقل جامعي وتريد الانضمام؟</h2>
+            <p class="section-subtitle text-left" data-i18n="driver.desc">انضم إلى شبكة سائقي سير الموثقين. نحن نوفر لك لوحة تحكم كاملة، إدارة ذكية للمشتركين والمقاعد، واستلام فوري ومضمون للأرباح.</p>
+            <a href="#" class="btn btn-primary btn-lg" data-i18n="driver.btnJoin">سجل شريكاً معنا</a>
+          </div>
+          <div class="driver-icon-bg">✨</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container footer-grid">
+        <div class="footer-about">
+          <div class="logo">
+            <span class="logo-icon">🚌</span>
+            <span class="logo-text">سير <span class="accent">Sair</span></span>
+          </div>
+          <p class="footer-desc" data-i18n="footer.desc">المنصة الأذكى لتسيير وتتبع خطوط النقل الجامعي للطلاب في العراق بأعلى معايير السلامة والسرعة.</p>
+        </div>
+        <div class="footer-links">
+          <h4 data-i18n="footer.linksTitle">روابط سريعة</h4>
+          <a href="#features" data-i18n="nav.features">الميزات</a>
+          <a href="#demo" data-i18n="nav.demo">التتبع الحي</a>
+          <a href="#how-it-works" data-i18n="nav.howItWorks">كيف يعمل؟</a>
+        </div>
+        <div class="footer-contact">
+          <h4 data-i18n="footer.contactTitle">اتصل بنا</h4>
+          <p>بغداد، العراق</p>
+          <p>support@sairapp.com</p>
+          <p>+964 770 000 0000</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="container copyright">
+          <p>© 2026 سير. جميع الحقوق محفوظة.</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Custom Logic -->
+    <script src="app.js"></script>
+  </body>
+</html>
