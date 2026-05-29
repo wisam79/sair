@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>سير | منصة النقل الجامعي الذكي في العراق</title>
+    <meta name="description" content="سير هي منصة ذكية لربط طلاب الجامعات العراقية بحافلات النقل عبر تتبع حي للرحلات واشتراكات سهلة وآمنة." />
+    <meta name="theme-color" content="#0a0e1a" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Sans+Arabic:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Ambient Background -->
+    <div class="ambient">
+      <div class="ambient__orb ambient__orb--1"></div>
+      <div class="ambient__orb ambient__orb--2"></div>
+      <div class="ambient__orb ambient__orb--3"></div>
+      <div class="grain-overlay"></div>
+    </div>
+
+    <!-- ==================== HEADER ==================== -->
+    <header class="header" id="header">
+      <div class="container header__inner">
+        <a href="#" class="logo" aria-label="Sair Home">
+          <svg class="logo__icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="12" fill="url(#logo-grad)"/>
+            <path d="M12 26h16M14 22h12M10 18h20l-2-8H12l-2 8z" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="16" cy="26" r="2" fill="#fff"/>
+            <circle cx="24" cy="26" r="2" fill="#fff"/>
+            <defs>
+              <linearGradient id="logo-grad" x1="0" y1="0" x2="40" y2="40">
+                <stop stop-color="#0a5c36"/>
+                <stop offset="1" stop-color="#16a34a"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="logo__text">سير <span class="logo__accent">Sair</span></span>
+        </a>
+
+        <nav class="nav" id="nav">
+          <a href="#features" class="nav__link" data-i18n="nav.features">الميزات</a>
+          <a href="#demo" class="nav__link" data-i18n="nav.demo">التتبع الحي</a>
+          <a href="#how-it-works" class="nav__link" data-i18n="nav.howItWorks">كيف يعمل؟</a>
+          <a href="#faq" class="nav__link" data-i18n="nav.faq">الأسئلة الشائعة</a>
+        </nav>
+
+        <div class="header__actions">
+          <button id="theme-toggle" class="icon-btn" aria-label="Toggle theme">
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </button>
+          <button id="lang-toggle" class="lang-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span class="lang-btn__text">English</span>
+          </button>
+          <a href="#download" class="btn btn--primary header__cta" data-i18n="nav.download">تحميل التطبيق</a>
+          <button class="hamburger" id="hamburger" aria-label="Menu">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ==================== HERO ==================== -->
+    <section class="hero">
+      <div class="container hero__grid">
+        <div class="hero__content">
+          <div class="hero__badge reveal-up">
+            <span class="hero__badge-dot"></span>
+            <span data-i18n="hero.badge">الإصدار الثاني Sair v2 متاح الآن</span>
+          </div>
+          <h1 class="hero__title reveal-up">
+            <span data-i18n="hero.title1">تنقّل ذكي لجامعتك،</span><br/>
+            <span class="gradient-text" data-i18n="hero.title2">بأمان وراحة تامة</span>
+          </h1>
+          <p class="hero__subtitle reveal-up" data-i18n="hero.subtitle">
+            منصة النقل الجامعي الأولى في العراق لربط الطلاب بسائقي الخطوط. تتبع حافلتك مباشرة، واشترك بسهولة، واستمتع برحلة يومية مريحة وآمنة.
+          </p>
+          <div class="hero__actions reveal-up">
+            <a href="#download" class="btn btn--primary btn--lg">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              <span data-i18n="hero.btnStudent">تحميل كطالب</span>
+            </a>
+            <a href="#driver" class="btn btn--outline btn--lg">
+              <span data-i18n="hero.btnDriver">انضم كسائق</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+          <div class="hero__stats reveal-up">
+            <div class="hero__stat">
+              <span class="hero__stat-num" data-target="12000">0</span>
+              <span class="hero__stat-label" data-i18n="hero.statStudents">طالب مشترك</span>
+            </div>
+            <div class="hero__stat-divider"></div>
+            <div class="hero__stat">
+              <span class="hero__stat-num" data-target="650">0</span>
+              <span class="hero__stat-label" data-i18n="hero.statDrivers">سائق موثق</span>
+            </div>
+            <div class="hero__stat-divider"></div>
+            <div class="hero__stat">
+              <span class="hero__stat-num hero__stat-num--pct">99.8%</span>
+              <span class="hero__stat-label" data-i18n="hero.statSuccess">رحلات ناجحة</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone Mockup -->
+        <div class="hero__visual reveal-up">
+          <div class="phone">
+            <div class="phone__frame">
+              <div class="phone__notch">
+                <div class="phone__notch-cam"></div>
+              </div>
+              <div class="phone__screen">
+                <!-- Phone Status Bar -->
+                <div class="phone__statusbar">
+                  <span>9:41</span>
+                  <div class="phone__statusbar-icons">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.24 4.24 0 0 0-6 0zm-4-4l2 2a7.07 7.07 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><rect x="2" y="6" width="3" height="12" rx="1"/><rect x="7" y="4" width="3" height="14" rx="1"/><rect x="12" y="8" width="3" height="10" rx="1"/><rect x="17" y="2" width="3" height="16" rx="1"/></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="12"><rect x="1" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="21" y="9" width="2" height="6" rx="1"/><rect x="3" y="8" width="10" height="8" rx="1" fill="currentColor"/></svg>
+                  </div>
+                </div>
+
+                <!-- Phone App Header -->
+                <div class="phone__app-header">
+                  <div class="phone__user">
+                    <div class="phone__avatar">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div>
+                      <div class="phone__user-name" data-i18n="mock.studentName">علي حسين</div>
+                      <div class="phone__user-sub" data-i18n="mock.university">جامعة بغداد</div>
+                    </div>
+                  </div>
+                  <div class="phone__notif">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <span class="phone__notif-badge">2</span>
+                  </div>
+                </div>
+
+                <!-- Phone Screen Content -->
+                <div class="phone__screens">
+                  <!-- Screen: Map -->
+                  <div class="phone__view phone__view--active" data-view="map">
+                    <div class="phone__map">
+                      <div class="phone__map-grid"></div>
+                      <svg class="phone__map-route" viewBox="0 0 300 260">
+                        <path d="M 30,220 Q 80,60 150,160 T 270,50" fill="none" stroke="rgba(22,163,74,0.15)" stroke-width="6" stroke-linecap="round"/>
+                        <path d="M 30,220 Q 80,60 150,160 T 270,50" fill="none" stroke="url(#phone-route-grad)" stroke-width="3" stroke-linecap="round" stroke-dasharray="4 6"/>
+                        <circle cx="30" cy="220" r="6" fill="#16a34a" opacity="0.8"/>
+                        <circle cx="270" cy="50" r="6" fill="#10b981" opacity="0.8"/>
+                        <defs>
+                          <linearGradient id="phone-route-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#0a5c36"/>
+                            <stop offset="100%" stop-color="#16a34a"/>
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      <div class="phone__bus-marker">
+                        <div class="phone__bus-pulse"></div>
+                        <svg viewBox="0 0 24 24" fill="#16a34a" width="18" height="18"><path d="M4 16V6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10l-2 3H6l-2-3zm4 3v1a1 1 0 0 0 2 0v-1h4v1a1 1 0 0 0 2 0v-1M7 12h10M7 8h10M9 12v4m6-4v4"/></svg>
+                      </div>
+                      <div class="phone__student-pin">
+                        <svg viewBox="0 0 24 24" fill="#f59e0b" width="14" height="14"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3" fill="#fff"/></svg>
+                      </div>
+                    </div>
+                    <div class="phone__card">
+                      <div class="phone__card-top">
+                        <span class="phone__status-pill">
+                          <span class="phone__status-dot"></span>
+                          <span data-i18n="mock.statusActive">نشط الآن</span>
+                        </span>
+                        <span class="phone__price">25,000 د.ع</span>
+                      </div>
+                      <div class="phone__route-name" data-i18n="mock.routeTitle">خط الجادرية - الدورة</div>
+                      <div class="phone__driver-row">
+                        <div class="phone__driver-avatar">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <div class="phone__driver-info">
+                          <span class="phone__driver-name" data-i18n="mock.driverName">أبو محمد (موثق)</span>
+                          <span class="phone__driver-rating">★ 4.9 <span class="phone__driver-reviews">(94)</span></span>
+                        </div>
+                        <button class="phone__chat-btn">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        </button>
+                      </div>
+                      <div class="phone__eta-bar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        <span data-i18n="mock.eta">تبعد الحافلة 5 دقائق عن موقعك</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Screen: Subscription -->
+                  <div class="phone__view" data-view="sub">
+                    <div class="phone__sub-screen">
+                      <h4 class="phone__sub-title" data-i18n="mock.subTitle">اشتراك الخط النشط</h4>
+                      <div class="phone__sub-card">
+                        <div class="phone__sub-row"><span data-i18n="mock.subLine">المسار:</span><strong data-i18n="mock.routeTitle">خط الجادرية - الدورة</strong></div>
+                        <div class="phone__sub-row"><span data-i18n="mock.subStatus">الحالة:</span><span class="phone__sub-active" data-i18n="mock.subActive">مفعل</span></div>
+                        <div class="phone__sub-row"><span data-i18n="mock.subExpiry">تاريخ الانتهاء:</span><strong>2026/06/25</strong></div>
+                      </div>
+                      <h4 class="phone__sub-title" data-i18n="mock.subCheckout">تجديد الاشتراك</h4>
+                      <button class="phone__zain-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+                        <span data-i18n="mock.subZainCash">تجديد عبر زين كاش</span>
+                      </button>
+                      <div class="phone__divider"><span data-i18n="mock.subOr">أو</span></div>
+                      <div class="phone__license-row">
+                        <input type="text" placeholder="A1B2C3D4" class="phone__license-input" disabled />
+                        <button class="phone__activate-btn" data-i18n="mock.subActivate">تفعيل</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Screen: Chat -->
+                  <div class="phone__view" data-view="chat">
+                    <div class="phone__chat-screen">
+                      <div class="phone__chat-msgs">
+                        <div class="phone__msg phone__msg--other">
+                          <div class="phone__msg-bubble" data-i18n="mock.msgDriver1">صباح الخير عيني طلاب، توكلت على الله وطلعت وهسة باتجاه نقطة التجمع الأولى.</div>
+                          <span class="phone__msg-time">07:30 ص</span>
+                        </div>
+                        <div class="phone__msg phone__msg--self">
+                          <div class="phone__msg-bubble" data-i18n="mock.msgStudent1">صباح النور عمو، دا أنتظرك براس الشارع بالمحطة.</div>
+                          <span class="phone__msg-time">07:32 ص</span>
+                        </div>
+                        <div class="phone__msg phone__msg--other">
+                          <div class="phone__msg-bubble" data-i18n="mock.msgDriver2">تمام عيني علي، فد 5 دقايق وأكون يمكم.</div>
+                          <span class="phone__msg-time">07:33 ص</span>
+                        </div>
+                      </div>
+                      <div class="phone__chat-input">
+                        <div class="phone__chat-field" data-i18n="mock.chatPlaceholder">أكتب رسالة...</div>
+                        <button class="phone__send-btn">
+                          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Phone Tab Bar -->
+                <div class="phone__tabbar">
+                  <button class="phone__tab phone__tab--active" data-tab="map">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                    <span data-i18n="mock.tabMap">الخريطة</span>
+                  </button>
+                  <button class="phone__tab" data-tab="sub">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"/></svg>
+                    <span data-i18n="mock.tabSub">الاشتراك</span>
+                  </button>
+                  <button class="phone__tab" data-tab="chat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span data-i18n="mock.tabChat">المحادثة</span>
+                  </button>
+                </div>
+
+                <!-- Home Indicator -->
+                <div class="phone__home-indicator"></div>
+              </div>
+            </div>
+            <!-- Phone Glow -->
+            <div class="phone__glow"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TRUSTED BY (Logos marquee) ==================== -->
+    <section class="marquee-section">
+      <div class="container">
+        <p class="marquee-label" data-i18n="marquee.label">معتمد من جامعات عراقية رائدة</p>
+      </div>
+      <div class="marquee-track">
+        <div class="marquee-content">
+          <span class="marquee-item">جامعة بغداد</span>
+          <span class="marquee-dot">●</span>
+          <span class="marquee-item">الجامعة المستنصرية</span>
+          <span class="marquee-dot">●</span>
+          <span class="marquee-item">جامعة النهرين</span>
+          <span class="marquee-dot">●</span>
+          <span class="marquee-item">الجامعة التكنولوجية</span>
+          <span class="marquee-dot">●</span>
+          <span class="marquee-item">جامعة بابل</span>
+          <span class="marquee-dot">●</span>
+          <span class="marquee-item">جامعة الكوفة</span>
+          <span class="marquee-dot">●</span>
+          <!-- duplicate for seamless loop -->
+          <span class="marquee-item">جامعة بغداد</span>
+          <span class="marquee-dot">●</span>
+          <span class="marquee-item">الجامعة المستنصرية</span>
+          <span class="marquee-dot">●</span>
+          <span class="marquee-item">جامعة النهرين</span>
+          <span class="marquee-dot">●</span>
+          <span class="marquee-item">الجامعة التكنولوجية</span>
+          <span class="marquee-dot">●</span>
+          <span class="marquee-item">جامعة بابل</span>
+          <span class="marquee-dot">●</span>
+          <span class="marquee-item">جامعة الكوفة</span>
+          <span class="marquee-dot">●</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== FEATURES ==================== -->
+    <section id="features" class="features">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag" data-i18n="features.tag">المنصة المتكاملة</span>
+          <h2 class="section-title" data-i18n="features.title">لماذا تختار تطبيق سير؟</h2>
+          <p class="section-desc" data-i18n="features.subtitle">صممنا التطبيق ليوفر تجربة نقل حديثة ومريحة تلبي احتياجات الطالب العراقي اليومية.</p>
+        </div>
+        <div class="features__grid">
+          <!-- Feature 1 -->
+          <div class="feature-card" data-accent="blue">
+            <div class="feature-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+            </div>
+            <h3 class="feature-card__title" data-i18n="features.liveTracking">تتبع حي مباشر</h3>
+            <p class="feature-card__desc" data-i18n="features.liveTrackingDesc">شاهد موقع الحافلة الجغرافي مباشرة على الخريطة وتفادى عناء الانتظار الطويل في حر الصيف أو برد الشتاء.</p>
+            <div class="feature-card__shine"></div>
+          </div>
+          <!-- Feature 2 -->
+          <div class="feature-card" data-accent="emerald">
+            <div class="feature-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+            </div>
+            <h3 class="feature-card__title" data-i18n="features.smartPayments">اشتراكات سهلة وآمنة</h3>
+            <p class="feature-card__desc" data-i18n="features.smartPaymentsDesc">اشترك وادفع مباشرة عبر زين كاش (Zain Cash) أو من خلال تفعيل أكواد التراخيص التي يوزعها وكلاؤنا في الكليات.</p>
+            <div class="feature-card__shine"></div>
+          </div>
+          <!-- Feature 3 -->
+          <div class="feature-card" data-accent="violet">
+            <div class="feature-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h3 class="feature-card__title" data-i18n="features.directChat">اتصال فوري مباشر</h3>
+            <p class="feature-card__desc" data-i18n="features.directChatDesc">تواصل بشكل فوري وآمن مع سائق حافلتك للتنبيه أو التنسيق اليومي بخصوص الرحلات دون الكشف عن رقم هاتفك.</p>
+            <div class="feature-card__shine"></div>
+          </div>
+          <!-- Feature 4 -->
+          <div class="feature-card" data-accent="rose">
+            <div class="feature-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h3 class="feature-card__title" data-i18n="features.sosSafety">زر طوارئ SOS</h3>
+            <p class="feature-card__desc" data-i18n="features.sosSafetyDesc">أمانك أولويتنا؛ نوفر زر طوارئ ذكي داخل التطبيق لمشاركة موقعك الفوري وتنبيه المشرفين في الحالات الطارئة.</p>
+            <div class="feature-card__shine"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== LIVE DEMO ==================== -->
+    <section id="demo" class="demo">
+      <div class="container">
+        <div class="demo__grid">
+          <div class="demo__info">
+            <span class="section-tag" data-i18n="demo.tag">محاكاة تفاعلية</span>
+            <h2 class="section-title" data-i18n="demo.title">شاهد التتبع الحي في الميدان</h2>
+            <p class="section-desc" data-i18n="demo.desc">جرب المحاكاة التفاعلية هنا لرؤية كيف يقوم التطبيق ببث موقع الحافلة والسرعة ووقت الوصول المتوقع بدقة متناهية.</p>
+            <div class="demo__panel">
+              <div class="demo__live-indicator">
+                <span class="demo__live-dot"></span>
+                <span data-i18n="demo.liveStatus">حافلة الجادرية - محاكاة حية</span>
+              </div>
+              <div class="demo__metrics">
+                <div class="demo__metric">
+                  <span class="demo__metric-value" id="demo-speed">0 كم/س</span>
+                  <span class="demo__metric-label" data-i18n="demo.speed">السرعة الحالية</span>
+                </div>
+                <div class="demo__metric">
+                  <span class="demo__metric-value" id="demo-eta">12 دقيقة</span>
+                  <span class="demo__metric-label" data-i18n="demo.eta">وقت الوصول</span>
+                </div>
+              </div>
+              <button id="demo-trigger" class="btn btn--primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span data-i18n="demo.btnRestart">إعادة تشغيل المحاكاة</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="demo__map-wrap">
+            <div class="demo__map">
+              <svg class="demo__map-svg" viewBox="0 0 500 350">
+                <defs>
+                  <linearGradient id="route-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#0a5c36"/>
+                    <stop offset="100%" stop-color="#16a34a"/>
+                  </linearGradient>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="3" result="glow"/>
+                    <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                </defs>
+                <!-- Road background -->
+                <path d="M 50,280 Q 150,100 250,220 T 450,80" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="28" stroke-linecap="round"/>
+                <!-- Road dashes -->
+                <path d="M 50,280 Q 150,100 250,220 T 450,80" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-linecap="round" stroke-dasharray="8 12"/>
+                <!-- Route progress -->
+                <path id="route-progress" d="M 50,280 Q 150,100 250,220 T 450,80" fill="none" stroke="url(#route-grad)" stroke-width="4" stroke-linecap="round" filter="url(#glow)" stroke-dasharray="600" stroke-dashoffset="600"/>
+              </svg>
+              <!-- Map labels -->
+              <div class="demo__map-point demo__map-point--start" style="left:10%;top:80%">
+                <span class="demo__map-pin demo__map-pin--blue"></span>
+                <span class="demo__map-label" data-i18n="demo.start">نقطة الانطلاق</span>
+              </div>
+              <div class="demo__map-point demo__map-point--end" style="left:90%;top:23%">
+                <span class="demo__map-pin demo__map-pin--green"></span>
+                <span class="demo__map-label" data-i18n="demo.end">الجامعة</span>
+              </div>
+              <!-- Animated Bus -->
+              <div id="sim-bus" class="demo__bus">
+                <div class="demo__bus-ring"></div>
+                <svg viewBox="0 0 24 24" fill="#fff" width="20" height="20"><path d="M4 16V6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10l-2 3H6l-2-3zm4 3v1a1 1 0 0 0 2 0v-1h4v1a1 1 0 0 0 2 0v-1M7 12h10M7 8h10"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== HOW IT WORKS ==================== -->
+    <section id="how-it-works" class="steps">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag" data-i18n="how.tag">سهولة الاستخدام</span>
+          <h2 class="section-title" data-i18n="how.title">كيف تبدأ مع سير؟</h2>
+          <p class="section-desc" data-i18n="how.subtitle">خطوات بسيطة لتنعم برحلة هادئة وخالية من التوتر.</p>
+        </div>
+        <div class="steps__grid">
+          <div class="step-card">
+            <div class="step-card__num">01</div>
+            <div class="step-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            </div>
+            <h3 class="step-card__title" data-i18n="how.step1">تنزيل التطبيق وإنشاء حساب</h3>
+            <p class="step-card__desc" data-i18n="how.step1Desc">قم بتحميل التطبيق لهاتفك الذكي وسجل بياناتك كطالب في كليتك.</p>
+          </div>
+          <div class="steps__connector">
+            <svg viewBox="0 0 80 24" fill="none"><path d="M0 12h80" stroke="url(#conn-grad)" stroke-width="2" stroke-dasharray="6 4"/><defs><linearGradient id="conn-grad" x1="0" y1="0" x2="80" y2="0"><stop stop-color="#0a5c36"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs></svg>
+          </div>
+          <div class="step-card">
+            <div class="step-card__num">02</div>
+            <div class="step-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+            </div>
+            <h3 class="step-card__title" data-i18n="how.step2">اختيار وتفعيل الخط</h3>
+            <p class="step-card__desc" data-i18n="how.step2Desc">ابحث عن مسار منطقتك المخصص لجامعتك وفعل اشتراكك عبر زين كاش أو كود الترخيص.</p>
+          </div>
+          <div class="steps__connector">
+            <svg viewBox="0 0 80 24" fill="none"><path d="M0 12h80" stroke="url(#conn-grad)" stroke-width="2" stroke-dasharray="6 4"/></svg>
+          </div>
+          <div class="step-card">
+            <div class="step-card__num">03</div>
+            <div class="step-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+            </div>
+            <h3 class="step-card__title" data-i18n="how.step3">تتبع حافلتك وانطلق</h3>
+            <p class="step-card__desc" data-i18n="how.step3Desc">احصل على إشعارات فورية عند انطلاق الرحلة وتابع موقع الحافلة لتلتحق بها في الوقت المحدد.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TESTIMONIALS ==================== -->
+    <section class="testimonials">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag" data-i18n="testimonials.tag">آراء المستخدمين</span>
+          <h2 class="section-title" data-i18n="testimonials.title">ماذا يقول طلابنا؟</h2>
+          <p class="section-desc" data-i18n="testimonials.subtitle">آراء حقيقية من طلاب الجامعات الذين يستخدمون سير يومياً لتسهيل تنقلهم.</p>
+        </div>
+        <div class="testimonials__grid">
+          <div class="testimonial-card">
+            <div class="testimonial-card__stars">★★★★★</div>
+            <p class="testimonial-card__text" data-i18n="testimonials.t1Text">"صدك هالتطبيق غير حياتي الجامعية! جنت أظل واكفة بالساعات بالشارع أنتظر الخط وبنص الحر، هسة صرت أطلع من البيت بالدقيقة وعلى وكت، وأني أراقب موقع أبو الخط وين وصل عالموبايل."</p>
+            <div class="testimonial-card__author">
+              <div class="testimonial-card__avatar testimonial-card__avatar--1">ن</div>
+              <div>
+                <h4 class="testimonial-card__name" data-i18n="testimonials.t1Name">نور الهدى</h4>
+                <span class="testimonial-card__meta" data-i18n="testimonials.t1Meta">طالبة في جامعة المستنصرية</span>
+              </div>
+            </div>
+          </div>
+          <div class="testimonial-card">
+            <div class="testimonial-card__stars">★★★★★</div>
+            <p class="testimonial-card__text" data-i18n="testimonials.t2Text">"والله سالفة الاشتراك والدفع بزين كاش كلش سهلت علينا الأمور وسريعة. كبل جنت أدوخ وية أبو الخط بالفلوس والخردة، هسة أفعل الكود والتطبيق يشتغل مباشر وبدون دوخة راس."</p>
+            <div class="testimonial-card__author">
+              <div class="testimonial-card__avatar testimonial-card__avatar--2">م</div>
+              <div>
+                <h4 class="testimonial-card__name" data-i18n="testimonials.t2Name">مصطفى سجاد</h4>
+                <span class="testimonial-card__meta" data-i18n="testimonials.t2Meta">طالب في جامعة بغداد - هندسة</span>
+              </div>
+            </div>
+          </div>
+          <div class="testimonial-card">
+            <div class="testimonial-card__stars">★★★★★</div>
+            <p class="testimonial-card__text" data-i18n="testimonials.t3Text">"أهم شي عجبني هو المحادثة وية أبو الخط من داخل التطبيق بدون ما ينكشف رقم الموبايل مالتي للخصوصية. أراسله وأكله إذا مرايحة اليوم والمنظومة كلش مرتبة ومريحة."</p>
+            <div class="testimonial-card__author">
+              <div class="testimonial-card__avatar testimonial-card__avatar--3">س</div>
+              <div>
+                <h4 class="testimonial-card__name" data-i18n="testimonials.t3Name">سارة محمد</h4>
+                <span class="testimonial-card__meta" data-i18n="testimonials.t3Meta">طالبة في جامعة النهرين</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== FAQ ==================== -->
+    <section id="faq" class="faq">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag" data-i18n="faq.tag">مركز المساعدة</span>
+          <h2 class="section-title" data-i18n="faq.title">الأسئلة الشائعة</h2>
+          <p class="section-desc" data-i18n="faq.subtitle">إجابات سريعة ومفصلة على الأسئلة التي يطرحها الطلاب وأولياء الأمور.</p>
+        </div>
+        <div class="faq__list">
+          <div class="faq-item">
+            <button class="faq-item__q" aria-expanded="false">
+              <span data-i18n="faq.q1">كيف يمكنني تفعيل الاشتراك لأول مرة؟</span>
+              <svg class="faq-item__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-item__a"><p data-i18n="faq.a1">يمكنك تفعيل الاشتراك إما بالدفع الإلكتروني المباشر داخل التطبيق عبر بوابة زين كاش (Zain Cash) أو من خلال شراء كود ترخيص (License Code) مكون من 8 رموز من الممثلين المعتمدين لتطبيق سير داخل حرم كليتك، وتفعيله فوراً داخل التطبيق لحجز مقعدك.</p></div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-item__q" aria-expanded="false">
+              <span data-i18n="faq.q2">هل يمكنني تتبع السائق بدون توفر إنترنت في هاتفي؟</span>
+              <svg class="faq-item__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-item__a"><p data-i18n="faq.a2">تحتاج إلى توفر اتصال بالإنترنت لرؤية التحديثات المباشرة وموقع الحافلة الفوري على الخريطة. ومع ذلك، يحتفظ التطبيق ببيانات آخر موقع للسائق وتفاصيل مساره للرجوع إليها دون اتصال.</p></div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-item__q" aria-expanded="false">
+              <span data-i18n="faq.q3">هل يتم الحفاظ على خصوصية أرقام الهواتف؟</span>
+              <svg class="faq-item__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-item__a"><p data-i18n="faq.a3">نعم، أمان وخصوصية طلابنا هي أولويتنا القصوى. عند التواصل مع السائق أو إرسال الرسائل الفورية داخل المحادثة الخاصة بالرحلة، يتم ذلك عبر التطبيق دون الكشف عن رقم هاتفك الشخصي للسائق أو المشتركين الآخرين مطلقاً.</p></div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-item__q" aria-expanded="false">
+              <span data-i18n="faq.q4">كيف يعمل زر الطوارئ SOS؟</span>
+              <svg class="faq-item__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-item__a"><p data-i18n="faq.a4">في حال حدوث أي طارئ أثناء الرحلة، يمكن للطالب أو السائق الضغط على زر SOS. سيقوم النظام فوراً بإرسال بلاغ طارئ لمشرفي المنصة يتضمن موقع الحافلة الجغرافي الدقيق لحظة البلاغ وتفاصيل المشتركين لتوفير الدعم السريع.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== CTA / DOWNLOAD ==================== -->
+    <section id="download" class="cta">
+      <div class="container">
+        <div class="cta__card">
+          <div class="cta__bg-pattern"></div>
+          <div class="cta__content">
+            <h2 class="cta__title" data-i18n="cta.title">جاهز لتجربة رحلة جامعية أذكى؟</h2>
+            <p class="cta__desc" data-i18n="cta.desc">حمل تطبيق سير الآن المتوفر مجاناً لأجهزة الـ Android والـ iOS وابدأ بتتبع رحلاتك اليومية.</p>
+            <div class="cta__badges">
+              <a href="#" class="cta__badge" aria-label="Google Play">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M3.18 1.08L14.1 12l-10.92 10.92C2.44 22.22 2 21.38 2 20.4V3.6c0-.98.44-1.82 1.18-2.52zm1.36-.62L15.72 6.9 13 9.6 4.54.46zM15.72 17.1L4.54 23.54 13 14.4l2.72 2.7zM21.02 11l-4.26-2.46L13.86 12l2.9 3.46L21.02 13c.6-.36.98-1 .98-1s-.38-.64-.98-1z"/></svg>
+                <div>
+                  <small data-i18n="cta.getItOn">احصل عليه من</small>
+                  <strong>Google Play</strong>
+                </div>
+              </a>
+              <a href="#" class="cta__badge" aria-label="App Store">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                <div>
+                  <small data-i18n="cta.downloadOn">تنزيل من</small>
+                  <strong>App Store</strong>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== DRIVER CTA ==================== -->
+    <section id="driver" class="driver-cta">
+      <div class="container">
+        <div class="driver-cta__card">
+          <div class="driver-cta__content">
+            <h2 class="section-title" data-i18n="driver.title">هل تمتلك حافلة نقل جامعي وتريد الانضمام؟</h2>
+            <p class="section-desc" data-i18n="driver.desc">انضم إلى شبكة سائقي سير الموثقين. نحن نوفر لك لوحة تحكم كاملة، إدارة ذكية للمشتركين والمقاعد، واستلام فوري ومضمون للأرباح.</p>
+            <a href="#" class="btn btn--primary btn--lg" data-i18n="driver.btnJoin">سجل شريكاً معنا</a>
+          </div>
+          <div class="driver-cta__visual">
+            <svg viewBox="0 0 200 200" fill="none" class="driver-cta__illustration">
+              <circle cx="100" cy="100" r="80" stroke="url(#driver-grad)" stroke-width="1" opacity="0.3"/>
+              <circle cx="100" cy="100" r="60" stroke="url(#driver-grad)" stroke-width="1" opacity="0.2"/>
+              <circle cx="100" cy="100" r="40" stroke="url(#driver-grad)" stroke-width="1" opacity="0.15"/>
+              <path d="M70 120h60M75 110h50M65 100h70l-5-20H70l-5 20z" stroke="url(#driver-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="82" cy="120" r="4" stroke="url(#driver-grad)" stroke-width="2"/>
+              <circle cx="118" cy="120" r="4" stroke="url(#driver-grad)" stroke-width="2"/>
+              <defs>
+                <linearGradient id="driver-grad" x1="0" y1="0" x2="200" y2="200">
+                  <stop stop-color="#0a5c36"/><stop offset="1" stop-color="#16a34a"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer__grid">
+          <div class="footer__brand">
+            <a href="#" class="logo" aria-label="Sair Home">
+              <svg class="logo__icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="40" height="40" rx="12" fill="url(#logo-grad2)"/>
+                <path d="M12 26h16M14 22h12M10 18h20l-2-8H12l-2 8z" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="16" cy="26" r="2" fill="#fff"/>
+                <circle cx="24" cy="26" r="2" fill="#fff"/>
+                <defs><linearGradient id="logo-grad2" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#0a5c36"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs>
+              </svg>
+              <span class="logo__text">سير <span class="logo__accent">Sair</span></span>
+            </a>
+            <p class="footer__about" data-i18n="footer.desc">المنصة الأذكى لتسيير وتتبع خطوط النقل الجامعي للطلاب في العراق بأعلى معايير السلامة والسرعة.</p>
+          </div>
+          <div class="footer__col">
+            <h4 class="footer__heading" data-i18n="footer.linksTitle">روابط سريعة</h4>
+            <a href="#features" data-i18n="nav.features">الميزات</a>
+            <a href="#demo" data-i18n="nav.demo">التتبع الحي</a>
+            <a href="#how-it-works" data-i18n="nav.howItWorks">كيف يعمل؟</a>
+            <a href="#faq" data-i18n="nav.faq">الأسئلة الشائعة</a>
+          </div>
+          <div class="footer__col">
+            <h4 class="footer__heading" data-i18n="footer.contactTitle">اتصل بنا</h4>
+            <p>بغداد، العراق</p>
+            <p>support@sairapp.com</p>
+            <p dir="ltr">+964 770 000 0000</p>
+          </div>
+        </div>
+        <div class="footer__bottom">
+          <p>© 2026 سير (Sair). <span data-i18n="footer.rights">جميع الحقوق محفوظة.</span></p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

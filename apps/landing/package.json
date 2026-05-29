@@ -1,0 +1,8 @@
+{
+  "name": "sair-landing",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx -y servor apps/landing 8080 --reload"
+  }
+}
