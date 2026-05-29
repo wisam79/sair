@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="dark-theme">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,12 +8,13 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;700;900&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <!-- Custom Style -->
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- Background Gradients -->
+    <!-- Background Canvas and Blobs -->
+    <div class="background-glow"></div>
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
@@ -29,8 +30,12 @@
           <a href="#features" data-i18n="nav.features">الميزات</a>
           <a href="#demo" data-i18n="nav.demo">التتبع الحي</a>
           <a href="#how-it-works" data-i18n="nav.howItWorks">كيف يعمل؟</a>
+          <a href="#faq" data-i18n="nav.faq">الأسئلة الشائعة</a>
         </nav>
         <div class="nav-actions">
+          <button id="theme-toggle" class="btn btn-secondary theme-btn" aria-label="Toggle theme">
+            <span class="theme-icon">🌙</span>
+          </button>
           <button id="lang-toggle" class="btn btn-secondary lang-btn">
             <span class="lang-text">English</span>
             <span class="lang-icon">🌐</span>
@@ -61,12 +66,12 @@
           </div>
           <div class="hero-stats animate-fade-in">
             <div class="stat-item">
-              <span class="stat-num">+10K</span>
+              <span class="stat-num" data-val="12000">+12K</span>
               <span class="stat-label" data-i18n="hero.statStudents">طالب مشترك</span>
             </div>
             <div class="stat-divider"></div>
             <div class="stat-item">
-              <span class="stat-num">+500</span>
+              <span class="stat-num" data-val="650">+650</span>
               <span class="stat-label" data-i18n="hero.statDrivers">سائق موثق</span>
             </div>
             <div class="stat-divider"></div>
@@ -86,38 +91,118 @@
                 <div class="mock-user">
                   <div class="mock-avatar">🎓</div>
                   <div>
-                    <div class="mock-name">أحمد علي</div>
-                    <div class="mock-sub">جامعة بغداد</div>
+                    <div class="mock-name" data-i18n="mock.studentName">علي حسين</div>
+                    <div class="mock-sub" data-i18n="mock.university">جامعة بغداد</div>
                   </div>
                 </div>
                 <div class="mock-bell">🔔</div>
               </div>
               
-              <!-- Mockup Map -->
-              <div class="mock-map">
-                <div class="mock-bus-marker">🚌</div>
-                <div class="mock-pulse"></div>
-                <div class="mock-route-path"></div>
-                <div class="mock-student-marker">📍</div>
+              <!-- Mockup Screens Container -->
+              <div class="mock-screens-wrapper">
+                
+                <!-- Screen 1: Map (Active by default) -->
+                <div id="screen-map" class="mock-screen active">
+                  <div class="mock-map">
+                    <div class="mock-bus-marker">🚌</div>
+                    <div class="mock-pulse"></div>
+                    <div class="mock-route-path"></div>
+                    <div class="mock-student-marker">📍</div>
+                  </div>
+                  <div class="mock-card">
+                    <div class="mock-card-header">
+                      <span class="mock-status-pill" data-i18n="mock.statusActive">نشط الآن</span>
+                      <span class="mock-price">25,000 د.ع</span>
+                    </div>
+                    <div class="mock-route-title" data-i18n="mock.routeTitle">خط الجادرية - الدورة</div>
+                    <div class="mock-driver-info">
+                      <div class="mock-avatar">🧔</div>
+                      <div>
+                        <div class="mock-driver-name" data-i18n="mock.driverName">أبو محمد (موثق)</div>
+                        <div class="mock-stars">⭐ 4.9 (94 تقييم)</div>
+                      </div>
+                      <div class="mock-chat-icon">💬</div>
+                    </div>
+                    <div class="mock-eta" data-i18n="mock.eta">تبعد الحافلة 5 دقائق عن موقعك</div>
+                  </div>
+                </div>
+
+                <!-- Screen 2: Subscription -->
+                <div id="screen-sub" class="mock-screen">
+                  <div class="mock-sub-container">
+                    <h4 class="mock-title" data-i18n="mock.subTitle">اشتراك الخط النشط</h4>
+                    <div class="mock-sub-card">
+                      <div class="mock-sub-row">
+                        <span data-i18n="mock.subLine">المسار:</span>
+                        <strong data-i18n="mock.routeTitle">خط الجادرية - الدورة</strong>
+                      </div>
+                      <div class="mock-sub-row">
+                        <span data-i18n="mock.subStatus">الحالة:</span>
+                        <span class="mock-status-active-badge" data-i18n="mock.subActive">مفعل</span>
+                      </div>
+                      <div class="mock-sub-row">
+                        <span data-i18n="mock.subExpiry">تاريخ الانتهاء:</span>
+                        <strong>2026/06/25</strong>
+                      </div>
+                    </div>
+                    
+                    <h4 class="mock-title" data-i18n="mock.subCheckout">تجديد الاشتراك</h4>
+                    <button class="mock-checkout-btn">
+                      <span class="zc-icon">💳</span>
+                      <span data-i18n="mock.subZainCash">تجديد عبر زين كاش</span>
+                    </button>
+                    
+                    <div class="mock-divider-text"><span data-i18n="mock.subOr">أو</span></div>
+                    
+                    <div class="mock-license-field">
+                      <input type="text" placeholder="أدخل كود الترخيص" class="mock-input" disabled />
+                      <button class="mock-activate-btn" data-i18n="mock.subActivate">تفعيل</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Screen 3: Chat -->
+                <div id="screen-chat" class="mock-screen">
+                  <div class="mock-chat-container">
+                    <div class="mock-chat-history">
+                      <div class="chat-msg driver">
+                        <div class="msg-bubble" data-i18n="mock.msgDriver1">صباح الخير طلاب، انطلقت الآن وباتجاه نقطة التجمع الأولى.</div>
+                        <span class="msg-time">07:30 ص</span>
+                      </div>
+                      <div class="chat-msg student">
+                        <div class="msg-bubble" data-i18n="mock.msgStudent1">صباح النور عمو، بانتظارك في المحطة.</div>
+                        <span class="msg-time">07:32 ص</span>
+                      </div>
+                      <div class="chat-msg driver">
+                        <div class="msg-bubble" data-i18n="mock.msgDriver2">تمام علي، 5 دقائق وأكون يمكم.</div>
+                        <span class="msg-time">07:33 ص</span>
+                      </div>
+                    </div>
+                    <div class="mock-chat-input-area">
+                      <div class="mock-chat-input-placeholder" data-i18n="mock.chatPlaceholder">أكتب رسالة...</div>
+                      <div class="mock-send-btn">➔</div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
-              <!-- Mockup Card -->
-              <div class="mock-card">
-                <div class="mock-card-header">
-                  <span class="mock-status-pill">نشط الآن</span>
-                  <span class="mock-price">25,000 د.ع / شهر</span>
-                </div>
-                <div class="mock-route-title">خط جامعة بغداد - الجادرية</div>
-                <div class="mock-driver-info">
-                  <div class="mock-avatar">🧔</div>
-                  <div>
-                    <div class="mock-driver-name">أبو علي (سائق موثق)</div>
-                    <div class="mock-stars">⭐ 4.9 (120 تقييم)</div>
-                  </div>
-                  <div class="mock-chat-icon">💬</div>
-                </div>
-                <div class="mock-eta">الحافلة تبعد 4 دقائق عن موقعك</div>
+              <!-- Interactive Mockup Tabs -->
+              <div class="mock-tabs">
+                <button class="mock-tab active" data-tab="map">
+                  <span class="tab-icon">🗺️</span>
+                  <span class="tab-label" data-i18n="mock.tabMap">الخريطة</span>
+                </button>
+                <button class="mock-tab" data-tab="sub">
+                  <span class="tab-icon">🎫</span>
+                  <span class="tab-label" data-i18n="mock.tabSub">الاشتراك</span>
+                </button>
+                <button class="mock-tab" data-tab="chat">
+                  <span class="tab-icon">💬</span>
+                  <span class="tab-label" data-i18n="mock.tabChat">المحادثة</span>
+                </button>
               </div>
+
             </div>
           </div>
         </div>
@@ -135,25 +220,42 @@
         <div class="features-grid">
           <!-- Card 1 -->
           <div class="feature-card glass">
-            <div class="feature-icon bg-blue">📍</div>
+            <div class="feature-icon bg-blue">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+              </svg>
+            </div>
             <h3 class="feature-name" data-i18n="features.liveTracking">تتبع حي مباشر</h3>
             <p class="feature-desc" data-i18n="features.liveTrackingDesc">شاهد موقع الحافلة الجغرافي مباشرة على الخريطة وتفادى عناء الانتظار الطويل في حر الصيف أو برد الشتاء.</p>
           </div>
           <!-- Card 2 -->
           <div class="feature-card glass">
-            <div class="feature-icon bg-green">💳</div>
+            <div class="feature-icon bg-green">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+              </svg>
+            </div>
             <h3 class="feature-name" data-i18n="features.smartPayments">اشتراكات سهلة وآمنة</h3>
             <p class="feature-desc" data-i18n="features.smartPaymentsDesc">اشترك وادفع مباشرة عبر زين كاش (Zain Cash) أو من خلال تفعيل أكواد التراخيص التي يوزعها وكلاؤنا في الكليات.</p>
           </div>
           <!-- Card 3 -->
           <div class="feature-card glass">
-            <div class="feature-icon bg-purple">💬</div>
+            <div class="feature-icon bg-purple">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1.75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.58 16.24 3 14.186 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+              </svg>
+            </div>
             <h3 class="feature-name" data-i18n="features.directChat">اتصال فوري مباشر</h3>
             <p class="feature-desc" data-i18n="features.directChatDesc">تواصل بشكل فوري وآمن مع سائق حافلتك للتنبيه أو التنسيق اليومي بخصوص الرحلات دون الكشف عن رقم هاتفك.</p>
           </div>
           <!-- Card 4 -->
           <div class="feature-card glass">
-            <div class="feature-icon bg-red">🛡️</div>
+            <div class="feature-icon bg-red">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+              </svg>
+            </div>
             <h3 class="feature-name" data-i18n="features.sosSafety">زر طوارئ SOS</h3>
             <p class="feature-desc" data-i18n="features.sosSafetyDesc">أمانك أولويتنا؛ نوفر زر طوارئ ذكي داخل التطبيق لمشاركة موقعك الفوري وتنبيه المشرفين في الحالات الطارئة.</p>
           </div>
@@ -192,7 +294,7 @@
               <!-- Route Path -->
               <svg class="map-svg" viewBox="0 0 500 350">
                 <!-- Outer road path -->
-                <path d="M 50,280 Q 150,100 250,220 T 450,80" fill="none" stroke="rgba(255, 255, 255, 0.15)" stroke-width="8" stroke-linecap="round"/>
+                <path d="M 50,280 Q 150,100 250,220 T 450,80" fill="none" stroke="rgba(255, 255, 255, 0.1)" stroke-width="8" stroke-linecap="round"/>
                 <!-- Inner progress path -->
                 <path id="route-progress" d="M 50,280 Q 150,100 250,220 T 450,80" fill="none" stroke="url(#accent-grad)" stroke-width="8" stroke-linecap="round" stroke-dasharray="600" stroke-dashoffset="600"/>
                 
@@ -257,6 +359,108 @@
       </div>
     </section>
 
+    <!-- Testimonials Section -->
+    <section class="testimonials-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title" data-i18n="testimonials.title">ماذا يقول طلابنا؟</h2>
+          <p class="section-subtitle" data-i18n="testimonials.subtitle">آراء حقيقية من طلاب الجامعات الذين يستخدمون سير يومياً لتسهيل تنقلهم.</p>
+        </div>
+        
+        <div class="testimonials-grid">
+          <!-- Card 1 -->
+          <div class="testimonial-card glass">
+            <div class="t-rating">⭐⭐⭐⭐⭐</div>
+            <p class="t-text" data-i18n="testimonials.t1Text">"التطبيق غير حياتي الجامعية تماماً! كنت أقف ساعات بالشارع انتظر الخط، الآن أخرج من البيت في الدقيقة المحددة تماماً وأنا أراقب موقع السائق."</p>
+            <div class="t-user">
+              <div class="t-avatar">🎓</div>
+              <div>
+                <h4 class="t-name" data-i18n="testimonials.t1Name">نور الهدى</h4>
+                <span class="t-meta" data-i18n="testimonials.t1Meta">طالبة في جامعة المستنصرية</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 2 -->
+          <div class="testimonial-card glass">
+            <div class="t-rating">⭐⭐⭐⭐⭐</div>
+            <p class="t-text" data-i18n="testimonials.t2Text">"الاشتراك والدفع عبر زين كاش جداً سهل وسريع. التذاكر وكود التراخيص يحل مشكلة كبيرة مع محاسب الكلية والاشتراك مفعّل مباشرة."</p>
+            <div class="t-user">
+              <div class="t-avatar">🎓</div>
+              <div>
+                <h4 class="t-name" data-i18n="testimonials.t2Name">مصطفى سجاد</h4>
+                <span class="t-meta" data-i18n="testimonials.t2Meta">طالب في جامعة بغداد - هندسة</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 3 -->
+          <div class="testimonial-card glass">
+            <div class="t-rating">⭐⭐⭐⭐⭐</div>
+            <p class="t-text" data-i18n="testimonials.t3Text">"ميزة المحادثة مع السائق داخل التطبيق ممتازة وتحمي خصوصية أرقامنا. أرسل له تنبيه إذا كنت غائب اليوم والمنظومة جداً مرتبة."</p>
+            <div class="t-user">
+              <div class="t-avatar">🎓</div>
+              <div>
+                <h4 class="t-name" data-i18n="testimonials.t3Name">سارة محمد</h4>
+                <span class="t-meta" data-i18n="testimonials.t3Meta">طالبة في جامعة النهرين</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title" data-i18n="faq.title">الأسئلة الشائعة</h2>
+          <p class="section-subtitle" data-i18n="faq.subtitle">إجابات سريعة ومفصلة على الأسئلة التي يطرحها الطلاب وأولياء الأمور.</p>
+        </div>
+
+        <div class="faq-accordion">
+          <!-- Item 1 -->
+          <div class="faq-item glass">
+            <button class="faq-question">
+              <span data-i18n="faq.q1">كيف يمكنني تفعيل الاشتراك لأول مرة؟</span>
+              <span class="faq-arrow">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p data-i18n="faq.a1">يمكنك تفعيل الاشتراك إما بالدفع الإلكتروني المباشر داخل التطبيق عبر بوابة زين كاش (Zain Cash) أو من خلال شراء كود ترخيص (License Code) مكون من 8 رموز من الممثلين المعتمدين لتطبيق سير داخل حرم كليتك، وتفعيله فوراً داخل التطبيق لحجز مقعدك.</p>
+            </div>
+          </div>
+          <!-- Item 2 -->
+          <div class="faq-item glass">
+            <button class="faq-question">
+              <span data-i18n="faq.q2">هل يمكنني تتبع السائق بدون توفر إنترنت في هاتفي؟</span>
+              <span class="faq-arrow">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p data-i18n="faq.a2">تحتاج إلى توفر اتصال بالإنترنت لرؤية التحديثات المباشرة وموقع الحافلة الفوري على الخريطة. ومع ذلك، يحتفظ التطبيق ببيانات آخر موقع للسائق وتفاصيل مساره للرجوع إليها دون اتصال.</p>
+            </div>
+          </div>
+          <!-- Item 3 -->
+          <div class="faq-item glass">
+            <button class="faq-question">
+              <span data-i18n="faq.q3">هل يتم الحفاظ على خصوصية أرقام الهواتف؟</span>
+              <span class="faq-arrow">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p data-i18n="faq.a3">نعم، أمان وخصوصية طلابنا هي أولويتنا القصوى. عند التواصل مع السائق أو إرسال الرسائل الفورية داخل المحادثة الخاصة بالرحلة، يتم ذلك عبر التطبيق دون الكشف عن رقم هاتفك الشخصي للسائق أو المشتركين الآخرين مطلقاً.</p>
+            </div>
+          </div>
+          <!-- Item 4 -->
+          <div class="faq-item glass">
+            <button class="faq-question">
+              <span data-i18n="faq.q4">كيف يعمل زر الطوارئ SOS؟</span>
+              <span class="faq-arrow">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p data-i18n="faq.a4">في حال حدوث أي طارئ أثناء الرحلة، يمكن للطالب أو السائق الضغط على زر SOS. سيقوم النظام فوراً بإرسال بلاغ طارئ لمشرفي المنصة يتضمن موقع الحافلة الجغرافي الدقيق لحظة البلاغ وتفاصيل المشتركين لتوفير الدعم السريع.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- App Showcase / Call To Action -->
     <section id="download" class="download-section">
       <div class="container download-container glass">
@@ -309,6 +513,7 @@
           <a href="#features" data-i18n="nav.features">الميزات</a>
           <a href="#demo" data-i18n="nav.demo">التتبع الحي</a>
           <a href="#how-it-works" data-i18n="nav.howItWorks">كيف يعمل؟</a>
+          <a href="#faq" data-i18n="nav.faq">الأسئلة الشائعة</a>
         </div>
         <div class="footer-contact">
           <h4 data-i18n="footer.contactTitle">اتصل بنا</h4>

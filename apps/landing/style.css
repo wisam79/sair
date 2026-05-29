@@ -1,17 +1,9 @@
 /* ==========================================================================
-   Sair Premium Design System & CSS Stylesheet
+   Sair Premium Design System & CSS Stylesheet - Updated
    ========================================================================== */
 
 /* 1. Global Reset & Variables */
 :root {
-  /* Color Tokens (HSL) */
-  --hue: 224;
-  --bg-obsidian: hsl(var(--hue), 50%, 6%);
-  --bg-card: hsla(var(--hue), 45%, 12%, 0.45);
-  --bg-card-hover: hsla(var(--hue), 45%, 16%, 0.65);
-  --border-light: rgba(255, 255, 255, 0.07);
-  --border-glow: hsla(var(--hue), 90%, 60%, 0.25);
-  
   --primary: hsl(217, 91%, 60%);
   --primary-gradient: linear-gradient(135deg, hsl(217, 91%, 60%) 0%, hsl(142, 71%, 45%) 100%);
   --accent-cyan: hsl(190, 90%, 50%);
@@ -19,14 +11,41 @@
   --warning: hsl(38, 92%, 50%);
   --error: hsl(0, 84%, 60%);
   
-  --text-white: hsl(0, 0%, 98%);
-  --text-muted: hsl(220, 14%, 68%);
-  
   --transition-smooth: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
   --transition-fast: all 0.2s ease;
   
   --font-ar: 'Noto Sans Arabic', sans-serif;
   --font-en: 'Outfit', sans-serif;
+}
+
+/* Theme 1: Dark Mode Variables (Default) */
+.dark-theme {
+  --hue: 224;
+  --bg-obsidian: hsl(var(--hue), 50%, 6%);
+  --bg-card: hsla(var(--hue), 45%, 12%, 0.45);
+  --bg-card-hover: hsla(var(--hue), 45%, 16%, 0.65);
+  --border-light: rgba(255, 255, 255, 0.07);
+  --border-glow: hsla(var(--hue), 90%, 60%, 0.25);
+  
+  --text-white: hsl(0, 0%, 98%);
+  --text-muted: hsl(220, 14%, 68%);
+  --shadow-overlay: rgba(0, 0, 0, 0.5);
+  --blob-opacity: 0.15;
+}
+
+/* Theme 2: Light Mode Variables */
+.light-theme {
+  --hue: 220;
+  --bg-obsidian: hsl(var(--hue), 25%, 96%);
+  --bg-card: rgba(255, 255, 255, 0.8);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --border-light: rgba(0, 0, 0, 0.08);
+  --border-glow: hsla(var(--hue), 90%, 50%, 0.15);
+  
+  --text-white: hsl(var(--hue), 40%, 10%);
+  --text-muted: hsl(var(--hue), 12%, 40%);
+  --shadow-overlay: rgba(0, 0, 0, 0.05);
+  --blob-opacity: 0.1;
 }
 
 * {
@@ -41,6 +60,7 @@ html {
   background-color: var(--bg-obsidian);
   color: var(--text-white);
   overflow-x: hidden;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 body {
@@ -52,7 +72,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Switch font stack based on lang attribute */
 html[lang="en"] body {
   font-family: var(--font-en);
 }
@@ -63,16 +82,27 @@ a {
   transition: var(--transition-fast);
 }
 
-/* 2. Custom Background Decorative Elements */
+/* 2. Background Decorative Elements */
+.background-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1000px;
+  background: radial-gradient(circle at 50% 0%, hsla(217, 91%, 60%, 0.08) 0%, transparent 60%);
+  z-index: -2;
+  pointer-events: none;
+}
 .blob {
   position: absolute;
   width: 450px;
   height: 450px;
   border-radius: 50%;
   filter: blur(120px);
-  opacity: 0.15;
+  opacity: var(--blob-opacity);
   z-index: -1;
   pointer-events: none;
+  transition: opacity 0.4s ease;
 }
 .blob-1 {
   background: var(--primary);
@@ -81,7 +111,7 @@ a {
 }
 .blob-2 {
   background: var(--success);
-  top: 40%;
+  top: 45%;
   left: -150px;
 }
 .blob-3 {
@@ -107,7 +137,7 @@ a {
 }
 .glass:hover {
   border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 40px -15px var(--shadow-overlay);
 }
 
 /* Buttons System */
@@ -176,6 +206,10 @@ a {
   background: rgba(10, 15, 29, 0.7);
   border-bottom: 1px solid var(--border-light);
   padding: 16px 0;
+  transition: background-color 0.4s ease;
+}
+.light-theme .header {
+  background: rgba(245, 246, 250, 0.75);
 }
 .navbar {
   display: flex;
@@ -194,9 +228,7 @@ a {
   font-size: 26px;
 }
 .logo-text {
-  background: linear-gradient(to right, #fff 40%, var(--text-muted) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-white);
 }
 .nav-links {
   display: flex;
@@ -214,11 +246,18 @@ a {
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 .lang-btn {
-  padding: 8px 16px;
+  padding: 10px 16px;
   border-radius: 10px;
+  font-weight: 700;
+}
+.theme-btn {
+  padding: 10px;
+  border-radius: 10px;
+  width: 44px;
+  height: 44px;
 }
 
 /* 5. Hero Section */
@@ -263,6 +302,7 @@ a {
   line-height: 1.15;
   letter-spacing: -1.5px;
   margin-bottom: 20px;
+  color: var(--text-white);
 }
 html[lang="en"] .hero-title {
   letter-spacing: -0.5px;
@@ -303,7 +343,7 @@ html[lang="en"] .hero-title {
   background: var(--border-light);
 }
 
-/* 6. Phone Mockup Visual */
+/* 6. Phone Mockup Visualizer */
 .hero-visual {
   display: flex;
   justify-content: center;
@@ -350,25 +390,29 @@ html[lang="en"] .hero-title {
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Phone Mockup Content UI */
+/* Phone Mockup Header */
 .mock-header {
-  padding: 30px 16px 16px;
+  padding: 32px 16px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(20, 27, 47, 0.6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: #121829;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 .mock-user {
   display: flex;
   align-items: center;
   gap: 10px;
+  text-align: right;
+}
+html[lang="en"] .mock-user {
+  text-align: left;
 }
 .mock-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -377,22 +421,46 @@ html[lang="en"] .hero-title {
 .mock-name {
   font-size: 12px;
   font-weight: 700;
-  color: var(--text-white);
+  color: white;
+  line-height: 1.2;
 }
 .mock-sub {
   font-size: 10px;
-  color: var(--text-muted);
+  color: #8f9cae;
 }
 .mock-bell {
   font-size: 16px;
-  cursor: pointer;
+  color: #8f9cae;
 }
 
-/* Mockup Map inside phone */
+/* Phone Mockup Screen Wrapper & Tabs */
+.mock-screens-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.mock-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.mock-screen.active {
+  display: flex;
+  flex-direction: column;
+  opacity: 1;
+  z-index: 5;
+}
+
+/* Screen 1: Map Screen */
 .mock-map {
   flex: 1;
-  background: radial-gradient(circle at center, rgba(59, 130, 246, 0.15) 0%, transparent 70%),
-              #0d111d;
+  background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 80%),
+              #090d16;
   position: relative;
   overflow: hidden;
 }
@@ -419,15 +487,11 @@ html[lang="en"] .hero-title {
   z-index: 4;
   animation: mock-glow 1.5s infinite;
 }
-@keyframes mock-glow {
-  0% { transform: scale(0.5); opacity: 1; }
-  100% { transform: scale(2.2); opacity: 0; }
-}
 .mock-route-path {
   position: absolute;
   width: 80%;
   height: 2px;
-  background: rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.3);
   top: 50%;
   left: 10%;
   transform: rotate(15deg);
@@ -438,19 +502,17 @@ html[lang="en"] .hero-title {
   left: 70%;
   font-size: 16px;
 }
-
-/* Mockup Info Card */
 .mock-card {
   margin: 12px;
   padding: 16px;
-  background: rgba(20, 27, 47, 0.95);
+  background: #121829;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 .mock-card-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 8px;
 }
 .mock-status-pill {
@@ -462,13 +524,14 @@ html[lang="en"] .hero-title {
   font-weight: 700;
 }
 .mock-price {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--accent-cyan);
 }
 .mock-route-title {
   font-size: 13px;
   font-weight: 700;
+  color: white;
   margin-bottom: 12px;
 }
 .mock-driver-info {
@@ -476,12 +539,17 @@ html[lang="en"] .hero-title {
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding-top: 10px;
+  text-align: right;
+}
+html[lang="en"] .mock-driver-info {
+  text-align: left;
 }
 .mock-driver-name {
   font-size: 11px;
   font-weight: 600;
+  color: white;
 }
 .mock-stars {
   font-size: 9px;
@@ -497,14 +565,240 @@ html[lang="en"] .mock-chat-icon {
 }
 .mock-eta {
   font-size: 10px;
-  color: var(--text-muted);
+  color: #8f9cae;
   background: rgba(255, 255, 255, 0.03);
   padding: 6px;
-  border-radius: 6px;
+  border-radius: 8px;
   text-align: center;
 }
 
-/* 7. Features Grid Section */
+/* Screen 2: Subscription Screen */
+.mock-sub-container {
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0d111d;
+  color: white;
+  overflow-y: auto;
+}
+.mock-title {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #8f9cae;
+}
+.mock-sub-card {
+  background: #141b2f;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mock-sub-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+}
+.mock-sub-row span {
+  color: #8f9cae;
+}
+.mock-status-active-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.mock-checkout-btn {
+  background: #bf0000;
+  color: white;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+.mock-checkout-btn:hover {
+  transform: scale(0.98);
+}
+.mock-divider-text {
+  text-align: center;
+  font-size: 11px;
+  color: #8f9cae;
+  margin: 14px 0;
+  position: relative;
+}
+.mock-divider-text::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 40%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.mock-divider-text::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 40%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.mock-license-field {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.mock-input {
+  flex: 1;
+  background: #141b2f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px;
+  color: white;
+  font-size: 11px;
+}
+.mock-activate-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0 16px;
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* Screen 3: Chat Screen */
+.mock-chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0d111d;
+}
+.mock-chat-history {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+.chat-msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+}
+.chat-msg.driver {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+.chat-msg.student {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+.msg-bubble {
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: white;
+}
+.chat-msg.driver .msg-bubble {
+  background: #1a233d;
+  border-bottom-left-radius: 4px;
+}
+.chat-msg.student .msg-bubble {
+  background: var(--primary);
+  border-bottom-right-radius: 4px;
+}
+.msg-time {
+  font-size: 8px;
+  color: #8f9cae;
+  margin-top: 4px;
+}
+.mock-chat-input-area {
+  padding: 12px;
+  background: #121829;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.mock-chat-input-placeholder {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 8px 16px;
+  color: #8f9cae;
+  font-size: 11px;
+}
+.mock-send-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 10px;
+  transform: rotate(-90deg);
+  cursor: pointer;
+}
+html[lang="ar"] .mock-send-btn {
+  transform: rotate(180deg);
+}
+
+/* Phone Navigation Tabs Bottom */
+.mock-tabs {
+  height: 60px;
+  background: #121829;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 6px;
+}
+.mock-tab {
+  background: transparent;
+  border: none;
+  color: #8f9cae;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  border-radius: 12px;
+}
+.mock-tab.active {
+  color: var(--primary);
+  background: rgba(59, 130, 246, 0.05);
+}
+.tab-icon {
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+.tab-label {
+  font-size: 9px;
+  font-weight: 700;
+}
+
+/* 7. Features Section */
 .features-section {
   padding: 100px 0;
 }
@@ -517,6 +811,7 @@ html[lang="en"] .mock-chat-icon {
   font-weight: 800;
   margin-bottom: 16px;
   letter-spacing: -0.5px;
+  color: var(--text-white);
 }
 .section-subtitle {
   font-size: 16px;
@@ -539,29 +834,37 @@ html[lang="en"] .mock-chat-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
   margin-bottom: 24px;
+}
+.feature-icon svg {
+  width: 24px;
+  height: 24px;
 }
 .bg-blue {
   background: rgba(59, 130, 246, 0.1);
   border: 1px solid rgba(59, 130, 246, 0.2);
+  color: var(--primary);
 }
 .bg-green {
   background: rgba(16, 185, 129, 0.1);
   border: 1px solid rgba(16, 185, 129, 0.2);
+  color: var(--success);
 }
 .bg-purple {
   background: rgba(139, 92, 246, 0.1);
   border: 1px solid rgba(139, 92, 246, 0.2);
+  color: hsl(260, 90%, 65%);
 }
 .bg-red {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--error);
 }
 .feature-name {
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 12px;
+  color: var(--text-white);
 }
 .feature-desc {
   font-size: 14px;
@@ -681,7 +984,7 @@ html[lang="en"] .mock-chat-icon {
   position: absolute;
   width: 32px;
   height: 32px;
-  background: var(--bg-card);
+  background: #121829;
   border: 1px solid var(--border-glow);
   box-shadow: 0 0 15px var(--border-glow);
   border-radius: 50%;
@@ -735,6 +1038,7 @@ html[lang="en"] .mock-chat-icon {
   font-size: 18px;
   font-weight: 700;
   margin-bottom: 12px;
+  color: var(--text-white);
 }
 .step-desc {
   font-size: 14px;
@@ -742,7 +1046,123 @@ html[lang="en"] .mock-chat-icon {
   line-height: 1.6;
 }
 
-/* 10. Call To Action & Badges */
+/* 10. Testimonials Grid */
+.testimonials-section {
+  padding: 100px 0;
+}
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-top: 40px;
+}
+.testimonial-card {
+  padding: 36px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.t-rating {
+  color: var(--warning);
+  font-size: 14px;
+}
+.t-text {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  font-style: italic;
+  flex: 1;
+}
+.t-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.t-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.t-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-white);
+}
+.t-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* 11. FAQ Accordion Section */
+.faq-section {
+  padding: 100px 0;
+}
+.faq-accordion {
+  max-width: 800px;
+  margin: 40px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.faq-item {
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 0;
+}
+.faq-question {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 24px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-white);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  text-align: right;
+  gap: 20px;
+  transition: background-color 0.2s ease;
+}
+html[lang="en"] .faq-question {
+  text-align: left;
+}
+.faq-question:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+.faq-arrow {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: transform 0.3s ease;
+}
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  padding: 0 24px;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+}
+.faq-answer p {
+  font-size: 14.5px;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+.faq-item.active .faq-answer {
+  max-height: 300px;
+  padding-bottom: 24px;
+}
+.faq-item.active .faq-arrow {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+/* 12. Call To Action & Badges */
 .download-section {
   padding: 80px 0;
 }
@@ -757,6 +1177,7 @@ html[lang="en"] .mock-chat-icon {
   font-size: 36px;
   font-weight: 800;
   margin-bottom: 16px;
+  color: var(--text-white);
 }
 .download-desc {
   font-size: 16px;
@@ -808,7 +1229,7 @@ html[lang="en"] .mock-chat-icon {
   background: linear-gradient(135deg, #1d243b 0%, #0d111d 100%);
 }
 
-/* 11. Driver Invitation Section */
+/* 13. Driver Invitation Section */
 .driver-section {
   padding: 60px 0 100px;
 }
@@ -841,11 +1262,15 @@ html[lang="en"] .driver-icon-bg {
   right: auto;
 }
 
-/* 12. Footer Section */
+/* 14. Footer Section */
 .footer {
   background: #060912;
   border-top: 1px solid var(--border-light);
   padding: 80px 0 30px;
+  transition: background-color 0.4s ease;
+}
+.light-theme .footer {
+  background: hsl(var(--hue), 25%, 91%);
 }
 .footer-grid {
   display: grid;
@@ -892,7 +1317,7 @@ html[lang="en"] .driver-icon-bg {
   color: var(--text-muted);
 }
 
-/* 13. Entrance Animations via Intersection Observer */
+/* 15. Entrance Animations via Intersection Observer */
 .animate-fade-in {
   opacity: 0;
   animation: fade-in-act 0.8s forwards ease;
@@ -913,7 +1338,7 @@ html[lang="en"] .driver-icon-bg {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* 14. Responsive Layout Breakpoints */
+/* 16. Responsive Layout Breakpoints */
 @media (max-width: 991px) {
   .hero-grid {
     grid-template-columns: 1fr;
