@@ -26,13 +26,7 @@ import {
   Stack,
   useTheme,
 } from '@mui/material';
-import {
-  CheckCircle,
-  Error,
-  Warning,
-  Refresh,
-  Search,
-} from '@mui/icons-material';
+import { CheckCircle, Error, Warning, Refresh, Search } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { supabaseClient } from '../../providers/supabaseClient';
@@ -52,12 +46,7 @@ const STATUS_CONFIG = {
   },
 };
 
-function PremiumHealthCard({
-  service,
-  status,
-  latency_ms,
-  message,
-}: HealthCheck) {
+function PremiumHealthCard({ service, status, latency_ms, message }: HealthCheck) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.healthy;
@@ -104,7 +93,13 @@ function PremiumHealthCard({
       }}
     >
       <CardContent sx={{ p: 2.5, position: 'relative', zIndex: 1 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2} sx={{ mb: 2 }}>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          spacing={2}
+          sx={{ mb: 2 }}
+        >
           <Typography variant="subtitle1" fontWeight={700} sx={{ color: 'text.primary' }}>
             {service}
           </Typography>
@@ -142,7 +137,15 @@ function PremiumHealthCard({
         </Stack>
 
         {message && (
-          <Typography variant="body2" sx={{ color: status === 'healthy' ? 'text.secondary' : 'error.main', fontSize: '0.78rem', mt: 1, fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: status === 'healthy' ? 'text.secondary' : 'error.main',
+              fontSize: '0.78rem',
+              mt: 1,
+              fontFamily: 'var(--font-noto-arabic), sans-serif',
+            }}
+          >
             {message}
           </Typography>
         )}
@@ -352,7 +355,10 @@ export default function SystemPage() {
 
   return (
     <>
-      <Paper elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', mb: 3, bgcolor: 'transparent' }}>
+      <Paper
+        elevation={0}
+        sx={{ borderBottom: 1, borderColor: 'divider', mb: 3, bgcolor: 'transparent' }}
+      >
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
@@ -432,7 +438,11 @@ export default function SystemPage() {
               severity="error"
               sx={{ mb: 3 }}
               action={
-                <Button color="inherit" size="small" onClick={() => void fetchLogs(page, rowsPerPage, searchTerm)}>
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={() => void fetchLogs(page, rowsPerPage, searchTerm)}
+                >
                   {t('common.retry', 'Retry')}
                 </Button>
               }
@@ -474,18 +484,60 @@ export default function SystemPage() {
                   ? 'linear-gradient(135deg, rgba(45, 45, 45, 0.45) 0%, rgba(35, 35, 35, 0.45) 100%)'
                   : 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 242, 239, 0.8) 100%)',
                 backdropFilter: 'blur(12px)',
-                boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.25)' : '0 8px 32px rgba(15, 23, 42, 0.04)',
+                boxShadow: isDark
+                  ? '0 8px 32px rgba(0, 0, 0, 0.25)'
+                  : '0 8px 32px rgba(15, 23, 42, 0.04)',
                 overflow: 'hidden',
               }}
             >
               <Table>
                 <TableHead>
                   <TableRow sx={{ bgcolor: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)' }}>
-                    <TableCell sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600, color: 'text.primary' }}>{t('activityLog.timestamp', 'Timestamp')}</TableCell>
-                    <TableCell sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600, color: 'text.primary' }}>{t('activityLog.user', 'User')}</TableCell>
-                    <TableCell sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600, color: 'text.primary' }}>{t('activityLog.action', 'Action')}</TableCell>
-                    <TableCell sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600, color: 'text.primary' }}>{t('activityLog.resource', 'Resource')}</TableCell>
-                    <TableCell sx={{ fontFamily: 'var(--font-noto-arabic), sans-serif', fontWeight: 600, color: 'text.primary' }}>{t('activityLog.details', 'Details')}</TableCell>
+                    <TableCell
+                      sx={{
+                        fontFamily: 'var(--font-noto-arabic), sans-serif',
+                        fontWeight: 600,
+                        color: 'text.primary',
+                      }}
+                    >
+                      {t('activityLog.timestamp', 'Timestamp')}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontFamily: 'var(--font-noto-arabic), sans-serif',
+                        fontWeight: 600,
+                        color: 'text.primary',
+                      }}
+                    >
+                      {t('activityLog.user', 'User')}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontFamily: 'var(--font-noto-arabic), sans-serif',
+                        fontWeight: 600,
+                        color: 'text.primary',
+                      }}
+                    >
+                      {t('activityLog.action', 'Action')}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontFamily: 'var(--font-noto-arabic), sans-serif',
+                        fontWeight: 600,
+                        color: 'text.primary',
+                      }}
+                    >
+                      {t('activityLog.resource', 'Resource')}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontFamily: 'var(--font-noto-arabic), sans-serif',
+                        fontWeight: 600,
+                        color: 'text.primary',
+                      }}
+                    >
+                      {t('activityLog.details', 'Details')}
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -502,9 +554,14 @@ export default function SystemPage() {
                       <TableRow
                         key={log.id}
                         sx={{
-                          bgcolor: idx % 2 === 0
-                            ? (isDark ? 'rgba(255,255,255,0.015)' : 'rgba(15,23,42,0.015)')
-                            : (isDark ? 'rgba(255,255,255,0.003)' : 'rgba(15,23,42,0.002)'),
+                          bgcolor:
+                            idx % 2 === 0
+                              ? isDark
+                                ? 'rgba(255,255,255,0.015)'
+                                : 'rgba(15,23,42,0.015)'
+                              : isDark
+                                ? 'rgba(255,255,255,0.003)'
+                                : 'rgba(15,23,42,0.002)',
                           borderBottom: '2px solid',
                           borderColor: isDark ? '#2D2D2D' : '#E5E1D8',
                           '&:hover': {

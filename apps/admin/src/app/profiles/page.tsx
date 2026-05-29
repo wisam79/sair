@@ -97,12 +97,33 @@ export default function ProfileList() {
 
   return (
     <Box sx={{ p: { xs: 0, sm: 0.5 } }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }} spacing={2}>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 3 }}
+        spacing={2}
+      >
         <Box>
-          <Typography variant="h5" fontWeight={700} sx={{ color: 'text.primary', mb: 0.5, fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+          <Typography
+            variant="h5"
+            fontWeight={700}
+            sx={{
+              color: 'text.primary',
+              mb: 0.5,
+              fontFamily: 'var(--font-noto-arabic), sans-serif',
+            }}
+          >
             {t('profiles.title', 'إدارة الحسابات')}
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, fontFamily: 'var(--font-noto-arabic), sans-serif' }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              fontWeight: 500,
+              fontFamily: 'var(--font-noto-arabic), sans-serif',
+            }}
+          >
             {t('profiles.subtitle', 'عرض وتعديل حسابات الطلاب والمديرين والسائقين بالمنصة')}
           </Typography>
         </Box>
@@ -116,14 +137,18 @@ export default function ProfileList() {
             borderRadius: 2.5,
             px: 2.5,
             py: 1,
-            boxShadow: isDark ? '0 4px 12px rgba(74, 222, 128, 0.15)' : '0 4px 12px rgba(22, 163, 74, 0.15)',
+            boxShadow: isDark
+              ? '0 4px 12px rgba(74, 222, 128, 0.15)'
+              : '0 4px 12px rgba(22, 163, 74, 0.15)',
             textTransform: 'none',
             fontWeight: 600,
             transition: 'all 0.2s ease',
             '&:hover': {
               transform: 'translateY(-2px)',
-              boxShadow: isDark ? '0 6px 16px rgba(74, 222, 128, 0.25)' : '0 6px 16px rgba(22, 163, 74, 0.25)',
-            }
+              boxShadow: isDark
+                ? '0 6px 16px rgba(74, 222, 128, 0.25)'
+                : '0 6px 16px rgba(22, 163, 74, 0.25)',
+            },
           }}
         >
           {t('bulkImport.title', 'Bulk User Import')}
@@ -142,7 +167,9 @@ export default function ProfileList() {
             ? 'linear-gradient(135deg, rgba(45, 45, 45, 0.45) 0%, rgba(35, 35, 35, 0.45) 100%)'
             : 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 242, 239, 0.8) 100%)',
           backdropFilter: 'blur(12px)',
-          boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.25)' : '0 8px 32px rgba(15, 23, 42, 0.04)',
+          boxShadow: isDark
+            ? '0 8px 32px rgba(0, 0, 0, 0.25)'
+            : '0 8px 32px rgba(15, 23, 42, 0.04)',
           p: 1.5,
         }}
       >

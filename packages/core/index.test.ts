@@ -257,7 +257,7 @@ describe('LicenseSchema', () => {
     batch_id: uuid2,
     route_id: uuid3,
     code: 'ABCD1234',
-    status: 'active' as const,
+    status: 'available' as const,
     valid_days: 30,
     created_at: now,
   };
@@ -542,7 +542,9 @@ describe('SubscriptionStatus', () => {
 
 describe('LicenseStatus', () => {
   it('accepts all valid statuses', () => {
-    const statuses: Array<'active' | 'used' | 'revoked'> = ['active', 'used', 'revoked'];
+    const statuses: Array<
+      'available' | 'reserved' | 'payment_hold' | 'used' | 'expired' | 'revoked'
+    > = ['available', 'reserved', 'payment_hold', 'used', 'expired', 'revoked'];
     statuses.forEach((s) => {
       expect(LicenseStatus.parse(s)).toBe(s);
     });

@@ -42,17 +42,21 @@ async function findExpoWebUrl(browser: Browser): Promise<string | null> {
 
       // Step 2: Open in a real browser to verify rendering
       page = await browser.newPage();
-      page.on('pageerror', err => {
+      page.on('pageerror', (err) => {
         console.log(`[BROWSER ERROR] Port ${port}: ${err.message}`);
-        console.log(`[BROWSER ERROR DETAILS] Port ${port}: filename=${(err as any).filename}, line=${(err as any).lineno}, col=${(err as any).colno}`);
+        console.log(
+          `[BROWSER ERROR DETAILS] Port ${port}: filename=${(err as any).filename}, line=${(err as any).lineno}, col=${(err as any).colno}`,
+        );
         if (err.stack) console.log(`[BROWSER ERROR STACK] Port ${port}: ${err.stack}`);
       });
-      page.on('console', msg => console.log(`[BROWSER CONSOLE] Port ${port}: [${msg.type()}] ${msg.text()}`));
+      page.on('console', (msg) =>
+        console.log(`[BROWSER CONSOLE] Port ${port}: [${msg.type()}] ${msg.text()}`),
+      );
       await page.setViewportSize({ width: 393, height: 852 });
 
       // Clear Zustand stores so we start fresh
       await page.addInitScript(() => {
-        ['auth-storage', 'trip-storage', 'booking-storage', 'i18n-storage'].forEach(k =>
+        ['auth-storage', 'trip-storage', 'booking-storage', 'i18n-storage'].forEach((k) =>
           localStorage.removeItem(k),
         );
       });
@@ -114,7 +118,7 @@ test.describe('Mobile App Web UI E2E Tests', () => {
     }
 
     // Suppress known Expo/Metro bundler import.meta warnings
-    page.on('pageerror', exception => {
+    page.on('pageerror', (exception) => {
       if (!exception.message.includes('import.meta')) {
         console.error(`[BROWSER ERROR] ${exception.message}`);
       }
@@ -125,7 +129,7 @@ test.describe('Mobile App Web UI E2E Tests', () => {
 
     // Clear Zustand stores BEFORE page loads → hasSeenOnboarding resets to false
     await page.addInitScript(() => {
-      ['auth-storage', 'trip-storage', 'booking-storage', 'i18n-storage'].forEach(k =>
+      ['auth-storage', 'trip-storage', 'booking-storage', 'i18n-storage'].forEach((k) =>
         localStorage.removeItem(k),
       );
     });

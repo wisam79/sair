@@ -160,7 +160,7 @@ describe('LicenseSchema (activate_license RPC input)', () => {
       batch_id: uuid,
       route_id: uuid,
       code: 'ABCD1234',
-      status: 'active',
+      status: 'available',
       valid_days: 30,
       created_at: new Date().toISOString(),
     });
@@ -173,7 +173,7 @@ describe('LicenseSchema (activate_license RPC input)', () => {
       batch_id: uuid,
       route_id: uuid,
       code: 'TOOLONGCODE123',
-      status: 'active',
+      status: 'available',
       valid_days: 30,
       created_at: new Date().toISOString(),
     });

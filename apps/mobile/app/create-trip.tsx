@@ -20,6 +20,7 @@ import { useTranslation } from '../src/hooks/useTranslation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { useTripStore } from '../src/hooks/useStore';
+import { offlineQueue, QUEUE_LIMITS } from '../src/lib/offlineQueue';
 
 interface RouteCardItemProps {
   item: Route;
@@ -174,17 +175,25 @@ export default function CreateTripScreen() {
       const isOnline = !!netState.isConnected && netState.isInternetReachable !== false;
 
       if (!isOnline) {
+        const pendingQueueKey = 'pending_trips_creation_queue';
+        const queue = await offlineQueue.getQueue<any>(pendingQueueKey);
+        if (queue.length >= QUEUE_LIMITS.trips) {
+          Alert.alert(t('error'), t('offline_queue_full') || 'طابور الانتظار ممتلئ');
+          return;
+        }
+
         // Offline behavior: Generate a local trip ID and add to queue
         const localId = `local_trip_${selectedRouteId}_${Date.now()}`;
-        const pendingQueueKey = 'pending_trips_creation_queue';
-        const rawQueue = await AsyncStorage.getItem(pendingQueueKey);
-        const queue = rawQueue ? JSON.parse(rawQueue) : [];
-        queue.push({
-          localId,
-          routeId: selectedRouteId,
-          scheduledAt,
-        });
-        await AsyncStorage.setItem(pendingQueueKey, JSON.stringify(queue));
+        await offlineQueue.enqueue(
+          pendingQueueKey,
+          {
+            localId,
+            routeId: selectedRouteId,
+            scheduledAt,
+            timestamp: Date.now(),
+          },
+          QUEUE_LIMITS.trips,
+        );
 
         // Update local trip store status immediately
         useTripStore.getState().setActiveTrip(localId, 'driver_waiting', selectedRouteId);

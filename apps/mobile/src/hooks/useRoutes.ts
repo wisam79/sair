@@ -4,6 +4,7 @@ import { Route } from '@sair/core';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import NetInfo from '@react-native-community/netinfo';
+import { realtimeManager } from '../lib/realtimeManager';
 
 const PAGE_SIZE = 20;
 
@@ -69,61 +70,69 @@ export function useRoutes(institutionId?: string | null, page = 0) {
 
   // Postgres realtime changes
   useEffect(() => {
-    const channel = supabase
-      .channel('routes-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, (payload) => {
-        queryClient.setQueriesData(
-          { queryKey: ['routes'] },
-          (old: { routes: Route[]; hasMore: boolean } | undefined, query) => {
-            if (!old) return old;
-            const queryInstitutionId = query.queryKey[1] as string | null | undefined;
-            let updatedRoutes = [...old.routes];
+    const unsubscribe = realtimeManager.subscribe({
+      id: 'routes-changes',
+      channelName: 'routes-changes',
+      priority: 'normal',
+      reconnect: true,
+      subscriptions: [
+        {
+          event: 'postgres_changes',
+          schema: 'public',
+          table: 'routes',
+          callback: (payload) => {
+            queryClient.setQueriesData(
+              { queryKey: ['routes'] },
+              (old: { routes: Route[]; hasMore: boolean } | undefined, query) => {
+                if (!old) return old;
+                const queryInstitutionId = query.queryKey[1] as string | null | undefined;
+                let updatedRoutes = [...old.routes];
 
-            if (payload.eventType === 'UPDATE') {
-              const updatedRoute = payload.new as Route;
-              const matchesInstitution =
-                !queryInstitutionId || updatedRoute.institution_id === queryInstitutionId;
-              const isValid = updatedRoute.is_active && (updatedRoute.available_seats ?? 0) > 0;
+                if (payload.eventType === 'UPDATE') {
+                  const updatedRoute = payload.new as Route;
+                  const matchesInstitution =
+                    !queryInstitutionId || updatedRoute.institution_id === queryInstitutionId;
+                  const isValid = updatedRoute.is_active && (updatedRoute.available_seats ?? 0) > 0;
 
-              if (matchesInstitution && isValid) {
-                const exists = updatedRoutes.some((r) => r.id === updatedRoute.id);
-                if (exists) {
-                  updatedRoutes = updatedRoutes.map((r) =>
-                    r.id === updatedRoute.id ? updatedRoute : r,
-                  );
-                } else {
-                  updatedRoutes = [updatedRoute, ...updatedRoutes];
+                  if (matchesInstitution && isValid) {
+                    const exists = updatedRoutes.some((r) => r.id === updatedRoute.id);
+                    if (exists) {
+                      updatedRoutes = updatedRoutes.map((r) =>
+                        r.id === updatedRoute.id ? updatedRoute : r,
+                      );
+                    } else {
+                      updatedRoutes = [updatedRoute, ...updatedRoutes];
+                    }
+                  } else {
+                    updatedRoutes = updatedRoutes.filter((r) => r.id !== updatedRoute.id);
+                  }
+                } else if (payload.eventType === 'INSERT') {
+                  const newRoute = payload.new as Route;
+                  const matchesInstitution =
+                    !queryInstitutionId || newRoute.institution_id === queryInstitutionId;
+                  const isValid = newRoute.is_active && (newRoute.available_seats ?? 0) > 0;
+
+                  if (matchesInstitution && isValid) {
+                    const exists = updatedRoutes.some((r) => r.id === newRoute.id);
+                    if (!exists) {
+                      updatedRoutes = [newRoute, ...updatedRoutes];
+                    }
+                  }
+                } else if (payload.eventType === 'DELETE') {
+                  updatedRoutes = updatedRoutes.filter((r) => r.id !== payload.old.id);
                 }
-              } else {
-                updatedRoutes = updatedRoutes.filter((r) => r.id !== updatedRoute.id);
-              }
-            } else if (payload.eventType === 'INSERT') {
-              const newRoute = payload.new as Route;
-              const matchesInstitution =
-                !queryInstitutionId || newRoute.institution_id === queryInstitutionId;
-              const isValid = newRoute.is_active && (newRoute.available_seats ?? 0) > 0;
-
-              if (matchesInstitution && isValid) {
-                const exists = updatedRoutes.some((r) => r.id === newRoute.id);
-                if (!exists) {
-                  updatedRoutes = [newRoute, ...updatedRoutes];
-                }
-              }
-            } else if (payload.eventType === 'DELETE') {
-              updatedRoutes = updatedRoutes.filter((r) => r.id !== payload.old.id);
-            }
-            return {
-              ...old,
-              routes: updatedRoutes,
-            };
+                return {
+                  ...old,
+                  routes: updatedRoutes,
+                };
+              },
+            );
           },
-        );
-      })
-      .subscribe();
+        },
+      ],
+    });
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return unsubscribe;
   }, [queryClient]);
 
   const routes = data?.routes ?? [];
@@ -156,31 +165,26 @@ export function useRouteById(routeId: string | null) {
   useEffect(() => {
     if (!routeId) return;
 
-    const channel = supabase
-      .channel(`route-${routeId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'routes', filter: `id=eq.${routeId}` },
-        (payload) => {
-          queryClient.setQueryData(queryKey, payload.new as Route);
+    const unsubscribe = realtimeManager.subscribe({
+      id: `route-${routeId}`,
+      channelName: `route-${routeId}`,
+      priority: 'normal',
+      reconnect: true,
+      subscriptions: [
+        {
+          event: 'postgres_changes',
+          schema: 'public',
+          table: 'routes',
+          filter: `id=eq.${routeId}`,
+          callback: (payload) => {
+            queryClient.setQueryData(queryKey, payload.new as Route);
+          },
         },
-      )
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn('[Realtime] route channel error, re-fetching...');
-          NetInfo.fetch().then((state) => {
-            const isOnline = !!state.isConnected && state.isInternetReachable !== false;
-            if (isOnline) {
-              refetch();
-            }
-          });
-        }
-      });
+      ],
+    });
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [routeId, queryClient, refetch]);
+    return unsubscribe;
+  }, [routeId, queryClient]);
 
   const errorMsg = error instanceof Error ? error.message : error ? String(error) : null;
 

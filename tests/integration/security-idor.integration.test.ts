@@ -83,7 +83,11 @@ describe('Security: IDOR Protection Tests', () => {
       expect(allowed).toBe(true);
 
       // Clean up rate limits
-      await serviceClient.from('rate_limits').delete().eq('user_id', studentB.user.id).eq('action', action);
+      await serviceClient
+        .from('rate_limits')
+        .delete()
+        .eq('user_id', studentB.user.id)
+        .eq('action', action);
     });
   });
 });

@@ -73,7 +73,6 @@ export function FormInput<TFieldValues extends FieldValues>({
             collapsable={false}
             style={[
               styles.inputWrapper,
-              { flexDirection: isRTL ? 'row-reverse' : 'row' },
               error && styles.inputError,
               focused && styles.inputFocused,
             ]}
@@ -83,13 +82,7 @@ export function FormInput<TFieldValues extends FieldValues>({
                 name={icon}
                 size={18}
                 color={focused ? Colors.primary : Colors.textMuted}
-                style={[
-                  styles.inputIcon,
-                  {
-                    marginRight: isRTL ? 0 : Spacing.xs,
-                    marginLeft: isRTL ? Spacing.xs : 0,
-                  },
-                ]}
+                style={styles.inputIcon}
               />
             )}
             <TextInput
@@ -160,7 +153,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   inputIcon: {
-    marginRight: Spacing.xs,
+    marginEnd: Spacing.xs,
   },
   input: {
     flex: 1,

@@ -17,7 +17,12 @@
       "policy": "sdkVersion"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": ["location", "remote-notification"],
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "نحتاج للوصول لموقعك في الخلفية لمطابقة مسار الرحلة وتتبع الحافلة.",
+        "NSLocationWhenInUseUsageDescription": "نحتاج للوصول لموقعك لتتبع الرحلة وعرضها على الخريطة."
+      }
     },
     "android": {
       "package": "com.wisam99sr.sair",
@@ -25,7 +30,15 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1D1F21"
-      }
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
+        "WAKE_LOCK"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -43,7 +56,15 @@
       "expo-secure-store",
       "expo-web-browser",
       "@maplibre/maplibre-react-native",
-      "@react-native-google-signin/google-signin"
+      "@react-native-google-signin/google-signin",
+      [
+        "onesignal-expo-plugin",
+        {
+          "mode": "development"
+        }
+      ],
+      "expo-video",
+      "expo-audio"
     ],
     "notification": {
       "icon": "./assets/notification-icon.png",

@@ -1,7 +1,10 @@
+const isProduction =
+  Deno.env.get('ENVIRONMENT') === 'production' || !Deno.env.get('ADMIN_URL')?.includes('localhost');
+
 const ALLOWED_ORIGINS = [
   Deno.env.get('ADMIN_URL') || 'http://localhost:3000',
-  'exp://localhost:8081',
-  'http://localhost:8081',
+  // Development-only origins — excluded in production
+  ...(isProduction ? [] : ['exp://localhost:8081', 'http://localhost:8081']),
 ];
 
 export const CORS_HEADERS = {

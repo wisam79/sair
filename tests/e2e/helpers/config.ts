@@ -32,13 +32,13 @@ export const TestConfig = {
   validate(): void {
     if (this.isProduction()) {
       throw new Error(
-        `🚫 BLOCKED: E2E tests are STRICTLY PROHIBITED from running against the Production Supabase project: ${process.env.EXPO_PUBLIC_SUPABASE_URL}`
+        `🚫 BLOCKED: E2E tests are STRICTLY PROHIBITED from running against the Production Supabase project: ${process.env.EXPO_PUBLIC_SUPABASE_URL}`,
       );
     }
 
     if (this.isHosted() && process.env.CI !== 'true') {
       throw new Error(
-        `🚫 BLOCKED: E2E tests must run against a local emulator locally. To test against a hosted dev server, run with CI=true environment variable.`
+        `🚫 BLOCKED: E2E tests must run against a local emulator locally. To test against a hosted dev server, run with CI=true environment variable.`,
       );
     }
 

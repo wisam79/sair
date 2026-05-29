@@ -99,7 +99,12 @@ export default function OnboardingScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
-      <View style={[styles.skipContainer, { paddingTop: top, alignItems: isRTL ? 'flex-start' : 'flex-end' }]}>
+      <View
+        style={[
+          styles.skipContainer,
+          { paddingTop: top, alignItems: isRTL ? 'flex-start' : 'flex-end' },
+        ]}
+      >
         <TouchableOpacity onPress={handleSkip}>
           <Text style={styles.skipText}>{t('skip')}</Text>
         </TouchableOpacity>

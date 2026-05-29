@@ -100,21 +100,12 @@ const SubscriptionCard = React.memo(
     return (
       <View style={styles.card}>
         {/* Header */}
-        <View style={[styles.cardHeader, isRTL && { flexDirection: 'row-reverse' }]}>
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: status.bg },
-              isRTL && { flexDirection: 'row-reverse' },
-            ]}
-          >
+        <View style={styles.cardHeader}>
+          <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
             <Ionicons name={status.icon as any} size={13} color={status.color} />
             <Text style={[styles.statusText, { color: status.color }]}>{t(status.labelKey)}</Text>
           </View>
-          <Text
-            style={[styles.routeTitle, { textAlign: isRTL ? 'right' : 'left' }]}
-            numberOfLines={1}
-          >
+          <Text style={styles.routeTitle} numberOfLines={1}>
             {item.routes?.title || t('route')}
           </Text>
         </View>
@@ -122,35 +113,12 @@ const SubscriptionCard = React.memo(
         {/* Route Path */}
         {item.routes && (
           <View style={styles.routePath}>
-            <View
-              style={[
-                styles.pathStop,
-                {
-                  flexDirection: isRTL ? 'row-reverse' : 'row',
-                  justifyContent: isRTL ? 'flex-end' : 'flex-start',
-                },
-              ]}
-            >
+            <View style={styles.pathStop}>
               <Ionicons name="radio-button-on" size={12} color={Colors.primary} />
               <Text style={styles.pathText}>{item.routes.start_location}</Text>
             </View>
-            <View
-              style={[
-                styles.pathDivider,
-                isRTL
-                  ? { alignSelf: 'flex-end', marginRight: 5 }
-                  : { alignSelf: 'flex-start', marginLeft: 5 },
-              ]}
-            />
-            <View
-              style={[
-                styles.pathStop,
-                {
-                  flexDirection: isRTL ? 'row-reverse' : 'row',
-                  justifyContent: isRTL ? 'flex-end' : 'flex-start',
-                },
-              ]}
-            >
+            <View style={[styles.pathDivider, { alignSelf: 'flex-start', marginStart: 5 }]} />
+            <View style={styles.pathStop}>
               <Ionicons name="location" size={12} color={Colors.secondary} />
               <Text style={styles.pathText}>{item.routes.end_location}</Text>
             </View>
@@ -158,7 +126,7 @@ const SubscriptionCard = React.memo(
         )}
 
         {/* Details Row */}
-        <View style={[styles.detailsRow, isRTL && { flexDirection: 'row-reverse' }]}>
+        <View style={styles.detailsRow}>
           <Text style={styles.dateText}>
             {startDate} — {endDate}
           </Text>
@@ -171,17 +139,13 @@ const SubscriptionCard = React.memo(
 
         {/* Actions */}
         {item.status === 'active' && item.routes && (
-          <View style={[styles.actions, isRTL && { flexDirection: 'row-reverse' }]}>
-            <TouchableOpacity
-              style={[styles.trackButton, isRTL && { flexDirection: 'row-reverse' }]}
-              activeOpacity={0.85}
-              onPress={handleTrack}
-            >
+          <View style={styles.actions}>
+            <TouchableOpacity style={styles.trackButton} activeOpacity={0.85} onPress={handleTrack}>
               <Ionicons name="navigate-outline" size={14} color={Colors.white} />
               <Text style={styles.trackButtonText}>{t('track_trip')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.boardingPassButton, isRTL && { flexDirection: 'row-reverse' }]}
+              style={styles.boardingPassButton}
               activeOpacity={0.85}
               onPress={handleShowBoardingPass}
             >
@@ -379,11 +343,9 @@ export default function SubscriptionsScreen() {
           <View style={styles.glassOverlay} />
           <View style={styles.glassHighlight} />
 
-          <Text style={styles.headerTitle}>
-            {t('my_subscriptions')}
-          </Text>
+          <Text style={styles.headerTitle}>{t('my_subscriptions')}</Text>
           <TouchableOpacity
-            style={[styles.headerShortcutBtn, { [isRTL ? 'left' : 'right']: Spacing.md }]}
+            style={styles.headerShortcutBtn}
             onPress={() => {
               void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               router.push('/activate');
@@ -410,11 +372,9 @@ export default function SubscriptionsScreen() {
         <View style={styles.glassOverlay} />
         <View style={styles.glassHighlight} />
 
-        <Text style={styles.headerTitle}>
-          {t('my_subscriptions')}
-        </Text>
+        <Text style={styles.headerTitle}>{t('my_subscriptions')}</Text>
         <TouchableOpacity
-          style={[styles.headerShortcutBtn, { [isRTL ? 'left' : 'right']: Spacing.md }]}
+          style={styles.headerShortcutBtn}
           onPress={() => {
             void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             router.push('/activate');
@@ -464,7 +424,7 @@ export default function SubscriptionsScreen() {
           <View style={styles.ticketCard}>
             {/* Ticket Header */}
             <View style={styles.ticketHeader}>
-              <View style={[styles.ticketHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={styles.ticketHeaderRow}>
                 <Ionicons name="bus-outline" size={20} color={Colors.white} />
                 <Text style={styles.ticketHeaderTitle}>{t('boarding_pass')}</Text>
               </View>
@@ -473,16 +433,9 @@ export default function SubscriptionsScreen() {
 
             <View style={styles.ticketBody}>
               {/* Student Info */}
-              <View style={[styles.infoRow, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={styles.infoRow}>
                 <Ionicons name="person-outline" size={16} color={Colors.textSecondary} />
-                <View
-                  style={[
-                    styles.infoTextContainer,
-                    isRTL
-                      ? { marginRight: Spacing.sm, alignItems: 'flex-end' }
-                      : { marginLeft: Spacing.sm },
-                  ]}
-                >
+                <View style={[styles.infoTextContainer, { marginStart: Spacing.sm }]}>
                   <Text style={styles.infoLabel}>{t('passenger')}</Text>
                   <Text style={styles.infoValue}>{profile?.full_name || ''}</Text>
                 </View>
@@ -490,16 +443,9 @@ export default function SubscriptionsScreen() {
 
               {/* Route Info */}
               {selectedSub?.routes && (
-                <View style={[styles.infoRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={styles.infoRow}>
                   <Ionicons name="git-compare-outline" size={16} color={Colors.textSecondary} />
-                  <View
-                    style={[
-                      styles.infoTextContainer,
-                      isRTL
-                        ? { marginRight: Spacing.sm, alignItems: 'flex-end' }
-                        : { marginLeft: Spacing.sm },
-                    ]}
-                  >
+                  <View style={[styles.infoTextContainer, { marginStart: Spacing.sm }]}>
                     <Text style={styles.infoLabel}>{t('route')}</Text>
                     <Text style={styles.infoValue} numberOfLines={1}>
                       {selectedSub.routes.title}
@@ -512,24 +458,15 @@ export default function SubscriptionsScreen() {
               )}
 
               {/* Status Info */}
-              <View style={[styles.infoRow, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={styles.infoRow}>
                 <Ionicons
                   name="checkmark-done-circle-outline"
                   size={16}
                   color={Colors.textSecondary}
                 />
-                <View
-                  style={[
-                    styles.infoTextContainer,
-                    isRTL
-                      ? { marginRight: Spacing.sm, alignItems: 'flex-end' }
-                      : { marginLeft: Spacing.sm },
-                  ]}
-                >
+                <View style={[styles.infoTextContainer, { marginStart: Spacing.sm }]}>
                   <Text style={styles.infoLabel}>{t('status')}</Text>
-                  <View
-                    style={[styles.ticketStatusBadge, isRTL && { flexDirection: 'row-reverse' }]}
-                  >
+                  <View style={styles.ticketStatusBadge}>
                     <View style={styles.statusDot} />
                     <Text style={styles.ticketStatusText}>{t('subscription_active')}</Text>
                   </View>
@@ -587,7 +524,7 @@ export default function SubscriptionsScreen() {
                 </Text>
 
                 {/* Locally Verified Shield */}
-                <View style={[styles.verifiedBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={styles.verifiedBadge}>
                   <Ionicons name="shield-checkmark" size={14} color={Colors.success} />
                   <Text style={styles.verifiedText}>{t('verified_device')}</Text>
                 </View>
@@ -659,6 +596,7 @@ const styles = StyleSheet.create({
   headerShortcutBtn: {
     position: 'absolute',
     bottom: 12,
+    end: Spacing.md,
     zIndex: 3,
     padding: 6,
   },

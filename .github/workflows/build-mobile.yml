@@ -28,6 +28,16 @@ jobs:
     if: ${{ github.event.inputs.platform == 'android' || github.event.inputs.platform == 'all' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Free Disk Space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          echo "Disk space after cleanup:"
+          df -h
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 

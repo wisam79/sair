@@ -1,30 +1,19 @@
-import { Expo, type ExpoPushMessage } from 'npm:expo-server-sdk';
 import { corsResponse } from '../_shared/cors.ts';
 import { verifyAuthLocal, supabaseAdmin } from '../_shared/auth.ts';
-import { retryWithBackoff } from '../../../packages/core/index.ts';
+import { handleHealthCheck } from '../_shared/health.ts';
+
+const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID');
+const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY');
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return corsResponse(req, 'ok');
   }
 
+  const healthRes = await handleHealthCheck(req);
+  if (healthRes) return healthRes;
+
   try {
-    // Health check endpoint (bypasses auth and validation)
-    let isHealthCheck = false;
-    try {
-      const clonedReq = req.clone();
-      const body = await clonedReq.json();
-      if (body && body.action === 'health') {
-        isHealthCheck = true;
-      }
-    } catch {
-      // Ignore
-    }
-
-    if (isHealthCheck) {
-      return corsResponse(req, { status: 'healthy' });
-    }
-
     const { user, error: authError } = await verifyAuthLocal(req);
     if (authError || !user) {
       return corsResponse(req, { error: authError || 'Invalid token' }, 401);
@@ -40,8 +29,8 @@ Deno.serve(async (req: Request) => {
       {
         p_user_id: user.id,
         p_action: 'send_notification',
-        p_limit: 10,
-        p_window_seconds: 60,
+        p_limit: parseInt(Deno.env.get('NOTIFICATION_RATE_LIMIT') || '10'),
+        p_window_seconds: parseInt(Deno.env.get('NOTIFICATION_RATE_WINDOW') || '60'),
       },
     );
 
@@ -87,102 +76,55 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Fetch tokens based on target
-    let tokensQuery = supabaseAdmin.from('push_tokens').select('token');
+    // Prepare OneSignal target IDs
+    let targetUserIds: string[] = [];
 
     if (target_user_id) {
-      tokensQuery = tokensQuery.eq('user_id', target_user_id);
-    } else if (target_role === 'student' || target_role === 'driver') {
-      // Need to get user IDs for the specific role
+      targetUserIds = [target_user_id];
+    } else if (target_role) {
       const { data: usersWithRole } = await supabaseAdmin
         .from('profiles')
         .select('id')
         .eq('role', target_role);
-      const userIds = usersWithRole?.map((u) => u.id) || [];
-      if (userIds.length > 0) {
-        tokensQuery = tokensQuery.in('user_id', userIds);
-      } else {
-        return corsResponse(
-          req,
-          {
-            error: `No users found for role ${target_role}`,
-          },
-          404,
-        );
+      targetUserIds = usersWithRole?.map((u) => u.id) || [];
+      if (targetUserIds.length === 0) {
+        return corsResponse(req, { error: `No users found for role ${target_role}` }, 404);
       }
     }
 
-    const { data: pushTokens, error: tokenError } = await tokensQuery;
-
-    if (tokenError) throw tokenError;
-
-    if (!pushTokens || pushTokens.length === 0) {
-      return corsResponse(
-        req,
-        {
-          error: 'No valid push tokens found for target',
-        },
-        404,
-      );
-    }
-
-    // Expo Push API allows sending up to 100 messages at once
-    const messages: ExpoPushMessage[] = [];
-    const invalidTokens: string[] = [];
-
-    for (const pt of pushTokens) {
-      if (!Expo.isExpoPushToken(pt.token)) {
-        console.warn(`[Notification] Invalid Expo push token: ${pt.token}`);
-        invalidTokens.push(pt.token);
-        continue;
-      }
-
-      messages.push({
-        to: pt.token,
-        sound: 'default',
-        title,
-        body,
-        data: data || {},
+    if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+      console.warn('[Notification] OneSignal env vars missing. Simulating success.');
+      return corsResponse(req, {
+        success: true,
+        simulated: true,
+        sent_to: targetUserIds,
       });
     }
 
-    // Cleanup invalid tokens immediately
-    if (invalidTokens.length > 0) {
-      await supabaseAdmin.from('push_tokens').delete().in('token', invalidTokens);
-    }
+    const bodyPayload = {
+      app_id: ONESIGNAL_APP_ID,
+      include_external_user_ids: targetUserIds,
+      headings: { en: title, ar: title },
+      contents: { en: body, ar: body },
+      data: data || {},
+    };
 
-    if (messages.length === 0) {
-      return corsResponse(
-        req,
-        {
-          error: 'No valid push tokens found after filtering',
-        },
-        404,
-      );
-    }
-
-    const expoResponse = await retryWithBackoff(
-      async () => {
-        const res = await fetch('https://exp.host/--/api/v2/push/send', {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Accept-encoding': 'gzip, deflate',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(messages),
-        });
-        if (!res.ok) {
-          throw new Error(`Expo API returned status ${res.status}`);
-        }
-        return res;
+    const response = await fetch('https://api.onesignal.com/notifications', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Key ${ONESIGNAL_REST_API_KEY}`,
       },
-      { maxRetries: 3, baseDelayMs: 1000 },
-    );
+      body: JSON.stringify(bodyPayload),
+    });
 
-    const expoResult = await expoResponse.json();
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`OneSignal API returned status ${response.status}: ${errText}`);
+    }
 
-    return corsResponse(req, { success: true, sent_count: messages.length, expoResult });
+    const result = await response.json();
+    return corsResponse(req, { success: true, result });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error';
     return corsResponse(req, { error: message }, 400);

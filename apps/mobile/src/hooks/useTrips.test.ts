@@ -60,6 +60,7 @@ vi.mock('react-native', () => ({
 
 vi.mock('expo-modules-core', () => ({
   requireNativeModule: vi.fn(),
+  requireOptionalNativeModule: vi.fn(),
   EventEmitter: class {},
   Platform: { OS: 'ios' },
 }));
@@ -103,6 +104,19 @@ vi.mock('expo-secure-store', () => ({
   ALWAYS: 'ALWAYS',
   WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: 'WHEN_PASSCODE_SET_THIS_DEVICE_ONLY',
   WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
+}));
+
+vi.mock('expo-constants', () => ({
+  default: {
+    appOwnership: 'expo',
+    expoConfig: {
+      extra: {
+        eas: {
+          projectId: 'test-project-id',
+        },
+      },
+    },
+  },
 }));
 
 vi.mock('@react-native-async-storage/async-storage', () => ({

@@ -14,16 +14,16 @@ module.exports = function (api) {
                     t.objectExpression([
                       t.objectProperty(
                         t.identifier('MODE'),
-                        t.stringLiteral(process.env.NODE_ENV || 'development')
-                      )
-                    ])
-                  )
-                ])
+                        t.stringLiteral(process.env.NODE_ENV || 'development'),
+                      ),
+                    ]),
+                  ),
+                ]),
               );
-            }
-          }
+            },
+          },
         };
-      }
-    ]
+      },
+    ],
   };
 };

@@ -506,17 +506,17 @@ export default function SupportPage() {
                       disabled={loading}
                       endIcon={!loading && <SendIcon />}
                       sx={{
-                         bgcolor: requestType === 'account_deletion' ? '#dc2626' : '#16A34A',
-                         color: '#fff',
-                         borderRadius: 2.5,
-                         py: 1.8,
-                         fontWeight: 700,
-                         fontSize: '1rem',
-                         textTransform: 'none',
-                         boxShadow: '0 4px 14px rgba(22, 163, 74, 0.2)',
-                         '&:hover': {
-                           bgcolor: requestType === 'account_deletion' ? '#b91c1c' : '#15803D',
-                         },
+                        bgcolor: requestType === 'account_deletion' ? '#dc2626' : '#16A34A',
+                        color: '#fff',
+                        borderRadius: 2.5,
+                        py: 1.8,
+                        fontWeight: 700,
+                        fontSize: '1rem',
+                        textTransform: 'none',
+                        boxShadow: '0 4px 14px rgba(22, 163, 74, 0.2)',
+                        '&:hover': {
+                          bgcolor: requestType === 'account_deletion' ? '#b91c1c' : '#15803D',
+                        },
                       }}
                     >
                       {loading ? (

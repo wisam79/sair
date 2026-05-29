@@ -23,14 +23,22 @@ config.resolver.nodeModulesPaths = [
 // 3. Align with Expo's recommendation
 config.resolver.disableHierarchicalLookup = false;
 
-// 3.5. Force CJS resolution for Zustand on web to avoid import.meta syntax errors in browser
+// 3.5. Force CJS resolution for Zustand on web and mock native-only packages
 config.resolver.resolveRequest = (context, moduleName, platform) => {
-  if (platform === 'web' && (moduleName === 'zustand' || moduleName.startsWith('zustand/'))) {
-    return context.resolveRequest(
-      { ...context, unstable_conditionNames: ['default', 'require'] },
-      moduleName,
-      platform
-    );
+  if (platform === 'web') {
+    if (moduleName === 'stream-chat-expo') {
+      return {
+        type: 'sourceFile',
+        filePath: path.resolve(__dirname, 'src/lib/streamChatExpoMock.tsx'),
+      };
+    }
+    if (moduleName === 'zustand' || moduleName.startsWith('zustand/')) {
+      return context.resolveRequest(
+        { ...context, unstable_conditionNames: ['default', 'require'] },
+        moduleName,
+        platform,
+      );
+    }
   }
   // Let default resolver handle everything else
   return context.resolveRequest(context, moduleName, platform);

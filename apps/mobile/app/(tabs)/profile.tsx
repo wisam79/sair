@@ -181,9 +181,9 @@ export default function ProfileScreen() {
         <View style={styles.glassOverlay} />
         <View style={styles.glassHighlight} />
 
-        <View style={[styles.headerRow, isRTL && { flexDirection: 'row-reverse' }]}>
+        <View style={styles.headerRow}>
           {/* Left Group: Avatar + Details */}
-          <View style={[styles.headerLeftGroup, isRTL && { flexDirection: 'row-reverse' }]}>
+          <View style={styles.headerLeftGroup}>
             {/* Avatar Ring */}
             <View style={styles.avatarContainer}>
               <View style={styles.avatarCircle}>
@@ -192,14 +192,14 @@ export default function ProfileScreen() {
             </View>
 
             {/* User Info Stack */}
-            <View style={[styles.userInfo, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
+            <View style={styles.userInfo}>
               <Text style={styles.headerName}>{profile?.full_name || t('user')}</Text>
               <Text style={styles.headerEmail}>{user?.email}</Text>
             </View>
           </View>
 
           {/* Right Group: Role Badge */}
-          <View style={[styles.roleBadge, isRTL && { flexDirection: 'row-reverse' }]}>
+          <View style={styles.roleBadge}>
             <Ionicons name={roleIcon} size={11} color={Colors.white} />
             <Text style={styles.roleBadgeText}>{roleLabel}</Text>
           </View>
@@ -213,14 +213,10 @@ export default function ProfileScreen() {
       >
         {/* Info Form */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('personal_info')}
-          </Text>
+          <Text style={styles.sectionTitle}>{t('personal_info')}</Text>
 
           <View style={styles.field}>
-            <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('full_name')}
-            </Text>
+            <Text style={styles.fieldLabel}>{t('full_name')}</Text>
             <FormInput
               control={control}
               name="full_name"
@@ -233,9 +229,7 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.field}>
-            <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('phone')}
-            </Text>
+            <Text style={styles.fieldLabel}>{t('phone')}</Text>
             <FormInput
               control={control}
               name="phone"
@@ -248,16 +242,8 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.field}>
-            <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('email')}
-            </Text>
-            <View
-              style={[
-                styles.inputWrapper,
-                styles.inputDisabled,
-                isRTL && { flexDirection: 'row-reverse' },
-              ]}
-            >
+            <Text style={styles.fieldLabel}>{t('email')}</Text>
+            <View style={[styles.inputWrapper, styles.inputDisabled]}>
               <Ionicons
                 name="mail-outline"
                 size={16}
@@ -265,7 +251,7 @@ export default function ProfileScreen() {
                 style={styles.inputIcon}
               />
               <TextInput
-                style={[styles.input, isRTL && styles.inputRTL, { color: Colors.textMuted }]}
+                style={[styles.input, { color: Colors.textMuted }]}
                 value={user?.email || ''}
                 editable={false}
               />
@@ -274,11 +260,7 @@ export default function ProfileScreen() {
           </View>
 
           <TouchableOpacity
-            style={[
-              styles.saveButton,
-              saving && { opacity: 0.7 },
-              isRTL && { flexDirection: 'row-reverse' },
-            ]}
+            style={[styles.saveButton, saving && { opacity: 0.7 }]}
             onPress={handleSubmit(handleSave)}
             disabled={saving}
             activeOpacity={0.85}
@@ -297,10 +279,8 @@ export default function ProfileScreen() {
         {/* Navigation Links */}
         {role === 'driver' && stats.tripCount > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('my_stats')}
-            </Text>
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: Spacing.md }}>
+            <Text style={styles.sectionTitle}>{t('my_stats')}</Text>
+            <View style={{ flexDirection: 'row', gap: Spacing.md }}>
               <View style={styles.statBox}>
                 <Ionicons name="car-outline" size={22} color={Colors.primary} />
                 <Text style={styles.statNumber}>{stats.tripCount}</Text>
@@ -318,21 +298,17 @@ export default function ProfileScreen() {
         )}
         {role === 'student' && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('trip_history')}
-            </Text>
+            <Text style={styles.sectionTitle}>{t('trip_history')}</Text>
             <TouchableOpacity
-              style={[styles.navLinkCard, isRTL && { flexDirection: 'row-reverse' }]}
+              style={styles.navLinkCard}
               onPress={() => router.push('/trip-history')}
               activeOpacity={0.7}
             >
-              <View style={[styles.navLinkLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={styles.navLinkLeft}>
                 <View style={styles.navIconContainer}>
                   <Ionicons name="time-outline" size={20} color={Colors.primary} />
                 </View>
-                <Text style={[styles.navLinkText, { textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t('trip_history')}
-                </Text>
+                <Text style={styles.navLinkText}>{t('trip_history')}</Text>
               </View>
               <Ionicons
                 name={isRTL ? 'chevron-back' : 'chevron-forward'}
@@ -345,21 +321,17 @@ export default function ProfileScreen() {
 
         {role === 'driver' && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('withdraw_request')}
-            </Text>
+            <Text style={styles.sectionTitle}>{t('withdraw_request')}</Text>
             <TouchableOpacity
-              style={[styles.navLinkCard, isRTL && { flexDirection: 'row-reverse' }]}
+              style={styles.navLinkCard}
               onPress={() => router.push('/payouts')}
               activeOpacity={0.7}
             >
-              <View style={[styles.navLinkLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={styles.navLinkLeft}>
                 <View style={styles.navIconContainer}>
                   <Ionicons name="cash-outline" size={20} color={Colors.primary} />
                 </View>
-                <Text style={[styles.navLinkText, { textAlign: isRTL ? 'right' : 'left' }]}>
-                  {t('withdraw_request')}
-                </Text>
+                <Text style={styles.navLinkText}>{t('withdraw_request')}</Text>
               </View>
               <Ionicons
                 name={isRTL ? 'chevron-back' : 'chevron-forward'}
@@ -372,21 +344,17 @@ export default function ProfileScreen() {
 
         {/* Help Center */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('support')}
-          </Text>
+          <Text style={styles.sectionTitle}>{t('support')}</Text>
           <TouchableOpacity
-            style={[styles.navLinkCard, isRTL && { flexDirection: 'row-reverse' }]}
+            style={styles.navLinkCard}
             onPress={() => router.push('/help')}
             activeOpacity={0.7}
           >
-            <View style={[styles.navLinkLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+            <View style={styles.navLinkLeft}>
               <View style={styles.navIconContainer}>
                 <Ionicons name="help-circle-outline" size={20} color={Colors.primary} />
               </View>
-              <Text style={[styles.navLinkText, { textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('help_center')}
-              </Text>
+              <Text style={styles.navLinkText}>{t('help_center')}</Text>
             </View>
             <Ionicons
               name={isRTL ? 'chevron-back' : 'chevron-forward'}
@@ -398,10 +366,8 @@ export default function ProfileScreen() {
 
         {/* Language */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('language')}
-          </Text>
-          <View style={[styles.langRow, isRTL && { flexDirection: 'row-reverse' }]}>
+          <Text style={styles.sectionTitle}>{t('language')}</Text>
+          <View style={styles.langRow}>
             {[
               { code: 'ar', label: t('arabic') },
               { code: 'en', label: t('english') },
@@ -412,21 +378,7 @@ export default function ProfileScreen() {
                 onPress={() => {
                   if (language === lang.code) return;
                   void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  showAlert(t('alert'), t('language_change_restart'), 'warning', [
-                    { text: t('cancel'), style: 'cancel' },
-                    {
-                      text: t('ok'),
-                      onPress: () => {
-                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        setLanguage(lang.code as 'ar' | 'en');
-                        try {
-                          DevSettings.reload();
-                        } catch {
-                          // ignore
-                        }
-                      },
-                    },
-                  ]);
+                  setLanguage(lang.code as 'ar' | 'en');
                 }}
               >
                 <Text
@@ -441,7 +393,7 @@ export default function ProfileScreen() {
 
         {/* Logout */}
         <TouchableOpacity
-          style={[styles.logoutButton, isRTL && { flexDirection: 'row-reverse' }]}
+          style={styles.logoutButton}
           onPress={() => {
             handleLogout();
           }}

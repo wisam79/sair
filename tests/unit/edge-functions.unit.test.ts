@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import * as jose from 'jose';
 
 // Capture the Deno serve handlers
 let logErrorHandler: any = null;
@@ -6,6 +7,7 @@ let sendNotificationHandler: any = null;
 let tripEngineHandler: any = null;
 let zaincashCheckoutHandler: any = null;
 let zaincashWebhookHandler: any = null;
+let streamChatTokenHandler: any = null;
 
 // Mock Deno global object
 let serveCallsCount = 0;
@@ -17,6 +19,7 @@ globalThis.Deno = {
     else if (serveCallsCount === 3) tripEngineHandler = handler;
     else if (serveCallsCount === 4) zaincashCheckoutHandler = handler;
     else if (serveCallsCount === 5) zaincashWebhookHandler = handler;
+    else if (serveCallsCount === 6) streamChatTokenHandler = handler;
     return { finished: Promise.resolve() };
   },
   env: {
@@ -25,6 +28,9 @@ globalThis.Deno = {
         ADMIN_URL: 'http://localhost:3000',
         SUPABASE_URL: 'https://zpcvvyxtmxzplmojobbv.supabase.co',
         SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
+        ZAINCASH_SECRET: 'bibLCGTxVaig5To3OLLKPJQMLRR7Pefp',
+        ZAINCASH_CLIENT_ID: '758055f4a8044779a35f6ceb69f858b3',
+        ZAINCASH_CLIENT_SECRET: 'bibLCGTxVAig5To3OLLKPJQMlRR7Pefp',
       };
       return vars[key];
     },
@@ -101,10 +107,20 @@ await import('../../supabase/functions/send-notification');
 await import('../../supabase/functions/trip-engine');
 await import('../../supabase/functions/zaincash-checkout');
 await import('../../supabase/functions/zaincash-webhook');
+await import('../../supabase/functions/stream-chat-token');
 
 describe('Edge Functions Unit Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSupabaseClient.from.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.select.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.eq.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.in.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.limit.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.single.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.maybeSingle.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.insert.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.delete.mockReturnValue(mockSupabaseClient);
   });
 
   describe('log-error', () => {
@@ -351,7 +367,7 @@ describe('Edge Functions Unit Tests', () => {
       expect(data.identpotent || data.idempotent).toBe(true);
     });
 
-    it('should allow valid transition and notify students', async () => {
+    it('should allow valid transition and notify students (simulated when env vars missing)', async () => {
       mockSupabaseClient.auth.getUser.mockResolvedValueOnce({
         data: { user: { id: 'u1', app_metadata: { role: 'driver' } } },
         error: null,
@@ -376,7 +392,7 @@ describe('Edge Functions Unit Tests', () => {
       mockSupabaseClient.rpc.mockResolvedValueOnce({ data: null, error: null }); // update_trip_status
       mockSupabaseClient.rpc.mockResolvedValueOnce({ data: null, error: null }); // log_audit
 
-      // Mock subscriptions/push_tokens query chain
+      // Mock subscriptions/notification_log query chain
       const originalFrom = mockSupabaseClient.from;
       mockSupabaseClient.from = vi.fn().mockImplementation((table) => {
         if (table === 'subscriptions') {
@@ -389,33 +405,12 @@ describe('Edge Functions Unit Tests', () => {
             }),
           };
         }
-        if (table === 'push_tokens') {
-          return {
-            select: vi.fn().mockReturnThis(),
-            in: vi.fn().mockResolvedValue({
-              data: [{ token: 'ExponentPushToken[sometoken123]', user_id: 's1' }],
-              error: null,
-            }),
-            delete: vi.fn().mockImplementation(() => {
-              return {
-                in: vi.fn().mockResolvedValue({ data: null, error: null }),
-                eq: vi.fn().mockResolvedValue({ data: null, error: null }),
-              };
-            }),
-          };
-        }
         if (table === 'notification_log') {
           return {
             insert: vi.fn().mockResolvedValue({ data: null, error: null }),
           };
         }
         return mockSupabaseClient;
-      });
-
-      // Mock Expo Push Notification SDK calls
-      mockSendPushNotificationsAsync.mockResolvedValueOnce([{ status: 'ok', id: 'ticket-ok' }]);
-      mockGetPushNotificationReceiptsAsync.mockResolvedValueOnce({
-        'ticket-ok': { status: 'ok' },
       });
 
       const req = new Request('http://localhost/trip-engine', {
@@ -435,7 +430,18 @@ describe('Edge Functions Unit Tests', () => {
       mockSupabaseClient.from = originalFrom;
     });
 
-    it('should handle notification ticket errors and cleanup unregistered tokens', async () => {
+    it('should call OneSignal API when env vars are present', async () => {
+      const originalDenoGet = globalThis.Deno.env.get;
+      globalThis.Deno.env.get = vi.fn().mockImplementation((key: string) => {
+        const vars: Record<string, string> = {
+          ONESIGNAL_APP_ID: 'test-app-id',
+          ONESIGNAL_REST_API_KEY: 'test-api-key',
+          SUPABASE_URL: 'https://zpcvvyxtmxzplmojobbv.supabase.co',
+          SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
+        };
+        return vars[key];
+      });
+
       mockSupabaseClient.auth.getUser.mockResolvedValueOnce({
         data: { user: { id: 'u1', app_metadata: { role: 'driver' } } },
         error: null,
@@ -445,7 +451,7 @@ describe('Edge Functions Unit Tests', () => {
       // Mock single() calls in order:
       // 1. Driver profile check
       mockSupabaseClient.single.mockResolvedValueOnce({ data: { id: 'd1' }, error: null });
-      // 2. Trip status check
+      // 2. Trip status check (valid transition from scheduled to driver_waiting)
       mockSupabaseClient.single.mockResolvedValueOnce({
         data: { status: 'scheduled', driver_id: 'd1' },
         error: null,
@@ -460,38 +466,17 @@ describe('Edge Functions Unit Tests', () => {
       mockSupabaseClient.rpc.mockResolvedValueOnce({ data: null, error: null }); // update_trip_status
       mockSupabaseClient.rpc.mockResolvedValueOnce({ data: null, error: null }); // log_audit
 
-      // Mock subscriptions/push_tokens query chain
+      // Mock subscriptions/notification_log query chain
       const originalFrom = mockSupabaseClient.from;
-      const deleteMock = vi.fn().mockImplementation(() => ({
-        in: vi.fn().mockResolvedValue({ data: null, error: null }),
-        eq: vi.fn().mockResolvedValue({ data: null, error: null }),
-      }));
       mockSupabaseClient.from = vi.fn().mockImplementation((table) => {
         if (table === 'subscriptions') {
           return {
             select: vi.fn().mockReturnThis(),
             eq: vi.fn().mockImplementation(() => {
               return {
-                eq: vi.fn().mockResolvedValue({
-                  data: [{ student_id: 's1' }, { student_id: 's2' }],
-                  error: null,
-                }),
+                eq: vi.fn().mockResolvedValue({ data: [{ student_id: 's1' }], error: null }),
               };
             }),
-          };
-        }
-        if (table === 'push_tokens') {
-          return {
-            select: vi.fn().mockReturnThis(),
-            in: vi.fn().mockResolvedValue({
-              data: [
-                { token: 'ExponentPushToken[valid1]', user_id: 's1' },
-                { token: 'ExponentPushToken[unregistered2]', user_id: 's2' },
-                { token: 'invalid_token_format', user_id: 's2' },
-              ],
-              error: null,
-            }),
-            delete: deleteMock,
           };
         }
         if (table === 'notification_log') {
@@ -502,21 +487,9 @@ describe('Edge Functions Unit Tests', () => {
         return mockSupabaseClient;
       });
 
-      // Mock Expo Push Notification SDK calls
-      mockSendPushNotificationsAsync.mockResolvedValueOnce([
-        { status: 'ok', id: 'ticket-valid1' },
-        {
-          status: 'error',
-          message: 'DeviceNotRegistered',
-          details: { error: 'DeviceNotRegistered' },
-        },
-      ]);
-      mockGetPushNotificationReceiptsAsync.mockResolvedValueOnce({
-        'ticket-valid1': {
-          status: 'error',
-          message: 'DeviceNotRegistered',
-          details: { error: 'DeviceNotRegistered' },
-        },
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 'onesignal-notification-id' }),
       });
 
       const req = new Request('http://localhost/trip-engine', {
@@ -533,11 +506,19 @@ describe('Edge Functions Unit Tests', () => {
       const data = await res.json();
       expect(data.success).toBe(true);
 
-      // Verify that delete was called to clean up unregistered devices (either via ticket error or receipt error)
-      expect(mockSupabaseClient.from).toHaveBeenCalledWith('push_tokens');
-      expect(deleteMock).toHaveBeenCalled();
+      // Verify that fetch was called for OneSignal notification
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.onesignal.com/notifications',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            Authorization: 'Key test-api-key',
+          }),
+        }),
+      );
 
       mockSupabaseClient.from = originalFrom;
+      globalThis.Deno.env.get = originalDenoGet;
     });
 
     it('should reject invalid transition', async () => {
@@ -650,43 +631,326 @@ describe('Edge Functions Unit Tests', () => {
       expect(res.status).toBe(403);
     });
 
-    it('should return 503 when payments are not configured', async () => {
+    it('should initialize payment and return paymentUrl', async () => {
       mockSupabaseClient.auth.getUser.mockResolvedValueOnce({
         data: { user: { id: 'u1', app_metadata: { role: 'student' } } },
         error: null,
       });
-      mockSupabaseClient.rpc.mockResolvedValueOnce({ data: true, error: null }); // rate limit ok
+
+      // Mock rate limit check and payment creation RPCs
+      mockSupabaseClient.rpc.mockImplementation((fn, args) => {
+        if (fn === 'check_rate_limit') {
+          return Promise.resolve({ data: true, error: null });
+        }
+        if (fn === 'create_payment') {
+          return Promise.resolve({ data: { id: 'payment-123' }, error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      // Mock database queries
+      mockSupabaseClient.from.mockImplementation((table) => {
+        if (table === 'routes') {
+          return {
+            select: () => ({
+              eq: () => ({
+                single: () =>
+                  Promise.resolve({ data: { price: 25000, title: 'Route 1' }, error: null }),
+              }),
+            }),
+          };
+        }
+        if (table === 'subscriptions') {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  in: () => ({
+                    maybeSingle: () => Promise.resolve({ data: null, error: null }),
+                  }),
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'payments') {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    order: () => ({
+                      limit: () => ({
+                        maybeSingle: () => Promise.resolve({ data: null, error: null }),
+                      }),
+                    }),
+                  }),
+                }),
+              }),
+            }),
+            update: () => ({
+              eq: () => Promise.resolve({ error: null }),
+            }),
+          };
+        }
+        return mockSupabaseClient;
+      });
+
+      // Mock fetch response for ZainCash v2 API (OAuth2 token + Transaction Init)
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ access_token: 'mock-access-token' }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              status: 'SUCCESS',
+              redirectUrl: 'https://test.zaincash.iq/transaction/pay?id=zain-trans-999',
+              transactionDetails: { transactionId: 'zain-trans-999' },
+            }),
+        });
+
       const req = new Request('http://localhost/zaincash-checkout', {
         method: 'POST',
         headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json' },
         body: JSON.stringify({ route_id: '00000000-0000-0000-0000-000000000001' }),
       });
+
       const res = await zaincashCheckoutHandler(req);
-      expect(res.status).toBe(503);
+      expect(res.status).toBe(200);
       const data = await res.json();
-      expect(data.code).toBe('PAYMENTS_DISABLED');
+      expect(data.paymentUrl).toBe('https://test.zaincash.iq/transaction/pay?id=zain-trans-999');
+      expect(data.orderId).toBeDefined();
     });
   });
 
   describe('zaincash-webhook', () => {
-    it('should return 400 if signature header is missing', async () => {
-      const req = new Request('http://localhost/zaincash-webhook', { method: 'POST' });
+    it('should return 400 if token parameter is missing', async () => {
+      const req = new Request('http://localhost/zaincash-webhook?other=123', { method: 'GET' });
       const res = await zaincashWebhookHandler(req);
       expect(res.status).toBe(400);
-      const data = await res.json();
-      expect(data.error).toBe('Missing ZainCash signature');
+      const text = await res.text();
+      expect(text).toContain('missing_token');
     });
 
-    it('should return 503 when webhook is not configured', async () => {
-      const req = new Request('http://localhost/zaincash-webhook', {
-        method: 'POST',
-        headers: { 'X-ZainCash-Signature': 'test-signature' },
-        body: JSON.stringify({ token: 'sometoken' }),
+    it('should verify token, execute DB RPC and return success HTML', async () => {
+      // 1. Generate signed token using the corrected secret
+      const zaincashSecret = 'bibLCGTxVAig5To3OLLKPJQMlRR7Pefp';
+      const secretKey = new TextEncoder().encode(zaincashSecret);
+      const testToken = await new jose.SignJWT({
+        eventType: 'STATUS_CHANGED',
+        data: {
+          currentStatus: 'SUCCESS',
+          orderId: 'payment-123',
+          transactionId: 'zain-trans-999',
+        },
+      })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('1h')
+        .sign(secretKey);
+
+      // 2. Mock complete_payment_and_activate_subscription RPC
+      mockSupabaseClient.rpc.mockImplementation((fn, args) => {
+        if (fn === 'complete_payment_and_activate_subscription') {
+          expect(args.p_zaincash_order_id).toBe('payment-123');
+          return Promise.resolve({ data: { status: 'completed' }, error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      const req = new Request(`http://localhost/zaincash-webhook?token=${testToken}`, {
+        method: 'GET',
       });
       const res = await zaincashWebhookHandler(req);
-      expect(res.status).toBe(503);
+      expect(res.status).toBe(200);
+      const text = await res.text();
+      expect(text).toContain('تم الدفع بنجاح');
+    });
+
+    it('should verify token, execute DB RPC and redirect to custom web URL if stored in audit logs', async () => {
+      // 1. Generate signed token
+      const zaincashSecret = 'bibLCGTxVAig5To3OLLKPJQMlRR7Pefp';
+      const secretKey = new TextEncoder().encode(zaincashSecret);
+      const testToken = await new jose.SignJWT({
+        eventType: 'STATUS_CHANGED',
+        data: {
+          currentStatus: 'SUCCESS',
+          orderId: 'payment-123',
+          transactionId: 'zain-trans-999',
+        },
+      })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('1h')
+        .sign(secretKey);
+
+      // 2. Mock complete_payment_and_activate_subscription RPC
+      mockSupabaseClient.rpc.mockImplementation((fn, args) => {
+        if (fn === 'complete_payment_and_activate_subscription') {
+          return Promise.resolve({ data: { status: 'completed' }, error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      // 3. Mock database query: payments and audit_logs to return a custom redirect url
+      const originalFrom = mockSupabaseClient.from;
+      mockSupabaseClient.from = vi.fn().mockImplementation((table) => {
+        if (table === 'payments') {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: () =>
+                  Promise.resolve({ data: { id: 'payment-uuid-123' }, error: null }),
+              }),
+            }),
+          };
+        }
+        if (table === 'audit_logs') {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    maybeSingle: () =>
+                      Promise.resolve({
+                        data: { details: { redirect_url: 'http://localhost:3000/payment-web' } },
+                        error: null,
+                      }),
+                  }),
+                }),
+              }),
+            }),
+          };
+        }
+        return mockSupabaseClient;
+      });
+
+      const req = new Request(`http://localhost/zaincash-webhook?token=${testToken}`, {
+        method: 'GET',
+      });
+      const res = await zaincashWebhookHandler(req);
+      expect(res.status).toBe(200);
+      const text = await res.text();
+      expect(text).toContain('تم الدفع بنجاح');
+      expect(text).toContain(
+        'http://localhost:3000/payment-web?status=success&amp;order_id=payment-123',
+      );
+
+      mockSupabaseClient.from = originalFrom;
+    });
+
+    it('should handle failed payment and return failure HTML', async () => {
+      // 1. Generate failed transaction token
+      const zaincashSecret = 'bibLCGTxVAig5To3OLLKPJQMlRR7Pefp';
+      const secretKey = new TextEncoder().encode(zaincashSecret);
+      const testToken = await new jose.SignJWT({
+        eventType: 'STATUS_CHANGED',
+        data: {
+          currentStatus: 'FAILED',
+          orderId: 'payment-123',
+          transactionId: 'zain-trans-999',
+        },
+      })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('1h')
+        .sign(secretKey);
+
+      // 2. Mock payment database update call
+      mockSupabaseClient.from.mockImplementation((table) => {
+        if (table === 'payments') {
+          return {
+            update: (fields: any) => {
+              expect(fields.status).toBe('failed');
+              return {
+                eq: (col: string, val: string) => {
+                  expect(col).toBe('zaincash_order_id');
+                  expect(val).toBe('payment-123');
+                  return Promise.resolve({ error: null });
+                },
+              };
+            },
+          };
+        }
+        return mockSupabaseClient;
+      });
+
+      const req = new Request(`http://localhost/zaincash-webhook?token=${testToken}`, {
+        method: 'GET',
+      });
+      const res = await zaincashWebhookHandler(req);
+      expect(res.status).toBe(200);
+      const text = await res.text();
+      expect(text).toContain('فشل عملية الدفع');
+      expect(text).toContain('sair://payment?status=failed');
+    });
+  });
+
+  describe('stream-chat-token', () => {
+    it('should return CORS headers for OPTIONS request', async () => {
+      const req = new Request('http://localhost/stream-chat-token', {
+        method: 'OPTIONS',
+        headers: { Origin: 'http://localhost:3000' },
+      });
+      const res = await streamChatTokenHandler(req);
+      expect(res.status).toBe(200);
+      expect(res.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:3000');
+    });
+
+    it('should return 401 if unauthorized', async () => {
+      const req = new Request('http://localhost/stream-chat-token', { method: 'POST' });
+      const res = await streamChatTokenHandler(req);
+      expect(res.status).toBe(401);
+    });
+
+    it('should return simulated token when credentials are missing', async () => {
+      mockSupabaseClient.auth.getUser.mockResolvedValueOnce({
+        data: { user: { id: 'u1', app_metadata: { role: 'student' } } },
+        error: null,
+      });
+
+      const req = new Request('http://localhost/stream-chat-token', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer valid' },
+      });
+      const res = await streamChatTokenHandler(req);
+      expect(res.status).toBe(200);
       const data = await res.json();
-      expect(data.code).toBe('PAYMENTS_DISABLED');
+      expect(data.token).toBe('simulated-stream-token-for-u1');
+      expect(data.apiKey).toBe('simulated-key');
+    });
+
+    it('should generate real token when credentials are present', async () => {
+      const originalDenoGet = globalThis.Deno.env.get;
+      globalThis.Deno.env.get = vi.fn().mockImplementation((key: string) => {
+        const vars: Record<string, string> = {
+          STREAM_APP_KEY: 'test-stream-key',
+          STREAM_APP_SECRET: 'test-stream-secret',
+          SUPABASE_URL: 'https://zpcvvyxtmxzplmojobbv.supabase.co',
+          SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
+        };
+        return vars[key];
+      });
+
+      mockSupabaseClient.auth.getUser.mockResolvedValueOnce({
+        data: { user: { id: 'u1', app_metadata: { role: 'student' } } },
+        error: null,
+      });
+
+      const req = new Request('http://localhost/stream-chat-token', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer valid' },
+      });
+      const res = await streamChatTokenHandler(req);
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.token).toBeDefined();
+      expect(data.apiKey).toBe('test-stream-key');
+
+      globalThis.Deno.env.get = originalDenoGet;
     });
   });
 });

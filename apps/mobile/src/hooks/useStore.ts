@@ -7,7 +7,6 @@ import { OfflineCache } from '../lib/offlineCache';
 interface AuthUser {
   id: string;
   email?: string;
-  user_metadata?: Record<string, unknown>;
 }
 
 interface AuthState {
@@ -26,7 +25,7 @@ interface AuthState {
   setInitialized: (initialized: boolean) => void;
   setHasHydrated: (state: boolean) => void;
   setHasSeenOnboarding: (val: boolean) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -43,8 +42,12 @@ export const useAuthStore = create<AuthState>()(
       setProfile: (profile) => set({ profile }),
       setInitialized: (initialized) => set({ initialized }),
       setHasHydrated: (state) => set({ hasHydrated: state }),
-      logout: () => {
-        OfflineCache.clear();
+      logout: async () => {
+        try {
+          await OfflineCache.clear();
+        } catch (e) {
+          console.warn('[Auth] OfflineCache.clear failed during logout', e);
+        }
         useTripStore.getState().clearTrip();
         useBookingStore.getState().resetBooking();
         set({ user: null, role: null, profile: null });
@@ -69,6 +72,7 @@ interface TripState {
   activeTripId: string | null;
   currentStatus: TripStatus | null;
   tripRouteId: string | null;
+  lastUpdatedAt: number | null;
   hasHydrated: boolean;
   setActiveTrip: (tripId: string, status: TripStatus, routeId: string) => void;
   updateStatus: (status: TripStatus) => void;
@@ -82,11 +86,18 @@ export const useTripStore = create<TripState>()(
       activeTripId: null,
       currentStatus: null,
       tripRouteId: null,
+      lastUpdatedAt: null,
       hasHydrated: false,
       setActiveTrip: (tripId, status, routeId) =>
-        set({ activeTripId: tripId, currentStatus: status, tripRouteId: routeId }),
-      updateStatus: (status) => set({ currentStatus: status }),
-      clearTrip: () => set({ activeTripId: null, currentStatus: null, tripRouteId: null }),
+        set({
+          activeTripId: tripId,
+          currentStatus: status,
+          tripRouteId: routeId,
+          lastUpdatedAt: Date.now(),
+        }),
+      updateStatus: (status) => set({ currentStatus: status, lastUpdatedAt: Date.now() }),
+      clearTrip: () =>
+        set({ activeTripId: null, currentStatus: null, tripRouteId: null, lastUpdatedAt: null }),
       setHasHydrated: (state) => set({ hasHydrated: state }),
     }),
     {
@@ -96,13 +107,62 @@ export const useTripStore = create<TripState>()(
         activeTripId: state.activeTripId,
         currentStatus: state.currentStatus,
         tripRouteId: state.tripRouteId,
+        lastUpdatedAt: state.lastUpdatedAt,
       }),
       onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
+        const TRIP_STATE_TTL = 12 * 60 * 60 * 1000; // 12 hours
+        if (state) {
+          if (state.activeTripId && state.lastUpdatedAt) {
+            if (Date.now() - state.lastUpdatedAt > TRIP_STATE_TTL) {
+              console.warn('[TripStore] Stale trip state detected, clearing');
+              state.activeTripId = null;
+              state.currentStatus = null;
+              state.tripRouteId = null;
+              state.lastUpdatedAt = null;
+            }
+          }
+          state.setHasHydrated(true);
+        }
       },
     },
   ),
 );
+
+// After hydration, verify active trip still exists and is not finished on server
+export async function validateActiveTripOnBoot() {
+  const { activeTripId } = useTripStore.getState();
+  if (!activeTripId || activeTripId.startsWith('local_trip_')) return;
+
+  try {
+    const { supabase } = await import('../lib/supabase');
+    const { logger } = await import('../lib/logger');
+
+    const { data, error } = await supabase
+      .from('trips')
+      .select('status')
+      .eq('id', activeTripId)
+      .single();
+
+    if (error || !data) {
+      logger.warn('[TripStore] Active trip no longer exists, clearing');
+      useTripStore.getState().clearTrip();
+      return;
+    }
+
+    // If trip is in terminal state, clear local
+    if (['completed', 'cancelled', 'absent'].includes(data.status)) {
+      logger.info(
+        `[TripStore] Active trip status on server is terminal (${data.status}), clearing local state`,
+      );
+      useTripStore.getState().clearTrip();
+    } else {
+      useTripStore.getState().updateStatus(data.status as TripStatus);
+    }
+  } catch (err) {
+    // Offline — keep local state
+    console.warn('[TripStore] Failed to validate active trip on boot (offline/network error)', err);
+  }
+}
 
 interface BookingState {
   isBooking: boolean;

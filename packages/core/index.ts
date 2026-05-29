@@ -85,6 +85,7 @@ export type BookingRequest = z.infer<typeof BookingRequest>;
 
 export const CheckoutRequest = z.object({
   route_id: z.string().uuid(),
+  redirect_url: z.string().url().optional(),
 });
 export type CheckoutRequest = z.infer<typeof CheckoutRequest>;
 
@@ -180,7 +181,14 @@ export const SubscriptionSchema = z.object({
 });
 export type Subscription = z.infer<typeof SubscriptionSchema>;
 
-export const LicenseStatus = z.enum(['active', 'used', 'revoked']);
+export const LicenseStatus = z.enum([
+  'available',
+  'reserved',
+  'payment_hold',
+  'used',
+  'expired',
+  'revoked',
+]);
 export type LicenseStatus = z.infer<typeof LicenseStatus>;
 
 export const LicenseSchema = z.object({
@@ -265,6 +273,11 @@ export type TranslationKey = keyof typeof enTranslations;
 export function getErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   if (typeof err === 'string') return err;
+  if (err && typeof err === 'object') {
+    const errorObj = err as Record<string, unknown>;
+    if (typeof errorObj.message === 'string') return errorObj.message;
+    if (typeof errorObj.error_description === 'string') return errorObj.error_description;
+  }
   return 'An unknown error occurred';
 }
 

@@ -160,13 +160,7 @@ export default function CustomAlert({
           <Text style={styles.message}>{message}</Text>
 
           {/* Buttons Area */}
-          <View
-            style={[
-              styles.buttonRow,
-              { flexDirection: isRTL ? 'row-reverse' : 'row' },
-              activeButtons.length > 2 && styles.buttonColumn,
-            ]}
-          >
+          <View style={[styles.buttonRow, activeButtons.length > 2 && styles.buttonColumn]}>
             {activeButtons.map((btn, index) => {
               const isCancel = btn.style === 'cancel';
               const isDestructive = btn.style === 'destructive';
@@ -265,6 +259,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xs,
   },
   buttonRow: {
+    flexDirection: 'row',
     width: '100%',
     justifyContent: 'center',
     gap: Spacing.sm,

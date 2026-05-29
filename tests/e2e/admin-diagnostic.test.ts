@@ -3,7 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://zpcvvyxtmxzplmojobbv.supabase.co';
+const supabaseUrl =
+  process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://zpcvvyxtmxzplmojobbv.supabase.co';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 test.describe('Admin Dashboard Diagnostics & UX Review', () => {
@@ -24,7 +25,10 @@ test.describe('Admin Dashboard Diagnostics & UX Review', () => {
     });
 
     // 1. Create auth user with admin role
-    const { data: { user }, error: createError } = await supabase.auth.admin.createUser({
+    const {
+      data: { user },
+      error: createError,
+    } = await supabase.auth.admin.createUser({
       email: adminEmail,
       password: adminPassword,
       email_confirm: true,
@@ -79,8 +83,9 @@ test.describe('Admin Dashboard Diagnostics & UX Review', () => {
     }
   });
 
-
-  test('Navigate consolidated pages, check load times, check console logs, and take screenshots', async ({ page }) => {
+  test('Navigate consolidated pages, check load times, check console logs, and take screenshots', async ({
+    page,
+  }) => {
     test.setTimeout(240000); // 4 minutes to allow slow dev compilations in CI
     const reportDir = path.resolve(__dirname, '../../test-results/admin-diagnostic');
     fs.mkdirSync(reportDir, { recursive: true });
@@ -118,10 +123,10 @@ test.describe('Admin Dashboard Diagnostics & UX Review', () => {
     console.log('[DIAG] Typing credentials...');
     await page.fill('input[name="email"]', adminEmail);
     await page.fill('input[name="password"]', adminPassword);
-    
+
     console.log('[DIAG] Clicking sign in...');
     await page.click('button[type="submit"]');
-    
+
     // Wait for redirect to dashboard
     await page.waitForURL('http://localhost:3000/', { timeout: 15000 });
     await page.waitForLoadState('networkidle');
@@ -177,7 +182,7 @@ test.describe('Admin Dashboard Diagnostics & UX Review', () => {
     console.log(`[DIAG] Diagnostics report saved to: ${resultsPath}`);
 
     // Expect no critical browser errors
-    const criticalErrors = errors.filter(e => !e.includes('favicon.ico'));
+    const criticalErrors = errors.filter((e) => !e.includes('favicon.ico'));
     expect(criticalErrors.length).toBe(0);
   });
 });

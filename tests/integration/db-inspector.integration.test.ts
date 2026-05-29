@@ -98,12 +98,11 @@ describe('Database Schema Inspector & RPC Tester', () => {
       sub = subData;
 
       // 6. Call get_or_create_conversation as student after subscribing -> should succeed
-      const { data: conv, error: convErr } = await student.client.rpc(
-        'get_or_create_conversation',
-        {
+      const { data: conv, error: convErr } = await student.client
+        .rpc('get_or_create_conversation', {
           p_trip_id: trip.id,
-        },
-      ).single();
+        })
+        .single();
 
       expect(convErr).toBeNull();
       expect(conv).toBeDefined();
@@ -111,16 +110,14 @@ describe('Database Schema Inspector & RPC Tester', () => {
       expect(typeof conv.id).toBe('string');
 
       // 7. Call get_or_create_conversation again -> should return same conversation (Idempotency)
-      const { data: convSecond, error: convErrSecond } = await student.client.rpc(
-        'get_or_create_conversation',
-        {
+      const { data: convSecond, error: convErrSecond } = await student.client
+        .rpc('get_or_create_conversation', {
           p_trip_id: trip.id,
-        },
-      ).single();
+        })
+        .single();
 
       expect(convErrSecond).toBeNull();
       expect(convSecond.id).toBe(conv.id);
-
     } finally {
       // Cleanup
       if (trip) await serviceClient.from('trips').delete().eq('id', trip.id);

@@ -56,7 +56,7 @@ function SeatProgressBar({ available, capacity, isRTL, t }: SeatProgressBarProps
 
   return (
     <View style={styles.progressBarSection}>
-      <View style={[styles.progressBarHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+      <View style={styles.progressBarHeader}>
         <Text style={styles.progressBarLabel}>{t('seats_available')}</Text>
         <Text style={[styles.progressBarValue, available <= 3 && { color: Colors.warning }]}>
           {available} / {capacity} {t('seat')} ({percentage}%)
@@ -295,13 +295,7 @@ export default function BookingScreen() {
       {/* Content */}
       {!isLoading && route && (
         <>
-          <View
-            style={[
-              styles.header,
-              { paddingTop: top + Spacing.md },
-              isRTL && { flexDirection: 'row-reverse' },
-            ]}
-          >
+          <View style={[styles.header, { paddingTop: top + Spacing.md }]}>
             {/* Glassmorphic Background Effects */}
             <View style={styles.glassOverlay} />
             <View style={styles.glassHighlight} />
@@ -321,7 +315,7 @@ export default function BookingScreen() {
             </TouchableOpacity>
             <Text style={styles.headerTitle}>{t('route_details')}</Text>
             <TouchableOpacity
-              style={[styles.headerShortcutBtn, { [isRTL ? 'left' : 'right']: Spacing.md }]}
+              style={styles.headerShortcutBtn}
               onPress={() => {
                 void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 router.push('/help');
@@ -339,8 +333,8 @@ export default function BookingScreen() {
             keyboardShouldPersistTaps="handled"
           >
             {/* Step Progress Indicator */}
-            <View style={[styles.stepIndicatorContainer, isRTL && { flexDirection: 'row-reverse' }]}>
-              <View style={[styles.stepRow, isRTL && { flexDirection: 'row-reverse' }]}>
+            <View style={styles.stepIndicatorContainer}>
+              <View style={styles.stepRow}>
                 <View style={styles.stepItem}>
                   <View style={[styles.stepDot, styles.stepDotActive]}>
                     <Ionicons name="checkmark" size={12} color={Colors.white} />
@@ -387,28 +381,20 @@ export default function BookingScreen() {
                 </Text>
 
                 {/* From → To Timeline Path */}
-                <View
-                  style={[styles.routePathContainer, isRTL && { flexDirection: 'row-reverse' }]}
-                >
+                <View style={styles.routePathContainer}>
                   <View style={styles.timelineTrack}>
                     <Ionicons name="radio-button-on" size={18} color="#0A5C36" />
                     <View style={styles.verticalConnector} />
                     <Ionicons name="location" size={20} color="#EF4444" />
                   </View>
-                  <View style={[styles.routeDetails, isRTL && { alignItems: 'flex-end' }]}>
-                    <View style={[styles.stopContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <View style={styles.routeDetails}>
+                    <View style={styles.stopContainer}>
                       <View style={{ flex: 1 }}>
-                        <Text style={[styles.stopLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-                          {t('start_point')}
-                        </Text>
-                        <Text style={[styles.stopText, { textAlign: isRTL ? 'right' : 'left' }]}>
-                          {route.start_location}
-                        </Text>
+                        <Text style={styles.stopLabel}>{t('start_point')}</Text>
+                        <Text style={styles.stopText}>{route.start_location}</Text>
                       </View>
                       {route.departure_time && (
-                        <View
-                          style={[styles.stopTimeBadge, isRTL && { flexDirection: 'row-reverse' }]}
-                        >
+                        <View style={styles.stopTimeBadge}>
                           <Ionicons name="sunny-outline" size={14} color={Colors.warning} />
                           <Text style={styles.stopTimeText}>
                             {route.departure_time.substring(0, 5)}
@@ -419,19 +405,13 @@ export default function BookingScreen() {
 
                     <View style={{ height: Spacing.lg }} />
 
-                    <View style={[styles.stopContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+                    <View style={styles.stopContainer}>
                       <View style={{ flex: 1 }}>
-                        <Text style={[styles.stopLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-                          {t('end_point')}
-                        </Text>
-                        <Text style={[styles.stopText, { textAlign: isRTL ? 'right' : 'left' }]}>
-                          {route.end_location}
-                        </Text>
+                        <Text style={styles.stopLabel}>{t('end_point')}</Text>
+                        <Text style={styles.stopText}>{route.end_location}</Text>
                       </View>
                       {route.return_time && (
-                        <View
-                          style={[styles.stopTimeBadge, isRTL && { flexDirection: 'row-reverse' }]}
-                        >
+                        <View style={styles.stopTimeBadge}>
                           <Ionicons name="moon-outline" size={14} color={Colors.secondary} />
                           <Text style={styles.stopTimeText}>
                             {route.return_time.substring(0, 5)}
@@ -452,7 +432,7 @@ export default function BookingScreen() {
 
               <View style={styles.ticketContent}>
                 {/* Stats Strip */}
-                <View style={[styles.statsStrip, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={styles.statsStrip}>
                   <View style={styles.statCol}>
                     <Ionicons name="cash-outline" size={18} color="#0A5C36" />
                     <Text style={styles.statLabel}>{t('price')}</Text>
@@ -489,7 +469,7 @@ export default function BookingScreen() {
                 />
 
                 {/* Mini Driver Card */}
-                <View style={[styles.miniDriverSection, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={styles.miniDriverSection}>
                   <View style={styles.miniDriverAvatar}>
                     {driverLoading ? (
                       <ActivityIndicator size="small" color={Colors.white} />
@@ -499,16 +479,11 @@ export default function BookingScreen() {
                       </Text>
                     )}
                   </View>
-                  <View
-                    style={[
-                      styles.miniDriverMeta,
-                      { alignItems: isRTL ? 'flex-end' : 'flex-start' },
-                    ]}
-                  >
+                  <View style={styles.miniDriverMeta}>
                     <Text style={styles.miniDriverName}>
                       {driverLoading ? t('loading') : driverProfile?.full_name || t('driver_sair')}
                     </Text>
-                    <View style={[styles.ratingRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                    <View style={styles.ratingRow}>
                       <Ionicons name="star" size={14} color={Colors.warning} />
                       <Text style={styles.ratingText}>{driverProfile?.avg_rating || '4.8'}</Text>
                       <Text style={styles.tripsCountText}>
@@ -517,7 +492,7 @@ export default function BookingScreen() {
                     </View>
                   </View>
                   <TouchableOpacity
-                    style={[styles.driverDetailButton, isRTL && { flexDirection: 'row-reverse' }]}
+                    style={styles.driverDetailButton}
                     onPress={() => {
                       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       setDriverModalVisible(true);
@@ -554,7 +529,7 @@ export default function BookingScreen() {
                       name="ticket-outline"
                       size={22}
                       color={Colors.white}
-                      style={{ position: 'absolute', [isRTL ? 'left' : 'right']: Spacing.xl }}
+                      style={{ position: 'absolute', end: Spacing.xl }}
                     />
                     <Text style={styles.bookButtonText}>
                       {route.available_seats <= 0
@@ -579,7 +554,7 @@ export default function BookingScreen() {
                     name="card-outline"
                     size={22}
                     color={Colors.white}
-                    style={{ position: 'absolute', [isRTL ? 'left' : 'right']: Spacing.xl }}
+                    style={{ position: 'absolute', end: Spacing.xl }}
                   />
                   <Text style={styles.bookButtonText}>{t('pay_with_zaincash')}</Text>
                 </TouchableOpacity>
@@ -700,6 +675,7 @@ const styles = StyleSheet.create({
   headerShortcutBtn: {
     position: 'absolute',
     bottom: 12,
+    end: Spacing.md,
     zIndex: 3,
     padding: 6,
   },
@@ -808,7 +784,7 @@ const styles = StyleSheet.create({
   routeDetails: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingLeft: Spacing.sm,
+    paddingStart: Spacing.sm,
   },
   stopContainer: {
     flexDirection: 'row',
@@ -954,8 +930,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#0A5C36',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: Spacing.md,
-    marginLeft: Spacing.xs,
+    marginEnd: Spacing.md,
+    marginStart: Spacing.xs,
   },
   avatarText: {
     fontFamily: FontFamily.bold,
