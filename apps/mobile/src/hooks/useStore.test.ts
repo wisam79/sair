@@ -64,7 +64,7 @@ describe('useAuthStore', () => {
     expect(useAuthStore.getState().initialized).toBe(true);
   });
 
-  it('logout clears user, role, profile, trip, booking, and offline cache', () => {
+  it('logout clears user, role, profile, trip, booking, and offline cache', async () => {
     useAuthStore.getState().setAuth({ id: 'u1' }, 'student');
     useAuthStore.getState().setProfile({ full_name: 'Ahmed', phone: '0770' });
 
@@ -73,7 +73,7 @@ describe('useAuthStore', () => {
     useBookingStore.getState().setBooking(true);
     useBookingStore.getState().setIdempotencyKey('key1');
 
-    useAuthStore.getState().logout();
+    await useAuthStore.getState().logout();
 
     // Verify auth store is cleared
     const authState = useAuthStore.getState();

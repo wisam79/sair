@@ -197,25 +197,36 @@ class RealtimeManager {
     } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
       this.updateStatus();
       const config = this.configs.get(id);
-      if (config && config.reconnect && !this._isPaused) {
-        const retryCount = this.retryCounts.get(id) || 0;
-        if (retryCount < RealtimeManager.MAX_RETRIES) {
-          this.retryCounts.set(id, retryCount + 1);
-          const delay = this.getBackoff(retryCount);
-          logger.warn(
-            `[RealtimeManager] Channel ${id} errored/timed out (${status}). Retrying in ${Math.round(delay)}ms`,
-            { attempt: retryCount + 1 },
-          );
-          this.clearRetryTimer(id);
-          const timer = setTimeout(() => {
-            this.connect(id);
-          }, delay);
-          this.retryTimers.set(id, timer);
-        } else {
-          logger.error(
-            `[RealtimeManager] Channel ${id} exceeded max retries. Reconnections stopped.`,
-            { id },
-          );
+      if (config) {
+        if (config.onError) {
+          try {
+            config.onError(status);
+          } catch (err) {
+            logger.error(`[RealtimeManager] Error in config.onError callback for channel ${id}`, {
+              error: err,
+            });
+          }
+        }
+        if (config.reconnect && !this._isPaused) {
+          const retryCount = this.retryCounts.get(id) || 0;
+          if (retryCount < RealtimeManager.MAX_RETRIES) {
+            this.retryCounts.set(id, retryCount + 1);
+            const delay = this.getBackoff(retryCount);
+            logger.warn(
+              `[RealtimeManager] Channel ${id} errored/timed out (${status}). Retrying in ${Math.round(delay)}ms`,
+              { attempt: retryCount + 1 },
+            );
+            this.clearRetryTimer(id);
+            const timer = setTimeout(() => {
+              this.connect(id);
+            }, delay);
+            this.retryTimers.set(id, timer);
+          } else {
+            logger.error(
+              `[RealtimeManager] Channel ${id} exceeded max retries. Reconnections stopped.`,
+              { id },
+            );
+          }
         }
       }
     }

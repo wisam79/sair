@@ -146,6 +146,12 @@ export function useActiveTrips() {
         channelName: `trips-active-${user.id}`,
         priority: 'critical',
         reconnect: true,
+        onError: (status) => {
+          NetInfo.fetch().then((state) => {
+            const isOnline = !!state.isConnected && state.isInternetReachable !== false;
+            if (isOnline && isMounted) refetch();
+          });
+        },
         subscriptions: [
           {
             event: 'postgres_changes',
