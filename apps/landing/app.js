@@ -1,8 +1,8 @@
 // ==========================================================================
-// Sair Landing Page Interactive Application Logic - Updated
+// Sair Landing — Premium Interactive Application Logic v2
 // ==========================================================================
 
-// 1. Translation Dictionary (Bilingual Support: Arabic & English)
+// ── 1. Translation Dictionary ─────────────────────────────────────────────
 const translations = {
   ar: {
     'nav.features': 'الميزات',
@@ -10,6 +10,7 @@ const translations = {
     'nav.howItWorks': 'كيف يعمل؟',
     'nav.faq': 'الأسئلة الشائعة',
     'nav.download': 'تحميل التطبيق',
+
     'hero.badge': 'الإصدار الثاني Sair v2 متاح الآن',
     'hero.title1': 'تنقّل ذكي لجامعتك،',
     'hero.title2': 'بأمان وراحة تامة',
@@ -21,7 +22,6 @@ const translations = {
     'hero.statDrivers': 'سائق موثق',
     'hero.statSuccess': 'رحلات ناجحة',
 
-    // Mockup Phone Translations
     'mock.studentName': 'علي حسين',
     'mock.university': 'جامعة بغداد',
     'mock.statusActive': 'نشط الآن',
@@ -40,11 +40,15 @@ const translations = {
     'mock.subZainCash': 'تجديد عبر زين كاش',
     'mock.subOr': 'أو',
     'mock.subActivate': 'تفعيل',
-    'mock.msgDriver1': 'صباح الخير طلاب، انطلقت الآن وباتجاه نقطة التجمع الأولى.',
+    'mock.msgDriver1':
+      'صباح الخير طلاب، انطلقت الآن وباتجاه نقطة التجمع الأولى.',
     'mock.msgStudent1': 'صباح النور عمو، بانتظارك في المحطة.',
     'mock.msgDriver2': 'تمام علي، 5 دقائق وأكون يمكم.',
     'mock.chatPlaceholder': 'أكتب رسالة...',
 
+    'marquee.label': 'معتمد من جامعات عراقية رائدة',
+
+    'features.tag': 'المنصة المتكاملة',
     'features.title': 'لماذا تختار تطبيق سير؟',
     'features.subtitle':
       'صممنا التطبيق ليوفر تجربة نقل حديثة ومريحة تلبي احتياجات الطالب العراقي اليومية.',
@@ -61,6 +65,7 @@ const translations = {
     'features.sosSafetyDesc':
       'أمانك أولويتنا؛ نوفر زر طوارئ ذكي داخل التطبيق لمشاركة موقعك الفوري وتنبيه المشرفين في الحالات الطارئة.',
 
+    'demo.tag': 'محاكاة تفاعلية',
     'demo.title': 'شاهد التتبع الحي في الميدان',
     'demo.desc':
       'جرب المحاكاة التفاعلية هنا لرؤية كيف يقوم التطبيق ببث موقع الحافلة والسرعة ووقت الوصول المتوقع بدقة متناهية.',
@@ -71,16 +76,20 @@ const translations = {
     'demo.start': 'نقطة الانطلاق',
     'demo.end': 'الجامعة',
 
+    'how.tag': 'سهولة الاستخدام',
     'how.title': 'كيف تبدأ مع سير؟',
     'how.subtitle': 'خطوات بسيطة لتنعم برحلة هادئة وخالية من التوتر.',
     'how.step1': 'تنزيل التطبيق وإنشاء حساب',
-    'how.step1Desc': 'قم بتحميل التطبيق لهاتفك الذكي وسجل بياناتك كطالب في كليتك.',
+    'how.step1Desc':
+      'قم بتحميل التطبيق لهاتفك الذكي وسجل بياناتك كطالب في كليتك.',
     'how.step2': 'اختيار وتفعيل الخط',
-    'how.step2Desc': 'ابحث عن مسار منطقتك المخصص لجامعتك وفعل اشتراكك عبر زين كاش أو كود الترخيص.',
+    'how.step2Desc':
+      'ابحث عن مسار منطقتك المخصص لجامعتك وفعل اشتراكك عبر زين كاش أو كود الترخيص.',
     'how.step3': 'تتبع حافلتك وانطلق',
     'how.step3Desc':
       'احصل على إشعارات فورية عند انطلاق الرحلة وتابع موقع الحافلة لتلتحق بها في الوقت المحدد.',
 
+    'testimonials.tag': 'آراء المستخدمين',
     'testimonials.title': 'ماذا يقول طلابنا؟',
     'testimonials.subtitle':
       'آراء حقيقية من طلاب الجامعات الذين يستخدمون سير يومياً لتسهيل تنقلهم.',
@@ -97,32 +106,35 @@ const translations = {
     'testimonials.t3Name': 'سارة محمد',
     'testimonials.t3Meta': 'طالبة في جامعة النهرين',
 
+    'faq.tag': 'مركز المساعدة',
     'faq.title': 'الأسئلة الشائعة',
-    'faq.subtitle': 'إجابات سريعة ومفصلة على الأسئلة التي يطرحها الطلاب وأولياء الأمور.',
+    'faq.subtitle':
+      'إجابات سريعة ومفصلة على الأسئلة التي يطرحها الطلاب وأولياء الأمور.',
     'faq.q1': 'كيف يمكنني تفعيل الاشتراك لأول مرة؟',
-    'faq.a1':
-      'يمكنك تفعيل الاشتراك إما بالدفع الإلكتروني المباشر داخل التطبيق عبر بوابة زين كاش (Zain Cash) أو من خلال شراء كود ترخيص (License Code) مكون من 8 رموز من الممثلين المعتمدين لتطبيق سير داخل حرم كليتك، وتفعيله فوراً داخل التطبيق لحجز مقعدك.',
+    'faq.a1': 'يمكنك تفعيل الاشتراك إما بالدفع الإلكتروني المباشر داخل التطبيق عبر بوابة زين كاش (Zain Cash) أو من خلال شراء كود ترخيص (License Code) مكون من 8 رموز من الممثلين المعتمدين لتطبيق سير داخل حرم كليتك، وتفعيله فوراً داخل التطبيق لحجز مقعدك.',
     'faq.q2': 'هل يمكنني تتبع السائق بدون توفر إنترنت في هاتفي؟',
-    'faq.a2':
-      'تحتاج إلى توفر اتصال بالإنترنت لرؤية التحديثات المباشرة وموقع الحافلة الفوري على الخريطة. ومع ذلك، يحتفظ التطبيق ببيانات آخر موقع للسائق وتفاصيل مساره للرجوع إليها دون اتصال.',
+    'faq.a2': 'تحتاج إلى توفر اتصال بالإنترنت لرؤية التحديثات المباشرة وموقع الحافلة الفوري على الخريطة. ومع ذلك، يحتفظ التطبيق ببيانات آخر موقع للسائق وتفاصيل مساره للرجوع إليها دون اتصال.',
     'faq.q3': 'هل يتم الحفاظ على خصوصية أرقام الهواتف؟',
-    'faq.a3':
-      'نعم، أمان وخصوصية طلابنا هي أولويتنا القصوى. عند التواصل مع السائق أو إرسال الرسائل الفورية داخل المحادثة الخاصة بالرحلة، يتم ذلك عبر التطبيق دون الكشف عن رقم هاتفك الشخصي للسائق أو المشتركين الآخرين مطلقاً.',
+    'faq.a3': 'نعم، أمان وخصوصية طلابنا هي أولويتنا القصوى. عند التواصل مع السائق أو إرسال الرسائل الفورية داخل المحادثة الخاصة بالرحلة، يتم ذلك عبر التطبيق دون الكشف عن رقم هاتفك الشخصي للسائق أو المشتركين الآخرين مطلقاً.',
     'faq.q4': 'كيف يعمل زر الطوارئ SOS؟',
-    'faq.a4':
-      'في حال حدوث أي طارئ أثناء الرحلة، يمكن للطالب أو السائق الضغط على زر SOS. سيقوم النظام فوراً بإرسال بلاغ طارئ لمشرفي المنصة يتضمن موقع الحافلة الجغرافي الدقيق لحظة البلاغ وتفاصيل المشتركين لتوفير الدعم السريع.',
+    'faq.a4': 'في حال حدوث أي طارئ أثناء الرحلة، يمكن للطالب أو السائق الضغط على زر SOS. سيقوم النظام فوراً بإرسال بلاغ طارئ لمشرفي المنصة يتضمن موقع الحافلة الجغرافي الدقيق لحظة البلاغ وتفاصيل المشتركين لتوفير الدعم السريع.',
 
     'cta.title': 'جاهز لتجربة رحلة جامعية أذكى؟',
     'cta.desc':
       'حمل تطبيق سير الآن المتوفر مجاناً لأجهزة الـ Android والـ iOS وابدأ بتتبع رحلاتك اليومية.',
+    'cta.getItOn': 'احصل عليه من',
+    'cta.downloadOn': 'تنزيل من',
+
     'driver.title': 'هل تمتلك حافلة نقل جامعي وتريد الانضمام؟',
     'driver.desc':
       'انضم إلى شبكة سائقي سير الموثقين. نحن نوفر لك لوحة تحكم كاملة، إدارة ذكية للمشتركين والمقاعد، واستلام فوري ومضمون للأرباح.',
     'driver.btnJoin': 'سجل شريكاً معنا',
+
     'footer.desc':
       'المنصة الأذكى لتسيير وتتبع خطوط النقل الجامعي للطلاب في العراق بأعلى معايير السلامة والسرعة.',
     'footer.linksTitle': 'روابط سريعة',
     'footer.contactTitle': 'اتصل بنا',
+    'footer.rights': 'جميع الحقوق محفوظة.',
   },
   en: {
     'nav.features': 'Features',
@@ -130,6 +142,7 @@ const translations = {
     'nav.howItWorks': 'How it works?',
     'nav.faq': 'FAQ',
     'nav.download': 'Download App',
+
     'hero.badge': 'Sair v2 is now available',
     'hero.title1': 'Smart Commute for Campus,',
     'hero.title2': 'Safe and Seamless Rides',
@@ -141,7 +154,6 @@ const translations = {
     'hero.statDrivers': 'Verified Drivers',
     'hero.statSuccess': 'Successful Trips',
 
-    // Mockup Phone Translations
     'mock.studentName': 'Ali Hussein',
     'mock.university': 'University of Baghdad',
     'mock.statusActive': 'Active Now',
@@ -160,11 +172,15 @@ const translations = {
     'mock.subZainCash': 'Renew via Zain Cash',
     'mock.subOr': 'Or',
     'mock.subActivate': 'Activate',
-    'mock.msgDriver1': 'Good morning students, started now and heading to first pickup stop.',
-    'mock.msgStudent1': 'Good morning uncle, waiting for you at the stop.',
+    'mock.msgDriver1':
+      'Good morning students, started now heading to first pickup.',
+    'mock.msgStudent1': 'Good morning, waiting for you at the stop.',
     'mock.msgDriver2': "Awesome Ali, 5 minutes and I'll be there.",
     'mock.chatPlaceholder': 'Type a message...',
 
+    'marquee.label': 'Trusted by leading Iraqi universities',
+
+    'features.tag': 'All-in-One Platform',
     'features.title': 'Why Choose Sair?',
     'features.subtitle':
       'Our app is built to provide a modern, comfortable transit experience tailored for university students.',
@@ -181,6 +197,7 @@ const translations = {
     'features.sosSafetyDesc':
       'Your safety is our priority. A built-in SOS emergency trigger lets you share your live location and alert supervisors instantly.',
 
+    'demo.tag': 'Interactive Simulation',
     'demo.title': 'See Live Tracking In Action',
     'demo.desc':
       'Interact with our real-time simulator to see how the Sair app displays the live bus location, current speed, and estimated time of arrival.',
@@ -191,335 +208,362 @@ const translations = {
     'demo.start': 'Departure',
     'demo.end': 'Campus',
 
+    'how.tag': 'Easy to Use',
     'how.title': 'How to Start with Sair?',
-    'how.subtitle': 'Simple steps to achieve a stress-free daily university commute.',
+    'how.subtitle':
+      'Simple steps to achieve a stress-free daily university commute.',
     'how.step1': 'Download & Sign Up',
     'how.step1Desc':
-      'Get the app on your iOS or Android device and register your university credentials.',
+      'Get the app on your device and register your university credentials.',
     'how.step2': 'Select & Activate Line',
     'how.step2Desc':
-      'Browse and choose the route matching your district, then activate via Zain Cash or license codes.',
+      'Choose the route for your district, then activate via Zain Cash or license codes.',
     'how.step3': 'Track & Ride',
     'how.step3Desc':
-      'Receive notifications when the trip starts and watch the live bus marker to catch your ride on time.',
+      'Receive notifications when the trip starts and watch the live bus marker to catch your ride.',
 
+    'testimonials.tag': 'User Reviews',
     'testimonials.title': 'What Students Say',
     'testimonials.subtitle':
       'Real feedback from university students using Sair daily to streamline their commute.',
     'testimonials.t1Text':
-      '"This app completely changed my campus life! I used to stand in the street for hours waiting. Now I leave home exactly on the dot while watching the driver live."',
+      '"This app completely changed my campus life! I used to stand in the street for hours waiting. Now I leave home exactly on time watching the driver live."',
     'testimonials.t1Name': 'Noor Al-Huda',
     'testimonials.t1Meta': 'Student at Mustansiriyah University',
     'testimonials.t2Text':
-      '"Subscribing and paying via Zain Cash is incredibly easy and fast. Ticket codes resolved accounting issues and immediately activated the line."',
+      '"Subscribing and paying via Zain Cash is incredibly easy. Ticket codes resolved accounting issues and immediately activated the line."',
     'testimonials.t2Name': 'Mustafa Sajjad',
     'testimonials.t2Meta': 'Student at University of Baghdad - Eng.',
     'testimonials.t3Text':
-      '"Direct chat with the driver inside the app protects our phone number privacy. I message him if I am absent, very structured system."',
+      '"Direct chat with the driver protects our phone number privacy. I message if I am absent, very structured system."',
     'testimonials.t3Name': 'Sara Mohammed',
     'testimonials.t3Meta': 'Student at Al-Nahrain University',
 
+    'faq.tag': 'Help Center',
     'faq.title': 'Frequently Asked Questions',
-    'faq.subtitle': 'Quick and detailed answers to common questions asked by students and parents.',
+    'faq.subtitle':
+      'Quick and detailed answers to common questions asked by students and parents.',
     'faq.q1': 'How do I activate my subscription for the first time?',
-    'faq.a1':
-      'You can activate by paying online using Zain Cash directly inside the app, or by purchasing an 8-character License Code from Sair campus agents and redeeming it to book your seat instantly.',
+    'faq.a1': 'You can activate by paying online using Zain Cash directly inside the app, or by purchasing an 8-character License Code from Sair campus agents and redeeming it to book your seat instantly.',
     'faq.q2': 'Can I track the driver offline without internet?',
-    'faq.a2':
-      'You need an active internet connection to see real-time map updates. However, the app caches the last known location and route details for offline reference.',
+    'faq.a2': 'You need an active internet connection to see real-time map updates. However, the app caches the last known location and route details for offline reference.',
     'faq.q3': 'Is phone number privacy preserved?',
     'faq.a3':
-      "Yes. When chatting or communicating with the driver, it's done securely through the app without exposing your personal phone number to the driver or other riders.",
+      "Yes. When chatting with the driver, it's done securely through the app without exposing your personal phone number to the driver or other riders.",
     'faq.q4': 'How does the SOS emergency button work?',
-    'faq.a4':
-      'In case of any emergency, pressing the SOS button immediately alerts Sair supervisors, sending the precise GPS coordinates and passenger details for quick response.',
+    'faq.a4': 'In case of any emergency, pressing the SOS button immediately alerts Sair supervisors, sending the precise GPS coordinates and passenger details for quick response.',
 
     'cta.title': 'Ready for a Smarter Campus Ride?',
     'cta.desc':
-      'Download Sair now, available for free on both Google Play and Apple App Store, and begin tracking your commute.',
+      'Download Sair now, available for free on Google Play and App Store.',
+    'cta.getItOn': 'Get it on',
+    'cta.downloadOn': 'Download on the',
+
     'driver.title': 'Own a Bus? Join Our Driver Network',
     'driver.desc':
-      'Register as a verified partner. We provide full routing dashboard, smart seat management, passenger lists, and secure payout requests.',
+      'Register as a verified partner. We provide full routing dashboard, smart seat management, and secure payout requests.',
     'driver.btnJoin': 'Register as Partner',
+
     'footer.desc':
       'The smartest platform for organizing and tracking university student bus lines in Iraq with top safety standards.',
     'footer.linksTitle': 'Quick Links',
     'footer.contactTitle': 'Contact Us',
+    'footer.rights': 'All rights reserved.',
   },
 };
 
-// 2. Language Switcher Logic
+// ── 2. Language Switcher ──────────────────────────────────────────────────
 let currentLang = 'ar';
 const langToggleBtn = document.getElementById('lang-toggle');
-const langText = langToggleBtn.querySelector('.lang-text');
+const langBtnText = langToggleBtn.querySelector('.lang-btn__text');
 
 function setLanguage(lang) {
   currentLang = lang;
-  document.documentElement.setAttribute('lang', lang);
-  document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+  const html = document.documentElement;
+  html.setAttribute('lang', lang);
+  html.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
 
-  document.querySelectorAll('[data-i18n]').forEach((elem) => {
-    const key = elem.getAttribute('data-i18n');
-    if (translations[lang] && translations[lang][key]) {
-      elem.textContent = translations[lang][key];
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    if (translations[lang]?.[key]) {
+      el.textContent = translations[lang][key];
     }
   });
 
-  langText.textContent = lang === 'ar' ? 'English' : 'العربية';
+  langBtnText.textContent = lang === 'ar' ? 'English' : 'العربية';
   document.title =
     lang === 'ar'
       ? 'سير | منصة النقل الجامعي الذكي في العراق'
       : 'Sair | Smart University Transit Platform in Iraq';
 
-  window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));
+  window.dispatchEvent(
+    new CustomEvent('languageChanged', { detail: { lang } }),
+  );
 }
 
 langToggleBtn.addEventListener('click', () => {
   setLanguage(currentLang === 'ar' ? 'en' : 'ar');
 });
 
-// 3. Theme Toggle Logic (Light / Dark Theme)
-const themeToggleBtn = document.getElementById('theme-toggle');
-const themeIcon = themeToggleBtn.querySelector('.theme-icon');
+// ── 3. Theme Toggle ───────────────────────────────────────────────────────
+const themeBtn = document.getElementById('theme-toggle');
 
 function initTheme() {
-  const savedTheme = localStorage.getItem('theme') || 'dark-theme';
-  document.documentElement.className = savedTheme;
-  themeIcon.textContent = savedTheme === 'dark-theme' ? '🌙' : '☀️';
+  const saved = localStorage.getItem('sair-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
 }
 
-themeToggleBtn.addEventListener('click', () => {
-  const currentTheme = document.documentElement.className;
-  const nextTheme = currentTheme === 'dark-theme' ? 'light-theme' : 'dark-theme';
-  document.documentElement.className = nextTheme;
-  localStorage.setItem('theme', nextTheme);
-  themeIcon.textContent = nextTheme === 'dark-theme' ? '🌙' : '☀️';
+themeBtn.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('sair-theme', next);
 });
 
-// Run theme initializer
 initTheme();
 
-// 4. Simulated Phone Mockup Tabs Switching
-const mockTabs = document.querySelectorAll('.mock-tab');
-const mockScreens = document.querySelectorAll('.mock-screen');
+// ── 4. Header Scroll Effect ──────────────────────────────────────────────
+const header = document.getElementById('header');
+let lastScroll = 0;
 
-mockTabs.forEach((tab) => {
+window.addEventListener(
+  'scroll',
+  () => {
+    const scrollY = window.scrollY;
+    header.classList.toggle('scrolled', scrollY > 40);
+    lastScroll = scrollY;
+  },
+  { passive: true },
+);
+
+// ── 5. Mobile Hamburger Menu ─────────────────────────────────────────────
+const hamburger = document.getElementById('hamburger');
+const nav = document.getElementById('nav');
+
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('active');
+  nav.classList.toggle('open');
+  document.body.style.overflow = nav.classList.contains('open')
+    ? 'hidden'
+    : '';
+});
+
+// Close menu on nav link click
+nav.querySelectorAll('.nav__link').forEach((link) => {
+  link.addEventListener('click', () => {
+    hamburger.classList.remove('active');
+    nav.classList.remove('open');
+    document.body.style.overflow = '';
+  });
+});
+
+// ── 6. Phone Mockup Tab Switching ────────────────────────────────────────
+const phoneTabs = document.querySelectorAll('.phone__tab');
+const phoneViews = document.querySelectorAll('.phone__view');
+
+phoneTabs.forEach((tab) => {
   tab.addEventListener('click', () => {
-    const targetTab = tab.getAttribute('data-tab');
+    const target = tab.getAttribute('data-tab');
 
-    // Switch active tab class
-    mockTabs.forEach((t) => t.classList.remove('active'));
-    tab.classList.add('active');
+    phoneTabs.forEach((t) => t.classList.remove('phone__tab--active'));
+    tab.classList.add('phone__tab--active');
 
-    // Switch active screen class
-    mockScreens.forEach((screen) => {
-      screen.classList.remove('active');
-      if (screen.id === `screen-${targetTab}`) {
-        screen.classList.add('active');
-      }
+    phoneViews.forEach((view) => {
+      view.classList.toggle(
+        'phone__view--active',
+        view.getAttribute('data-view') === target,
+      );
+    });
+  });
+});
+
+// ── 7. FAQ Accordion ─────────────────────────────────────────────────────
+document.querySelectorAll('.faq-item__q').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const item = btn.parentElement;
+    const isOpen = item.classList.contains('open');
+
+    // Close all
+    document.querySelectorAll('.faq-item').forEach((el) => {
+      el.classList.remove('open');
+      el.querySelector('.faq-item__q').setAttribute('aria-expanded', 'false');
     });
 
-    // If map screen is selected, restart route simulation from current point for better visuals
-    if (targetTab === 'map') {
-      startSimulation();
+    // Toggle clicked
+    if (!isOpen) {
+      item.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
     }
   });
 });
 
-// 5. Interactive FAQ Accordion Logic
-const faqQuestions = document.querySelectorAll('.faq-question');
-
-faqQuestions.forEach((question) => {
-  question.addEventListener('click', () => {
-    const parentItem = question.parentElement;
-    const isActive = parentItem.classList.contains('active');
-
-    // Close all other FAQ items for a neat accordion behavior
-    document.querySelectorAll('.faq-item').forEach((item) => {
-      item.classList.remove('active');
-    });
-
-    // Toggle active state
-    if (!isActive) {
-      parentItem.classList.add('active');
-    }
-  });
-});
-
-// 6. Live Route GPS Simulation Logic
-const routeProgressPath = document.getElementById('route-progress');
+// ── 8. Route Simulation ──────────────────────────────────────────────────
+const routeProgress = document.getElementById('route-progress');
 const simBus = document.getElementById('sim-bus');
-const speedValEl = document.getElementById('demo-speed');
-const etaValEl = document.getElementById('demo-eta');
+const speedEl = document.getElementById('demo-speed');
+const etaEl = document.getElementById('demo-eta');
 const restartBtn = document.getElementById('demo-trigger');
 
-let simAnimationId = null;
-let simProgress = 0; // 0 to 1
-const simDuration = 12000; // 12 seconds per trip
-let lastTime = null;
+let simAnimId = null;
+let simStart = null;
+const simDuration = 14000;
 
-// Initialize SVG path tracing metrics
-const totalPathLength = routeProgressPath.getTotalLength();
-routeProgressPath.style.strokeDasharray = totalPathLength;
-routeProgressPath.style.strokeDashoffset = totalPathLength;
+const totalLen = routeProgress.getTotalLength();
+routeProgress.style.strokeDasharray = totalLen;
+routeProgress.style.strokeDashoffset = totalLen;
 
-function animateSimulation(timestamp) {
-  if (!lastTime) lastTime = timestamp;
-  const elapsed = timestamp - lastTime;
+function animateSim(timestamp) {
+  if (!simStart) simStart = timestamp;
+  const progress = Math.min((timestamp - simStart) / simDuration, 1);
 
-  simProgress = Math.min(elapsed / simDuration, 1);
+  const len = progress * totalLen;
+  const pt = routeProgress.getPointAtLength(len);
 
-  const currentLength = simProgress * totalPathLength;
-  const point = routeProgressPath.getPointAtLength(currentLength);
+  simBus.style.left = `${(pt.x / 500) * 100}%`;
+  simBus.style.top = `${(pt.y / 350) * 100}%`;
+  routeProgress.style.strokeDashoffset = totalLen - len;
 
-  // Convert coordinates to viewport percentages (SVG viewBox: 500x350)
-  const xPercent = (point.x / 500) * 100;
-  const yPercent = (point.y / 350) * 100;
-
-  simBus.style.left = `${xPercent}%`;
-  simBus.style.top = `${yPercent}%`;
-
-  // Highlight progressive line
-  routeProgressPath.style.strokeDashoffset = totalPathLength - currentLength;
-
-  // Fluctuate speed
-  let currentSpeed = 0;
-  if (simProgress < 0.95 && simProgress > 0.05) {
-    currentSpeed = Math.floor(45 + Math.sin(timestamp / 500) * 7);
-  } else if (simProgress >= 0.95) {
-    currentSpeed = 0;
+  // Speed calculation
+  let speed = 0;
+  if (progress > 0.05 && progress < 0.92) {
+    speed = Math.floor(42 + Math.sin(timestamp / 400) * 8);
+  } else if (progress >= 0.92) {
+    speed = Math.max(0, Math.floor((1 - progress) * 200));
   } else {
-    currentSpeed = Math.floor(simProgress * 1000 * 0.04);
+    speed = Math.floor(progress * 400);
   }
 
-  const etaMinutes = Math.max(Math.ceil((1 - simProgress) * 12), 0);
+  const eta = Math.max(0, Math.ceil((1 - progress) * 14));
 
-  // Render values based on language
   if (currentLang === 'ar') {
-    speedValEl.textContent = `${currentSpeed} كم/س`;
-    etaValEl.textContent = etaMinutes > 0 ? `${etaMinutes} دقيقة` : 'وصلت الحافلة';
+    speedEl.textContent = `${speed} كم/س`;
+    etaEl.textContent = eta > 0 ? `${eta} دقيقة` : 'وصلت!';
   } else {
-    speedValEl.textContent = `${currentSpeed} km/h`;
-    etaValEl.textContent = etaMinutes > 0 ? `${etaMinutes} mins` : 'Arrived';
+    speedEl.textContent = `${speed} km/h`;
+    etaEl.textContent = eta > 0 ? `${eta} mins` : 'Arrived!';
   }
 
-  if (simProgress < 1) {
-    simAnimationId = requestAnimationFrame(animateSimulation);
+  if (progress < 1) {
+    simAnimId = requestAnimationFrame(animateSim);
   } else {
-    simAnimationId = null;
+    simAnimId = null;
   }
 }
 
-function startSimulation() {
-  if (simAnimationId) {
-    cancelAnimationFrame(simAnimationId);
-  }
-  simProgress = 0;
-  lastTime = null;
+function startSim() {
+  if (simAnimId) cancelAnimationFrame(simAnimId);
+  simStart = null;
   simBus.style.left = '10%';
   simBus.style.top = '80%';
-  routeProgressPath.style.strokeDashoffset = totalPathLength;
-
-  simAnimationId = requestAnimationFrame(animateSimulation);
+  routeProgress.style.strokeDashoffset = totalLen;
+  simAnimId = requestAnimationFrame(animateSim);
 }
 
-restartBtn.addEventListener('click', startSimulation);
+restartBtn.addEventListener('click', startSim);
 
-// 7. Statistic Counter Increments
-const statNumbers = document.querySelectorAll('.stat-num');
+// ── 9. Animated Counters ─────────────────────────────────────────────────
+function animateCounter(el, target, duration = 2000) {
+  const start = performance.now();
+  const isFloat = String(target).includes('.');
 
-function animateCounters() {
-  statNumbers.forEach((stat) => {
-    const targetVal = parseInt(stat.getAttribute('data-val'));
-    if (isNaN(targetVal)) return; // Skip non-numeric counters like percentages
+  function tick(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    // Ease-out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(eased * target);
 
-    let currentVal = 0;
-    const duration = 1800; // 1.8s
-    const steps = 60;
-    const increment = Math.ceil(targetVal / steps);
-    const stepTime = duration / steps;
+    el.textContent = current.toLocaleString();
+    if (progress < 1) requestAnimationFrame(tick);
+    else el.textContent = target.toLocaleString();
+  }
 
-    const timer = setInterval(() => {
-      currentVal += increment;
-      if (currentVal >= targetVal) {
-        clearInterval(timer);
-        stat.textContent = `+${targetVal.toLocaleString()}`;
-      } else {
-        stat.textContent = `+${currentVal.toLocaleString()}`;
-      }
-    }, stepTime);
-  });
+  requestAnimationFrame(tick);
 }
 
-// 8. Scroll Reveal & Auto-Triggers (Intersection Observer)
-const revealElements = document.querySelectorAll(
-  '.feature-card, .step-card, .driver-card, .download-container, .testimonial-card, .faq-item',
+// ── 10. Intersection Observer (Scroll Reveal + Counter Trigger) ──────────
+const srElements = document.querySelectorAll(
+  '.feature-card, .step-card, .testimonial-card, .faq-item, .cta__card, .driver-cta__card, .demo__map-wrap, .demo__panel',
 );
-const statsSection = document.querySelector('.hero-stats');
 
-const observerOptions = {
-  root: null,
-  threshold: 0.12,
-  rootMargin: '0px 0px -40px 0px',
-};
+const srObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        srObserver.unobserve(entry.target);
+      }
+    });
+  },
+  { threshold: 0.1, rootMargin: '0px 0px -60px 0px' },
+);
 
-const revealObserver = new IntersectionObserver((entries, observer) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('animate-slide-up');
-      observer.unobserve(entry.target);
-    }
-  });
-}, observerOptions);
-
-revealElements.forEach((elem) => {
-  elem.style.opacity = '0';
-  elem.style.transform = 'translateY(30px)';
-  revealObserver.observe(elem);
+srElements.forEach((el) => {
+  el.classList.add('sr');
+  srObserver.observe(el);
 });
 
-// Trigger stats counter animation once visible
-let statsAnimated = false;
+// Stats counter
+let statsTriggered = false;
+const statsArea = document.querySelector('.hero__stats');
+
 const statsObserver = new IntersectionObserver(
-  (entries, observer) => {
+  (entries) => {
     entries.forEach((entry) => {
-      if (entry.isIntersecting && !statsAnimated) {
-        statsAnimated = true;
-        animateCounters();
-        observer.unobserve(entry.target);
+      if (entry.isIntersecting && !statsTriggered) {
+        statsTriggered = true;
+        document.querySelectorAll('.hero__stat-num[data-target]').forEach((el) => {
+          animateCounter(el, parseInt(el.getAttribute('data-target'), 10));
+        });
+        statsObserver.unobserve(entry.target);
       }
     });
   },
   { threshold: 0.5 },
 );
 
-if (statsSection) {
-  statsObserver.observe(statsSection);
-}
+if (statsArea) statsObserver.observe(statsArea);
 
-// Auto-trigger simulation on boot
-window.addEventListener('load', () => {
-  setTimeout(startSimulation, 1000);
-});
+// Demo simulation auto-trigger
+const demoSection = document.querySelector('.demo');
+let demoTriggered = false;
 
-// Language changed event listener
+const demoObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting && !demoTriggered) {
+        demoTriggered = true;
+        startSim();
+        demoObserver.unobserve(entry.target);
+      }
+    });
+  },
+  { threshold: 0.2 },
+);
+
+if (demoSection) demoObserver.observe(demoSection);
+
+// ── 11. Language Change Listener ─────────────────────────────────────────
 window.addEventListener('languageChanged', () => {
-  const currentSpeed = parseInt(speedValEl.textContent);
-  const currentEta = parseInt(etaValEl.textContent) || 0;
+  const speed = parseInt(speedEl.textContent) || 0;
+  const eta = parseInt(etaEl.textContent) || 0;
 
   if (currentLang === 'ar') {
-    if (isNaN(currentSpeed) || currentSpeed === 0) {
-      speedValEl.textContent = '0 كم/س';
-    } else {
-      speedValEl.textContent = `${currentSpeed} كم/س`;
-    }
-    etaValEl.textContent = currentEta > 0 ? `${currentEta} دقيقة` : 'وصلت الحافلة';
+    speedEl.textContent = `${speed} كم/س`;
+    etaEl.textContent = eta > 0 ? `${eta} دقيقة` : 'وصلت!';
   } else {
-    if (isNaN(currentSpeed) || currentSpeed === 0) {
-      speedValEl.textContent = '0 km/h';
-    } else {
-      speedValEl.textContent = `${currentSpeed} km/h`;
-    }
-    etaValEl.textContent = currentEta > 0 ? `${currentEta} mins` : 'Arrived';
+    speedEl.textContent = `${speed} km/h`;
+    etaEl.textContent = eta > 0 ? `${eta} mins` : 'Arrived!';
   }
+});
+
+// ── 12. Smooth Scroll for Anchor Links ───────────────────────────────────
+document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+  anchor.addEventListener('click', (e) => {
+    const target = document.querySelector(anchor.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
 });
