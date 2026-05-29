@@ -14,7 +14,6 @@ Deno.serve(async (req: Request) => {
   if (healthRes) return healthRes;
 
   try {
-
     const { user, error: authError } = await verifyAuthLocal(req);
     if (authError || !user) {
       return corsResponse(req, { error: authError || 'Invalid token' }, 401);

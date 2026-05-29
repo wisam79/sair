@@ -5,8 +5,20 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
 export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
+/**
+ * Minimal user representation extracted from a locally-verified JWT.
+ * This is NOT the full Supabase User object — it only contains fields
+ * available in the JWT payload without a network roundtrip.
+ */
+export interface MinimalJWTUser {
+  id: string;
+  app_metadata: Record<string, unknown>;
+  user_metadata: Record<string, unknown>;
+  email?: string;
+}
+
 export interface AuthResult {
-  user: User | null;
+  user: User | MinimalJWTUser | null;
   error: string | null;
 }
 
@@ -56,12 +68,12 @@ export async function verifyAuthLocal(req: Request): Promise<AuthResult> {
     const secret = new TextEncoder().encode(jwtSecret);
     const { payload } = await jose.jwtVerify(token, secret);
 
-    const user = {
+    const user: MinimalJWTUser = {
       id: payload.sub as string,
-      app_metadata: payload.app_metadata || {},
-      user_metadata: payload.user_metadata || {},
-      email: payload.email as string,
-    } as any;
+      app_metadata: (payload.app_metadata as Record<string, unknown>) || {},
+      user_metadata: (payload.user_metadata as Record<string, unknown>) || {},
+      email: payload.email as string | undefined,
+    };
 
     return { user, error: null };
   } catch (err: unknown) {

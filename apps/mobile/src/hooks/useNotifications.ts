@@ -60,7 +60,9 @@ export function useNotifications() {
       OneSignal.logout();
     }
 
-    const handleNotificationClick = (event: import('react-native-onesignal').NotificationClickEvent) => {
+    const handleNotificationClick = (
+      event: import('react-native-onesignal').NotificationClickEvent,
+    ) => {
       console.warn('[Notifications] Notification Clicked:', event);
       const data = event.notification?.additionalData as Record<string, unknown> | undefined;
       if (data?.type === 'trip_update' && data.trip_id) {

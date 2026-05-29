@@ -28,7 +28,11 @@ import { FormInput } from '../src/components/FormInput';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Constants from 'expo-constants';
 
-WebBrowser.maybeCompleteAuthSession();
+try {
+  WebBrowser.maybeCompleteAuthSession();
+} catch (e) {
+  console.warn('[Auth] maybeCompleteAuthSession failed:', e);
+}
 
 export default function LoginScreen() {
   const [isSignup, setIsSignup] = useState(false);

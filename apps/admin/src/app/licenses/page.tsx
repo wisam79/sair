@@ -8,6 +8,7 @@ import { Chip, Box, Tabs, Tab, Paper, Button } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { supabaseClient } from '../../providers/supabaseClient';
 
 export default function LicensesPage() {
   const { t } = useTranslation();
@@ -17,10 +18,35 @@ export default function LicensesPage() {
   const tabParam = searchParams.get('tab');
   const initialTab = tabParam === 'batches' ? 1 : 0;
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [reservingId, setReservingId] = useState<string | null>(null);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
     router.push(`/licenses?tab=${newValue === 1 ? 'batches' : 'individual'}`);
+  };
+
+  const handleReserveLicense = async (licenseId: string) => {
+    const confirmed = window.confirm(
+      t(
+        'licenses.actions.reserveConfirm',
+        'Reserve this license as sold and deduct one seat from its route?',
+      ),
+    );
+    if (!confirmed) return;
+
+    setReservingId(licenseId);
+    try {
+      const { error } = await supabaseClient.rpc('reserve_license_for_sale', {
+        p_license_id: licenseId,
+      });
+      if (error) {
+        alert(error.message);
+        return;
+      }
+      router.refresh();
+    } finally {
+      setReservingId(null);
+    }
   };
 
   // ─── TAB 0: INDIVIDUAL LICENSES ──────────────────────────────────────────
@@ -63,8 +89,11 @@ export default function LicensesPage() {
             | 'info'
             | 'success'
             | 'warning' = 'default';
-          if (value === 'active') color = 'success';
+          if (value === 'available') color = 'success';
+          if (value === 'reserved') color = 'warning';
+          if (value === 'payment_hold') color = 'info';
           if (value === 'used') color = 'default';
+          if (value === 'expired') color = 'secondary';
           if (value === 'revoked') color = 'error';
           return <Chip size="small" label={value} color={color} />;
         },
@@ -95,8 +124,28 @@ export default function LicensesPage() {
           return <DateField value={value} />;
         },
       },
+      {
+        field: 'actions',
+        headerName: t('common.actions', 'Actions'),
+        sortable: false,
+        filterable: false,
+        minWidth: 150,
+        renderCell: function render({ row }) {
+          if (row.status !== 'available') return null;
+          return (
+            <Button
+              size="small"
+              variant="outlined"
+              disabled={reservingId === row.id}
+              onClick={() => void handleReserveLicense(row.id)}
+            >
+              {t('licenses.actions.reserve', 'Reserve')}
+            </Button>
+          );
+        },
+      },
     ],
-    [t],
+    [reservingId, t],
   );
 
   // ─── TAB 1: LICENSE BATCHES ──────────────────────────────────────────────

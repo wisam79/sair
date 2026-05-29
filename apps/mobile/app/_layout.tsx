@@ -2,11 +2,19 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { supabase } from '../src/lib/supabase';
 import * as Sentry from '@sentry/react-native';
-import { useAuthStore, useTripStore, useBookingStore, useI18nStore } from '../src/hooks/useStore';
+import {
+  useAuthStore,
+  useTripStore,
+  useBookingStore,
+  useI18nStore,
+  validateActiveTripOnBoot,
+} from '../src/hooks/useStore';
+import { useRealtimeHealth } from '../src/hooks/useRealtimeHealth';
 import '../src/lib/i18n';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { useNetworkStatus } from '../src/hooks/useNetworkStatus';
 import { useNotifications } from '../src/hooks/useNotifications';
+import { logger } from '../src/lib/logger';
 import {
   I18nManager,
   DevSettings,
@@ -17,7 +25,6 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import { OverlayProvider } from 'stream-chat-expo';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -82,8 +89,10 @@ function Layout() {
   const { isOnline } = useNetworkStatus();
   const { top } = useSafeAreaInsets();
 
+  const { status: realtimeStatus } = useRealtimeHealth();
   const [forceUpdateRequired, setForceUpdateRequired] = useState(false);
-  const [animationFinished, setAnimationFinished] = useState(false); // Prevent infinite refresh loop: only attempt session refresh once per mount
+  const [animationFinished, setAnimationFinished] = useState(false);
+  const [hydrationTimedOut, setHydrationTimedOut] = useState(false); // Prevent infinite refresh loop: only attempt session refresh once per mount
   const refreshAttemptedRef = useRef(false);
 
   // Initialize push notifications globally
@@ -150,18 +159,37 @@ function Layout() {
     checkVersion();
   }, []);
 
+  // Hydration safety net: if AsyncStorage is corrupted or very slow on a low-end device,
+  // force the app to render after 10s instead of showing an infinite loading spinner.
+  useEffect(() => {
+    if (Platform.OS === 'web' || allStoresHydrated) return;
+    const timer = setTimeout(() => {
+      if (!allStoresHydrated) {
+        logger.error('[Boot] Store hydration timed out after 10s', {
+          auth: authHydrated,
+          trip: tripHydrated,
+          booking: bookingHydrated,
+          i18n: i18nHydrated,
+        });
+        setHydrationTimedOut(true);
+      }
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [allStoresHydrated, authHydrated, tripHydrated, bookingHydrated, i18nHydrated]);
+
   // Auth listener
   useEffect(() => {
-    // Safety net for web: if Supabase getSession takes too long (e.g. CORS/network issue),
-    // force initialized=true after 5s so the loading spinner doesn't show forever.
+    // Safety net: if Supabase getSession takes too long (e.g. network issue),
+    // force initialized=true so the loading spinner doesn't show forever.
+    // Web: 5s (synchronous localStorage), Native: 8s (slower AsyncStorage)
     let safetyTimer: ReturnType<typeof setTimeout> | null = null;
-    if (Platform.OS === 'web') {
-      safetyTimer = setTimeout(() => {
-        if (!useAuthStore.getState().initialized) {
-          setInitialized(true);
-        }
-      }, 5000);
-    }
+    const timeout = Platform.OS === 'web' ? 5000 : 8000;
+    safetyTimer = setTimeout(() => {
+      if (!useAuthStore.getState().initialized) {
+        logger.warn('[Boot] Auth initialization timed out — forcing ready state');
+        setInitialized(true);
+      }
+    }, timeout);
 
     supabase.auth
       .getSession()
@@ -305,13 +333,20 @@ function Layout() {
     }
   }, [initialized, allStoresHydrated, segments, user, hasSeenOnboarding, role]);
 
+  // Validate active trip status on server after hydration
+  useEffect(() => {
+    if (initialized && allStoresHydrated) {
+      validateActiveTripOnBoot();
+    }
+  }, [initialized, allStoresHydrated]);
+
   // Hide splash screen once fonts are ready
   // On web: don't block on allStoresHydrated — localStorage is synchronous and hydration
   // should complete near-instantly. If it somehow doesn't, the spinner would show forever.
   const appIsReady =
     (fontsLoaded || fontError) &&
     initialized &&
-    (Platform.OS === 'web' ? true : allStoresHydrated);
+    (Platform.OS === 'web' ? true : allStoresHydrated || hydrationTimedOut);
 
   useEffect(() => {
     if (appIsReady) {
@@ -374,46 +409,51 @@ function Layout() {
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
           <ErrorBoundary>
-            <OverlayProvider>
-              <View style={styles.root} onLayout={onLayoutRootView}>
-                {!isOnline && (
-                  <View style={[styles.offlineBanner, { paddingTop: top }]}>
-                    <Text style={styles.offlineText}>{t('no_internet')}</Text>
-                  </View>
-                )}
-                <Stack screenOptions={{ headerShown: true, headerBackTitle: t('go_back_short') }}>
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="booking" options={{ headerShown: false }} />
-                  <Stack.Screen
-                    name="login"
-                    options={{
-                      headerShown: false,
-                      contentStyle: { backgroundColor: Colors.backgroundDark },
-                    }}
-                  />
-                  <Stack.Screen
-                    name="onboarding"
-                    options={{
-                      headerShown: false,
-                      contentStyle: { backgroundColor: Colors.background },
-                    }}
-                  />
-                  <Stack.Screen name="tracking/[tripId]" options={{ headerShown: false }} />
-                  <Stack.Screen name="activate" options={{ headerShown: false }} />
-                  <Stack.Screen name="create-trip" options={{ headerShown: false }} />
-                  <Stack.Screen name="payment" options={{ headerShown: false }} />
-                  <Stack.Screen
-                    name="rating/[tripId]"
-                    options={{ title: t('rating'), headerShown: false }}
-                  />
-                  <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
-                  <Stack.Screen name="trip-history" options={{ headerShown: false }} />
-                  <Stack.Screen name="payouts" options={{ headerShown: false }} />
-                  <Stack.Screen name="notifications" options={{ headerShown: false }} />
-                  <Stack.Screen name="help" options={{ headerShown: false }} />
-                </Stack>
-              </View>
-            </OverlayProvider>
+            <View style={styles.root} onLayout={onLayoutRootView}>
+              {!isOnline && (
+                <View style={[styles.offlineBanner, { paddingTop: top }]}>
+                  <Text style={styles.offlineText}>{t('no_internet')}</Text>
+                </View>
+              )}
+              {isOnline && realtimeStatus === 'degraded' && (
+                <View style={[styles.degradedBanner, { paddingTop: top }]}>
+                  <Text style={styles.degradedText}>
+                    {t('connection_unstable') || 'الاتصال غير مستقر...'}
+                  </Text>
+                </View>
+              )}
+              <Stack screenOptions={{ headerShown: true, headerBackTitle: t('go_back_short') }}>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="booking" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="login"
+                  options={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: Colors.backgroundDark },
+                  }}
+                />
+                <Stack.Screen
+                  name="onboarding"
+                  options={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: Colors.background },
+                  }}
+                />
+                <Stack.Screen name="tracking/[tripId]" options={{ headerShown: false }} />
+                <Stack.Screen name="activate" options={{ headerShown: false }} />
+                <Stack.Screen name="create-trip" options={{ headerShown: false }} />
+                <Stack.Screen name="payment" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="rating/[tripId]"
+                  options={{ title: t('rating'), headerShown: false }}
+                />
+                <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
+                <Stack.Screen name="trip-history" options={{ headerShown: false }} />
+                <Stack.Screen name="payouts" options={{ headerShown: false }} />
+                <Stack.Screen name="notifications" options={{ headerShown: false }} />
+                <Stack.Screen name="help" options={{ headerShown: false }} />
+              </Stack>
+            </View>
           </ErrorBoundary>
         </SafeAreaProvider>
       </QueryClientProvider>
@@ -437,6 +477,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   offlineText: {
+    color: Colors.white,
+    fontSize: 12,
+    fontFamily: 'NotoSansArabic_500Medium',
+  },
+  degradedBanner: {
+    backgroundColor: '#F59E0B',
+    paddingVertical: 6,
+    alignItems: 'center',
+  },
+  degradedText: {
     color: Colors.white,
     fontSize: 12,
     fontFamily: 'NotoSansArabic_500Medium',

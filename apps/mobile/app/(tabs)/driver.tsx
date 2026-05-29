@@ -20,6 +20,7 @@ import { useTranslation } from '../../src/hooks/useTranslation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { ClientRateLimiter } from '../../src/lib/rateLimiter';
+import { offlineQueue, QUEUE_LIMITS } from '../../src/lib/offlineQueue';
 import { TripStatus, canTransition, getErrorMessage } from '@sair/core';
 import { Colors, FontFamily, Spacing, BorderRadius, Shadow } from '../../src/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -141,18 +142,19 @@ export default function DriverDashboard() {
         const isLocalTrip = tripId.startsWith('local_trip_');
 
         if (!isOnline || isLocalTrip) {
-          // Queue the status update locally
           const statusKey = 'pending_status_updates';
-          const rawStatus = await AsyncStorage.getItem(statusKey);
-          const statusUpdates = rawStatus ? JSON.parse(rawStatus) : [];
-          statusUpdates.push({
-            tripId,
-            newStatus,
-            lat,
-            lng,
-            timestamp: Date.now(),
-          });
-          await AsyncStorage.setItem(statusKey, JSON.stringify(statusUpdates));
+          await offlineQueue.enqueue(
+            statusKey,
+            {
+              tripId,
+              newStatus,
+              lat,
+              lng,
+              timestamp: Date.now(),
+            },
+            QUEUE_LIMITS.statusUpdates,
+            'drop_oldest',
+          );
 
           // Apply state transitions locally
           if (newStatus === 'in_transit') {
@@ -186,20 +188,21 @@ export default function DriverDashboard() {
         });
 
         if (error) {
-          // Fallback to local queue on network failure
           const isNetworkError = error.message?.includes('network') || !error.status;
           if (isNetworkError) {
             const statusKey = 'pending_status_updates';
-            const rawStatus = await AsyncStorage.getItem(statusKey);
-            const statusUpdates = rawStatus ? JSON.parse(rawStatus) : [];
-            statusUpdates.push({
-              tripId,
-              newStatus,
-              lat,
-              lng,
-              timestamp: Date.now(),
-            });
-            await AsyncStorage.setItem(statusKey, JSON.stringify(statusUpdates));
+            await offlineQueue.enqueue(
+              statusKey,
+              {
+                tripId,
+                newStatus,
+                lat,
+                lng,
+                timestamp: Date.now(),
+              },
+              QUEUE_LIMITS.statusUpdates,
+              'drop_oldest',
+            );
 
             if (newStatus === 'in_transit') {
               setActiveTrip(tripId, newStatus, '');

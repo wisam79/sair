@@ -22,30 +22,26 @@ export async function createClient() {
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
 
-  return createServerClient(
-    supabaseUrl as string,
-    supabaseAnonKey as string,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(
-          cookiesToSet: Array<{
-            name: string;
-            value: string;
-            options: Record<string, string | number | boolean | Date | undefined>;
-          }>,
-        ) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options as any);
-            });
-          } catch {
-            // Can be ignored if middleware is handling cookie refreshes
-          }
-        },
+  return createServerClient(supabaseUrl as string, supabaseAnonKey as string, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(
+        cookiesToSet: Array<{
+          name: string;
+          value: string;
+          options: Record<string, string | number | boolean | Date | undefined>;
+        }>,
+      ) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options as any);
+          });
+        } catch {
+          // Can be ignored if middleware is handling cookie refreshes
+        }
       },
     },
-  );
+  });
 }

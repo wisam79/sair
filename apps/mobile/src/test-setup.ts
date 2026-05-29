@@ -6,6 +6,7 @@ import { vi } from 'vitest';
 
 vi.mock('react-native', () => ({
   Platform: { OS: 'ios', select: (obj: Record<string, unknown>) => obj.ios ?? obj.default },
+  NativeModules: {},
 }));
 
 // Polyfill TextEncoder/TextDecoder for jsdom environment

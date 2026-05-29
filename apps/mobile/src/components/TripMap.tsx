@@ -1,8 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Alert, ActivityIndicator, Animated, Easing, Platform } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  Animated,
+  Easing,
+  Platform,
+} from 'react-native';
 import type { CameraRef } from '@maplibre/maplibre-react-native';
 import MapView, { Marker as RNMarker, Polyline as RNPolyline } from 'react-native-maps';
 import { Colors } from '../theme';
+import { logger } from '../lib/logger';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../hooks/useTranslation';
 import * as Location from 'expo-location';
@@ -31,7 +42,7 @@ interface LatLng {
   longitude: number;
 }
 
-export const TripMap: React.FC<TripMapProps> = ({
+const TripMapInner: React.FC<TripMapProps> = ({
   startLat,
   startLng,
   endLat,
@@ -40,7 +51,9 @@ export const TripMap: React.FC<TripMapProps> = ({
   driverLng,
   mapStyle = 'streets',
 }) => {
-  const mapLibreCameraRef = useRef<import('@maplibre/maplibre-react-native').CameraRef | null>(null);
+  const mapLibreCameraRef = useRef<import('@maplibre/maplibre-react-native').CameraRef | null>(
+    null,
+  );
   const mapViewRef = useRef<MapView | null>(null);
   const { t, isRTL } = useTranslation();
 
@@ -223,9 +236,11 @@ export const TripMap: React.FC<TripMapProps> = ({
     routeFetched.current = true;
 
     const fetchRoute = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       try {
         const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: controller.signal });
         const json = await res.json();
         if (json.routes?.[0]?.geometry?.coordinates) {
           const coords: LatLng[] = json.routes[0].geometry.coordinates.map(
@@ -233,8 +248,14 @@ export const TripMap: React.FC<TripMapProps> = ({
           );
           setRouteCoords(coords);
         }
-      } catch {
-        // Fallback: straight line
+      } catch (err) {
+        // Fallback: straight line (also handles AbortError on timeout)
+        setRouteCoords([
+          { latitude: startLat, longitude: startLng },
+          { latitude: endLat, longitude: endLng },
+        ]);
+      } finally {
+        clearTimeout(timeoutId);
       }
     };
 
@@ -256,7 +277,7 @@ export const TripMap: React.FC<TripMapProps> = ({
     const minLat = Math.min(...lats);
     const maxLng = Math.max(...lngs);
     const minLng = Math.min(...lngs);
- 
+
     if (isMapLibreAvailable) {
       if (!mapLibreCameraRef.current) return;
       mapLibreCameraRef.current.fitBounds([minLng, minLat, maxLng, maxLat], {
@@ -489,6 +510,50 @@ export const TripMap: React.FC<TripMapProps> = ({
   );
 };
 
+class MapErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: any) {
+    logger.warn('[MapErrorBoundary] Map failed to render', { error: error?.message });
+  }
+  render() {
+    if (this.state.hasError) return this.props.fallback;
+    return this.props.children;
+  }
+}
+
+export const TripMap: React.FC<TripMapProps> = (props) => {
+  const { t } = useTranslation();
+  return (
+    <MapErrorBoundary
+      fallback={
+        <View style={[styles.container, styles.fallbackContainer]}>
+          <Ionicons name="map-outline" size={60} color={Colors.textMuted || '#8e8e93'} />
+          <Text style={styles.fallbackTitle}>{t('map_load_failed') || 'تعذر تحميل الخريطة'}</Text>
+          <Text style={styles.fallbackSubtitle}>
+            {t('map_fallback_desc') || 'يمكنك متابعة الرحلة عبر التحديثات النصية.'}
+          </Text>
+          {props.driverLat !== null && props.driverLng !== null && (
+            <View style={styles.fallbackDetails}>
+              <Text style={styles.fallbackText}>
+                {t('driver_location') || 'موقع السائق'}: {props.driverLat.toFixed(5)},{' '}
+                {props.driverLng.toFixed(5)}
+              </Text>
+            </View>
+          )}
+        </View>
+      }
+    >
+      <TripMapInner {...props} />
+    </MapErrorBoundary>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -585,5 +650,39 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     zIndex: 100,
+  },
+  fallbackContainer: {
+    backgroundColor: '#f8f9fa',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  fallbackTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#212529',
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  fallbackSubtitle: {
+    fontSize: 14,
+    color: '#6c757d',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  fallbackDetails: {
+    backgroundColor: Colors.white,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+  },
+  fallbackText: {
+    fontSize: 13,
+    color: '#212529',
   },
 });

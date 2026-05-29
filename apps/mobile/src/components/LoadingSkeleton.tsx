@@ -1,12 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  Animated,
-  Easing,
-  Dimensions,
-  Platform,
-} from 'react-native';
+import { View, StyleSheet, Animated, Easing, Dimensions, Platform } from 'react-native';
 import { Colors, BorderRadius, Spacing, Shadow } from '../theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -111,7 +104,15 @@ export function SubscriptionCardSkeleton({ index = 0 }: { index?: number }) {
         <ShimmerBox width={80} height={24} borderRadius={12} delay={d} />
         <ShimmerBox width="45%" height={16} borderRadius={6} delay={d + 80} />
       </View>
-      <View style={{ marginBottom: 12, backgroundColor: '#F8F6F3', borderRadius: 8, padding: 10, gap: 6 }}>
+      <View
+        style={{
+          marginBottom: 12,
+          backgroundColor: '#F8F6F3',
+          borderRadius: 8,
+          padding: 10,
+          gap: 6,
+        }}
+      >
         <View style={styles.row}>
           <ShimmerBox width={10} height={10} borderRadius={5} delay={d + 100} />
           <ShimmerBox width="65%" height={13} borderRadius={5} delay={d + 100} />
@@ -122,7 +123,17 @@ export function SubscriptionCardSkeleton({ index = 0 }: { index?: number }) {
           <ShimmerBox width="50%" height={13} borderRadius={5} delay={d + 160} />
         </View>
       </View>
-      <View style={[styles.row, { justifyContent: 'space-between', paddingTop: 10, borderTopWidth: 1, borderTopColor: '#F0EDE8' }]}>
+      <View
+        style={[
+          styles.row,
+          {
+            justifyContent: 'space-between',
+            paddingTop: 10,
+            borderTopWidth: 1,
+            borderTopColor: '#F0EDE8',
+          },
+        ]}
+      >
         <ShimmerBox width={100} height={14} borderRadius={5} delay={d + 200} />
         <ShimmerBox width={90} height={14} borderRadius={5} delay={d + 240} />
       </View>
@@ -184,7 +195,13 @@ export function TripCardSkeleton({ index = 0 }: { index?: number }) {
         <ShimmerBox width={24} height={24} borderRadius={12} delay={d + 50} />
         <ShimmerBox width="70%" height={16} borderRadius={6} delay={d + 50} />
       </View>
-      <ShimmerBox width="100%" height={44} borderRadius={10} style={{ marginTop: 12 }} delay={d + 100} />
+      <ShimmerBox
+        width="100%"
+        height={44}
+        borderRadius={10}
+        style={{ marginTop: 12 }}
+        delay={d + 100}
+      />
     </View>
   );
 }

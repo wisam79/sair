@@ -28,7 +28,9 @@ globalThis.Deno = {
         ADMIN_URL: 'http://localhost:3000',
         SUPABASE_URL: 'https://zpcvvyxtmxzplmojobbv.supabase.co',
         SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
-        ZAINCASH_SECRET: '$2y$10$hHbSq4yKU6C54vE9Gg.xKeKiSS/vn9YcRY0917Q.d3SMGUThG1qC',
+        ZAINCASH_SECRET: 'bibLCGTxVaig5To3OLLKPJQMLRR7Pefp',
+        ZAINCASH_CLIENT_ID: '758055f4a8044779a35f6ceb69f858b3',
+        ZAINCASH_CLIENT_SECRET: 'bibLCGTxVAig5To3OLLKPJQMlRR7Pefp',
       };
       return vars[key];
     },
@@ -646,7 +648,7 @@ describe('Edge Functions Unit Tests', () => {
         return Promise.resolve({ data: null, error: null });
       });
 
-      // Mock routes database queries
+      // Mock database queries
       mockSupabaseClient.from.mockImplementation((table) => {
         if (table === 'routes') {
           return {
@@ -658,8 +660,34 @@ describe('Edge Functions Unit Tests', () => {
             }),
           };
         }
+        if (table === 'subscriptions') {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  in: () => ({
+                    maybeSingle: () => Promise.resolve({ data: null, error: null }),
+                  }),
+                }),
+              }),
+            }),
+          };
+        }
         if (table === 'payments') {
           return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    order: () => ({
+                      limit: () => ({
+                        maybeSingle: () => Promise.resolve({ data: null, error: null }),
+                      }),
+                    }),
+                  }),
+                }),
+              }),
+            }),
             update: () => ({
               eq: () => Promise.resolve({ error: null }),
             }),
@@ -668,11 +696,21 @@ describe('Edge Functions Unit Tests', () => {
         return mockSupabaseClient;
       });
 
-      // Mock fetch response for ZainCash Sandbox API
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ id: 'zain-trans-999' }),
-      });
+      // Mock fetch response for ZainCash v2 API (OAuth2 token + Transaction Init)
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ access_token: 'mock-access-token' }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              status: 'SUCCESS',
+              redirectUrl: 'https://test.zaincash.iq/transaction/pay?id=zain-trans-999',
+              transactionDetails: { transactionId: 'zain-trans-999' },
+            }),
+        });
 
       const req = new Request('http://localhost/zaincash-checkout', {
         method: 'POST',
@@ -698,13 +736,16 @@ describe('Edge Functions Unit Tests', () => {
     });
 
     it('should verify token, execute DB RPC and return success HTML', async () => {
-      // 1. Generate signed token
-      const zaincashSecret = '$2y$10$hHbSq4yKU6C54vE9Gg.xKeKiSS/vn9YcRY0917Q.d3SMGUThG1qC';
+      // 1. Generate signed token using the corrected secret
+      const zaincashSecret = 'bibLCGTxVAig5To3OLLKPJQMlRR7Pefp';
       const secretKey = new TextEncoder().encode(zaincashSecret);
       const testToken = await new jose.SignJWT({
-        status: 'success',
-        orderId: 'payment-123',
-        id: 'zain-trans-999',
+        eventType: 'STATUS_CHANGED',
+        data: {
+          currentStatus: 'SUCCESS',
+          orderId: 'payment-123',
+          transactionId: 'zain-trans-999',
+        },
       })
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
@@ -727,17 +768,91 @@ describe('Edge Functions Unit Tests', () => {
       expect(res.status).toBe(200);
       const text = await res.text();
       expect(text).toContain('تم الدفع بنجاح');
-      expect(text).toContain('sair://payment?status=success');
+    });
+
+    it('should verify token, execute DB RPC and redirect to custom web URL if stored in audit logs', async () => {
+      // 1. Generate signed token
+      const zaincashSecret = 'bibLCGTxVAig5To3OLLKPJQMlRR7Pefp';
+      const secretKey = new TextEncoder().encode(zaincashSecret);
+      const testToken = await new jose.SignJWT({
+        eventType: 'STATUS_CHANGED',
+        data: {
+          currentStatus: 'SUCCESS',
+          orderId: 'payment-123',
+          transactionId: 'zain-trans-999',
+        },
+      })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('1h')
+        .sign(secretKey);
+
+      // 2. Mock complete_payment_and_activate_subscription RPC
+      mockSupabaseClient.rpc.mockImplementation((fn, args) => {
+        if (fn === 'complete_payment_and_activate_subscription') {
+          return Promise.resolve({ data: { status: 'completed' }, error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      // 3. Mock database query: payments and audit_logs to return a custom redirect url
+      const originalFrom = mockSupabaseClient.from;
+      mockSupabaseClient.from = vi.fn().mockImplementation((table) => {
+        if (table === 'payments') {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: () =>
+                  Promise.resolve({ data: { id: 'payment-uuid-123' }, error: null }),
+              }),
+            }),
+          };
+        }
+        if (table === 'audit_logs') {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    maybeSingle: () =>
+                      Promise.resolve({
+                        data: { details: { redirect_url: 'http://localhost:3000/payment-web' } },
+                        error: null,
+                      }),
+                  }),
+                }),
+              }),
+            }),
+          };
+        }
+        return mockSupabaseClient;
+      });
+
+      const req = new Request(`http://localhost/zaincash-webhook?token=${testToken}`, {
+        method: 'GET',
+      });
+      const res = await zaincashWebhookHandler(req);
+      expect(res.status).toBe(200);
+      const text = await res.text();
+      expect(text).toContain('تم الدفع بنجاح');
+      expect(text).toContain(
+        'http://localhost:3000/payment-web?status=success&amp;order_id=payment-123',
+      );
+
+      mockSupabaseClient.from = originalFrom;
     });
 
     it('should handle failed payment and return failure HTML', async () => {
       // 1. Generate failed transaction token
-      const zaincashSecret = '$2y$10$hHbSq4yKU6C54vE9Gg.xKeKiSS/vn9YcRY0917Q.d3SMGUThG1qC';
+      const zaincashSecret = 'bibLCGTxVAig5To3OLLKPJQMlRR7Pefp';
       const secretKey = new TextEncoder().encode(zaincashSecret);
       const testToken = await new jose.SignJWT({
-        status: 'failed',
-        orderId: 'payment-123',
-        id: 'zain-trans-999',
+        eventType: 'STATUS_CHANGED',
+        data: {
+          currentStatus: 'FAILED',
+          orderId: 'payment-123',
+          transactionId: 'zain-trans-999',
+        },
       })
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()

@@ -66,14 +66,12 @@ Deno.serve(async (req: Request) => {
 
     // Save to database using service_role privileges
     try {
-      const { error: dbErr } = await supabaseAdmin
-        .from('client_error_logs')
-        .insert({
-          level,
-          message,
-          context,
-          user_agent: userAgent,
-        });
+      const { error: dbErr } = await supabaseAdmin.from('client_error_logs').insert({
+        level,
+        message,
+        context,
+        user_agent: userAgent,
+      });
       if (dbErr) {
         console.error('[log-error] Failed to insert error to database:', dbErr.message);
       }

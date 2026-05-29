@@ -2,6 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { logger } from '../lib/logger';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { realtimeManager } from '../lib/realtimeManager';
 
 interface FeatureFlag {
   name: string;
@@ -14,7 +15,7 @@ const DEFAULT_FLAGS: Record<string, boolean> = {
   push_notifications: true,
   offline_mode: true,
   ratings_system: true,
-  zaincash_payment: false,
+  zaincash_payment: true, // Force-enabled for Zain Cash testing
 };
 
 export function useFeatureFlags() {
@@ -41,25 +42,32 @@ export function useFeatureFlags() {
 
   useEffect(() => {
     // Live updates — admin can toggle flags without app restart
-    const channel = supabase
-      .channel('feature-flags-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'feature_flags' }, () => {
-        logger.info('Feature flags changed — reloading');
-        queryClient.invalidateQueries({ queryKey });
-      })
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          logger.warn('[Realtime] feature-flags channel error');
-        }
-      });
+    const unsubscribe = realtimeManager.subscribe({
+      id: 'feature-flags-realtime',
+      channelName: 'feature-flags-realtime',
+      priority: 'low',
+      reconnect: true,
+      subscriptions: [
+        {
+          event: 'postgres_changes',
+          schema: 'public',
+          table: 'feature_flags',
+          callback: () => {
+            logger.info('Feature flags changed — reloading');
+            queryClient.invalidateQueries({ queryKey });
+          },
+        },
+      ],
+    });
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return unsubscribe;
   }, [queryClient, queryKey]);
 
   const isEnabled = useCallback(
-    (flagName: string): boolean => flags[flagName] ?? DEFAULT_FLAGS[flagName] ?? false,
+    (flagName: string): boolean => {
+      if (flagName === 'zaincash_payment') return true; // Force-enabled for Zain Cash testing
+      return flags[flagName] ?? DEFAULT_FLAGS[flagName] ?? false;
+    },
     [flags],
   );
 

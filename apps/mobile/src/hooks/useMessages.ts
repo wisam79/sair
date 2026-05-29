@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import NetInfo from '@react-native-community/netinfo';
 import { getErrorMessage } from '@sair/core';
+import { realtimeManager } from '../lib/realtimeManager';
 
 export interface Message {
   id: string;
@@ -48,7 +49,7 @@ export function useConversations() {
   });
 
   useEffect(() => {
-    const channelName = `conversations-changes-${Math.random().toString(36).substring(2, 9)}`;
+    let isMounted = true;
 
     // Debounced invalidation to prevent rapid-fire refetches
     const debouncedInvalidate = () => {
@@ -58,27 +59,27 @@ export function useConversations() {
       }, 500);
     };
 
-    // Listen on messages table (has RLS) instead of conversations table.
-    // This ensures we only get notified about messages the user can see.
-    const channel: RealtimeChannel = supabase
-      .channel(channelName)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
-        debouncedInvalidate();
-      })
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          NetInfo.fetch().then((state) => {
-            const isOnline = !!state.isConnected && state.isInternetReachable !== false;
-            if (isOnline) {
-              queryClient.invalidateQueries({ queryKey });
-            }
-          });
-        }
-      });
+    const unsubscribe = realtimeManager.subscribe({
+      id: 'conversations-changes',
+      channelName: 'conversations-changes',
+      priority: 'normal',
+      reconnect: true,
+      subscriptions: [
+        {
+          event: 'postgres_changes',
+          schema: 'public',
+          table: 'messages',
+          callback: () => {
+            if (isMounted) debouncedInvalidate();
+          },
+        },
+      ],
+    });
 
     return () => {
+      isMounted = false;
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [queryClient]);
 
@@ -155,42 +156,38 @@ export function useMessages(conversationId: string | null) {
   useEffect(() => {
     if (!conversationId) return;
 
-    const channelName = `messages-${conversationId}-${Math.random().toString(36).substring(2, 9)}`;
-    const channel: RealtimeChannel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
+    let isMounted = true;
+
+    const unsubscribe = realtimeManager.subscribe({
+      id: `messages-${conversationId}`,
+      channelName: `messages-${conversationId}`,
+      priority: 'critical',
+      reconnect: true,
+      subscriptions: [
         {
-          event: 'INSERT',
+          event: 'postgres_changes',
           schema: 'public',
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
+          callback: (payload) => {
+            if (!isMounted) return;
+            const newMessage = payload.new as Message;
+            queryClient.setQueryData<Message[]>(queryKey, (old) => {
+              if (!old) return [newMessage];
+              const exists = old.some((m) => m.id === newMessage.id);
+              if (exists) return old;
+              return [newMessage, ...old];
+            });
+          },
         },
-        (payload) => {
-          const newMessage = payload.new as Message;
-          queryClient.setQueryData<Message[]>(queryKey, (old) => {
-            if (!old) return [newMessage];
-            const exists = old.some((m) => m.id === newMessage.id);
-            if (exists) return old;
-            return [newMessage, ...old];
-          });
-        },
-      )
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          NetInfo.fetch().then((state) => {
-            const isOnline = !!state.isConnected && state.isInternetReachable !== false;
-            if (isOnline) {
-              refetch();
-            }
-          });
-        }
-      });
+      ],
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      isMounted = false;
+      unsubscribe();
     };
-  }, [conversationId, refetch, queryClient, queryKey]);
+  }, [conversationId, queryClient, queryKey]);
 
   useEffect(() => {
     if (conversationId && messages.length > 0) {

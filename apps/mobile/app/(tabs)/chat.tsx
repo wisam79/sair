@@ -1,16 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  TextInput,
-} from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Chat, ChannelList, WithComponents } from 'stream-chat-expo';
+import { Chat, ChannelList, WithComponents, OverlayProvider } from 'stream-chat-expo';
 import { useTranslation } from '../../src/hooks/useTranslation';
 import { useAuthStore } from '../../src/hooks/useStore';
 import { getStreamClient, connectStreamUser } from '../../src/lib/stream';
@@ -103,96 +97,98 @@ export default function ConversationsScreen() {
   }
 
   return (
-    <Chat client={chatClient}>
-      <View style={styles.container}>
-        <StatusBar style="light" translucent />
+    <OverlayProvider>
+      <Chat client={chatClient}>
+        <View style={styles.container}>
+          <StatusBar style="light" translucent />
 
-        {/* Branded Header Banner (Fixed at the top) */}
-        <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
-          {/* Glassmorphic Background Effects */}
-          <View style={styles.glassOverlay} />
-          <View style={styles.glassHighlight} />
+          {/* Branded Header Banner (Fixed at the top) */}
+          <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
+            {/* Glassmorphic Background Effects */}
+            <View style={styles.glassOverlay} />
+            <View style={styles.glassHighlight} />
 
-          <Text style={styles.headerTitle}>{t('messages')}</Text>
-          <TouchableOpacity
-            style={[styles.headerShortcutBtn, { [isRTL ? 'left' : 'right']: Spacing.md }]}
-            onPress={() => {
-              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push('/help');
-            }}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="help-circle-outline" size={22} color={Colors.white} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Search & Filter Segmented Tabs */}
-        <View style={styles.searchFilterContainer}>
-          <View style={[styles.searchBar, isRTL && { flexDirection: 'row-reverse' }]}>
-            <Ionicons name="search-outline" size={18} color={Colors.textMuted} />
-            <TextInput
-              style={[styles.searchInput, { textAlign: isRTL ? 'right' : 'left' }]}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholder={isRTL ? 'ابحث عن اسم...' : 'Search name...'}
-              placeholderTextColor={Colors.textMuted}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={16} color={Colors.textMuted} />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <View style={[styles.tabBarContainer, isRTL && { flexDirection: 'row-reverse' }]}>
-            {[
-              { id: 'all', label: isRTL ? 'الكل' : 'All' },
-              { id: 'unread', label: isRTL ? 'غير مقروءة' : 'Unread' },
-            ].map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <TouchableOpacity
-                  key={tab.id}
-                  style={[styles.tabButton, isActive && styles.tabButtonActive]}
-                  onPress={() => setActiveTab(tab.id as any)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.tabButtonText, isActive && styles.tabButtonTextActive]}>
-                    {tab.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* Stream Chat Channel List */}
-        <View style={{ flex: 1 }}>
-          <WithComponents
-            overrides={{
-              EmptyStateIndicator: () => (
-                <EmptyState
-                  icon="chatbubbles-outline"
-                  title={t('no_conversations')}
-                  subtitle={isRTL ? 'لم تبدأ أي محادثة بعد.' : 'No conversations started yet.'}
-                  iconColor={Colors.primary}
-                />
-              ),
-            }}
-          >
-            <ChannelList
-              filters={filters}
-              sort={sort}
-              options={options}
-              onSelect={(channel) => {
+            <Text style={styles.headerTitle}>{t('messages')}</Text>
+            <TouchableOpacity
+              style={[styles.headerShortcutBtn, { [isRTL ? 'left' : 'right']: Spacing.md }]}
+              onPress={() => {
                 void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push(`/chat/${channel.id}`);
+                router.push('/help');
               }}
-            />
-          </WithComponents>
+              activeOpacity={0.7}
+            >
+              <Ionicons name="help-circle-outline" size={22} color={Colors.white} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Search & Filter Segmented Tabs */}
+          <View style={styles.searchFilterContainer}>
+            <View style={[styles.searchBar, isRTL && { flexDirection: 'row-reverse' }]}>
+              <Ionicons name="search-outline" size={18} color={Colors.textMuted} />
+              <TextInput
+                style={[styles.searchInput, { textAlign: isRTL ? 'right' : 'left' }]}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder={isRTL ? 'ابحث عن اسم...' : 'Search name...'}
+                placeholderTextColor={Colors.textMuted}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <Ionicons name="close-circle" size={16} color={Colors.textMuted} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <View style={[styles.tabBarContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+              {[
+                { id: 'all', label: isRTL ? 'الكل' : 'All' },
+                { id: 'unread', label: isRTL ? 'غير مقروءة' : 'Unread' },
+              ].map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <TouchableOpacity
+                    key={tab.id}
+                    style={[styles.tabButton, isActive && styles.tabButtonActive]}
+                    onPress={() => setActiveTab(tab.id as any)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.tabButtonText, isActive && styles.tabButtonTextActive]}>
+                      {tab.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Stream Chat Channel List */}
+          <View style={{ flex: 1 }}>
+            <WithComponents
+              overrides={{
+                EmptyStateIndicator: () => (
+                  <EmptyState
+                    icon="chatbubbles-outline"
+                    title={t('no_conversations')}
+                    subtitle={isRTL ? 'لم تبدأ أي محادثة بعد.' : 'No conversations started yet.'}
+                    iconColor={Colors.primary}
+                  />
+                ),
+              }}
+            >
+              <ChannelList
+                filters={filters}
+                sort={sort}
+                options={options}
+                onSelect={(channel) => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push(`/chat/${channel.id}`);
+                }}
+              />
+            </WithComponents>
+          </View>
         </View>
-      </View>
-    </Chat>
+      </Chat>
+    </OverlayProvider>
   );
 }
 

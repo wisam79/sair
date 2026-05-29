@@ -110,7 +110,9 @@ export function EmptyState({
           ]}
         />
         {/* Icon circle */}
-        <View style={[styles.iconCircle, { borderColor: iconColor + '50', shadowColor: iconColor }]}>
+        <View
+          style={[styles.iconCircle, { borderColor: iconColor + '50', shadowColor: iconColor }]}
+        >
           <Ionicons name={icon} size={52} color={iconColor} />
         </View>
       </Animated.View>
