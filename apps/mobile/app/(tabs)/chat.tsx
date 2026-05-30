@@ -112,7 +112,7 @@ export default function ConversationsScreen() {
   if (connecting || !chatClient) {
     return (
       <View style={[styles.container, { backgroundColor: Colors.background }]}>
-        <StatusBar style="light" translucent />
+        <StatusBar style="dark" translucent />
         {/* Render stub header so the layout doesn't jump */}
         <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
           <View style={styles.glassOverlay} />
@@ -139,7 +139,7 @@ export default function ConversationsScreen() {
     <OverlayProvider value={{ style: streamTheme }}>
       <Chat client={chatClient}>
         <View style={styles.container}>
-          <StatusBar style="light" translucent />
+          <StatusBar style="dark" translucent />
 
           {/* Branded Header Banner (Fixed at the top) */}
           <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
@@ -156,7 +156,7 @@ export default function ConversationsScreen() {
               }}
               activeOpacity={0.7}
             >
-              <Ionicons name="help-circle-outline" size={22} color={Colors.white} />
+              <Ionicons name="help-circle-outline" size={22} color={Colors.primaryDeep} />
             </TouchableOpacity>
           </View>
 
@@ -245,11 +245,11 @@ const styles = StyleSheet.create({
   headerBanner: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-    ...Shadow.header,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.white,
+    ...Shadow.sm,
     zIndex: 10,
-    overflow: 'hidden',
     position: 'relative',
   },
   glassOverlay: {
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: Colors.primaryDeep,
+    backgroundColor: Colors.white,
   },
   glassHighlight: {
     position: 'absolute',
@@ -266,14 +266,12 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: Colors.glassOverlay,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.glassBorder,
+    backgroundColor: 'transparent',
   },
   headerTitle: {
     fontFamily: FontFamily.bold,
     fontSize: 16,
-    color: Colors.white,
+    color: Colors.text,
     zIndex: 2,
     textAlign: 'center',
     width: '100%',

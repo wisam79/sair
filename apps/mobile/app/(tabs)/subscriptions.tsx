@@ -337,7 +337,7 @@ export default function SubscriptionsScreen() {
   if (isLoading && subscriptions.length === 0) {
     return (
       <View style={styles.container}>
-        <StatusBar style="light" translucent />
+        <StatusBar style="dark" translucent />
         <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
           {/* Glassmorphic Background Effects */}
           <View style={styles.glassOverlay} />
@@ -352,7 +352,7 @@ export default function SubscriptionsScreen() {
             }}
             activeOpacity={0.7}
           >
-            <Ionicons name="card-outline" size={22} color={Colors.white} />
+            <Ionicons name="card-outline" size={22} color={Colors.primaryDeep} />
           </TouchableOpacity>
         </View>
         <View style={{ flex: 1, padding: Spacing.md, gap: Spacing.md }}>
@@ -366,7 +366,7 @@ export default function SubscriptionsScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" translucent />
+      <StatusBar style="dark" translucent />
       <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
         {/* Glassmorphic Background Effects */}
         <View style={styles.glassOverlay} />
@@ -381,7 +381,7 @@ export default function SubscriptionsScreen() {
           }}
           activeOpacity={0.7}
         >
-          <Ionicons name="card-outline" size={22} color={Colors.white} />
+          <Ionicons name="card-outline" size={22} color={Colors.primaryDeep} />
         </TouchableOpacity>
       </View>
       <FlatList
@@ -556,15 +556,11 @@ const styles = StyleSheet.create({
   headerBanner: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    shadowColor: '#054024',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.white,
+    ...Shadow.sm,
     zIndex: 10,
-    overflow: 'hidden',
     position: 'relative',
   },
   glassOverlay: {
@@ -573,7 +569,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: '#0A5C36',
+    backgroundColor: Colors.white,
   },
   glassHighlight: {
     position: 'absolute',
@@ -581,14 +577,12 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.22)',
+    backgroundColor: 'transparent',
   },
   headerTitle: {
     fontFamily: FontFamily.bold,
     fontSize: 16,
-    color: Colors.white,
+    color: Colors.text,
     zIndex: 2,
     textAlign: 'center',
     width: '100%',

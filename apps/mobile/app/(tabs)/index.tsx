@@ -580,7 +580,7 @@ export default function DiscoveryPage() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" translucent />
+      <StatusBar style="dark" translucent />
 
       {/* Branded Header Banner (Fixed at the top) */}
       <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
@@ -604,7 +604,7 @@ export default function DiscoveryPage() {
               }}
               activeOpacity={0.7}
             >
-              <Ionicons name="help-circle-outline" size={22} color={Colors.white} />
+              <Ionicons name="help-circle-outline" size={22} color={Colors.primaryDeep} />
             </TouchableOpacity>
 
             {/* Notification Button */}
@@ -616,7 +616,7 @@ export default function DiscoveryPage() {
               }}
               activeOpacity={0.7}
             >
-              <Ionicons name="notifications-outline" size={22} color={Colors.white} />
+              <Ionicons name="notifications-outline" size={22} color={Colors.primaryDeep} />
               {unreadCount > 0 && (
                 <View style={styles.unreadBadge}>
                   <Text style={styles.unreadBadgeText}>{unreadCount}</Text>
@@ -634,7 +634,7 @@ export default function DiscoveryPage() {
               style={styles.avatarButton}
             >
               <View style={styles.avatarInner}>
-                <Ionicons name="person" size={18} color={Colors.white} />
+                <Ionicons name="person" size={18} color={Colors.primaryDeep} />
               </View>
             </TouchableOpacity>
           </View>
@@ -813,11 +813,11 @@ const styles = StyleSheet.create({
   headerBanner: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.lg,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-    ...Shadow.header,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.white,
+    ...Shadow.sm,
     zIndex: 10,
-    overflow: 'hidden',
     position: 'relative',
   },
   glassOverlay: {
@@ -826,7 +826,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: Colors.primaryDeep,
+    backgroundColor: Colors.white,
   },
   glassHighlight: {
     position: 'absolute',
@@ -834,9 +834,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: Colors.glassOverlay,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.glassBorder,
+    backgroundColor: 'transparent',
   },
 
   headerTopRow: {
@@ -854,12 +852,12 @@ const styles = StyleSheet.create({
   brandLogoText: {
     fontFamily: FontFamily.logo,
     fontSize: 28,
-    color: Colors.white,
+    color: Colors.primaryDeep,
   },
   brandLogoTextDot: {
     fontFamily: FontFamily.bold,
     fontSize: 28,
-    color: Colors.primaryLight,
+    color: Colors.primary,
   },
   greetingEmoji: {
     fontSize: 18,
@@ -867,12 +865,12 @@ const styles = StyleSheet.create({
   greetingText: {
     fontFamily: FontFamily.bold,
     fontSize: 18,
-    color: Colors.white,
+    color: Colors.text,
   },
   brandSubtitle: {
     fontFamily: FontFamily.regular,
     fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.65)',
+    color: Colors.textSecondary,
     marginTop: 2,
   },
   headerActions: {
@@ -884,12 +882,12 @@ const styles = StyleSheet.create({
   notificationHeaderButton: {
     position: 'relative',
     padding: 9,
-    backgroundColor: Colors.glassWhite,
+    backgroundColor: Colors.background,
     borderRadius: BorderRadius.xxl,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderLight,
   },
   unreadBadge: {
     position: 'absolute',
@@ -903,7 +901,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 4,
     borderWidth: 2,
-    borderColor: Colors.primaryDeep,
+    borderColor: Colors.white,
   },
   unreadBadgeText: {
     color: Colors.white,
@@ -915,11 +913,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.glassWhite,
+    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderLight,
   },
   avatarInner: {
     width: '100%',
@@ -931,7 +929,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontFamily: FontFamily.bold,
     fontSize: 14,
-    color: Colors.white,
+    color: Colors.text,
   },
   // Search
   searchBar: {
