@@ -225,10 +225,6 @@ export default {
   cancel_sub_info_title: 'هل يمكنني إلغاء اشتراكي في الخط؟',
   cancel_sub_info_answer:
     'نعم، يمكنك إلغاء اشتراكك من شاشة "اشتراكاتي" بالضغط على زر "إلغاء". سيتم معالجة الإلغاء فوراً.',
-  favorite_added: 'تمت الإضافة للمواقع المفضلة!',
-  favorite_removed: 'تمت الإزالة من المواقع المفضلة!',
-  no_favorites_yet: 'لا توجد مواقع مفضلة بعد',
-  save_current_location: 'حفظ كموقع مفضل',
   select_favorite_tags: 'وسوم التقييم السريع',
   driver_vehicle_details: 'تفاصيل السائق والمركبة',
   vehicle_plate: 'رقم اللوحة',
@@ -244,7 +240,6 @@ export default {
   update_required_desc: 'أطلقنا نسخة جديدة مليئة بالتحسينات! يرجى تحديث التطبيق للمتابعة.',
   update_now: 'تحديث الآن',
   pay_with_zaincash: 'الدفع بواسطة زين كاش',
-  favorites: 'المفضلة:',
   view_details: 'عرض التفاصيل',
   all: 'الكل',
   no_matching_questions: 'لا توجد نتائج تطابق بحثك',

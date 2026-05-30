@@ -88,7 +88,7 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = Rea
               </View>
             </View>
             <Pressable style={styles.trackMiniButton} onPress={handleTrackPress}>
-              <Ionicons name="navigate" size={18} color={Colors.white} />
+              <Ionicons name="navigate" size={18} color={Colors.primaryDeep} />
             </Pressable>
           </View>
         </Pressable>
@@ -101,31 +101,32 @@ const styles = StyleSheet.create({
   activeSubCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.white,
-    padding: Spacing.md,
+    backgroundColor: Colors.primaryDeep,
+    padding: Spacing.md + 2,
     borderRadius: BorderRadius.xl,
-    borderWidth: 1.5,
-    borderColor: Colors.success + '50',
+    borderWidth: 1,
+    borderColor: 'rgba(74, 222, 128, 0.25)', // primaryLight border opacity
     overflow: 'hidden',
-    ...Shadow.md,
+    ...Shadow.lg,
+    elevation: 4,
   },
   glowAccent: {
     position: 'absolute',
     top: 0,
     bottom: 0,
-    width: 4,
-    backgroundColor: Colors.success,
+    width: 5,
+    backgroundColor: Colors.primaryLight,
   },
   activeSubIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: Colors.successSurface,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: Spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.success + '20',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   activeSubInfo: {
     flex: 1,
@@ -134,15 +135,15 @@ const styles = StyleSheet.create({
   activeSubTitle: {
     fontFamily: FontFamily.bold,
     fontSize: 11,
-    color: Colors.success,
+    color: Colors.primaryLight,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
   activeSubRoute: {
     fontFamily: FontFamily.bold,
-    fontSize: 15,
-    color: Colors.text,
-    marginVertical: 3,
+    fontSize: 16,
+    color: Colors.white,
+    marginVertical: 4,
   },
   activeSubFooter: {
     flexDirection: 'row',
@@ -151,20 +152,24 @@ const styles = StyleSheet.create({
   dateBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
   },
   activeSubDate: {
     fontFamily: FontFamily.medium,
     fontSize: 11,
-    color: Colors.textMuted,
+    color: 'rgba(255, 255, 255, 0.75)',
   },
   trackMiniButton: {
-    backgroundColor: Colors.primary,
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    backgroundColor: Colors.white,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    ...Shadow.colored,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
   },
 });
