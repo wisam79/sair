@@ -377,10 +377,13 @@ const renderItem = useCallback(({ item }) => (
 
 ### 12.3 بيئات عمل Supabase الموثقة
 
-| البيئة                            | معرف المشروع (Project Ref) | ملف الإعداد المربوط    |
-| :-------------------------------- | :------------------------- | :--------------------- |
-| **التطوير المحلي (Local)**        | `pfjsqgqrxnrlrfnchnqf`     | `.env`                 |
-| **الإنتاج والتشغيل (Production)** | `zpcvvyxtmxzplmojobbv`     | `.temp/linked-project` |
+| البيئة                            | معرف المشروع (Project Ref) | ملف الإعداد المربوط / رابط URL |
+| :-------------------------------- | :------------------------- | :----------------------------- |
+| **محاكي محلي (Local Emulator)**   | لا يوجد (Local Localhost)  | `http://localhost:54321` (يتطلب Docker) |
+| **الاختبار والتطوير (Staging/Test)**| `cxyggxsyiymgxvwzeatv`     | `https://cxyggxsyiymgxvwzeatv.supabase.co` |
+| **الإنتاج والتشغيل (Production)** | `zpcvvyxtmxzplmojobbv`     | `https://zpcvvyxtmxzplmojobbv.supabase.co` |
+
+> ℹ️ **ملاحظة هامة للتطوير والاختبار**: نظراً لعدم توفر بيئة Docker محلياً، يتم الاعتماد على بيئة الاختبار السحابية المخصصة (Staging/Test Project: `cxyggxsyiymgxvwzeatv`) لإجراء اختبارات التطوير والتحقق كبديل للمحاكي المحلي.
 
 ---
 

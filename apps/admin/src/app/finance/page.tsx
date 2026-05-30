@@ -256,24 +256,22 @@ export default function FinancePage() {
   const [payoutSubmitting, setPayoutSubmitting] = useState(false);
   const [payoutError, setPayoutError] = useState<string | null>(null);
 
-  const { data: driverData, isLoading: driverIsLoading } = useMany({
-    resource: 'drivers',
-    ids:
+  const payoutDriverIds = React.useMemo(() => {
+    return (
       payoutsGridProps?.rows
         ?.map((item: { driver_id?: string }) => item?.driver_id)
-        .filter((id): id is string => typeof id === 'string') ?? [],
+        .filter((id): id is string => typeof id === 'string') ?? []
+    );
+  }, [payoutsGridProps?.rows]);
+
+  const { data: driverData, isLoading: driverIsLoading } = useMany({
+    resource: 'drivers',
+    ids: payoutDriverIds,
     meta: {
-      select: '*, profiles(full_name)',
+      select: '*, profiles(full_name, phone)',
     },
     queryOptions: {
-      enabled: activeTab === 1 && !!payoutsGridProps?.rows,
-      queryKey: [
-        'drivers',
-        payoutsGridProps?.rows
-          ?.map((item: { driver_id?: string }) => item?.driver_id)
-          .filter((id): id is string => typeof id === 'string') ?? [],
-        'profiles-join',
-      ],
+      enabled: activeTab === 1 && payoutDriverIds.length > 0,
     },
   });
 
@@ -333,16 +331,18 @@ export default function FinancePage() {
         field: 'driver_id',
         headerName: t('payouts.fields.driverId', 'Driver'),
         type: 'string',
-        minWidth: 200,
-        flex: 1,
+        minWidth: 220,
+        flex: 1.2,
         renderCell: function render({ value }) {
           if (driverIsLoading) {
             return <>{t('common.loading', 'Loading...')}</>;
           }
 
           const driver = driverData?.data?.find((item) => item.id === value);
-          const profile = driver?.profiles as { full_name?: string } | null;
-          return profile?.full_name ?? driver?.license_number ?? value;
+          const profile = driver?.profiles as { full_name?: string; phone?: string } | null;
+          return profile
+            ? `${profile.full_name} (${profile.phone || driver?.license_number || ''})`
+            : value;
         },
       },
       {

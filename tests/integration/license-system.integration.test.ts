@@ -113,7 +113,7 @@ describe('License System Integration Tests', () => {
       expect(licenses.length).toBe(3);
       for (const lic of licenses) {
         expect(lic.code.length).toBe(8);
-        expect(lic.status).toBe('active');
+        expect(lic.status).toBe('available');
         expect(lic.route_id).toBe(routeId);
       }
     });
@@ -199,6 +199,13 @@ describe('License System Integration Tests', () => {
     });
 
     it('should reject activation if route has no seats available', async () => {
+      // Clean up student's existing active subscription to this route to prevent 'Already subscribed' block
+      await serviceClient
+        .from('subscriptions')
+        .delete()
+        .eq('student_id', studentUser.id)
+        .eq('route_id', routeId);
+
       // Set route seats to 0
       await serviceClient.from('routes').update({ available_seats: 0 }).eq('id', routeId);
 

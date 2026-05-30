@@ -65,14 +65,59 @@ export default function LicensesPage() {
     },
   });
 
+  const licenseRouteIds = React.useMemo(() => {
+    return (
+      licensesGridProps?.rows
+        ?.map((item: { route_id?: string }) => item?.route_id)
+        .filter((id): id is string => typeof id === 'string') ?? []
+    );
+  }, [licensesGridProps?.rows]);
+
+  const { data: licenseRoutesData, isLoading: licenseRoutesIsLoading } = useMany({
+    resource: 'routes',
+    ids: licenseRouteIds,
+    queryOptions: {
+      enabled: activeTab === 0 && licenseRouteIds.length > 0,
+    },
+  });
+
+  const licenseUserIds = React.useMemo(() => {
+    const ids = new Set<string>();
+    licensesGridProps?.rows?.forEach((item: { used_by?: string; reserved_by?: string }) => {
+      if (item.used_by) ids.add(item.used_by);
+      if (item.reserved_by) ids.add(item.reserved_by);
+    });
+    return Array.from(ids);
+  }, [licensesGridProps?.rows]);
+
+  const { data: licenseUsersData, isLoading: licenseUsersIsLoading } = useMany({
+    resource: 'profiles',
+    ids: licenseUserIds,
+    queryOptions: {
+      enabled: activeTab === 0 && licenseUserIds.length > 0,
+    },
+  });
+
   const licenseColumns = React.useMemo<GridColDef[]>(
     () => [
       {
         field: 'code',
         headerName: t('licenses.fields.code', 'Code'),
         type: 'string',
-        minWidth: 150,
+        minWidth: 120,
         flex: 1,
+      },
+      {
+        field: 'route_id',
+        headerName: t('licenses.fields.route', 'Route'),
+        type: 'string',
+        minWidth: 180,
+        flex: 1.5,
+        renderCell: function render({ value }) {
+          if (licenseRoutesIsLoading) return t('common.loading', 'Loading...');
+          const route = licenseRoutesData?.data?.find((item) => item.id === value);
+          return route ? route.title : value;
+        },
       },
       {
         field: 'status',
@@ -103,25 +148,57 @@ export default function LicensesPage() {
         headerName: t('license_batches.fields.validDays', 'Valid Days'),
         type: 'number',
         minWidth: 100,
-        flex: 1,
+        flex: 0.8,
+      },
+      {
+        field: 'used_by',
+        headerName: t('licenses.fields.usedBy', 'Used By (Student)'),
+        type: 'string',
+        minWidth: 180,
+        flex: 1.2,
+        renderCell: function render({ value }) {
+          if (licenseUsersIsLoading) return t('common.loading', 'Loading...');
+          const user = licenseUsersData?.data?.find((item) => item.id === value);
+          return user ? `${user.full_name} (${user.phone || ''})` : '-';
+        },
       },
       {
         field: 'used_at',
         headerName: t('licenses.fields.usedAt', 'Used At'),
-        minWidth: 200,
+        minWidth: 150,
         flex: 1,
         renderCell: function render({ value }) {
-          if (!value) return '-';
-          return <DateField value={value} />;
+          return value ? new Date(value).toLocaleString() : '-';
         },
       },
       {
-        field: 'created_at',
-        headerName: t('license_batches.fields.createdAt', 'Created At'),
-        minWidth: 200,
+        field: 'reserved_by',
+        headerName: t('licenses.fields.reservedBy', 'Reserved By'),
+        type: 'string',
+        minWidth: 150,
         flex: 1,
         renderCell: function render({ value }) {
-          return <DateField value={value} />;
+          if (licenseUsersIsLoading) return t('common.loading', 'Loading...');
+          const user = licenseUsersData?.data?.find((item) => item.id === value);
+          return user ? user.full_name : '-';
+        },
+      },
+      {
+        field: 'reserved_at',
+        headerName: t('licenses.fields.reservedAt', 'Reserved At'),
+        minWidth: 150,
+        flex: 1,
+        renderCell: function render({ value }) {
+          return value ? new Date(value).toLocaleString() : '-';
+        },
+      },
+      {
+        field: 'expires_at',
+        headerName: t('licenses.fields.expiresAt', 'Expires At'),
+        minWidth: 150,
+        flex: 1,
+        renderCell: function render({ value }) {
+          return value ? new Date(value).toLocaleString() : '-';
         },
       },
       {
@@ -129,7 +206,7 @@ export default function LicensesPage() {
         headerName: t('common.actions', 'Actions'),
         sortable: false,
         filterable: false,
-        minWidth: 150,
+        minWidth: 120,
         renderCell: function render({ row }) {
           if (row.status !== 'available') return null;
           return (
@@ -145,7 +222,14 @@ export default function LicensesPage() {
         },
       },
     ],
-    [reservingId, t],
+    [
+      reservingId,
+      t,
+      licenseRoutesIsLoading,
+      licenseRoutesData,
+      licenseUsersIsLoading,
+      licenseUsersData,
+    ],
   );
 
   // ─── TAB 1: LICENSE BATCHES ──────────────────────────────────────────────
@@ -164,20 +248,19 @@ export default function LicensesPage() {
     },
   });
 
-  const { data: routesData, isLoading: routesIsLoading } = useMany({
-    resource: 'routes',
-    ids:
+  const routeIds = React.useMemo(() => {
+    return (
       batchesGridProps?.rows
         ?.map((item: { route_id?: string }) => item?.route_id)
-        .filter((id): id is string => typeof id === 'string') ?? [],
+        .filter((id): id is string => typeof id === 'string') ?? []
+    );
+  }, [batchesGridProps?.rows]);
+
+  const { data: routesData, isLoading: routesIsLoading } = useMany({
+    resource: 'routes',
+    ids: routeIds,
     queryOptions: {
-      enabled: activeTab === 1 && !!batchesGridProps?.rows,
-      queryKey: [
-        'routes',
-        batchesGridProps?.rows
-          ?.map((item: { route_id?: string }) => item?.route_id)
-          .filter((id): id is string => typeof id === 'string') ?? [],
-      ],
+      enabled: activeTab === 1 && routeIds.length > 0,
     },
   });
 

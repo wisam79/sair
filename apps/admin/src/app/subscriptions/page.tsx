@@ -23,37 +23,35 @@ export default function SubscriptionList() {
     resource: 'subscriptions',
   });
 
-  const { data: studentData, isLoading: studentIsLoading } = useMany({
-    resource: 'profiles',
-    ids:
+  const studentIds = React.useMemo(() => {
+    return (
       dataGridProps?.rows
         ?.map((item: { student_id?: string }) => item?.student_id)
-        .filter((id): id is string => typeof id === 'string') ?? [],
+        .filter((id): id is string => typeof id === 'string') ?? []
+    );
+  }, [dataGridProps?.rows]);
+
+  const { data: studentData, isLoading: studentIsLoading } = useMany({
+    resource: 'profiles',
+    ids: studentIds,
     queryOptions: {
-      enabled: !!dataGridProps?.rows,
-      queryKey: [
-        'profiles',
-        dataGridProps?.rows
-          ?.map((item: { student_id?: string }) => item?.student_id)
-          .filter((id): id is string => typeof id === 'string') ?? [],
-      ],
+      enabled: studentIds.length > 0,
     },
   });
 
-  const { data: routeData, isLoading: routeIsLoading } = useMany({
-    resource: 'routes',
-    ids:
+  const routeIds = React.useMemo(() => {
+    return (
       dataGridProps?.rows
         ?.map((item: { route_id?: string }) => item?.route_id)
-        .filter((id): id is string => typeof id === 'string') ?? [],
+        .filter((id): id is string => typeof id === 'string') ?? []
+    );
+  }, [dataGridProps?.rows]);
+
+  const { data: routeData, isLoading: routeIsLoading } = useMany({
+    resource: 'routes',
+    ids: routeIds,
     queryOptions: {
-      enabled: !!dataGridProps?.rows,
-      queryKey: [
-        'routes',
-        dataGridProps?.rows
-          ?.map((item: { route_id?: string }) => item?.route_id)
-          .filter((id): id is string => typeof id === 'string') ?? [],
-      ],
+      enabled: routeIds.length > 0,
     },
   });
 
@@ -99,6 +97,14 @@ export default function SubscriptionList() {
         renderCell: function render({ value }) {
           return <Chip label={value} color={STATUS_COLORS[value] || 'default'} size="small" />;
         },
+      },
+      {
+        field: 'purchase_price',
+        headerName: t('subscriptions.fields.purchasePrice', 'Purchase Price'),
+        type: 'number',
+        minWidth: 130,
+        flex: 0.7,
+        renderCell: ({ value }) => (value ? `${Number(value).toLocaleString()} IQD` : '-'),
       },
       {
         field: 'start_date',
