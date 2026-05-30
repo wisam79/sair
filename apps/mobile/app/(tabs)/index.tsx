@@ -354,7 +354,7 @@ export default function DiscoveryPage() {
               }}
               style={styles.statItem}
             >
-              <View style={[styles.statIcon, { backgroundColor: 'rgba(10, 92, 54, 0.05)' }]}>
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(10, 92, 54, 0.06)', borderColor: 'rgba(10, 92, 54, 0.12)' }]}>
                 <Ionicons name="bus" size={20} color="#0A5C36" />
               </View>
               <Text style={styles.statValue}>{routes.length}</Text>
@@ -373,8 +373,8 @@ export default function DiscoveryPage() {
               }}
               style={styles.statItem}
             >
-              <View style={[styles.statIcon, { backgroundColor: 'rgba(10, 92, 54, 0.05)' }]}>
-                <Ionicons name="checkmark-circle" size={20} color="#0A5C36" />
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(16, 185, 129, 0.06)', borderColor: 'rgba(16, 185, 129, 0.12)' }]}>
+                <Ionicons name="ticket" size={20} color="#10B981" />
               </View>
               <Text style={styles.statValue}>{activeSubs.length}</Text>
               <Text style={styles.statLabel} numberOfLines={1}>
@@ -400,8 +400,8 @@ export default function DiscoveryPage() {
               }}
               style={styles.statItem}
             >
-              <View style={[styles.statIcon, { backgroundColor: 'rgba(10, 92, 54, 0.05)' }]}>
-                <Ionicons name="car" size={20} color="#0A5C36" />
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(245, 158, 11, 0.06)', borderColor: 'rgba(245, 158, 11, 0.12)' }]}>
+                <Ionicons name="people" size={20} color="#F59E0B" />
               </View>
               <Text style={styles.statValue}>
                 {routes.reduce((sum, r) => sum + r.available_seats, 0)}
@@ -469,14 +469,13 @@ export default function DiscoveryPage() {
                 </View>
               ) : role === 'student' ? (
                 <View style={{ paddingHorizontal: Spacing.xs }}>
-                  <View style={styles.widgetDivider} />
                   <TouchableOpacity
-                    style={[styles.flatActivationRow, isRTL && { flexDirection: 'row-reverse' }]}
+                    style={[styles.activationBanner, isRTL && { flexDirection: 'row-reverse' }]}
                     onPress={() => {
                       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       router.push('/activate');
                     }}
-                    activeOpacity={0.7}
+                    activeOpacity={0.8}
                   >
                     <View
                       style={[styles.activationContent, isRTL && { flexDirection: 'row-reverse' }]}
@@ -502,8 +501,8 @@ export default function DiscoveryPage() {
                     </View>
                     <Ionicons
                       name={isRTL ? 'chevron-back' : 'chevron-forward'}
-                      size={20}
-                      color={Colors.textMuted}
+                      size={18}
+                      color="#0A5C36"
                     />
                   </TouchableOpacity>
                 </View>
@@ -588,10 +587,19 @@ export default function DiscoveryPage() {
         <View style={styles.glassOverlay} />
         <View style={styles.glassHighlight} />
 
-        <View style={styles.headerTopRow}>
+        <View style={[styles.headerTopRow, isRTL && { flexDirection: 'row-reverse' }]}>
           <View style={styles.brandLogoContainer}>
-            <Text style={styles.brandLogoText}>{isRTL ? 'سير' : 'Sair'}</Text>
-            <Text style={styles.brandLogoTextDot}>.</Text>
+            <View>
+              <View style={[styles.logoRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Text style={styles.brandLogoText}>{isRTL ? 'سير' : 'Sair'}</Text>
+                <Text style={styles.brandLogoTextDot}>.</Text>
+              </View>
+              <Text style={[styles.brandSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {profile?.full_name 
+                  ? (isRTL ? `أهلاً بك، ${profile.full_name.split(' ')[0]} 👋` : `Hello, ${profile.full_name.split(' ')[0]} 👋`)
+                  : (isRTL ? 'مرحباً بك في سير 👋' : 'Welcome to Sair 👋')}
+              </Text>
+            </View>
           </View>
 
           <View style={[styles.headerActions, isRTL && { flexDirection: 'row-reverse' }]}>
@@ -845,9 +853,12 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   brandLogoContainer: {
+    justifyContent: 'center',
+    flex: 1,
+  },
+  logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
   brandLogoText: {
     fontFamily: FontFamily.logo,
@@ -868,10 +879,10 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   brandSubtitle: {
-    fontFamily: FontFamily.regular,
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginTop: 2,
+    fontFamily: FontFamily.bold,
+    fontSize: 11,
+    color: Colors.textMuted,
+    marginTop: 1,
   },
   headerActions: {
     flexDirection: 'row',
@@ -1114,11 +1125,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     marginBottom: Spacing.xs,
   },
-  flatActivationRow: {
+  activationBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: Spacing.sm + 2,
+    backgroundColor: 'rgba(10, 92, 54, 0.04)',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    borderWidth: 1.5,
+    borderColor: 'rgba(10, 92, 54, 0.08)',
+    marginTop: Spacing.xs,
   },
   activationContent: {
     flexDirection: 'row',

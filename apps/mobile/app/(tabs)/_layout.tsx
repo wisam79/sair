@@ -136,7 +136,7 @@ export default function TabLayout() {
     },
   ];
 
-  const orderedScreens = screens;
+  const orderedScreens = isRTL ? [...screens].reverse() : screens;
 
   return (
     <Tabs

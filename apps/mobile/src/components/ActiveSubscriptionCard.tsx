@@ -58,7 +58,14 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = Rea
         <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} onPress={handlePress}>
           <View style={[styles.activeSubCard, isRTL && { flexDirection: 'row-reverse' }]}>
             {/* Status Glow Indicator */}
-            <View style={styles.glowAccent} />
+            <View
+              style={[
+                styles.glowAccent,
+                isRTL
+                  ? { right: 0, borderTopRightRadius: BorderRadius.xl, borderBottomRightRadius: BorderRadius.xl }
+                  : { left: 0, borderTopLeftRadius: BorderRadius.xl, borderBottomLeftRadius: BorderRadius.xl },
+              ]}
+            />
 
             <View style={styles.activeSubIcon}>
               <Ionicons name="checkmark-circle" size={26} color={Colors.success} />
@@ -104,13 +111,10 @@ const styles = StyleSheet.create({
   },
   glowAccent: {
     position: 'absolute',
-    left: 0,
     top: 0,
     bottom: 0,
     width: 4,
     backgroundColor: Colors.success,
-    borderTopLeftRadius: BorderRadius.xl,
-    borderBottomLeftRadius: BorderRadius.xl,
   },
   activeSubIcon: {
     width: 46,
