@@ -82,7 +82,9 @@ export default function PaymentScreen() {
       let responseData: any;
       try {
         responseData = JSON.parse(responseText);
-      } catch {}
+      } catch {
+        // Ignore JSON parsing errors and fallback to raw text handling
+      }
 
       if (!response.ok) {
         throw new Error(
