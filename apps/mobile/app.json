@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1D1F21"
+      "backgroundColor": "#161616"
     },
     "assetBundlePatterns": ["**/*"],
     "runtimeVersion": {
@@ -29,7 +29,7 @@
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1D1F21"
+        "backgroundColor": "#161616"
       },
       "permissions": [
         "ACCESS_COARSE_LOCATION",

@@ -40,6 +40,7 @@ export default function ProfileScreen() {
   const { top } = useSafeAreaInsets();
   const [saving, setSaving] = useState(false);
   const [stats, setStats] = useState({ tripCount: 0, avgRating: 0 });
+  const scrollViewRef = React.useRef<ScrollView>(null);
 
   const { control, handleSubmit, reset } = useForm<ProfileEditRequest>({
     resolver: zodResolver(ProfileEditSchema),
@@ -173,44 +174,69 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" translucent />
+      <StatusBar style="dark" translucent />
 
-      {/* Fixed Header */}
-      <View style={[styles.header, { paddingTop: top + Spacing.md }]}>
+      {/* Branded Header Banner (Fixed at the top) */}
+      <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
         {/* Glassmorphic Background Effects */}
         <View style={styles.glassOverlay} />
         <View style={styles.glassHighlight} />
 
-        <View style={styles.headerRow}>
-          {/* Left Group: Avatar + Details */}
-          <View style={styles.headerLeftGroup}>
-            {/* Avatar Ring */}
-            <View style={styles.avatarContainer}>
-              <View style={styles.avatarCircle}>
-                <Ionicons name="person" size={24} color={Colors.primary} />
-              </View>
-            </View>
+        <TouchableOpacity
+          style={styles.headerShortcutLeftBtn}
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+          }}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="create-outline" size={22} color={Colors.primaryDeep} />
+        </TouchableOpacity>
 
-            {/* User Info Stack */}
-            <View style={styles.userInfo}>
-              <Text style={styles.headerName}>{profile?.full_name || t('user')}</Text>
-              <Text style={styles.headerEmail}>{user?.email}</Text>
-            </View>
-          </View>
+        <Text style={styles.headerTitle}>{t('profile')}</Text>
 
-          {/* Right Group: Role Badge */}
-          <View style={styles.roleBadge}>
-            <Ionicons name={roleIcon} size={11} color={Colors.white} />
-            <Text style={styles.roleBadgeText}>{roleLabel}</Text>
-          </View>
-        </View>
+        <TouchableOpacity
+          style={styles.headerShortcutRightBtn}
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/help');
+          }}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="help-circle-outline" size={22} color={Colors.primaryDeep} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollContainer}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        {/* Profile Card */}
+        <View style={styles.profileCard}>
+          {/* Avatar */}
+          <View style={styles.avatarWrapper}>
+            <View style={styles.avatarRing}>
+              <View style={styles.avatarCircle}>
+                <Text style={styles.avatarInitial}>
+                  {(profile?.full_name || t('user')).charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Name, email, badge */}
+          <Text style={styles.headerName} numberOfLines={1} adjustsFontSizeToFit>
+            {profile?.full_name || t('user')}
+          </Text>
+          <Text style={styles.headerEmail} numberOfLines={1}>{user?.email}</Text>
+
+          <View style={styles.roleBadge}>
+            <Ionicons name={roleIcon} size={12} color={Colors.primaryDeep} />
+            <Text style={styles.roleBadgeText}>{roleLabel}</Text>
+          </View>
+        </View>
         {/* Info Form */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('personal_info')}</Text>
@@ -427,17 +453,15 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: Spacing.xxxl + 60, // added extra padding for floating tabs safety
   },
-  // Header
-  header: {
-    paddingBottom: Spacing.md,
+  // ── Glassmorphic Header ──────────────────────────────────
+  headerBanner: {
     paddingHorizontal: Spacing.lg,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    shadowColor: '#054024',
-    shadowOffset: { width: 0, height: 6 },
-    ...Shadow.header,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+    backgroundColor: Colors.white,
+    ...Shadow.sm,
     zIndex: 10,
-    overflow: 'hidden',
     position: 'relative',
   },
   glassOverlay: {
@@ -446,7 +470,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: Colors.primaryDeep,
+    backgroundColor: Colors.white,
   },
   glassHighlight: {
     position: 'absolute',
@@ -454,73 +478,107 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: Colors.glassOverlay,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.glassBorder,
+    backgroundColor: 'transparent',
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  headerTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 16,
+    color: Colors.text,
     zIndex: 2,
+    textAlign: 'center',
+    width: '100%',
   },
-  headerLeftGroup: {
-    flexDirection: 'row',
+  headerShortcutLeftBtn: {
+    position: 'absolute',
+    bottom: 12,
+    start: Spacing.md,
+    zIndex: 3,
+    padding: 6,
+  },
+  headerShortcutRightBtn: {
+    position: 'absolute',
+    bottom: 12,
+    end: Spacing.md,
+    zIndex: 3,
+    padding: 6,
+  },
+  // ── Profile Card ─────────────────────────────────────────
+  profileCard: {
+    backgroundColor: Colors.white,
+    marginHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.lg,
     alignItems: 'center',
-    gap: Spacing.md,
-    flex: 1,
+    marginTop: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    ...Shadow.md,
+    zIndex: 10,
   },
-  avatarContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 2.5,
-    borderColor: Colors.glassBorder,
+  // ── Avatar ────────────────────────────────────────────────
+  avatarWrapper: {
+    marginTop: 0,
+    marginBottom: Spacing.sm,
+  },
+  avatarRing: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.white,
+    ...Shadow.md,
   },
   avatarCircle: {
-    width: 47,
-    height: 47,
-    borderRadius: 24,
-    backgroundColor: Colors.white,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.primaryDeep,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: {
+  avatarInitial: {
     fontFamily: FontFamily.bold,
-    fontSize: 18,
+    fontSize: 28,
     color: Colors.white,
-  },
-  userInfo: {
-    flex: 1,
-    gap: 2,
+    lineHeight: 34,
   },
   headerName: {
     fontFamily: FontFamily.bold,
-    fontSize: 17,
-    color: Colors.white,
+    fontSize: 19,
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: 3,
+    letterSpacing: -0.3,
+  },
+  headerEmail: {
+    fontFamily: FontFamily.regular,
+    fontSize: 13,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
   },
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.glassWhite,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
+    gap: 5,
+    backgroundColor: Colors.primarySurface,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     borderRadius: BorderRadius.pill,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.primary + '30',
+    alignSelf: 'center',
+    marginTop: Spacing.xs,
   },
   roleBadgeText: {
-    fontFamily: FontFamily.medium,
-    fontSize: 11,
-    color: Colors.white,
-  },
-  headerEmail: {
-    fontFamily: FontFamily.regular,
-    fontSize: 12.5,
-    color: 'rgba(255, 255, 255, 0.7)',
+    fontFamily: FontFamily.bold,
+    fontSize: 12,
+    color: Colors.primaryDeep,
   },
   scrollContainer: {
     flex: 1,

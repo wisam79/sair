@@ -115,7 +115,7 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
 
   return (
     <Animated.View style={[styles.container, { opacity: splashOpacity }]}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.backgroundDark} />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
       <View style={styles.centerContent}>
         {/* Animated Brand Logo/Symbol */}
@@ -179,7 +179,7 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: Colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 99999, // Ensure it sits on top of all other components
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   brandEnglish: {
     fontFamily: 'IBMPlexSansArabic_700Bold',
     fontSize: 22,
-    color: Colors.white,
+    color: Colors.text,
     letterSpacing: 2,
     marginTop: -8,
     textTransform: 'uppercase',
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: 'IBMPlexSansArabic_400Regular',
     fontSize: 14,
-    color: Colors.textMuted,
+    color: Colors.textSecondary,
     marginTop: 10,
     textAlign: 'center',
   },
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 3,
     borderRadius: 1.5,
-    backgroundColor: '#333333',
+    backgroundColor: Colors.border,
   },
   trackLineActive: {
     position: 'absolute',
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: Colors.secondaryDark,
+    backgroundColor: Colors.white,
     borderWidth: 1.5,
     borderColor: Colors.primary,
     justifyContent: 'center',
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontFamily: 'IBMPlexSansArabic_400Regular',
-    color: '#555555',
+    color: Colors.textMuted,
     fontSize: 12,
   },
 });

@@ -35,84 +35,14 @@ import { EmptyState } from '../../src/components/EmptyState';
 import { useUnreadCount } from '../../src/hooks/useUnreadCount';
 import CustomAlert, { AlertButton } from '../../src/components/CustomAlert';
 
-interface FavoriteChipProps {
-  fav: string;
-  isActive: boolean;
-  isRTL: boolean;
-  onPress: () => void;
-  onLongPress: () => void;
-}
 
-const FavoriteChip = React.memo(
-  ({ fav, isActive, isRTL, onPress, onLongPress }: FavoriteChipProps) => {
-    const scale = React.useRef(new Animated.Value(1)).current;
-    const starScale = React.useRef(new Animated.Value(isActive ? 1.25 : 1)).current;
-
-    React.useEffect(() => {
-      Animated.parallel([
-        Animated.spring(scale, {
-          toValue: isActive ? 1.05 : 1,
-          friction: 5,
-          tension: 40,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-        Animated.spring(starScale, {
-          toValue: isActive ? 1.25 : 1,
-          friction: 4,
-          tension: 50,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-      ]).start();
-    }, [isActive]);
-
-    const handlePress = () => {
-      Animated.sequence([
-        Animated.timing(scale, {
-          toValue: 0.92,
-          duration: 80,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-        Animated.spring(scale, {
-          toValue: isActive ? 1 : 1.05,
-          friction: 4,
-          tension: 40,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-      ]).start();
-      onPress();
-    };
-
-    return (
-      <Animated.View style={{ transform: [{ scale }] }}>
-        <TouchableOpacity
-          style={[
-            styles.favoriteChip,
-            isActive && styles.favoriteChipActive,
-            isRTL && { flexDirection: 'row-reverse' },
-          ]}
-          onPress={handlePress}
-          onLongPress={onLongPress}
-          activeOpacity={0.9}
-        >
-          <Animated.View style={{ transform: [{ scale: starScale }] }}>
-            <Ionicons
-              name={isActive ? 'star' : 'star-outline'}
-              size={14}
-              color={isActive ? Colors.warning : Colors.textMuted}
-            />
-          </Animated.View>
-          <Text style={[styles.favoriteChipLabel, isActive && styles.favoriteChipLabelActive]}>
-            {fav}
-          </Text>
-        </TouchableOpacity>
-      </Animated.View>
-    );
-  },
-);
 
 export default function DiscoveryPage() {
   const { profile, role } = useAuthStore();
   const { top } = useSafeAreaInsets();
+  const { width: screenWidth } = Dimensions.get('window');
+  const CARD_WIDTH = screenWidth - Spacing.lg * 2;
+
   const {
     routes,
     isLoading: routesLoading,
@@ -126,32 +56,14 @@ export default function DiscoveryPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
-  const [favorites, setFavorites] = useState<string[]>(['جامعة بغداد', 'باب المعظم', 'الجادرية']);
   const [driverRatings, setDriverRatings] = useState<Record<string, number>>({});
 
-  // Alert states
+  // Custom Alert States
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
-  const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info' | 'question'>(
-    'info',
-  );
+  const [alertType, setAlertType] = useState<'info' | 'success' | 'error' | 'warning'>('info');
   const [alertButtons, setAlertButtons] = useState<AlertButton[]>([]);
-
-  // Load favorites from AsyncStorage on mount
-  React.useEffect(() => {
-    const loadFavorites = async () => {
-      try {
-        const stored = await AsyncStorage.getItem('saved_locations');
-        if (stored) {
-          setFavorites(JSON.parse(stored));
-        }
-      } catch (err) {
-        logger.error('Failed to load saved locations', err);
-      }
-    };
-    loadFavorites();
-  }, []);
 
   // Fetch driver ratings when routes load
   React.useEffect(() => {
@@ -186,50 +98,7 @@ export default function DiscoveryPage() {
     fetchDriverRatings();
   }, [routes]);
 
-  const saveFavorites = async (updated: string[]) => {
-    try {
-      await AsyncStorage.setItem('saved_locations', JSON.stringify(updated));
-    } catch (err) {
-      logger.error('Failed to save saved locations', err);
-    }
-  };
 
-  const handleAddFavorite = (loc: string) => {
-    if (!loc.trim()) return;
-    const clean = loc.trim();
-    if (favorites.includes(clean)) return;
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    const updated = [...favorites, clean];
-    setFavorites(updated);
-    saveFavorites(updated);
-  };
-
-  const handleRemoveFavorite = (loc: string) => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    const updated = favorites.filter((f) => f !== loc);
-    setFavorites(updated);
-    saveFavorites(updated);
-  };
-
-  const handleFavoriteLongPress = (loc: string) => {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    setAlertTitle(t('favorites'));
-    setAlertMessage(
-      isRTL
-        ? `هل تريد إزالة "${loc}" من المواقع المفضلة؟`
-        : `Do you want to remove "${loc}" from favorites?`,
-    );
-    setAlertType('question');
-    setAlertButtons([
-      { text: t('cancel'), style: 'cancel' },
-      {
-        text: t('delete'),
-        style: 'destructive',
-        onPress: () => handleRemoveFavorite(loc),
-      },
-    ]);
-    setAlertVisible(true);
-  };
 
   useFocusEffect(
     useCallback(() => {
@@ -332,18 +201,18 @@ export default function DiscoveryPage() {
     ({ item }: { item: SubscriptionWithRoute }) => {
       const handleTrack = () => handleTrackActiveTrip(item.route_id);
       return (
-        <View style={{ width: 300 }}>
+        <View style={{ width: CARD_WIDTH }}>
           <ActiveSubscriptionCard activeSub={item} onTrackTrip={handleTrack} />
         </View>
       );
     },
-    [handleTrackActiveTrip],
+    [handleTrackActiveTrip, CARD_WIDTH],
   );
   const ListHeader = useMemo(() => {
     return (
       <View style={styles.mainContent}>
-        {/* Container 1: Widgets Dashboard Card */}
-        <View style={styles.widgetsMainContainer}>
+        {/* Dedicated Quick Stats Card */}
+        <View style={styles.statsCard}>
           {/* Quick Stats Strip */}
           <View style={[styles.statsRow, isRTL && { flexDirection: 'row-reverse' }]}>
             <TouchableOpacity
@@ -354,10 +223,10 @@ export default function DiscoveryPage() {
               }}
               style={styles.statItem}
             >
-              <View style={[styles.statIcon, { backgroundColor: 'rgba(10, 92, 54, 0.05)' }]}>
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(10, 92, 54, 0.06)', borderColor: 'rgba(10, 92, 54, 0.12)' }]}>
                 <Ionicons name="bus" size={20} color="#0A5C36" />
               </View>
-              <Text style={styles.statValue}>{routes.length}</Text>
+              <Text style={[styles.statValue, { color: '#0A5C36' }]}>{routes.length}</Text>
               <Text style={styles.statLabel} numberOfLines={1}>
                 {t('available_routes')}
               </Text>
@@ -373,10 +242,10 @@ export default function DiscoveryPage() {
               }}
               style={styles.statItem}
             >
-              <View style={[styles.statIcon, { backgroundColor: 'rgba(10, 92, 54, 0.05)' }]}>
-                <Ionicons name="checkmark-circle" size={20} color="#0A5C36" />
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(16, 185, 129, 0.06)', borderColor: 'rgba(16, 185, 129, 0.12)' }]}>
+                <Ionicons name="ticket" size={20} color="#10B981" />
               </View>
-              <Text style={styles.statValue}>{activeSubs.length}</Text>
+              <Text style={[styles.statValue, { color: '#10B981' }]}>{activeSubs.length}</Text>
               <Text style={styles.statLabel} numberOfLines={1}>
                 {t('my_subscriptions')}
               </Text>
@@ -400,10 +269,10 @@ export default function DiscoveryPage() {
               }}
               style={styles.statItem}
             >
-              <View style={[styles.statIcon, { backgroundColor: 'rgba(10, 92, 54, 0.05)' }]}>
-                <Ionicons name="car" size={20} color="#0A5C36" />
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(245, 158, 11, 0.06)', borderColor: 'rgba(245, 158, 11, 0.12)' }]}>
+                <Ionicons name="people" size={20} color="#F59E0B" />
               </View>
-              <Text style={styles.statValue}>
+              <Text style={[styles.statValue, { color: '#D97706' }]}>
                 {routes.reduce((sum, r) => sum + r.available_seats, 0)}
               </Text>
               <Text style={styles.statLabel} numberOfLines={1}>
@@ -411,106 +280,75 @@ export default function DiscoveryPage() {
               </Text>
             </TouchableOpacity>
           </View>
+        </View>
 
-          <View style={styles.widgetDivider} />
-
-          {/* Saved Locations Strip (Favorites) */}
-          <View style={[styles.favoritesHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
-            <Ionicons name="star" size={14} color={Colors.warning} />
-            <Text style={styles.favoritesHeaderTitle}>{t('favorites')}</Text>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[
-              styles.favoritesScrollContent,
-              isRTL && { flexDirection: 'row-reverse' },
-            ]}
-          >
-            {favorites.map((fav) => {
-              const isActive = searchQuery === fav;
-              return (
-                <FavoriteChip
-                  key={fav}
-                  fav={fav}
-                  isActive={isActive}
-                  isRTL={isRTL}
+        {/* Subscriptions / License Section — sits directly on the screen background */}
+        {!subsLoading && (
+          <View style={styles.subscriptionSection}>
+            {activeSubs.length > 0 ? (
+              <View style={{ gap: Spacing.xs }}>
+                <Text
+                  style={[styles.nestedSectionHeader, { textAlign: isRTL ? 'right' : 'left' }]}
+                >
+                  {t('my_subscriptions')}
+                </Text>
+                <FlatList
+                  horizontal
+                  data={activeSubs}
+                  keyExtractor={subKeyExtractor}
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: Spacing.lg, gap: 12 }}
+                  renderItem={renderActiveSubscription}
+                  inverted={isRTL}
+                  initialNumToRender={2}
+                  windowSize={3}
+                  snapToInterval={CARD_WIDTH + 12}
+                  decelerationRate="fast"
+                  snapToAlignment="start"
+                />
+              </View>
+            ) : role === 'student' ? (
+              <View style={{ marginHorizontal: Spacing.lg }}>
+                <TouchableOpacity
+                  style={[styles.activationBanner, isRTL && { flexDirection: 'row-reverse' }]}
                   onPress={() => {
                     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setSearchQuery(isActive ? '' : fav);
+                    router.push('/activate');
                   }}
-                  onLongPress={() => handleFavoriteLongPress(fav)}
-                />
-              );
-            })}
-          </ScrollView>
-
-          {/* Subscriptions / License Section */}
-          {!subsLoading && (
-            <View style={styles.subscriptionSection}>
-              {activeSubs.length > 0 ? (
-                <View style={{ gap: Spacing.xs }}>
-                  <Text
-                    style={[styles.nestedSectionHeader, { textAlign: isRTL ? 'right' : 'left' }]}
+                  activeOpacity={0.8}
+                >
+                  <View
+                    style={[styles.activationContent, isRTL && { flexDirection: 'row-reverse' }]}
                   >
-                    {t('my_subscriptions')}
-                  </Text>
-                  <FlatList
-                    horizontal
-                    data={activeSubs}
-                    keyExtractor={subKeyExtractor}
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ paddingHorizontal: Spacing.md, gap: 12 }}
-                    renderItem={renderActiveSubscription}
-                    inverted={isRTL}
-                    initialNumToRender={2}
-                    windowSize={3}
-                  />
-                </View>
-              ) : role === 'student' ? (
-                <View style={{ paddingHorizontal: Spacing.xs }}>
-                  <View style={styles.widgetDivider} />
-                  <TouchableOpacity
-                    style={[styles.flatActivationRow, isRTL && { flexDirection: 'row-reverse' }]}
-                    onPress={() => {
-                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      router.push('/activate');
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <View
-                      style={[styles.activationContent, isRTL && { flexDirection: 'row-reverse' }]}
-                    >
-                      <View style={styles.activationIconWrapper}>
-                        <Ionicons name="card" size={20} color="#0A5C36" />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text
-                          style={[styles.activationTitle, { textAlign: isRTL ? 'right' : 'left' }]}
-                        >
-                          {t('activate_new_license')}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.activationSubtitle,
-                            { textAlign: isRTL ? 'right' : 'left' },
-                          ]}
-                        >
-                          {t('activate_license_description')}
-                        </Text>
-                      </View>
+                    <View style={styles.activationIconWrapper}>
+                      <Ionicons name="card" size={20} color={Colors.white} />
                     </View>
-                    <Ionicons
-                      name={isRTL ? 'chevron-back' : 'chevron-forward'}
-                      size={20}
-                      color={Colors.textMuted}
-                    />
-                  </TouchableOpacity>
-                </View>
-              ) : null}
-            </View>
-          )}
-        </View>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={[styles.activationTitle, { textAlign: isRTL ? 'right' : 'left' }]}
+                      >
+                        {t('activate_new_license')}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.activationSubtitle,
+                          { textAlign: isRTL ? 'right' : 'left' },
+                        ]}
+                      >
+                        {t('activate_license_description')}
+                      </Text>
+                    </View>
+                  </View>
+                  <Ionicons
+                    name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                    size={18}
+                    color="#0A5C36"
+                  />
+                </TouchableOpacity>
+              </View>
+            ) : null}
+          </View>
+        )}
 
         {/* Section Header for Routes */}
         <View style={styles.routesHeaderWrapper}>
@@ -528,13 +366,15 @@ export default function DiscoveryPage() {
   }, [
     routes,
     activeSubs,
-    favorites,
     searchQuery,
     subsLoading,
     role,
     isRTL,
     t,
     filteredRoutes.length,
+    CARD_WIDTH,
+    renderActiveSubscription,
+    subKeyExtractor,
   ]);
   interface NominatimResult {
     place_id: number;
@@ -580,7 +420,7 @@ export default function DiscoveryPage() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" translucent />
+      <StatusBar style="dark" translucent />
 
       {/* Branded Header Banner (Fixed at the top) */}
       <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
@@ -589,9 +429,18 @@ export default function DiscoveryPage() {
         <View style={styles.glassHighlight} />
 
         <View style={[styles.headerTopRow, isRTL && { flexDirection: 'row-reverse' }]}>
-          <View style={[styles.brandLogoContainer, isRTL && { flexDirection: 'row-reverse' }]}>
-            <Text style={styles.brandLogoText}>{isRTL ? 'سير' : 'Sair'}</Text>
-            <Text style={styles.brandLogoTextDot}>.</Text>
+          <View style={styles.brandLogoContainer}>
+            <View>
+              <View style={[styles.logoRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Text style={styles.brandLogoText}>{isRTL ? 'سير' : 'Sair'}</Text>
+                <Text style={styles.brandLogoTextDot}>.</Text>
+              </View>
+              <Text style={[styles.brandSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {profile?.full_name 
+                  ? (isRTL ? `أهلاً بك، ${profile.full_name.split(' ')[0]} 👋` : `Hello, ${profile.full_name.split(' ')[0]} 👋`)
+                  : (isRTL ? 'مرحباً بك في سير 👋' : 'Welcome to Sair 👋')}
+              </Text>
+            </View>
           </View>
 
           <View style={[styles.headerActions, isRTL && { flexDirection: 'row-reverse' }]}>
@@ -604,7 +453,7 @@ export default function DiscoveryPage() {
               }}
               activeOpacity={0.7}
             >
-              <Ionicons name="help-circle-outline" size={22} color={Colors.white} />
+              <Ionicons name="help-circle-outline" size={22} color={Colors.primaryDeep} />
             </TouchableOpacity>
 
             {/* Notification Button */}
@@ -616,7 +465,7 @@ export default function DiscoveryPage() {
               }}
               activeOpacity={0.7}
             >
-              <Ionicons name="notifications-outline" size={22} color={Colors.white} />
+              <Ionicons name="notifications-outline" size={22} color={Colors.primaryDeep} />
               {unreadCount > 0 && (
                 <View style={styles.unreadBadge}>
                   <Text style={styles.unreadBadgeText}>{unreadCount}</Text>
@@ -634,7 +483,7 @@ export default function DiscoveryPage() {
               style={styles.avatarButton}
             >
               <View style={styles.avatarInner}>
-                <Ionicons name="person" size={18} color={Colors.white} />
+                <Ionicons name="person" size={18} color={Colors.primaryDeep} />
               </View>
             </TouchableOpacity>
           </View>
@@ -668,41 +517,16 @@ export default function DiscoveryPage() {
           {isSearching ? (
             <ActivityIndicator size="small" color={Colors.primary} />
           ) : searchQuery.length > 0 ? (
-            <View
-              style={[styles.favoriteActionContainer, isRTL && { flexDirection: 'row-reverse' }]}
+            <TouchableOpacity
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setSearchQuery('');
+                setSearchResults([]);
+              }}
+              style={styles.clearSearchButton}
             >
-              {favorites.includes(searchQuery.trim()) ? (
-                <TouchableOpacity
-                  onPress={() => {
-                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    handleRemoveFavorite(searchQuery);
-                  }}
-                  style={styles.favoriteActionButton}
-                >
-                  <Ionicons name="star" size={18} color={Colors.warning} />
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  onPress={() => {
-                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    handleAddFavorite(searchQuery);
-                  }}
-                  style={styles.favoriteActionButton}
-                >
-                  <Ionicons name="star-outline" size={18} color="#0A5C36" />
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                onPress={() => {
-                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setSearchQuery('');
-                  setSearchResults([]);
-                }}
-                style={{ marginLeft: 6 }}
-              >
-                <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
-              </TouchableOpacity>
-            </View>
+              <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+            </TouchableOpacity>
           ) : null}
         </View>
       </View>
@@ -813,11 +637,11 @@ const styles = StyleSheet.create({
   headerBanner: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.lg,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-    ...Shadow.header,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.white,
+    ...Shadow.sm,
     zIndex: 10,
-    overflow: 'hidden',
     position: 'relative',
   },
   glassOverlay: {
@@ -826,7 +650,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: Colors.primaryDeep,
+    backgroundColor: Colors.white,
   },
   glassHighlight: {
     position: 'absolute',
@@ -834,9 +658,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: Colors.glassOverlay,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.glassBorder,
+    backgroundColor: 'transparent',
   },
 
   headerTopRow: {
@@ -847,19 +669,22 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   brandLogoContainer: {
+    justifyContent: 'center',
+    flex: 1,
+  },
+  logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
   brandLogoText: {
     fontFamily: FontFamily.logo,
     fontSize: 28,
-    color: Colors.white,
+    color: Colors.primaryDeep,
   },
   brandLogoTextDot: {
     fontFamily: FontFamily.bold,
     fontSize: 28,
-    color: Colors.primaryLight,
+    color: Colors.primary,
   },
   greetingEmoji: {
     fontSize: 18,
@@ -867,13 +692,13 @@ const styles = StyleSheet.create({
   greetingText: {
     fontFamily: FontFamily.bold,
     fontSize: 18,
-    color: Colors.white,
+    color: Colors.text,
   },
   brandSubtitle: {
-    fontFamily: FontFamily.regular,
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.65)',
-    marginTop: 2,
+    fontFamily: FontFamily.bold,
+    fontSize: 11,
+    color: Colors.textMuted,
+    marginTop: 1,
   },
   headerActions: {
     flexDirection: 'row',
@@ -884,12 +709,12 @@ const styles = StyleSheet.create({
   notificationHeaderButton: {
     position: 'relative',
     padding: 9,
-    backgroundColor: Colors.glassWhite,
+    backgroundColor: Colors.background,
     borderRadius: BorderRadius.xxl,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderLight,
   },
   unreadBadge: {
     position: 'absolute',
@@ -903,7 +728,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 4,
     borderWidth: 2,
-    borderColor: Colors.primaryDeep,
+    borderColor: Colors.white,
   },
   unreadBadgeText: {
     color: Colors.white,
@@ -915,11 +740,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.glassWhite,
+    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderLight,
   },
   avatarInner: {
     width: '100%',
@@ -931,7 +756,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontFamily: FontFamily.bold,
     fontSize: 14,
-    color: Colors.white,
+    color: Colors.text,
   },
   // Search
   searchBar: {
@@ -1000,14 +825,14 @@ const styles = StyleSheet.create({
     color: Colors.text,
     paddingHorizontal: Spacing.sm,
   },
-  // Widgets Container
-  widgetsMainContainer: {
+  // Quick Stats Card
+  statsCard: {
     backgroundColor: Colors.white,
     borderRadius: BorderRadius.xxl,
     padding: Spacing.lg,
     marginTop: Spacing.lg,
     marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
     borderWidth: 1,
     borderColor: Colors.borderLight,
     ...Shadow.md,
@@ -1053,74 +878,31 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.borderLight,
     marginHorizontal: Spacing.xs,
   },
-  widgetDivider: {
-    height: 1,
-    backgroundColor: Colors.borderLight,
-    marginVertical: Spacing.md,
-  },
-  favoritesHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: Spacing.sm,
-    paddingHorizontal: Spacing.xs,
-  },
-  favoritesHeaderTitle: {
-    fontFamily: FontFamily.bold,
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  favoritesScrollContent: {
-    paddingHorizontal: Spacing.xs,
-    gap: Spacing.sm,
-    paddingVertical: 4,
-  },
-  favoriteChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: BorderRadius.pill,
-    backgroundColor: Colors.surfaceMuted,
-    borderWidth: 1.5,
-    borderColor: Colors.borderLight,
-  },
-  favoriteChipActive: {
-    backgroundColor: Colors.primarySurface,
-    borderColor: Colors.primary,
-  },
-  favoriteChipLabel: {
-    fontFamily: FontFamily.bold,
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  favoriteChipLabelActive: {
-    color: Colors.primaryDeep,
-  },
-  favoriteActionContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  favoriteActionButton: {
+  clearSearchButton: {
     padding: Spacing.xs,
   },
   subscriptionSection: {
-    marginHorizontal: -Spacing.md,
+    marginBottom: Spacing.md,
     marginTop: Spacing.xs,
   },
   nestedSectionHeader: {
     fontFamily: FontFamily.bold,
-    fontSize: 13,
-    color: Colors.textSecondary,
-    paddingHorizontal: Spacing.md,
+    fontSize: 14,
+    color: Colors.primaryDeep,
+    paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.xs,
   },
-  flatActivationRow: {
+  activationBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: Spacing.sm + 2,
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.md + 2,
+    borderWidth: 1,
+    borderColor: 'rgba(22, 163, 74, 0.25)', // subtle primary border
+    marginTop: Spacing.xs,
+    ...Shadow.md,
   },
   activationContent: {
     flexDirection: 'row',
@@ -1129,19 +911,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   activationIconWrapper: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.primarySurface,
+    width: 42,
+    height: 42,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.primary + '15',
   },
   activationTitle: {
     fontFamily: FontFamily.bold,
-    fontSize: 14,
-    color: Colors.text,
+    fontSize: 15,
+    color: Colors.primaryDeep,
   },
   activationSubtitle: {
     fontFamily: FontFamily.regular,
@@ -1169,8 +949,8 @@ const styles = StyleSheet.create({
   },
   routesContainerTitle: {
     fontFamily: FontFamily.bold,
-    fontSize: 16,
-    color: Colors.text,
+    fontSize: 17,
+    color: Colors.primaryDeep,
     letterSpacing: -0.2,
   },
   routesBadge: {

@@ -57,17 +57,46 @@ export default function PaymentScreen() {
       setLoading(true);
       setErrorMsg(null);
 
-      const { data, error } = await supabase.functions.invoke('zaincash-checkout', {
-        body: { route_id: activeRouteId },
-      });
+      // Get current session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
 
-      if (error || !data) {
-        throw new Error(error?.message || 'Failed to initialize checkout');
+      if (!token) {
+        throw new Error(isRTL ? 'يرجى تسجيل الدخول أولاً' : 'Please login first');
       }
 
-      if (data.paymentUrl) {
-        setPaymentUrl(data.paymentUrl);
-        await WebBrowser.openBrowserAsync(data.paymentUrl);
+      // Invoke edge function using raw fetch to extract detailed JSON error response
+      const response = await fetch(
+        `https://zpcvvyxtmxzplmojobbv.supabase.co/functions/v1/zaincash-checkout`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ route_id: activeRouteId }),
+        }
+      );
+
+      const responseText = await response.text();
+      let responseData: any;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch {
+        // Ignore JSON parsing errors and fallback to raw text handling
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          responseData?.error || 
+          responseData?.message || 
+          `HTTP ${response.status}: ${responseText.substring(0, 100)}`
+        );
+      }
+
+      if (responseData?.paymentUrl) {
+        setPaymentUrl(responseData.paymentUrl);
+        await WebBrowser.openBrowserAsync(responseData.paymentUrl);
       } else {
         throw new Error('ZainCash did not return a payment URL');
       }

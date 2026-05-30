@@ -25,20 +25,51 @@ export default function TripList() {
     resource: 'trips',
   });
 
-  const { data: routeData, isLoading: routeIsLoading } = useMany({
-    resource: 'routes',
-    ids:
+  const routeIds = React.useMemo(() => {
+    return (
       dataGridProps?.rows
         ?.map((item: { route_id?: string }) => item?.route_id)
-        .filter((id): id is string => typeof id === 'string') ?? [],
+        .filter((id): id is string => typeof id === 'string') ?? []
+    );
+  }, [dataGridProps?.rows]);
+
+  const { data: routeData, isLoading: routeIsLoading } = useMany({
+    resource: 'routes',
+    ids: routeIds,
     queryOptions: {
-      enabled: !!dataGridProps?.rows,
-      queryKey: [
-        'routes',
-        dataGridProps?.rows
-          ?.map((item: { route_id?: string }) => item?.route_id)
-          .filter((id): id is string => typeof id === 'string') ?? [],
-      ],
+      enabled: routeIds.length > 0,
+    },
+  });
+
+  const driverIds = React.useMemo(() => {
+    return (
+      dataGridProps?.rows
+        ?.map((item: { driver_id?: string }) => item?.driver_id)
+        .filter((id): id is string => typeof id === 'string') ?? []
+    );
+  }, [dataGridProps?.rows]);
+
+  const { data: driverData, isLoading: driverIsLoading } = useMany({
+    resource: 'drivers',
+    ids: driverIds,
+    queryOptions: {
+      enabled: driverIds.length > 0,
+    },
+  });
+
+  const driverUserIds = React.useMemo(() => {
+    return (
+      driverData?.data
+        ?.map((item) => item?.user_id)
+        .filter((id): id is string => typeof id === 'string') ?? []
+    );
+  }, [driverData?.data]);
+
+  const { data: profileData, isLoading: profileIsLoading } = useMany({
+    resource: 'profiles',
+    ids: driverUserIds,
+    queryOptions: {
+      enabled: driverUserIds.length > 0,
     },
   });
 
@@ -61,6 +92,20 @@ export default function TripList() {
           if (routeIsLoading) return <>{t('common.loading', 'Loading...')}</>;
           const route = routeData?.data?.find((item) => item.id === value);
           return route ? route.title : value;
+        },
+      },
+      {
+        field: 'driver_id',
+        headerName: t('trips.fields.driver', 'Driver'),
+        type: 'string',
+        minWidth: 180,
+        flex: 1,
+        renderCell: function render({ value }) {
+          if (driverIsLoading || profileIsLoading) return <>{t('common.loading', 'Loading...')}</>;
+          const driver = driverData?.data?.find((item) => item.id === value);
+          if (!driver) return value;
+          const profile = profileData?.data?.find((item) => item.id === driver.user_id);
+          return profile ? `${profile.full_name} (${profile.phone || ''})` : value;
         },
       },
       {
@@ -148,7 +193,15 @@ export default function TripList() {
         minWidth: 80,
       },
     ],
-    [routeData?.data, routeIsLoading, t],
+    [
+      routeData?.data,
+      routeIsLoading,
+      driverData?.data,
+      driverIsLoading,
+      profileData?.data,
+      profileIsLoading,
+      t,
+    ],
   );
 
   return (

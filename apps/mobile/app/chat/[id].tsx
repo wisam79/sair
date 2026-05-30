@@ -12,7 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Chat, Channel, MessageList, MessageComposer } from 'stream-chat-expo';
+import { Chat, Channel, MessageList, MessageComposer, OverlayProvider } from 'stream-chat-expo';
 import { useTranslation } from '../../src/hooks/useTranslation';
 import { useAuthStore } from '../../src/hooks/useStore';
 import { getStreamClient, connectStreamUser } from '../../src/lib/stream';
@@ -26,6 +26,45 @@ export default function ChatScreen() {
   const { t, isRTL } = useTranslation();
   const { top, bottom } = useSafeAreaInsets();
   const { user, role, profile } = useAuthStore();
+
+  const streamTheme = useMemo(() => ({
+    colors: {
+      background: Colors.white,
+      background_page: Colors.background,
+      border: Colors.border,
+      text: Colors.text,
+      text_muted: Colors.textMuted,
+      accent_green: Colors.primary,
+      white: Colors.white,
+      black: Colors.black,
+    },
+    semantics: {
+      accentPrimary: Colors.primary,
+      backgroundCoreApp: Colors.background,
+      backgroundCoreElevation0: Colors.white,
+      backgroundCoreElevation1: Colors.white,
+      backgroundCoreElevation2: Colors.white,
+      backgroundCoreElevation3: Colors.white,
+      backgroundCoreSurfaceDefault: Colors.white,
+      backgroundCoreSurfaceStrong: Colors.surfaceMuted,
+      backgroundCoreSurfaceSubtle: Colors.surfaceMuted,
+      chatBgIncoming: Colors.white,
+      chatBgOutgoing: Colors.primarySurface,
+      chatTextIncoming: Colors.text,
+      chatTextOutgoing: Colors.text,
+      inputTextDefault: Colors.text,
+      inputTextPlaceholder: Colors.textMuted,
+      inputTextIcon: Colors.textMuted,
+      borderCoreDefault: Colors.border,
+      borderCoreStrong: Colors.border,
+      borderCoreSubtle: Colors.borderLight,
+      textPrimary: Colors.text,
+      textSecondary: Colors.textSecondary,
+      textTertiary: Colors.textMuted,
+      textDisabled: Colors.textMuted,
+      textLink: Colors.primary,
+    }
+  }), []);
 
   const [connecting, setConnecting] = useState(true);
   const [channel, setChannel] = useState<any>(null);
@@ -218,79 +257,81 @@ export default function ChatScreen() {
   }
 
   return (
-    <Chat client={chatClient}>
-      <Channel channel={channel} keyboardBehavior="padding">
-        <View style={styles.container}>
-          <StatusBar style="dark" translucent />
+    <OverlayProvider value={{ style: streamTheme }}>
+      <Chat client={chatClient}>
+        <Channel channel={channel} keyboardBehavior="padding">
+          <View style={styles.container}>
+            <StatusBar style="dark" translucent />
 
-          {/* Header */}
-          <View
-            style={[
-              styles.header,
-              { paddingTop: top + Spacing.sm },
-              isRTL && { flexDirection: 'row-reverse' },
-            ]}
-          >
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <Ionicons
-                name={isRTL ? 'arrow-forward' : 'arrow-back'}
-                size={24}
-                color={Colors.text}
-              />
-            </TouchableOpacity>
-            <View style={styles.headerTitleContainer}>
-              <View style={[styles.headerNameContainer, isRTL && { flexDirection: 'row-reverse' }]}>
-                <View style={styles.onlineDot} />
-                <Text style={styles.headerTitle}>{displayName}</Text>
-              </View>
-              {roleText ? <Text style={styles.headerSubtitle}>{roleText}</Text> : null}
-            </View>
-            {conversationMeta?.trip_id ? (
-              <TouchableOpacity
-                style={styles.headerInfoBtn}
-                onPress={() =>
-                  router.push({
-                    pathname: '/tracking/[tripId]',
-                    params: { tripId: conversationMeta.trip_id },
-                  })
-                }
-              >
-                <Ionicons name="information-circle-outline" size={24} color={Colors.primary} />
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.headerSpacer} />
-            )}
-          </View>
-
-          {/* Message List */}
-          <View style={{ flex: 1 }}>
-            <MessageList />
-          </View>
-
-          {/* Smart Quick Replies Chips */}
-          <View style={{ backgroundColor: Colors.background }}>
-            <FlatList
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              data={quickReplies}
-              keyExtractor={(item) => item}
-              contentContainerStyle={[
-                styles.quickRepliesContainer,
+            {/* Header */}
+            <View
+              style={[
+                styles.header,
+                { paddingTop: top + Spacing.sm },
                 isRTL && { flexDirection: 'row-reverse' },
               ]}
-              renderItem={renderQuickReply}
-            />
-          </View>
+            >
+              <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                <Ionicons
+                  name={isRTL ? 'arrow-forward' : 'arrow-back'}
+                  size={24}
+                  color={Colors.text}
+                />
+              </TouchableOpacity>
+              <View style={styles.headerTitleContainer}>
+                <View style={[styles.headerNameContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+                  <View style={styles.onlineDot} />
+                  <Text style={styles.headerTitle}>{displayName}</Text>
+                </View>
+                {roleText ? <Text style={styles.headerSubtitle}>{roleText}</Text> : null}
+              </View>
+              {conversationMeta?.trip_id ? (
+                <TouchableOpacity
+                  style={styles.headerInfoBtn}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/tracking/[tripId]',
+                      params: { tripId: conversationMeta.trip_id },
+                    })
+                  }
+                >
+                  <Ionicons name="information-circle-outline" size={24} color={Colors.primary} />
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.headerSpacer} />
+              )}
+            </View>
 
-          {/* Message Input */}
-          <View
-            style={{ paddingBottom: Platform.OS === 'ios' && bottom > 0 ? bottom : Spacing.xs }}
-          >
-            <MessageComposer />
+            {/* Message List */}
+            <View style={{ flex: 1 }}>
+              <MessageList />
+            </View>
+
+            {/* Smart Quick Replies Chips */}
+            <View style={{ backgroundColor: Colors.background }}>
+              <FlatList
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                data={quickReplies}
+                keyExtractor={(item) => item}
+                contentContainerStyle={[
+                  styles.quickRepliesContainer,
+                  isRTL && { flexDirection: 'row-reverse' },
+                ]}
+                renderItem={renderQuickReply}
+              />
+            </View>
+
+            {/* Message Input */}
+            <View
+              style={{ paddingBottom: Platform.OS === 'ios' && bottom > 0 ? bottom : Spacing.xs }}
+            >
+              <MessageComposer />
+            </View>
           </View>
-        </View>
-      </Channel>
-    </Chat>
+        </Channel>
+      </Chat>
+    </OverlayProvider>
   );
 }
 

@@ -1,6 +1,6 @@
 
 <svg width="1024" height="1024" viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1200" height="1200" fill="#1D1F21" />
+  <rect width="1200" height="1200" fill="#161616" />
   <defs>
     
     <linearGradient id="metalCopper" x1="0%" y1="0%" x2="100%" y2="100%">

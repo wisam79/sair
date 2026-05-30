@@ -228,10 +228,6 @@ export default {
   cancel_sub_info_title: 'Can I cancel my route subscription?',
   cancel_sub_info_answer:
     'Yes, you can cancel your subscription from the "My Subscriptions" screen by pressing the "Cancel" button. It will be processed immediately.',
-  favorite_added: 'Added to favorite locations!',
-  favorite_removed: 'Removed from favorite locations!',
-  no_favorites_yet: 'No favorite locations yet',
-  save_current_location: 'Save as favorite',
   select_favorite_tags: 'Quick feedback tags',
   driver_vehicle_details: 'Driver & Vehicle Details',
   vehicle_plate: 'Plate Number',
@@ -248,7 +244,6 @@ export default {
     'We released a new version packed with improvements! Please update the app to continue.',
   update_now: 'Update Now',
   pay_with_zaincash: 'Pay with ZainCash',
-  favorites: 'Favorites:',
   view_details: 'View Details',
   all: 'All',
   no_matching_questions: 'No matching questions found',

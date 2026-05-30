@@ -11,6 +11,31 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
+// Load .env file manually
+try {
+  const envPath = path.resolve(__dirname, '../.env');
+  if (fs.existsSync(envPath)) {
+    const envConfig = fs.readFileSync(envPath, 'utf-8');
+    for (const line of envConfig.split('\n')) {
+      const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        const key = match[1];
+        let value = match[2] || '';
+        if (value.startsWith('"') && value.endsWith('"')) {
+          value = value.slice(1, -1);
+        } else if (value.startsWith("'") && value.endsWith("'")) {
+          value = value.slice(1, -1);
+        }
+        if (!process.env[key]) {
+          process.env[key] = value.trim();
+        }
+      }
+    }
+  }
+} catch (e) {
+  console.warn('Failed to load .env file:', e);
+}
+
 const TESTING_PROJECT_REF = process.env.SUPABASE_PROJECT_REF || 'cxyggxsyiymgxvwzeatv';
 const TESTING_SERVICE_ROLE_KEY =
   process.env.SUPABASE_TESTING_SERVICE_KEY ||
@@ -127,7 +152,7 @@ async function main() {
     process.stdout.write(`  → ${file} ... `);
 
     try {
-      const result = await execViaManagementAPI(sql);
+      const result = await execSQL(sql);
       if (result.ok) {
         console.log('✅');
         applied++;

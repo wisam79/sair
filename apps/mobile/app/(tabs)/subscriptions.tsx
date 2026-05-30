@@ -98,68 +98,92 @@ const SubscriptionCard = React.memo(
     }, [item, onShowBoardingPass]);
 
     return (
-      <View style={styles.card}>
-        {/* Header */}
-        <View style={styles.cardHeader}>
-          <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
-            <Ionicons name={status.icon as any} size={13} color={status.color} />
-            <Text style={[styles.statusText, { color: status.color }]}>{t(status.labelKey)}</Text>
-          </View>
-          <Text style={styles.routeTitle} numberOfLines={1}>
-            {item.routes?.title || t('route')}
-          </Text>
-        </View>
+      <View style={[styles.card, isRTL && styles.cardRTL]}>
+        {/* Color Accent Bar on the side matching status */}
+        <View style={[styles.cardAccent, { backgroundColor: status.color }]} />
 
-        {/* Route Path */}
-        {item.routes && (
-          <View style={styles.routePath}>
-            <View style={styles.pathStop}>
-              <Ionicons name="radio-button-on" size={12} color={Colors.primary} />
-              <Text style={styles.pathText}>{item.routes.start_location}</Text>
-            </View>
-            <View style={[styles.pathDivider, { alignSelf: 'flex-start', marginStart: 5 }]} />
-            <View style={styles.pathStop}>
-              <Ionicons name="location" size={12} color={Colors.secondary} />
-              <Text style={styles.pathText}>{item.routes.end_location}</Text>
-            </View>
-          </View>
-        )}
-
-        {/* Details Row */}
-        <View style={styles.detailsRow}>
-          <Text style={styles.dateText}>
-            {startDate} — {endDate}
-          </Text>
-          {item.routes && (
-            <Text style={styles.priceText}>
-              {item.routes.price.toLocaleString()} {t('currency')}
+        <View style={styles.cardContent}>
+          {/* Header: Title + Status Badge */}
+          <View style={[styles.cardHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
+            <Text
+              style={[styles.routeTitle, { textAlign: isRTL ? 'right' : 'left' }]}
+              numberOfLines={1}
+            >
+              {item.routes?.title || t('route')}
             </Text>
+            <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
+              <Ionicons name={status.icon as any} size={12} color={status.color} />
+              <Text style={[styles.statusText, { color: status.color }]}>{t(status.labelKey)}</Text>
+            </View>
+          </View>
+
+          {/* Timeline Path (similar to RouteCard but customized for subscriptions) */}
+          {item.routes && (
+            <View style={[styles.routePathContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={styles.timelineTrack}>
+                <View style={[styles.startDot, { borderColor: Colors.primary }]}>
+                  <View style={[styles.startDotInner, { backgroundColor: Colors.primary }]} />
+                </View>
+                <View style={styles.verticalConnector} />
+                <Ionicons name="location" size={13} color={Colors.secondary} />
+              </View>
+              <View style={styles.routeDetails}>
+                <Text
+                  style={[styles.routeStopText, { textAlign: isRTL ? 'right' : 'left' }]}
+                  numberOfLines={1}
+                >
+                  {item.routes.start_location}
+                </Text>
+                <View style={{ height: Spacing.sm }} />
+                <Text
+                  style={[styles.routeStopText, { textAlign: isRTL ? 'right' : 'left' }]}
+                  numberOfLines={1}
+                >
+                  {item.routes.end_location}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Details Row: Period & Price */}
+          <View style={[styles.detailsRow, isRTL && { flexDirection: 'row-reverse' }]}>
+            <View style={[styles.dateContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+              <Ionicons name="calendar-outline" size={14} color={Colors.textMuted} style={isRTL ? { marginLeft: 4 } : { marginRight: 4 }} />
+              <Text style={styles.dateText}>
+                {startDate} — {endDate}
+              </Text>
+            </View>
+            {item.routes && (
+              <Text style={styles.priceText}>
+                {item.routes.price.toLocaleString()} {t('currency')}
+              </Text>
+            )}
+          </View>
+
+          {/* Actions */}
+          {item.status === 'active' && item.routes && (
+            <View style={[styles.actions, isRTL && { flexDirection: 'row-reverse' }]}>
+              <TouchableOpacity style={styles.trackButton} activeOpacity={0.85} onPress={handleTrack}>
+                <Ionicons name="navigate-outline" size={14} color={Colors.white} />
+                <Text style={styles.trackButtonText}>{t('track_trip')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.boardingPassButton}
+                activeOpacity={0.85}
+                onPress={handleShowBoardingPass}
+              >
+                <Ionicons name="qr-code-outline" size={14} color={Colors.white} />
+                <Text style={styles.boardingPassButtonText}>{t('show_boarding_pass')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {(item.status === 'active' || item.status === 'pending') && (
+            <TouchableOpacity style={styles.cancelButton} activeOpacity={0.8} onPress={handleCancel}>
+              <Text style={styles.cancelButtonText}>{t('cancel_subscription')}</Text>
+            </TouchableOpacity>
           )}
         </View>
-
-        {/* Actions */}
-        {item.status === 'active' && item.routes && (
-          <View style={styles.actions}>
-            <TouchableOpacity style={styles.trackButton} activeOpacity={0.85} onPress={handleTrack}>
-              <Ionicons name="navigate-outline" size={14} color={Colors.white} />
-              <Text style={styles.trackButtonText}>{t('track_trip')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.boardingPassButton}
-              activeOpacity={0.85}
-              onPress={handleShowBoardingPass}
-            >
-              <Ionicons name="qr-code-outline" size={14} color={Colors.white} />
-              <Text style={styles.boardingPassButtonText}>{t('show_boarding_pass')}</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {(item.status === 'active' || item.status === 'pending') && (
-          <TouchableOpacity style={styles.cancelButton} activeOpacity={0.8} onPress={handleCancel}>
-            <Text style={styles.cancelButtonText}>{t('cancel_subscription')}</Text>
-          </TouchableOpacity>
-        )}
       </View>
     );
   },
@@ -337,7 +361,7 @@ export default function SubscriptionsScreen() {
   if (isLoading && subscriptions.length === 0) {
     return (
       <View style={styles.container}>
-        <StatusBar style="light" translucent />
+        <StatusBar style="dark" translucent />
         <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
           {/* Glassmorphic Background Effects */}
           <View style={styles.glassOverlay} />
@@ -352,7 +376,7 @@ export default function SubscriptionsScreen() {
             }}
             activeOpacity={0.7}
           >
-            <Ionicons name="card-outline" size={22} color={Colors.white} />
+            <Ionicons name="card-outline" size={22} color={Colors.primaryDeep} />
           </TouchableOpacity>
         </View>
         <View style={{ flex: 1, padding: Spacing.md, gap: Spacing.md }}>
@@ -366,7 +390,7 @@ export default function SubscriptionsScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" translucent />
+      <StatusBar style="dark" translucent />
       <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
         {/* Glassmorphic Background Effects */}
         <View style={styles.glassOverlay} />
@@ -381,7 +405,7 @@ export default function SubscriptionsScreen() {
           }}
           activeOpacity={0.7}
         >
-          <Ionicons name="card-outline" size={22} color={Colors.white} />
+          <Ionicons name="card-outline" size={22} color={Colors.primaryDeep} />
         </TouchableOpacity>
       </View>
       <FlatList
@@ -556,15 +580,11 @@ const styles = StyleSheet.create({
   headerBanner: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    shadowColor: '#054024',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.white,
+    ...Shadow.sm,
     zIndex: 10,
-    overflow: 'hidden',
     position: 'relative',
   },
   glassOverlay: {
@@ -573,7 +593,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: '#0A5C36',
+    backgroundColor: Colors.white,
   },
   glassHighlight: {
     position: 'absolute',
@@ -581,14 +601,12 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.22)',
+    backgroundColor: 'transparent',
   },
   headerTitle: {
     fontFamily: FontFamily.bold,
     fontSize: 16,
-    color: Colors.white,
+    color: Colors.text,
     zIndex: 2,
     textAlign: 'center',
     width: '100%',
@@ -618,70 +636,111 @@ const styles = StyleSheet.create({
   // Card
   card: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
+    borderRadius: BorderRadius.xl,
+    flexDirection: 'row',
+    overflow: 'hidden',
     marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
     ...Shadow.md,
   },
-  cardHeader: {
+  cardRTL: {
+    flexDirection: 'row-reverse',
+  },
+  cardAccent: {
+    width: 5,
+  },
+  cardContent: {
+    flex: 1,
+    padding: Spacing.lg,
+  },
+  cardHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.xs,
     marginBottom: Spacing.sm,
   },
   routeTitle: {
     fontFamily: FontFamily.bold,
-    fontSize: 15,
+    fontSize: 16,
     color: Colors.text,
     flex: 1,
-    marginRight: Spacing.sm,
   },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: BorderRadius.pill,
   },
   statusText: {
-    fontFamily: FontFamily.medium,
-    fontSize: 12,
+    fontFamily: FontFamily.bold,
+    fontSize: 10,
   },
-  // Route
-  routePath: {
-    backgroundColor: Colors.surfaceMuted,
-    borderRadius: BorderRadius.sm,
-    padding: Spacing.sm,
-    marginBottom: Spacing.sm,
-    gap: Spacing.xs,
+  // Timeline path
+  routePathContainer: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    marginVertical: Spacing.sm,
+    gap: Spacing.md,
   },
-  pathStop: {
+  timelineTrack: {
     alignItems: 'center',
-    gap: Spacing.xs,
+    justifyContent: 'space-between',
+    paddingVertical: 2,
+    width: 18,
   },
-  pathText: {
+  startDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: Colors.primarySurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+  },
+  startDotInner: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+  },
+  verticalConnector: {
+    width: 2,
+    flex: 1,
+    backgroundColor: Colors.borderLight,
+    marginVertical: 3,
+    borderRadius: 1,
+  },
+  routeDetails: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingVertical: 1,
+  },
+  routeStopText: {
     fontFamily: FontFamily.medium,
     fontSize: 13,
     color: Colors.textSecondary,
+    flex: 1,
   },
-  pathDivider: {
-    width: 2,
-    height: 8,
-    backgroundColor: Colors.border,
-  },
-  // Details
+  // Details Row
   detailsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: Spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    marginBottom: Spacing.sm,
+    borderTopColor: Colors.borderLight,
+    paddingTop: Spacing.md,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   dateText: {
-    fontFamily: FontFamily.regular,
+    fontFamily: FontFamily.medium,
     fontSize: 12,
     color: Colors.textMuted,
   },
@@ -703,7 +762,7 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
     backgroundColor: Colors.primary,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
+    borderRadius: BorderRadius.md,
   },
   trackButtonText: {
     fontFamily: FontFamily.bold,
@@ -730,7 +789,7 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
     backgroundColor: Colors.secondary,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
+    borderRadius: BorderRadius.md,
   },
   boardingPassButtonText: {
     fontFamily: FontFamily.bold,

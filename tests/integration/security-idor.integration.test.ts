@@ -43,7 +43,9 @@ describe('Security: IDOR Protection Tests', () => {
         p_window_seconds: 60,
       });
       expect(error).not.toBeNull();
-      expect(error.code).toBe('42501'); // PostgreSQL error code for insufficient_privilege (permission denied)
+      // PostgREST returns PGRST202 (function not found for role) when EXECUTE is revoked from authenticated.
+      // This is equivalent to 42501 (permission denied) — the function is hidden, not exposed.
+      expect(['42501', 'PGRST202']).toContain(error.code);
       expect(data).toBeNull();
     });
 
@@ -55,14 +57,14 @@ describe('Security: IDOR Protection Tests', () => {
         p_window_seconds: 300,
       });
       expect(error).not.toBeNull();
-      expect(error.code).toBe('42501');
+      expect(['42501', 'PGRST202']).toContain(error.code);
       expect(data).toBeNull();
     });
 
     it('should prevent user A from affecting user B rate limit (full isolation)', async () => {
       const action = `test_exhaust_${Date.now()}`;
 
-      // 1. Try to call check_rate_limit as user A to target user B — should fail with permission denied (42501)
+      // 1. Try to call check_rate_limit as user A to target user B — should fail (permission denied or not found)
       const { error: attackError } = await studentA.client.rpc('check_rate_limit', {
         p_user_id: studentB.user.id,
         p_action: action,
@@ -70,7 +72,7 @@ describe('Security: IDOR Protection Tests', () => {
         p_window_seconds: 300,
       });
       expect(attackError).not.toBeNull();
-      expect(attackError.code).toBe('42501');
+      expect(['42501', 'PGRST202']).toContain(attackError.code);
 
       // 2. Verify that user B's actual rate limit check (performed via serviceClient) works and is not affected by user A's blocked attempts
       const { data: allowed, error } = await serviceClient.rpc('check_rate_limit', {

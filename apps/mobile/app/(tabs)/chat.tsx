@@ -19,6 +19,45 @@ export default function ConversationsScreen() {
   const { top } = useSafeAreaInsets();
   const { user, profile } = useAuthStore();
 
+  const streamTheme = useMemo(() => ({
+    colors: {
+      background: Colors.white,
+      background_page: Colors.background,
+      border: Colors.border,
+      text: Colors.text,
+      text_muted: Colors.textMuted,
+      accent_green: Colors.primary,
+      white: Colors.white,
+      black: Colors.black,
+    },
+    semantics: {
+      accentPrimary: Colors.primary,
+      backgroundCoreApp: Colors.background,
+      backgroundCoreElevation0: Colors.white,
+      backgroundCoreElevation1: Colors.white,
+      backgroundCoreElevation2: Colors.white,
+      backgroundCoreElevation3: Colors.white,
+      backgroundCoreSurfaceDefault: Colors.white,
+      backgroundCoreSurfaceStrong: Colors.surfaceMuted,
+      backgroundCoreSurfaceSubtle: Colors.surfaceMuted,
+      chatBgIncoming: Colors.white,
+      chatBgOutgoing: Colors.primarySurface,
+      chatTextIncoming: Colors.text,
+      chatTextOutgoing: Colors.text,
+      inputTextDefault: Colors.text,
+      inputTextPlaceholder: Colors.textMuted,
+      inputTextIcon: Colors.textMuted,
+      borderCoreDefault: Colors.border,
+      borderCoreStrong: Colors.border,
+      borderCoreSubtle: Colors.borderLight,
+      textPrimary: Colors.text,
+      textSecondary: Colors.textSecondary,
+      textTertiary: Colors.textMuted,
+      textDisabled: Colors.textMuted,
+      textLink: Colors.primary,
+    }
+  }), []);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
   const [connecting, setConnecting] = useState(true);
@@ -73,7 +112,7 @@ export default function ConversationsScreen() {
   if (connecting || !chatClient) {
     return (
       <View style={[styles.container, { backgroundColor: Colors.background }]}>
-        <StatusBar style="light" translucent />
+        <StatusBar style="dark" translucent />
         {/* Render stub header so the layout doesn't jump */}
         <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
           <View style={styles.glassOverlay} />
@@ -97,10 +136,10 @@ export default function ConversationsScreen() {
   }
 
   return (
-    <OverlayProvider>
+    <OverlayProvider value={{ style: streamTheme }}>
       <Chat client={chatClient}>
         <View style={styles.container}>
-          <StatusBar style="light" translucent />
+          <StatusBar style="dark" translucent />
 
           {/* Branded Header Banner (Fixed at the top) */}
           <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
@@ -117,7 +156,7 @@ export default function ConversationsScreen() {
               }}
               activeOpacity={0.7}
             >
-              <Ionicons name="help-circle-outline" size={22} color={Colors.white} />
+              <Ionicons name="help-circle-outline" size={22} color={Colors.primaryDeep} />
             </TouchableOpacity>
           </View>
 
@@ -206,11 +245,11 @@ const styles = StyleSheet.create({
   headerBanner: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-    ...Shadow.header,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.white,
+    ...Shadow.sm,
     zIndex: 10,
-    overflow: 'hidden',
     position: 'relative',
   },
   glassOverlay: {
@@ -219,7 +258,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: Colors.primaryDeep,
+    backgroundColor: Colors.white,
   },
   glassHighlight: {
     position: 'absolute',
@@ -227,14 +266,12 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: Colors.glassOverlay,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.glassBorder,
+    backgroundColor: 'transparent',
   },
   headerTitle: {
     fontFamily: FontFamily.bold,
     fontSize: 16,
-    color: Colors.white,
+    color: Colors.text,
     zIndex: 2,
     textAlign: 'center',
     width: '100%',
