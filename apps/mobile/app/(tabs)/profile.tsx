@@ -175,49 +175,46 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       <StatusBar style="light" translucent />
 
-      {/* Hero Banner — pure decoration, no buttons */}
-      <View style={[styles.heroBanner, { paddingTop: top }]} />
+      {/* Hero Banner — buttons on both sides, avatar overlaps bottom */}
+      <View style={[styles.heroBanner, { paddingTop: top }]}>
+        {/* Edit button — left */}
+        <TouchableOpacity
+          style={styles.bannerBtn}
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          }}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="create-outline" size={20} color="rgba(255,255,255,0.9)" />
+        </TouchableOpacity>
 
-      {/* Profile Card — overlaps the banner */}
+        {/* Help button — right */}
+        <TouchableOpacity
+          style={styles.bannerBtn}
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/help');
+          }}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="help-circle-outline" size={20} color="rgba(255,255,255,0.9)" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Profile Card — overlaps the banner bottom */}
       <View style={styles.profileCard}>
-        {/* Action Row: Edit | Avatar | Settings */}
-        <View style={styles.cardActionRow}>
-          {/* Edit profile button */}
-          <TouchableOpacity
-            style={styles.cardActionBtn}
-            onPress={() => {
-              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            }}
-            activeOpacity={0.75}
-          >
-            <Ionicons name="create-outline" size={19} color={Colors.primaryDeep} />
-          </TouchableOpacity>
-
-          {/* Avatar — pops above the card top edge */}
-          <View style={styles.avatarWrapper}>
-            <View style={styles.avatarRing}>
-              <View style={styles.avatarCircle}>
-                <Text style={styles.avatarInitial}>
-                  {(profile?.full_name || t('user')).charAt(0).toUpperCase()}
-                </Text>
-              </View>
+        {/* Avatar */}
+        <View style={styles.avatarWrapper}>
+          <View style={styles.avatarRing}>
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarInitial}>
+                {(profile?.full_name || t('user')).charAt(0).toUpperCase()}
+              </Text>
             </View>
           </View>
-
-          {/* Settings button */}
-          <TouchableOpacity
-            style={styles.cardActionBtn}
-            onPress={() => {
-              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push('/help');
-            }}
-            activeOpacity={0.75}
-          >
-            <Ionicons name="settings-outline" size={19} color={Colors.primaryDeep} />
-          </TouchableOpacity>
         </View>
 
-        {/* Name on a single line */}
+        {/* Name, email, badge */}
         <Text style={styles.headerName} numberOfLines={1} adjustsFontSizeToFit>
           {profile?.full_name || t('user')}
         </Text>
@@ -452,8 +449,21 @@ const styles = StyleSheet.create({
   },
   // ── Hero Banner ──────────────────────────────────────────
   heroBanner: {
-    height: 120,
+    height: 130,
     backgroundColor: Colors.primaryDeep,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
+  bannerBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   // ── Profile Card (overlaps banner) ───────────────────────
   profileCard: {
@@ -470,31 +480,10 @@ const styles = StyleSheet.create({
     ...Shadow.lg,
     zIndex: 10,
   },
-  // ── Card action row (Edit | Avatar | Settings) ────────────
-  cardActionRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginTop: -36,
-    marginBottom: Spacing.sm,
-    paddingHorizontal: Spacing.xs,
-  },
-  cardActionBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: Colors.primarySurface,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
   // ── Avatar ────────────────────────────────────────────────
   avatarWrapper: {
-    marginTop: -2,
-    marginBottom: 0,
+    marginTop: -36,
+    marginBottom: Spacing.sm,
   },
   avatarRing: {
     width: 80,
