@@ -320,7 +320,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
     >
-      <StatusBar barStyle="light-content" backgroundColor={Colors.backgroundDark} />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
       {/* Ambient background glowing orbs */}
       <View style={styles.orb1} pointerEvents="none" />
       <View style={styles.orb2} pointerEvents="none" />
@@ -475,7 +475,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: Colors.background,
     position: 'relative',
     overflow: 'hidden',
   },
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
     height: 280,
     borderRadius: 140,
     backgroundColor: '#16A34A',
-    opacity: 0.15,
+    opacity: 0.08,
   },
   orb2: {
     position: 'absolute',
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
     height: 340,
     borderRadius: 170,
     backgroundColor: '#4ADE80',
-    opacity: 0.1,
+    opacity: 0.06,
   },
   scrollContent: {
     flexGrow: 1,
@@ -512,22 +512,22 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: BorderRadius.circle,
-    backgroundColor: '#2D2D2D',
+    backgroundColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.md,
-    borderWidth: 2,
-    borderColor: 'rgba(22, 163, 74, 0.18)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(22, 163, 74, 0.12)',
     shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   appName: {
     fontFamily: FontFamily.bold,
     fontSize: 32,
-    color: Colors.white,
+    color: Colors.text,
     letterSpacing: 1,
   },
   appNameAr: {
@@ -539,21 +539,21 @@ const styles = StyleSheet.create({
   tagline: {
     fontFamily: FontFamily.regular,
     fontSize: 13,
-    color: Colors.textMuted,
+    color: Colors.textSecondary,
     marginTop: Spacing.xs,
   },
   // Card
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    backgroundColor: Colors.white,
     borderRadius: BorderRadius.xl,
     padding: Spacing.xl,
-    borderWidth: 1.5,
-    borderColor: 'rgba(22, 163, 74, 0.18)',
-    shadowColor: Colors.primary,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.06,
     shadowRadius: 24,
-    elevation: 8,
+    elevation: 6,
   },
   cardTitle: {
     fontFamily: FontFamily.bold,
@@ -698,12 +698,12 @@ const styles = StyleSheet.create({
   langButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(22, 163, 74, 0.08)',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.pill,
     borderWidth: 1,
-    borderColor: 'rgba(22, 163, 74, 0.25)',
+    borderColor: 'rgba(22, 163, 74, 0.2)',
     gap: Spacing.xs,
   },
   langText: {

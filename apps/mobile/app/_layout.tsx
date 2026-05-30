@@ -429,7 +429,7 @@ function Layout() {
                   name="login"
                   options={{
                     headerShown: false,
-                    contentStyle: { backgroundColor: Colors.backgroundDark },
+                    contentStyle: { backgroundColor: Colors.background },
                   }}
                 />
                 <Stack.Screen
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: Colors.background,
   },
   offlineBanner: {
     backgroundColor: Colors.warning,
