@@ -175,40 +175,56 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       <StatusBar style="light" translucent />
 
-      {/* Hero Header — Green banner + overlapping avatar */}
-      <View style={[styles.heroBanner, { paddingTop: top }]}>
-        {/* Top-right: Settings shortcut */}
-        <TouchableOpacity
-          style={styles.settingsBtn}
-          onPress={() => {
-            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.push('/help');
-          }}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="settings-outline" size={20} color="rgba(255,255,255,0.85)" />
-        </TouchableOpacity>
-      </View>
+      {/* Hero Banner — pure decoration, no buttons */}
+      <View style={[styles.heroBanner, { paddingTop: top }]} />
 
       {/* Profile Card — overlaps the banner */}
       <View style={styles.profileCard}>
-        {/* Avatar — sits at the top of the card overlapping the banner */}
-        <View style={styles.avatarWrapper}>
-          <View style={styles.avatarRing}>
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarInitial}>
-                {(profile?.full_name || t('user')).charAt(0).toUpperCase()}
-              </Text>
+        {/* Action Row: Edit | Avatar | Settings */}
+        <View style={styles.cardActionRow}>
+          {/* Edit profile button */}
+          <TouchableOpacity
+            style={styles.cardActionBtn}
+            onPress={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }}
+            activeOpacity={0.75}
+          >
+            <Ionicons name="create-outline" size={19} color={Colors.primaryDeep} />
+          </TouchableOpacity>
+
+          {/* Avatar — pops above the card top edge */}
+          <View style={styles.avatarWrapper}>
+            <View style={styles.avatarRing}>
+              <View style={styles.avatarCircle}>
+                <Text style={styles.avatarInitial}>
+                  {(profile?.full_name || t('user')).charAt(0).toUpperCase()}
+                </Text>
+              </View>
             </View>
           </View>
+
+          {/* Settings button */}
+          <TouchableOpacity
+            style={styles.cardActionBtn}
+            onPress={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push('/help');
+            }}
+            activeOpacity={0.75}
+          >
+            <Ionicons name="settings-outline" size={19} color={Colors.primaryDeep} />
+          </TouchableOpacity>
         </View>
 
-        {/* Name, email, badge */}
-        <Text style={styles.headerName}>{profile?.full_name || t('user')}</Text>
-        <Text style={styles.headerEmail}>{user?.email}</Text>
+        {/* Name on a single line */}
+        <Text style={styles.headerName} numberOfLines={1} adjustsFontSizeToFit>
+          {profile?.full_name || t('user')}
+        </Text>
+        <Text style={styles.headerEmail} numberOfLines={1}>{user?.email}</Text>
 
         <View style={styles.roleBadge}>
-          <Ionicons name={roleIcon} size={12} color={Colors.white} />
+          <Ionicons name={roleIcon} size={12} color={Colors.primaryDeep} />
           <Text style={styles.roleBadgeText}>{roleLabel}</Text>
         </View>
       </View>
@@ -436,18 +452,8 @@ const styles = StyleSheet.create({
   },
   // ── Hero Banner ──────────────────────────────────────────
   heroBanner: {
-    height: 130,
+    height: 120,
     backgroundColor: Colors.primaryDeep,
-    paddingHorizontal: Spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'flex-end',
-  },
-  settingsBtn: {
-    marginTop: Spacing.md,
-    padding: 8,
-    borderRadius: BorderRadius.xl,
-    backgroundColor: 'rgba(255,255,255,0.12)',
   },
   // ── Profile Card (overlaps banner) ───────────────────────
   profileCard: {
@@ -458,16 +464,37 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     paddingBottom: Spacing.lg,
     alignItems: 'center',
-    marginTop: -50,              // pulls card UP over the banner
+    marginTop: -46,
     borderWidth: 1,
     borderColor: Colors.borderLight,
     ...Shadow.lg,
     zIndex: 10,
   },
+  // ── Card action row (Edit | Avatar | Settings) ────────────
+  cardActionRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: -36,
+    marginBottom: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
+  },
+  cardActionBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: Colors.primarySurface,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
   // ── Avatar ────────────────────────────────────────────────
   avatarWrapper: {
-    marginTop: -36,              // avatar pops above the card top edge
-    marginBottom: Spacing.sm,
+    marginTop: -2,
+    marginBottom: 0,
   },
   avatarRing: {
     width: 80,
