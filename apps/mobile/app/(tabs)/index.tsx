@@ -588,8 +588,8 @@ export default function DiscoveryPage() {
         <View style={styles.glassOverlay} />
         <View style={styles.glassHighlight} />
 
-        <View style={[styles.headerTopRow, isRTL && { flexDirection: 'row-reverse' }]}>
-          <View style={[styles.brandLogoContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+        <View style={styles.headerTopRow}>
+          <View style={styles.brandLogoContainer}>
             <Text style={styles.brandLogoText}>{isRTL ? 'سير' : 'Sair'}</Text>
             <Text style={styles.brandLogoTextDot}>.</Text>
           </View>

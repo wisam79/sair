@@ -175,34 +175,41 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       <StatusBar style="light" translucent />
 
-      {/* Fixed Header */}
-      <View style={[styles.header, { paddingTop: top + Spacing.md }]}>
-        {/* Glassmorphic Background Effects */}
-        <View style={styles.glassOverlay} />
-        <View style={styles.glassHighlight} />
+      {/* Hero Header — Green banner + overlapping avatar */}
+      <View style={[styles.heroBanner, { paddingTop: top }]}>
+        {/* Top-right: Settings shortcut */}
+        <TouchableOpacity
+          style={styles.settingsBtn}
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/help');
+          }}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="settings-outline" size={20} color="rgba(255,255,255,0.85)" />
+        </TouchableOpacity>
+      </View>
 
-        <View style={styles.headerRow}>
-          {/* Left Group: Avatar + Details */}
-          <View style={styles.headerLeftGroup}>
-            {/* Avatar Ring */}
-            <View style={styles.avatarContainer}>
-              <View style={styles.avatarCircle}>
-                <Ionicons name="person" size={24} color={Colors.primary} />
-              </View>
-            </View>
-
-            {/* User Info Stack */}
-            <View style={styles.userInfo}>
-              <Text style={styles.headerName}>{profile?.full_name || t('user')}</Text>
-              <Text style={styles.headerEmail}>{user?.email}</Text>
+      {/* Profile Card — overlaps the banner */}
+      <View style={styles.profileCard}>
+        {/* Avatar — sits at the top of the card overlapping the banner */}
+        <View style={styles.avatarWrapper}>
+          <View style={styles.avatarRing}>
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarInitial}>
+                {(profile?.full_name || t('user')).charAt(0).toUpperCase()}
+              </Text>
             </View>
           </View>
+        </View>
 
-          {/* Right Group: Role Badge */}
-          <View style={styles.roleBadge}>
-            <Ionicons name={roleIcon} size={11} color={Colors.white} />
-            <Text style={styles.roleBadgeText}>{roleLabel}</Text>
-          </View>
+        {/* Name, email, badge */}
+        <Text style={styles.headerName}>{profile?.full_name || t('user')}</Text>
+        <Text style={styles.headerEmail}>{user?.email}</Text>
+
+        <View style={styles.roleBadge}>
+          <Ionicons name={roleIcon} size={12} color={Colors.white} />
+          <Text style={styles.roleBadgeText}>{roleLabel}</Text>
         </View>
       </View>
 
@@ -427,100 +434,98 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: Spacing.xxxl + 60, // added extra padding for floating tabs safety
   },
-  // Header
-  header: {
-    paddingBottom: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    shadowColor: '#054024',
-    shadowOffset: { width: 0, height: 6 },
-    ...Shadow.header,
-    zIndex: 10,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  glassOverlay: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
+  // ── Hero Banner ──────────────────────────────────────────
+  heroBanner: {
+    height: 130,
     backgroundColor: Colors.primaryDeep,
-  },
-  glassHighlight: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: Colors.glassOverlay,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.glassBorder,
-  },
-  headerRow: {
+    paddingHorizontal: Spacing.lg,
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    zIndex: 2,
+    alignItems: 'flex-start',
+    justifyContent: 'flex-end',
   },
-  headerLeftGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    flex: 1,
+  settingsBtn: {
+    marginTop: Spacing.md,
+    padding: 8,
+    borderRadius: BorderRadius.xl,
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
-  avatarContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 2.5,
-    borderColor: Colors.glassBorder,
+  // ── Profile Card (overlaps banner) ───────────────────────
+  profileCard: {
+    backgroundColor: Colors.white,
+    marginHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: 0,
+    paddingBottom: Spacing.lg,
+    alignItems: 'center',
+    marginTop: -50,              // pulls card UP over the banner
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    ...Shadow.lg,
+    zIndex: 10,
+  },
+  // ── Avatar ────────────────────────────────────────────────
+  avatarWrapper: {
+    marginTop: -36,              // avatar pops above the card top edge
+    marginBottom: Spacing.sm,
+  },
+  avatarRing: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.white,
+    ...Shadow.md,
   },
   avatarCircle: {
-    width: 47,
-    height: 47,
-    borderRadius: 24,
-    backgroundColor: Colors.white,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.primaryDeep,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: {
+  avatarInitial: {
     fontFamily: FontFamily.bold,
-    fontSize: 18,
+    fontSize: 28,
     color: Colors.white,
-  },
-  userInfo: {
-    flex: 1,
-    gap: 2,
+    lineHeight: 34,
   },
   headerName: {
     fontFamily: FontFamily.bold,
-    fontSize: 17,
-    color: Colors.white,
+    fontSize: 19,
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: 3,
+    letterSpacing: -0.3,
+  },
+  headerEmail: {
+    fontFamily: FontFamily.regular,
+    fontSize: 13,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
   },
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.glassWhite,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
+    gap: 5,
+    backgroundColor: Colors.primarySurface,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     borderRadius: BorderRadius.pill,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.primary + '30',
+    alignSelf: 'center',
+    marginTop: Spacing.xs,
   },
   roleBadgeText: {
-    fontFamily: FontFamily.medium,
-    fontSize: 11,
-    color: Colors.white,
-  },
-  headerEmail: {
-    fontFamily: FontFamily.regular,
-    fontSize: 12.5,
-    color: 'rgba(255, 255, 255, 0.7)',
+    fontFamily: FontFamily.bold,
+    fontSize: 12,
+    color: Colors.primaryDeep,
   },
   scrollContainer: {
     flex: 1,
