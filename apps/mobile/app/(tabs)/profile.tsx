@@ -40,6 +40,7 @@ export default function ProfileScreen() {
   const { top } = useSafeAreaInsets();
   const [saving, setSaving] = useState(false);
   const [stats, setStats] = useState({ tripCount: 0, avgRating: 0 });
+  const scrollViewRef = React.useRef<ScrollView>(null);
 
   const { control, handleSubmit, reset } = useForm<ProfileEditRequest>({
     resolver: zodResolver(ProfileEditSchema),
@@ -173,64 +174,69 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" translucent />
+      <StatusBar style="dark" translucent />
 
-      {/* Hero Banner — buttons on both sides, avatar overlaps bottom */}
-      <View style={[styles.heroBanner, { paddingTop: top }]}>
-        {/* Edit button — left */}
+      {/* Branded Header Banner (Fixed at the top) */}
+      <View style={[styles.headerBanner, { paddingTop: top + Spacing.sm }]}>
+        {/* Glassmorphic Background Effects */}
+        <View style={styles.glassOverlay} />
+        <View style={styles.glassHighlight} />
+
         <TouchableOpacity
-          style={styles.bannerBtn}
+          style={styles.headerShortcutLeftBtn}
           onPress={() => {
             void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            scrollViewRef.current?.scrollTo({ y: 0, animated: true });
           }}
-          activeOpacity={0.8}
+          activeOpacity={0.7}
         >
-          <Ionicons name="create-outline" size={20} color="rgba(255,255,255,0.9)" />
+          <Ionicons name="create-outline" size={22} color={Colors.primaryDeep} />
         </TouchableOpacity>
 
-        {/* Help button — right */}
+        <Text style={styles.headerTitle}>{t('profile')}</Text>
+
         <TouchableOpacity
-          style={styles.bannerBtn}
+          style={styles.headerShortcutRightBtn}
           onPress={() => {
             void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             router.push('/help');
           }}
-          activeOpacity={0.8}
+          activeOpacity={0.7}
         >
-          <Ionicons name="help-circle-outline" size={20} color="rgba(255,255,255,0.9)" />
+          <Ionicons name="help-circle-outline" size={22} color={Colors.primaryDeep} />
         </TouchableOpacity>
       </View>
 
-      {/* Profile Card — overlaps the banner bottom */}
-      <View style={styles.profileCard}>
-        {/* Avatar */}
-        <View style={styles.avatarWrapper}>
-          <View style={styles.avatarRing}>
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarInitial}>
-                {(profile?.full_name || t('user')).charAt(0).toUpperCase()}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Name, email, badge */}
-        <Text style={styles.headerName} numberOfLines={1} adjustsFontSizeToFit>
-          {profile?.full_name || t('user')}
-        </Text>
-        <Text style={styles.headerEmail} numberOfLines={1}>{user?.email}</Text>
-
-        <View style={styles.roleBadge}>
-          <Ionicons name={roleIcon} size={12} color={Colors.primaryDeep} />
-          <Text style={styles.roleBadgeText}>{roleLabel}</Text>
-        </View>
-      </View>
-
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollContainer}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        {/* Profile Card */}
+        <View style={styles.profileCard}>
+          {/* Avatar */}
+          <View style={styles.avatarWrapper}>
+            <View style={styles.avatarRing}>
+              <View style={styles.avatarCircle}>
+                <Text style={styles.avatarInitial}>
+                  {(profile?.full_name || t('user')).charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Name, email, badge */}
+          <Text style={styles.headerName} numberOfLines={1} adjustsFontSizeToFit>
+            {profile?.full_name || t('user')}
+          </Text>
+          <Text style={styles.headerEmail} numberOfLines={1}>{user?.email}</Text>
+
+          <View style={styles.roleBadge}>
+            <Ionicons name={roleIcon} size={12} color={Colors.primaryDeep} />
+            <Text style={styles.roleBadgeText}>{roleLabel}</Text>
+          </View>
+        </View>
         {/* Info Form */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('personal_info')}</Text>
@@ -447,42 +453,73 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: Spacing.xxxl + 60, // added extra padding for floating tabs safety
   },
-  // ── Hero Banner ──────────────────────────────────────────
-  heroBanner: {
-    height: 130,
-    backgroundColor: Colors.primaryDeep,
+  // ── Glassmorphic Header ──────────────────────────────────
+  headerBanner: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+    backgroundColor: Colors.white,
+    ...Shadow.sm,
+    zIndex: 10,
+    position: 'relative',
   },
-  bannerBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
+  glassOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: Colors.white,
   },
-  // ── Profile Card (overlaps banner) ───────────────────────
+  glassHighlight: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+  },
+  headerTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 16,
+    color: Colors.text,
+    zIndex: 2,
+    textAlign: 'center',
+    width: '100%',
+  },
+  headerShortcutLeftBtn: {
+    position: 'absolute',
+    bottom: 12,
+    start: Spacing.md,
+    zIndex: 3,
+    padding: 6,
+  },
+  headerShortcutRightBtn: {
+    position: 'absolute',
+    bottom: 12,
+    end: Spacing.md,
+    zIndex: 3,
+    padding: 6,
+  },
+  // ── Profile Card ─────────────────────────────────────────
   profileCard: {
     backgroundColor: Colors.white,
     marginHorizontal: Spacing.lg,
     borderRadius: BorderRadius.xl,
     paddingHorizontal: Spacing.lg,
-    paddingTop: 0,
+    paddingTop: Spacing.lg,
     paddingBottom: Spacing.lg,
     alignItems: 'center',
-    marginTop: -46,
+    marginTop: Spacing.md,
     borderWidth: 1,
     borderColor: Colors.borderLight,
-    ...Shadow.lg,
+    ...Shadow.md,
     zIndex: 10,
   },
   // ── Avatar ────────────────────────────────────────────────
   avatarWrapper: {
-    marginTop: -36,
+    marginTop: 0,
     marginBottom: Spacing.sm,
   },
   avatarRing: {
